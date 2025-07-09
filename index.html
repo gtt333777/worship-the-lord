@@ -1,84 +1,75 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Worship The Lord</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f6f7fb; }
-    .container { max-width: 600px; margin: 32px auto 0; background: #fff; padding: 28px 22px 22px; border-radius: 12px; box-shadow: 0 6px 28px #0001; }
-    h1 { text-align: center; color: #2c3e50; margin-bottom: 0; font-size: 2em; }
-    .subtitle { text-align: center; color: #2277aa; margin-bottom: 28px; font-weight: 500; }
-    .button-main {
-      font-size: 1.2em; color: #fff; background: #2277aa; padding: 14px 30px;
-      border: none; border-radius: 8px; text-decoration: none; display: block; margin: 0 auto 30px;
-      transition: background .2s; text-align:center;
-    }
-    .button-main:hover { background: #155e91; }
-    .song-select, .lyrics-box, .player-box { margin-bottom: 28px; }
-    .lyrics-scroll { border: 1px solid #bbb; background: #f9fafd; border-radius: 8px; padding: 22px; font-size: 1.25em; font-weight: bold; max-height: 340px; overflow-y: auto; margin-top: 12px; }
-    .player-buttons { margin-bottom: 18px; }
-    .player-buttons button { margin-right: 10px; }
-    .chat-board { margin-top: 40px; border: 1px solid #ccd; padding: 14px; border-radius: 10px; background: #fafbff; }
-    @media (max-width:700px) {
-      .container { padding: 14px 2vw 18px; }
-      .lyrics-scroll { font-size: 1.08em; padding: 12px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Worship The Lord</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f8fc;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background: #2742d3;
+            padding: 24px 0 20px 0;
+            text-align: center;
+        }
+        .navbar a {
+            color: #fff;
+            background: #2277aa;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1.3em;
+            text-decoration: none;
+            margin: 0 5px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px #0002;
+            transition: background 0.2s;
+        }
+        .navbar a:hover {
+            background: #195785;
+        }
+        .main-content {
+            max-width: 520px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 2em;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #0001;
+            text-align: center;
+        }
+        h1 {
+            color: #273046;
+        }
+        .note {
+            margin-top: 2em;
+            color: #444;
+            font-size: 1.1em;
+        }
+        @media (max-width: 600px) {
+            .main-content { margin: 24px 5px; padding: 1em; }
+            .navbar a { font-size: 1em; padding: 10px 16px; }
+        }
+    </style>
 </head>
 <body>
-  <!-- Go to Library Button -->
-  <a href="https://worshipthelord.podia.com/" target="_blank" class="button-main">
-    Go to Library
-  </a>
-
-  <div class="container">
-    <h1>Worship The Lord</h1>
-    <div class="subtitle">Upload &amp; play worship stems. Scroll lyrics below!</div>
-
-    <!-- App Interface -->
-    <div class="song-select">
-      <label>
-        <strong>Choose Vocals WAV:</strong>
-        <input type="file" id="vocalsFile" accept=".wav" />
-      </label><br><br>
-      <label>
-        <strong>Choose Accompaniment WAV:</strong>
-        <input type="file" id="accompFile" accept=".wav" />
-      </label>
-      <br>
-      <button onclick="loadSong()">Load Song</button>
+    <div class="navbar">
+        <a href="https://kumar.podia.com/view/downloads/digital-download" target="_blank">
+            Go to Song Library
+        </a>
     </div>
+    <div class="main-content">
+        <h1>Worship The Lord</h1>
+        <p>Upload &amp; play worship stems.<br>Scroll lyrics below!</p>
 
-    <!-- Player controls -->
-    <div class="player-box">
-      <div class="player-buttons">
-        <button id="playBtn" onclick="playSong()" disabled>Play</button>
-        <button id="pauseBtn" onclick="pauseSong()" disabled>Pause</button>
-        <span style="margin-left:14px;">
-          <label>Vocals Volume: <input type="range" id="vocalsVolume" min="0" max="1" step="0.01" value="1" style="vertical-align:middle;"/></label>
-        </span>
-        <span style="margin-left:14px;">
-          <label>Accompaniment Volume: <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" style="vertical-align:middle;"/></label>
-        </span>
-      </div>
+        <!-- Place for future app functionality (audio player, lyrics, etc.) -->
+
+        <div class="note">
+            You can access and download vocals/accompaniment files from the Song Library.<br>
+            <b>Need more features? Let us know!</b>
+        </div>
     </div>
-
-    <!-- Lyrics area -->
-    <div class="lyrics-box">
-      <div id="lyricsTitle" style="font-size:1.15em;color:#2277aa;font-weight:500;margin-bottom:5px;"></div>
-      <div id="lyricsDisplay" class="lyrics-scroll"></div>
-    </div>
-
-    <!-- Message Board (Local Only) -->
-    <div class="chat-board">
-      <h3 style="margin-top:0">Message Board</h3>
-      <textarea id="messageInput" rows="2" style="width:100%;font-size:1em"></textarea><br>
-      <button onclick="postMessage()">Post Message</button>
-      <div id="messagesArea" style="margin-top:16px; min-height:50px"></div>
-    </div>
-  </div>
-
-  <script src="main.js"></script>
 </body>
 </html>
