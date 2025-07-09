@@ -1,0 +1,15 @@
+[
+  {
+    "displayName": "Anantha Thuthi",
+    "vocalsFileId": "YOUR_VOCALS_FILE_ID_1",
+    "accompFileId": "YOUR_ACCOMP_FILE_ID_1",
+    "lyricsPdfFileId": "YOUR_LYRICS_PDF_FILE_ID_1"
+  },
+  {
+    "displayName": "Ennai Kaanbavare",
+    "vocalsFileId": "YOUR_VOCALS_FILE_ID_2",
+    "accompFileId": "YOUR_ACCOMP_FILE_ID_2",
+    "lyricsPdfFileId": "YOUR_LYRICS_PDF_FILE_ID_2"
+  }
+  // Add more songs here
+]
