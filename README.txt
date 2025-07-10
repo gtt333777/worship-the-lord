@@ -1,54 +1,60 @@
-﻿WORSHIP THE LORD - Simple Karaoke Stem App
+﻿WORSHIP THE LORD - README
+=========================
 
-===========================================
-Description
--------------------------------------------
-This app lets you:
-- Play worship song stems (vocals.wav + accompaniment.wav) together and adjust their volumes
-- Scroll, bold, large lyrics below while singing
-- Send simple messages (local, non-shared) in the message board
-- All in one page, mobile friendly, no backend required
+OVERVIEW
+--------
+This is a simple, modern web app for singing and playing along with Christian worship songs.
 
-How to Use
--------------------------------------------
-1. Visit the site (hosted on GitHub Pages or anywhere).
-2. Click the "Go to Library" button to browse/download worship song files from Podia.
-3. On the main app:
-   - Click "Choose Vocals WAV" and select your vocals.wav file.
-   - Click "Choose Accompaniment WAV" and select your accompaniment.wav file.
-   - Make sure both files have the same song prefix name.
-   - Click "Load Song" to activate the player and show lyrics.
-   - Click "Play" to start both files in sync; adjust each volume with the sliders.
-   - Manually scroll lyrics as needed below the player.
-4. Message board lets you post local (temporary) notes/greetings (not shared across devices).
+- Each song is represented by three files, all hosted on Google Drive:
+    • vocals.wav   (lead vocal only)
+    • accompaniment.wav (music/instruments only)
+    • lyrics.pdf   (large, readable lyrics)
+- All song data (names and file links) is stored in songs.json.
+- No database, backend, or login required. All users can play songs and view lyrics instantly.
 
-How to Add/Update Lyrics
--------------------------------------------
-- Open main.js and add new lyrics in the `lyricsLibrary` object using the filename prefix as the key.
+FILES
+-----
+• index.html  -- main app user interface
+• main.js     -- logic to load/play both tracks, control volumes, and show PDF lyrics
+• songs.json  -- list of all songs with Google Drive links (edit this to add/remove songs)
 
-Example:
-  "Song Title Prefix": `Full lyrics here...`,
+HOW TO USE
+----------
+1. Place index.html, main.js, and songs.json in the same folder.
+2. Upload your wav and pdf files to Google Drive, set them to "Anyone with the link can view".
+3. Paste each file's share link in songs.json under the correct keys for each song (see example).
+4. Open index.html in a browser (preferably via local server for best performance).
+5. For each song, press "Play Both" to hear vocals+music, use volume controls, and scroll lyrics below.
 
-- Make sure the song prefix matches both audio files and lyrics.
+EXAMPLE: songs.json entry
+-------------------------
+[
+  {
+    "displayName": "My Worship Song",
+    "vocalsFileId": "https://drive.google.com/file/d/....../view?usp=sharing",
+    "accompFileId": "https://drive.google.com/file/d/....../view?usp=sharing",
+    "lyricsPdfFileId": "https://drive.google.com/file/d/....../view?usp=sharing"
+  }
+]
 
-Customization
--------------------------------------------
-- Update colors, title, or button text in index.html for your group.
-- Edit/expand the lyrics library in main.js.
+NOTES
+-----
+• To add songs, just copy/paste a block in songs.json and change the links.
+• All songs will be displayed alphabetically.
+• If a PDF is missing, a message will show instead.
+• For best audio performance, use Chrome or Firefox on desktop.
+• For mobile, layout will adjust and PDF remains scrollable.
 
-Deployment
--------------------------------------------
-- You can host this app for free on GitHub Pages (recommended) or Netlify/Vercel.
-- Only two files required: index.html and main.js (plus this README).
-- All lyrics and player logic runs in the browser, no server needed.
+KNOWN LIMITATIONS
+-----------------
+• Google Drive streaming may not work with very large files, or if Drive link permissions are not set correctly.
+• All users can stream but not download from the app (downloading is possible from Drive if link is shared).
+• There is no real-time lyric sync—lyrics must be manually scrolled while singing.
 
-Audio Files
--------------------------------------------
-- Store your .wav files on Podia, Dropbox, or any cloud service and download as needed.
-- This app does not host or stream the files directly.
+CREDITS & SUPPORT
+-----------------
+App concept: [Your Name]
+App code: ChatGPT + [Your Name]
 
-Support
--------------------------------------------
-Questions? Just ask ChatGPT for help updating, customizing, or deploying the app!
+For improvements, new features, or help, just ask!
 
-Blessings and happy singing!

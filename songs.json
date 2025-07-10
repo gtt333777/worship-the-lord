@@ -1,15 +1,14 @@
-[
+﻿[
   {
-    "displayName": "Anantha Thuthi",
-    "vocalsFileId": "YOUR_VOCALS_FILE_ID_1",
-    "accompFileId": "YOUR_ACCOMP_FILE_ID_1",
-    "lyricsPdfFileId": "YOUR_LYRICS_PDF_FILE_ID_1"
+    "displayName": "என்னை காண்பவரே",
+    "vocalsFileId": "https://drive.google.com/file/d/11l5rVKkcgPGJoUdEL9LiGBLyqxITrF-g/view?usp=sharing",
+    "accompFileId": "https://drive.google.com/file/d/1TUZ6RxThLGf3KGNVPUZ3u2uUDdKVwA03/view?usp=sharing",
+    "lyricsPdfFileId": "https://drive.google.com/file/d/1TWLrmeSGAZZr35SEWcDg3jDJPKl8F9OZ/view?usp=sharing"
   },
   {
-    "displayName": "Ennai Kaanbavare",
-    "vocalsFileId": "YOUR_VOCALS_FILE_ID_2",
-    "accompFileId": "YOUR_ACCOMP_FILE_ID_2",
-    "lyricsPdfFileId": "YOUR_LYRICS_PDF_FILE_ID_2"
+    "displayName": "ஐயா உம் திரு நாமம்",
+    "vocalsFileId": "https://drive.google.com/file/d/1z1LTpjbLngrENEuM-KHiO7t8K-FCX0uG/view?usp=sharing",
+    "accompFileId": "https://drive.google.com/file/d/1O90d5jmJgaiFSbs3Mz1pYaQZZZU_2_Sr/view?usp=sharing",
+    "lyricsPdfFileId": "https://drive.google.com/file/d/1s1GuR938kp5VJdilsEB2KZCAdWVQEXmR/view?usp=sharing"
   }
-  // Add more songs here
 ]
