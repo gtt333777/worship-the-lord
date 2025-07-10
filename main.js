@@ -1,124 +1,70 @@
-﻿// "Worship The Lord" main.js
-let songs = [];
-let currentSong = null;
+﻿let songs = [];
+const songSelect = document.getElementById('songSelect');
+const playerArea = document.getElementById('playerArea');
 
-const songSelect = document.getElementById("song-select");
-const audioSection = document.getElementById("audio-section");
-const songTitle = document.getElementById("song-title");
-const playBtn = document.getElementById("play-btn");
-const vocalPlayer = document.getElementById("vocal-player");
-const accPlayer = document.getElementById("acc-player");
-const vocMinus = document.getElementById("voc-minus");
-const vocPlus = document.getElementById("voc-plus");
-const vocVol = document.getElementById("voc-vol");
-const accMinus = document.getElementById("acc-minus");
-const accPlus = document.getElementById("acc-plus");
-const accVol = document.getElementById("acc-vol");
-const lyricsPdf = document.getElementById("lyrics-pdf");
+// Load songs.json
+fetch('songs.json')
+  .then(res => res.json())
+  .then(data => {
+    songs = data;
+    fillSongList();
+    showSong(0); // Show first song by default
+  });
 
-async function loadSongs() {
-  try {
-    const response = await fetch("songs.json");
-    songs = await response.json();
-    if (!Array.isArray(songs) || songs.length === 0) {
-      songSelect.innerHTML = '<option>No songs available</option>';
-      audioSection.style.display = "none";
-      return;
+function fillSongList() {
+  songSelect.innerHTML = "";
+  songs.forEach((song, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = song.title;
+    songSelect.appendChild(opt);
+  });
+  songSelect.onchange = () => showSong(songSelect.value);
+}
+
+function showSong(idx) {
+  if (songs.length === 0) return;
+  const song = songs[idx];
+  playerArea.innerHTML = `
+    <h2 style="margin:10px 0 8px 0;">${song.title}</h2>
+    <div class="controls">
+      <button id="playBtn">Play</button>
+      Vocal <button id="vdown">-</button> <span id="vvol">100</span>% <button id="vup">+</button>
+      Music <button id="mdown">-</button> <span id="mvol">100</span>% <button id="mup">+</button>
+    </div>
+    <audio id="vocal" src="${song.vocal}" preload="none"></audio>
+    <audio id="music" src="${song.music}" preload="none"></audio>
+    <div style="margin-top:18px;">
+      <div style="font-size:1.15em;margin-bottom:5px;">Lyrics:</div>
+      <iframe class="lyrics-frame" src="${song.lyrics}"></iframe>
+    </div>
+  `;
+  const vocal = playerArea.querySelector('#vocal');
+  const music = playerArea.querySelector('#music');
+  let vvol = 1, mvol = 1;
+  document.getElementById('playBtn').onclick = function() {
+    if (vocal.paused && music.paused) {
+      vocal.currentTime = 0; music.currentTime = 0;
+      vocal.volume = vvol; music.volume = mvol;
+      vocal.play(); music.play();
+      this.textContent = 'Pause';
+    } else {
+      vocal.pause(); music.pause();
+      this.textContent = 'Play';
     }
-    songSelect.innerHTML = songs
-      .map((song, idx) => `<option value="${idx}">${song.displayName}</option>`)
-      .join("");
-    audioSection.style.display = "block";
-    // Select first song by default
-    loadSong(0);
-  } catch (e) {
-    songSelect.innerHTML = '<option>Error loading songs</option>';
-    audioSection.style.display = "none";
+  };
+  document.getElementById('vdown').onclick = () => setVol('v', Math.max(0, vvol - 0.05));
+  document.getElementById('vup').onclick = () => setVol('v', Math.min(1, vvol + 0.05));
+  document.getElementById('mdown').onclick = () => setVol('m', Math.max(0, mvol - 0.05));
+  document.getElementById('mup').onclick = () => setVol('m', Math.min(1, mvol + 0.05));
+  function setVol(type, value) {
+    if (type === 'v') {
+      vvol = value; vocal.volume = vvol;
+      document.getElementById('vvol').textContent = Math.round(vvol*100);
+    }
+    if (type === 'm') {
+      mvol = value; music.volume = mvol;
+      document.getElementById('mvol').textContent = Math.round(mvol*100);
+    }
   }
 }
-
-function dropboxStreamUrl(url) {
-  if (!url) return "";
-  // Convert dropbox.com link to direct stream link
-  if (url.startsWith("https://www.dropbox.com/")) {
-    url = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
-    url = url.split("?")[0]; // Remove query params
-  }
-  // Already direct link? OK.
-  return url;
-}
-
-function loadSong(idx) {
-  currentSong = songs[idx];
-  songTitle.textContent = currentSong.displayName || "Untitled";
-  // Audio
-  vocalPlayer.src = dropboxStreamUrl(currentSong.vocalsFileId);
-  accPlayer.src = dropboxStreamUrl(currentSong.accompFileId);
-  vocalPlayer.currentTime = 0;
-  accPlayer.currentTime = 0;
-  vocalPlayer.volume = 1.0;
-  accPlayer.volume = 1.0;
-  vocVol.textContent = "100%";
-  accVol.textContent = "100%";
-  // Lyrics
-  if (currentSong.lyricsPdfFileId) {
-    lyricsPdf.src = dropboxStreamUrl(currentSong.lyricsPdfFileId) + "#toolbar=0&navpanes=0";
-    lyricsPdf.style.display = "block";
-  } else {
-    lyricsPdf.style.display = "none";
-  }
-  playBtn.textContent = "▶️ Play";
-  playBtn.disabled = false;
-}
-
-let syncTimeout = null;
-
-function playBoth() {
-  // Sync the two players (pause if any is playing)
-  vocalPlayer.pause(); accPlayer.pause();
-  vocalPlayer.currentTime = 0; accPlayer.currentTime = 0;
-  let played = 0;
-  vocalPlayer.onplay = accPlayer.onplay = () => { played++; if (played === 2) playBtn.textContent = "⏸️ Pause"; }
-  vocalPlayer.onpause = accPlayer.onpause = () => { playBtn.textContent = "▶️ Play"; }
-  vocalPlayer.play();
-  accPlayer.play();
-  // When either ends, stop both.
-  const stopAll = () => { vocalPlayer.pause(); accPlayer.pause(); playBtn.textContent = "▶️ Play"; };
-  vocalPlayer.onended = stopAll;
-  accPlayer.onended = stopAll;
-}
-
-function pauseBoth() {
-  vocalPlayer.pause();
-  accPlayer.pause();
-  playBtn.textContent = "▶️ Play";
-}
-
-playBtn.onclick = () => {
-  if (vocalPlayer.paused && accPlayer.paused) playBoth();
-  else pauseBoth();
-};
-
-songSelect.onchange = (e) => {
-  loadSong(Number(songSelect.value));
-  pauseBoth();
-};
-
-vocMinus.onclick = () => {
-  vocalPlayer.volume = Math.max(0, vocalPlayer.volume - 0.05);
-  vocVol.textContent = Math.round(vocalPlayer.volume * 100) + "%";
-};
-vocPlus.onclick = () => {
-  vocalPlayer.volume = Math.min(1, vocalPlayer.volume + 0.05);
-  vocVol.textContent = Math.round(vocalPlayer.volume * 100) + "%";
-};
-accMinus.onclick = () => {
-  accPlayer.volume = Math.max(0, accPlayer.volume - 0.05);
-  accVol.textContent = Math.round(accPlayer.volume * 100) + "%";
-};
-accPlus.onclick = () => {
-  accPlayer.volume = Math.min(1, accPlayer.volume + 0.05);
-  accVol.textContent = Math.round(accPlayer.volume * 100) + "%";
-};
-
-window.onload = loadSongs;

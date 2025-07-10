@@ -1,14 +1,14 @@
 ﻿[
   {
-    "displayName": "என்னை காண்பவரே",
-    "vocalsFileId": "https://dl.dropboxusercontent.com/scl/fi/39y7p37g64o8i4t7jwils/vocals.wav",
-    "accompFileId": "https://dl.dropboxusercontent.com/scl/fi/lqgsz98rkz2gjsk8c2zab/accom.wav",
-    "lyricsPdfFileId": "https://dl.dropboxusercontent.com/scl/fi/eyix9xbcbftk76bo8g7cq/lyrics.pdf"
+    "title": "ஜயா உம் திரு நாமம்",
+    "vocal": "https://dl.dropboxusercontent.com/s/yourfileid/vocal.wav",
+    "music": "https://dl.dropboxusercontent.com/s/yourfileid/accompaniment.wav",
+    "lyrics": "https://dl.dropboxusercontent.com/s/yourfileid/lyrics.pdf"
   },
   {
-    "displayName": "ஐயா உம் திரு நாமம்",
-    "vocalsFileId": "https://dl.dropboxusercontent.com/scl/fi/nmrnf0k6yqpimm3szc9it/vocals.wav",
-    "accompFileId": "https://dl.dropboxusercontent.com/scl/fi/a4h6ao2uhknjxottumqby/accom.wav",
-    "lyricsPdfFileId": "https://dl.dropboxusercontent.com/scl/fi/zip701vel4smwdglxm4ep/lyrics.pdf"
+    "title": "என்னை காண்பவரே",
+    "vocal": "https://dl.dropboxusercontent.com/s/yourfileid/vocal2.wav",
+    "music": "https://dl.dropboxusercontent.com/s/yourfileid/accompaniment2.wav",
+    "lyrics": "https://dl.dropboxusercontent.com/s/yourfileid/lyrics2.pdf"
   }
 ]

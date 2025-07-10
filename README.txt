@@ -1,24 +1,15 @@
-﻿Worship The Lord App
+﻿Worship The Lord - App Usage Instructions
+-----------------------------------------
+1. Place these files together: index.html, main.js, songs.json
+2. Update songs.json with your song list and Dropbox "direct" links (see example in README)
+3. Deploy to GitHub Pages or open index.html directly in browser
+4. For each song, you must provide:
+   - Vocal WAV (direct link)
+   - Accompaniment WAV (direct link)
+   - Lyrics PDF (direct link)
+5. Play, control volume, and view lyrics in browser!
 
-How to Use:
-------------
-1. Place all files (index.html, main.js, songs.json) in the same folder.
-2. Make sure the links in songs.json use dl.dropboxusercontent.com (not www.dropbox.com).
-3. Open index.html in your browser.
-4. Select a song. Press Play. Use +/– buttons to adjust vocal and music volume independently.
-5. Lyrics PDF displays below the player.
-
-File Structure:
----------------
-- index.html      (main app interface)
-- main.js         (logic, UI, audio, lyrics)
-- songs.json      (list of songs and Dropbox direct links)
-- README.txt      (you are reading it!)
-
-How to add more songs:
-----------------------
-1. Upload your vocals.wav, accomp.wav, and lyrics.pdf to Dropbox.
-2. Get the direct link for each (see example in songs.json).
-3. Add a new entry in songs.json with your song's displayName and three links.
-
-Enjoy!
+How to get direct Dropbox links:
+- After uploading a file to Dropbox, click "Share", then "Create link" (if needed)
+- Copy the link (e.g., https://www.dropbox.com/s/abc1234xyz/song.wav?dl=0)
+- Change it to https://dl.dropboxusercontent.com/s/abc1234xyz/song.wav
