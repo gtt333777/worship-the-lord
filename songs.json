@@ -1,14 +1,14 @@
 ﻿[
   {
     "title": "ஜயா உம் திரு நாமம்",
-    "vocal": "https://dl.dropboxusercontent.com/s/yourfileid/vocal.wav",
-    "music": "https://dl.dropboxusercontent.com/s/yourfileid/accompaniment.wav",
-    "lyrics": "https://dl.dropboxusercontent.com/s/yourfileid/lyrics.pdf"
+    "vocal": "https://dl.dropboxusercontent.com/s/your_vocal_file_id/vocal.wav?dl=1",
+    "accompaniment": "https://dl.dropboxusercontent.com/s/your_accompaniment_file_id/accompaniment.wav?dl=1",
+    "lyrics_pdf": "https://www.dropbox.com/s/your_pdf_file_id/lyrics.pdf?dl=0"
   },
   {
     "title": "என்னை காண்பவரே",
-    "vocal": "https://dl.dropboxusercontent.com/s/yourfileid/vocal2.wav",
-    "music": "https://dl.dropboxusercontent.com/s/yourfileid/accompaniment2.wav",
-    "lyrics": "https://dl.dropboxusercontent.com/s/yourfileid/lyrics2.pdf"
+    "vocal": "https://dl.dropboxusercontent.com/s/your_vocal_file_id/vocal.wav?dl=1",
+    "accompaniment": "https://dl.dropboxusercontent.com/s/your_accompaniment_file_id/accompaniment.wav?dl=1",
+    "lyrics_pdf": "https://www.dropbox.com/s/your_pdf_file_id/lyrics.pdf?dl=0"
   }
 ]

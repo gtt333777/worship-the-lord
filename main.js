@@ -1,70 +1,80 @@
 ﻿let songs = [];
-const songSelect = document.getElementById('songSelect');
-const playerArea = document.getElementById('playerArea');
+let currentSongIndex = 0;
 
-// Load songs.json
-fetch('songs.json')
-  .then(res => res.json())
-  .then(data => {
-    songs = data;
-    fillSongList();
-    showSong(0); // Show first song by default
-  });
-
-function fillSongList() {
-  songSelect.innerHTML = "";
-  songs.forEach((song, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = song.title;
-    songSelect.appendChild(opt);
-  });
-  songSelect.onchange = () => showSong(songSelect.value);
+function fetchSongs() {
+  fetch('songs.json')
+    .then(res => res.json())
+    .then(data => {
+      songs = data;
+      populateSongSelect();
+      if (songs.length > 0) {
+        loadSong(0);
+      }
+    });
 }
 
-function showSong(idx) {
-  if (songs.length === 0) return;
+function populateSongSelect() {
+  const select = document.getElementById('songSelect');
+  select.innerHTML = '';
+  songs.forEach((song, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = song.title;
+    select.appendChild(opt);
+  });
+  select.addEventListener('change', e => {
+    loadSong(Number(e.target.value));
+  });
+}
+
+function loadSong(idx) {
+  currentSongIndex = idx;
   const song = songs[idx];
-  playerArea.innerHTML = `
-    <h2 style="margin:10px 0 8px 0;">${song.title}</h2>
-    <div class="controls">
-      <button id="playBtn">Play</button>
-      Vocal <button id="vdown">-</button> <span id="vvol">100</span>% <button id="vup">+</button>
-      Music <button id="mdown">-</button> <span id="mvol">100</span>% <button id="mup">+</button>
-    </div>
-    <audio id="vocal" src="${song.vocal}" preload="none"></audio>
-    <audio id="music" src="${song.music}" preload="none"></audio>
-    <div style="margin-top:18px;">
-      <div style="font-size:1.15em;margin-bottom:5px;">Lyrics:</div>
-      <iframe class="lyrics-frame" src="${song.lyrics}"></iframe>
+  // Build player UI
+  document.getElementById('playerSection').innerHTML = `
+    <h2>${song.title}</h2>
+    <button onclick="playBoth()">&#9658; Play</button>
+    Vocal: <button onclick="setVolume('vocal', -0.1)">-</button>
+    <span id="vocalVol">100%</span>
+    <button onclick="setVolume('vocal', 0.1)">+</button>
+    Music: <button onclick="setVolume('accompaniment', -0.1)">-</button>
+    <span id="musicVol">100%</span>
+    <button onclick="setVolume('accompaniment', 0.1)">+</button>
+    <audio id="vocalPlayer" src="${song.vocal}" preload="auto"></audio>
+    <audio id="accompanimentPlayer" src="${song.accompaniment}" preload="auto"></audio>
+  `;
+
+  // Lyrics section
+  document.getElementById('lyricsSection').innerHTML = `
+    <div>
+      <b>Lyrics:</b> 
+      <a href="${song.lyrics_pdf}" target="_blank">Open Lyrics PDF</a>
     </div>
   `;
-  const vocal = playerArea.querySelector('#vocal');
-  const music = playerArea.querySelector('#music');
-  let vvol = 1, mvol = 1;
-  document.getElementById('playBtn').onclick = function() {
-    if (vocal.paused && music.paused) {
-      vocal.currentTime = 0; music.currentTime = 0;
-      vocal.volume = vvol; music.volume = mvol;
-      vocal.play(); music.play();
-      this.textContent = 'Pause';
-    } else {
-      vocal.pause(); music.pause();
-      this.textContent = 'Play';
-    }
-  };
-  document.getElementById('vdown').onclick = () => setVol('v', Math.max(0, vvol - 0.05));
-  document.getElementById('vup').onclick = () => setVol('v', Math.min(1, vvol + 0.05));
-  document.getElementById('mdown').onclick = () => setVol('m', Math.max(0, mvol - 0.05));
-  document.getElementById('mup').onclick = () => setVol('m', Math.min(1, mvol + 0.05));
-  function setVol(type, value) {
-    if (type === 'v') {
-      vvol = value; vocal.volume = vvol;
-      document.getElementById('vvol').textContent = Math.round(vvol*100);
-    }
-    if (type === 'm') {
-      mvol = value; music.volume = mvol;
-      document.getElementById('mvol').textContent = Math.round(mvol*100);
-    }
+
+  window.vocalVol = 1;
+  window.musicVol = 1;
+}
+
+function playBoth() {
+  const v = document.getElementById('vocalPlayer');
+  const m = document.getElementById('accompanimentPlayer');
+  v.currentTime = 0; m.currentTime = 0;
+  v.volume = window.vocalVol || 1;
+  m.volume = window.musicVol || 1;
+  v.play(); m.play();
+}
+
+function setVolume(which, delta) {
+  if (which === 'vocal') {
+    window.vocalVol = Math.max(0, Math.min(1, (window.vocalVol || 1) + delta));
+    document.getElementById('vocalPlayer').volume = window.vocalVol;
+    document.getElementById('vocalVol').textContent = Math.round(window.vocalVol*100) + '%';
+  } else {
+    window.musicVol = Math.max(0, Math.min(1, (window.musicVol || 1) + delta));
+    document.getElementById('accompanimentPlayer').volume = window.musicVol;
+    document.getElementById('musicVol').textContent = Math.round(window.musicVol*100) + '%';
   }
 }
+
+window.onload = fetchSongs;
