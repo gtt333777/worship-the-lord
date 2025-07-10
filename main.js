@@ -1,80 +1,101 @@
 ﻿let songs = [];
-let currentSongIndex = 0;
+let currentSong = null;
 
-function fetchSongs() {
-  fetch('songs.json')
-    .then(res => res.json())
-    .then(data => {
-      songs = data;
-      populateSongSelect();
-      if (songs.length > 0) {
-        loadSong(0);
-      }
-    });
+fetch("songs.json")
+  .then(res => res.json())
+  .then(data => {
+    songs = data;
+    populateSongs();
+    if (songs.length > 0) selectSong(0);
+  });
+
+function populateSongs() {
+  const sel = document.getElementById("songSelect");
+  sel.innerHTML = '';
+  songs.forEach((s, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.innerText = s.title;
+    sel.appendChild(opt);
+  });
+  sel.onchange = e => selectSong(e.target.value);
 }
 
-function populateSongSelect() {
-  const select = document.getElementById('songSelect');
-  select.innerHTML = '';
-  songs.forEach((song, idx) => {
-    const opt = document.createElement('option');
-    opt.value = idx;
-    opt.textContent = song.title;
-    select.appendChild(opt);
-  });
-  select.addEventListener('change', e => {
-    loadSong(Number(e.target.value));
-  });
-}
-
-function loadSong(idx) {
-  currentSongIndex = idx;
-  const song = songs[idx];
-  // Build player UI
-  document.getElementById('playerSection').innerHTML = `
-    <h2>${song.title}</h2>
-    <button onclick="playBoth()">&#9658; Play</button>
-    Vocal: <button onclick="setVolume('vocal', -0.1)">-</button>
-    <span id="vocalVol">100%</span>
-    <button onclick="setVolume('vocal', 0.1)">+</button>
-    Music: <button onclick="setVolume('accompaniment', -0.1)">-</button>
-    <span id="musicVol">100%</span>
-    <button onclick="setVolume('accompaniment', 0.1)">+</button>
-    <audio id="vocalPlayer" src="${song.vocal}" preload="auto"></audio>
-    <audio id="accompanimentPlayer" src="${song.accompaniment}" preload="auto"></audio>
-  `;
-
-  // Lyrics section
-  document.getElementById('lyricsSection').innerHTML = `
-    <div>
-      <b>Lyrics:</b> 
-      <a href="${song.lyrics_pdf}" target="_blank">Open Lyrics PDF</a>
-    </div>
-  `;
-
-  window.vocalVol = 1;
-  window.musicVol = 1;
+function selectSong(idx) {
+  currentSong = songs[idx];
+  document.getElementById("vocalAudio").src = currentSong.vocal;
+  document.getElementById("accompAudio").src = currentSong.accompaniment;
+  document.getElementById("vocalVol").value = 1;
+  document.getElementById("accompVol").value = 1;
+  updateVolume('vocal');
+  updateVolume('accomp');
+  loadLyrics(currentSong.title);
 }
 
 function playBoth() {
-  const v = document.getElementById('vocalPlayer');
-  const m = document.getElementById('accompanimentPlayer');
-  v.currentTime = 0; m.currentTime = 0;
-  v.volume = window.vocalVol || 1;
-  m.volume = window.musicVol || 1;
-  v.play(); m.play();
+  document.getElementById("vocalAudio").play();
+  document.getElementById("accompAudio").play();
+}
+function pauseBoth() {
+  document.getElementById("vocalAudio").pause();
+  document.getElementById("accompAudio").pause();
+}
+function setVolume(type, delta) {
+  const el = document.getElementById(type === 'vocal' ? "vocalVol" : "accompVol");
+  let val = parseFloat(el.value) + delta;
+  val = Math.max(0, Math.min(1, val));
+  el.value = val;
+  updateVolume(type);
+}
+function updateVolume(type) {
+  const val = document.getElementById(type === 'vocal' ? "vocalVol" : "accompVol").value;
+  document.getElementById(type === 'vocal' ? "vocalAudio" : "accompAudio").volume = val;
 }
 
-function setVolume(which, delta) {
-  if (which === 'vocal') {
-    window.vocalVol = Math.max(0, Math.min(1, (window.vocalVol || 1) + delta));
-    document.getElementById('vocalPlayer').volume = window.vocalVol;
-    document.getElementById('vocalVol').textContent = Math.round(window.vocalVol*100) + '%';
-  } else {
-    window.musicVol = Math.max(0, Math.min(1, (window.musicVol || 1) + delta));
-    document.getElementById('accompanimentPlayer').volume = window.musicVol;
-    document.getElementById('musicVol').textContent = Math.round(window.musicVol*100) + '%';
+// Support .txt, .pdf, .docx, .xlsx (lowercase, same prefix as song title)
+async function loadLyrics(title) {
+  const base = "lyrics/" + title.toLowerCase().replace(/\s+/g, "_");
+  const lyricsDiv = document.getElementById("lyricsDiv");
+  lyricsDiv.innerHTML = "<i>Loading lyrics...</i>";
+  // .txt
+  try {
+    let txt = await fetch(base + ".txt").then(r => r.ok ? r.text() : null);
+    if (txt) {
+      lyricsDiv.innerHTML = "<pre style='font-family:inherit;font-size:1.15em;white-space:pre-wrap;'>" + txt + "</pre>";
+      return;
+    }
+  } catch {}
+  // .pdf
+  let pdfUrl = base + ".pdf";
+  if (await checkFileExists(pdfUrl)) {
+    lyricsDiv.innerHTML = `
+      <iframe src="${pdfUrl}" class="lyrics-viewer"></iframe>
+      <a class="lyrics-link" href="${pdfUrl}" target="_blank">Open Lyrics PDF in New Window</a>
+    `;
+    return;
   }
+  // .docx
+  let docxUrl = base + ".docx";
+  if (await checkFileExists(docxUrl)) {
+    lyricsDiv.innerHTML = `
+      <a class="lyrics-link" href="${docxUrl}" target="_blank">Open Lyrics DOCX</a>
+    `;
+    return;
+  }
+  // .xlsx
+  let xlsxUrl = base + ".xlsx";
+  if (await checkFileExists(xlsxUrl)) {
+    lyricsDiv.innerHTML = `
+      <a class="lyrics-link" href="${xlsxUrl}" target="_blank">Open Lyrics XLSX</a>
+    `;
+    return;
+  }
+  lyricsDiv.innerHTML = "<i>Lyrics not found.</i>";
 }
 
-window.onload = fetchSongs;
+async function checkFileExists(url) {
+  try {
+    let res = await fetch(url, {method:'HEAD'});
+    return res.ok;
+  } catch { return false; }
+}

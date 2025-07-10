@@ -1,22 +1,100 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Worship The Lord</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f6f9fc;
+      color: #1d2233;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      background: #fff;
+      border-radius: 18px;
+      margin: 50px auto 0 auto;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+      padding: 32px;
+      text-align: center;
+    }
+    h1 {
+      color: #193a7c;
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    select, button {
+      font-size: 1.05em;
+      padding: 7px 12px;
+      margin: 10px 5px 20px 5px;
+      border-radius: 6px;
+      border: 1px solid #bfc4d0;
+    }
+    button {
+      background: #2365d8;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #0d47a1; }
+    .slider {
+      width: 160px;
+      margin: 0 12px;
+    }
+    .vol-label {
+      font-weight: bold;
+      margin-right: 6px;
+    }
+    #lyricsDiv {
+      background: #f3f8ff;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 28px;
+      min-height: 160px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 1.13rem;
+      color: #193a7c;
+      text-align: left;
+    }
+    .audio-block { margin-bottom: 26px; }
+    .lyrics-link { margin-top: 8px; display: block; }
+    .lyrics-viewer { width: 100%; height: 380px; border: none; margin-top: 8px; }
+  </style>
 </head>
 <body>
   <div class="container">
     <h1>Worship The Lord</h1>
     <div>
-      <label for="songSelect">Choose a Song:</label>
+      <label><b>Choose a Song:</b></label>
       <select id="songSelect"></select>
     </div>
-    <div id="playerSection"></div>
-    <div id="lyricsSection"></div>
-  </div>
-  <div class="footer">
-    App powered by God's grace.
+    <div>
+      <button onclick="playBoth()">Play Both</button>
+      <button onclick="pauseBoth()">Pause</button>
+    </div>
+    <div class="audio-block">
+      <span class="vol-label">Vocal</span>
+      <button onclick="setVolume('vocal', -0.1)">-</button>
+      <input type="range" min="0" max="1" step="0.01" value="1" id="vocalVol" class="slider" onchange="updateVolume('vocal')">
+      <button onclick="setVolume('vocal', 0.1)">+</button>
+      <audio id="vocalAudio" controls style="width:100%;margin-top:8px;"></audio>
+    </div>
+    <div class="audio-block">
+      <span class="vol-label">Music</span>
+      <button onclick="setVolume('accomp', -0.1)">-</button>
+      <input type="range" min="0" max="1" step="0.01" value="1" id="accompVol" class="slider" onchange="updateVolume('accomp')">
+      <button onclick="setVolume('accomp', 0.1)">+</button>
+      <audio id="accompAudio" controls style="width:100%;margin-top:8px;"></audio>
+    </div>
+    <div id="lyricsDiv"><i>Loading lyrics...</i></div>
   </div>
   <script src="main.js"></script>
 </body>
