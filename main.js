@@ -1,92 +1,104 @@
 ﻿let songs = [];
-let songTitles = [];
-const supportedLyricExts = ['.txt', '.pdf', '.docx', '.xlsx'];
+let currentSong = null;
 
-fetch('songs.json')
-  .then(r => r.json())
-  .then(data => {
-    songs = data;
-    songTitles = songs.map(song => song.title);
-    fillSongDropdown();
-    onSongChange();
-  });
-
-function fillSongDropdown() {
-  const sel = document.getElementById('songSelect');
-  sel.innerHTML = '';
-  songTitles.forEach((t, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = t;
-    sel.appendChild(opt);
-  });
-  sel.onchange = onSongChange;
+// Utility: Remove or replace illegal filename characters
+function safeFileName(title) {
+  return title.replace(/[\\/:*?"<>|]/g, "").trim();
 }
 
-function getLyricsBaseName(title) {
-  // Remove special chars/spaces and lowercase for robust match
-  return title.normalize('NFD').replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+async function loadSongs() {
+  try {
+    const resp = await fetch("songs.json");
+    songs = await resp.json();
+    const select = document.getElementById("songSelect");
+    select.innerHTML = "";
+    songs.forEach((s, idx) => {
+      const opt = document.createElement("option");
+      opt.value = idx;
+      opt.textContent = s.title;
+      select.appendChild(opt);
+    });
+    select.onchange = () => selectSong(select.value);
+    selectSong(0);
+  } catch (e) {
+    document.getElementById("lyricsDiv").innerHTML = "<b>Could not load song list!</b>";
+  }
 }
 
-function onSongChange() {
-  const idx = document.getElementById('songSelect').value;
-  const song = songs[idx];
-  document.getElementById('vocalAudio').src = song.vocal;
-  document.getElementById('accompAudio').src = song.accompaniment;
-  loadLyrics(song.title);
+async function selectSong(idx) {
+  currentSong = songs[idx];
+  document.getElementById("vocalAudio").src = currentSong.vocal;
+  document.getElementById("accompAudio").src = currentSong.accompaniment;
+  document.getElementById("vocalVol").value = 1;
+  document.getElementById("accompVol").value = 1;
+  updateVolume("vocal");
+  updateVolume("accomp");
+  loadLyrics(currentSong.title);
 }
 
+function setVolume(type, change) {
+  const slider = document.getElementById(type === "vocal" ? "vocalVol" : "accompVol");
+  let val = parseFloat(slider.value) + change;
+  val = Math.max(0, Math.min(1, val));
+  slider.value = val.toFixed(2);
+  updateVolume(type);
+}
+function updateVolume(type) {
+  const slider = document.getElementById(type === "vocal" ? "vocalVol" : "accompVol");
+  const audio = document.getElementById(type === "vocal" ? "vocalAudio" : "accompAudio");
+  audio.volume = parseFloat(slider.value);
+}
+
+// Play/Pause both
 function playBoth() {
-  document.getElementById('vocalAudio').play();
-  document.getElementById('accompAudio').play();
+  document.getElementById("vocalAudio").play();
+  document.getElementById("accompAudio").play();
 }
 function pauseBoth() {
-  document.getElementById('vocalAudio').pause();
-  document.getElementById('accompAudio').pause();
-}
-function setVolume(which, delta) {
-  const id = which === 'vocal' ? 'vocalVol' : 'accompVol';
-  const vol = document.getElementById(id);
-  let v = Math.max(0, Math.min(1, Number(vol.value) + delta));
-  vol.value = v.toFixed(2);
-  updateVolume(which);
-}
-function updateVolume(which) {
-  const v = Number(document.getElementById(which === 'vocal' ? 'vocalVol' : 'accompVol').value);
-  document.getElementById(which === 'vocal' ? 'vocalAudio' : 'accompAudio').volume = v;
+  document.getElementById("vocalAudio").pause();
+  document.getElementById("accompAudio").pause();
 }
 
-// --- Lyrics logic ---
-async function loadLyrics(title) {
-  const div = document.getElementById('lyricsDiv');
-  div.innerHTML = "<i>Loading lyrics...</i>";
-  const base = getLyricsBaseName(title);
-  // Try .txt first, then .pdf, .docx, .xlsx
+// === LYRICS LOADING LOGIC ===
+
+async function loadLyrics(songTitle) {
+  const baseName = safeFileName(songTitle);
+  const tryExtensions = [".txt", ".pdf", ".docx", ".xlsx"];
+  const folder = "lyrics/";
   let found = false;
-  for (const ext of supportedLyricExts) {
-    const url = `lyrics/${base}${ext}`;
+
+  for (let ext of tryExtensions) {
+    const url = folder + baseName + ext;
     try {
-      if (ext === '.txt') {
-        let resp = await fetch(url);
+      // Try .txt directly and show inside app
+      if (ext === ".txt") {
+        const resp = await fetch(url);
         if (resp.ok) {
-          let txt = await resp.text();
-          div.innerHTML = txt.replace(/\n/g, "<br>");
+          const txt = await resp.text();
+          document.getElementById("lyricsDiv").innerHTML = txt.replace(/\n/g, "<br>");
           found = true;
           break;
         }
       } else {
-        // Try HEAD request to see if file exists
-        let resp = await fetch(url, { method: 'HEAD' });
-        if (resp.ok) {
-          div.innerHTML = `<a href="${url}" target="_blank" style="font-size:1.1em">View Lyrics (${ext.slice(1).toUpperCase()})</a>`;
+        // For pdf, docx, xlsx: check if file exists, and if so, offer download link
+        const head = await fetch(url, { method: "HEAD" });
+        if (head.ok) {
+          document.getElementById("lyricsDiv").innerHTML = `
+            <b>Lyrics file available as ${ext.slice(1).toUpperCase()}:</b>
+            <br>
+            <a href="${url}" target="_blank">Open ${baseName + ext}</a>
+            <br><i>Cannot display this format inside the app.<br>Click link above to view or download.</i>
+          `;
           found = true;
           break;
         }
       }
-    } catch (e) {}
+    } catch (e) { /* Try next */ }
   }
   if (!found) {
-    div.innerHTML = "<span style='color:#888'>No lyrics found for this song.</span>";
+    document.getElementById("lyricsDiv").innerHTML = "<i>Lyrics not found.</i>";
   }
 }
+
+// Initial load
+window.onload = loadSongs;
