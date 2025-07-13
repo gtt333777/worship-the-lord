@@ -1,104 +1,105 @@
-﻿let songs = [];
-let currentSong = null;
+const DROPBOX_TOKEN = config.k1;
+console.log("Loaded Dropbox token:", DROPBOX_TOKEN);
+// Your logic can continue here...
+let vocalAudio = document.getElementById('vocalAudio');
+let accAudio = document.getElementById('accAudio');
+let lyricsBox = document.getElementById('lyrics');
+let loopBar = document.getElementById('loopBar');
+let songSelect = document.getElementById('songSelect');
 
-async function loadSongs() {
-  const resp = await fetch('songs.json');
-  songs = await resp.json();
+let currentSong = '';
+let loops = [];
+let startMark = 0;
+let endMark = 0;
+let isPrelude = false;  // stores prelude status for current loop
 
-  const songSelect = document.getElementById('songSelect');
-  songSelect.innerHTML = "";
-  songs.forEach((song, idx) => {
-    const opt = document.createElement('option');
-    opt.value = idx;
-    opt.innerText = song.title;
-    songSelect.appendChild(opt);
-  });
-
-  songSelect.onchange = onSongChange;
-  onSongChange();
-}
-
-function onSongChange() {
-  const idx = document.getElementById('songSelect').value;
-  currentSong = songs[idx];
-  setAudio();
-  loadLyrics();
-}
-
-function setAudio() {
-  document.getElementById('vocalAudio').src = currentSong.vocal;
-  document.getElementById('accompAudio').src = currentSong.accompaniment;
-  document.getElementById('vocalVol').value = 1;
-  document.getElementById('accompVol').value = 1;
-  updateVolume('vocal');
-  updateVolume('accomp');
-}
-
-function playBoth() {
-  document.getElementById('vocalAudio').play();
-  document.getElementById('accompAudio').play();
-}
-function pauseBoth() {
-  document.getElementById('vocalAudio').pause();
-  document.getElementById('accompAudio').pause();
-}
-function setVolume(type, delta) {
-  const slider = document.getElementById(type === 'vocal' ? 'vocalVol' : 'accompVol');
-  let v = parseFloat(slider.value) + delta;
-  v = Math.max(0, Math.min(1, v));
-  slider.value = v;
-  updateVolume(type);
-}
-function updateVolume(type) {
-  const audio = document.getElementById(type === 'vocal' ? 'vocalAudio' : 'accompAudio');
-  const slider = document.getElementById(type === 'vocal' ? 'vocalVol' : 'accompVol');
-  audio.volume = parseFloat(slider.value);
-}
-
-// Get lyrics file base name from the song title (normalized for Unicode filenames)
-function normalizeFileBase(title) {
-  return title
-    .normalize('NFC')    // Unicode normalize (important for Tamil, etc)
-    .replace(/[\\/:*?"<>|]/g, '') // Remove invalid file chars
-    .trim();
-}
-
-// Try lyrics/SONG.txt, .pdf, .docx, .xlsx (prioritizing .txt, as in your test)
-async function loadLyrics() {
-  const div = document.getElementById('lyricsDiv');
-  div.innerHTML = "<i>Loading lyrics...</i>";
-  const title = currentSong.title;
-  const base = normalizeFileBase(title);
-
-  // Try different extensions in order
-  const exts = ['.txt', '.pdf', '.docx', '.xlsx'];
-  for (const ext of exts) {
-    try {
-      const url = `lyrics/${base}${ext}`;
-      if (ext === '.txt') {
-        const resp = await fetch(url);
-        if (resp.ok) {
-          let txt = await resp.text();
-          txt = txt.replace(/\r\n/g, '\n').replace(/\n/g, '<br>');
-          div.innerHTML = `<b>${title}</b><br><br>${txt}`;
-          return;
-        }
-      }
-      // For .pdf, .docx, .xlsx just offer a download/view link if file exists
-      else {
-        const resp = await fetch(url, { method: 'HEAD' });
-        if (resp.ok) {
-          let label = ext.slice(1).toUpperCase();
-          div.innerHTML = `
-            <b>${title}</b><br><br>
-            <a href="${url}" target="_blank">Open Lyrics (${label})</a>
-          `;
-          return;
-        }
-      }
-    } catch (e) {}
+window.onload = async () => {
+  try {
+    const res = await fetch('lyrics/');
+    const text = await res.text();
+    const matches = [...text.matchAll(/href="([^"]+\.txt)"/g)];
+    const names = matches.map(m => decodeURIComponent(m[1].replace('.txt', '')));
+    songSelect.innerHTML = names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (names.length) {
+      currentSong = names[0];
+      loadSelectedSong();
+    }
+  } catch (e) {
+    console.error('Error loading lyrics folder:', e);
   }
-  div.innerHTML = "<i>Lyrics not found.</i>";
+};
+
+function loadSelectedSong() {
+  currentSong = songSelect.value;
+
+  fetch(`lyrics/${currentSong}.txt`)
+    .then(res => res.text())
+    .then(data => lyricsBox.value = data);
+
+  fetch(`lyrics/${currentSong}_loops.json`)
+    .then(res => res.ok ? res.json() : [])
+    .then(data => {
+      loops = data;
+      drawLoops();
+    });
+
+  vocalAudio.src = `lyrics/${currentSong}_vocal.wav`;
+  accAudio.src = `lyrics/${currentSong}_accompaniment.wav`;
 }
 
-window.onload = loadSongs;
+function play() {
+  vocalAudio.play();
+  accAudio.play();
+}
+function pause() {
+  vocalAudio.pause();
+  accAudio.pause();
+}
+function seek(sec) {
+  vocalAudio.currentTime += sec;
+  accAudio.currentTime += sec;
+}
+function adjustVolume(type, delta) {
+  const slider = type === 'vocal' ? vocalSlider : accSlider;
+  slider.value = Math.min(1, Math.max(0, parseFloat(slider.value) + delta));
+  setVolume(type);
+}
+function setVolume(type) {
+  if (type === 'vocal') vocalAudio.volume = vocalSlider.value;
+  else accAudio.volume = accSlider.value;
+}
+function markStart() {
+  startMark = vocalAudio.currentTime;
+  isPrelude = confirm('Does this loop contain a prelude?');
+  document.getElementById('status').innerText = `Start marked at ${startMark.toFixed(2)}s`;
+}
+function markEnd() {
+  endMark = vocalAudio.currentTime;
+  loops.push({ start: startMark, end: endMark, prelude: isPrelude });
+  drawLoops();
+}
+function adjustStart(sec) {
+  startMark = Math.max(0, startMark + sec);
+  document.getElementById('status').innerText = `Start marked at ${startMark.toFixed(2)}s`;
+}
+function downloadLoops() {
+  const blob = new Blob([JSON.stringify(loops, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentSong}_loops.json`;
+  a.click();
+}
+
+function drawLoops() {
+  loopBar.innerHTML = '';
+  const duration = vocalAudio.duration || 100;
+  loops.forEach((loop, i) => {
+    const div = document.createElement('div');
+    const left = (loop.start / duration) * 100;
+    const width = ((loop.end - loop.start) / duration) * 100;
+    div.className = `loop-segment${loop.prelude ? ' prelude' : ''}`;
+    div.style.left = `${left}%`;
+    div.style.width = `${width}%`;
+    loopBar.appendChild(div);
+  });
+}
