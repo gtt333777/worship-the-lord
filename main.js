@@ -39,6 +39,7 @@ function adjustVolume(type, delta) {
 }
 
 async function getTemporaryLink(path) {
+console.log("Trying to fetch from Dropbox path:", path);
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
     headers: {
