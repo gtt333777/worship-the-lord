@@ -13,12 +13,6 @@ async function loadDropboxToken() {
 
 const DROPBOX_FOLDER = "/WorshipSongs/";
 
-// ✅ Function to detect FLAC support
-function supportsFlac() {
-  const a = document.createElement('audio');
-  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
-}
-
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
@@ -39,7 +33,7 @@ function adjustVolume(type, delta) {
 }
 
 async function getTemporaryLink(path) {
-console.log("Trying to fetch from Dropbox path:", path);
+  console.log("Trying to fetch from Dropbox path:", path);
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
     headers: {
