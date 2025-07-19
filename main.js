@@ -66,7 +66,10 @@ async function loadSongs() {
     opt.textContent = name;
     select.appendChild(opt);
   });
-  loadSong(songNames[0]);
+  // ✅✅ FIXED THIS LINE: “c” was incorrect
+  // === [ FIXED ] ===
+  loadSong(songNames[0]);  // ✅ This was previously 'loadSong(c);' which caused error
+  // === [ END FIXED ] ===
 }
 
 async function loadSong(name) {
