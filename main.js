@@ -75,7 +75,7 @@ async function loadSongs() {
 async function loadSong(name) {
   const prefix = name.trim();
 
-  c// === [ MODIFIED ] ===
+  // === [ MODIFIED ] ===
   const ext = supportsFlac() ? "flac" : "mp3";
   console.log("Using extension:", ext); // Optional debug
   const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
