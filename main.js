@@ -47,6 +47,14 @@ async function getTemporaryLink(path) {
   return data.link;
 }
 
+// === [ ADDED ] ===
+// Detect FLAC support
+function supportsFlac() {
+  const a = document.createElement('audio');
+  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
+}
+// === [ END ADDED ] ===
+
 async function loadSongs() {
   await loadDropboxToken(); // ✅ Load Dropbox access token first
   const response = await fetch("lyrics/song_names.txt");
@@ -63,8 +71,13 @@ async function loadSongs() {
 
 async function loadSong(name) {
   const prefix = name.trim();
-  const vocalPath = DROPBOX_FOLDER + prefix + "_vocal.wav";
-  const accompPath = DROPBOX_FOLDER + prefix + "_acc.wav";
+
+  c// === [ MODIFIED ] ===
+  const ext = supportsFlac() ? "flac" : "mp3";
+  console.log("Using extension:", ext); // Optional debug
+  const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
+  const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
+  // === [ END MODIFIED ] ===
 
   try {
     const [vocalURL, accompURL] = await Promise.all([
