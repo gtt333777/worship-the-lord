@@ -1,5 +1,6 @@
 ﻿let ACCESS_TOKEN = "";
 
+// ✅ Securely load Dropbox access token from Netlify serverless function
 async function loadDropboxToken() {
   try {
     const res = await fetch('/.netlify/functions/getDropboxToken');
@@ -9,7 +10,14 @@ async function loadDropboxToken() {
     console.error("Failed to fetch Dropbox token:", err);
   }
 }
+
 const DROPBOX_FOLDER = "/WorshipSongs/";
+
+// ✅ Function to detect FLAC support
+function supportsFlac() {
+  const a = document.createElement('audio');
+  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
+}
 
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
@@ -88,8 +96,8 @@ document.getElementById("songSelect").addEventListener("change", e => {
 });
 
 document.getElementById("playBtn").addEventListener("click", () => {
-  vocalAudio.play();
-  accompAudio.play();
+  Promise.all([vocalAudio.play(), accompAudio.play()])
+  .catch(err => console.error("Playback error:", err));
 });
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
