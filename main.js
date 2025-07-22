@@ -95,7 +95,7 @@ async function loadSong(name) {
     accompAudio.load();
 
     // === ✅ FIXED: Ensure lyrics show on mobile browsers too ===
-    fetch(`lyrics/${prefix}.txt`)
+    fetch(`lyrics/${prefix}.txt?t=${Date.now()}`)  // ✅ Force refresh for mobile
       .then(res => res.ok ? res.text() : "Lyrics not found.")
       .then(txt => {
         const box = document.getElementById("lyricsBox");
