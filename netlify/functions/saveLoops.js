@@ -1,5 +1,4 @@
-﻿const { Request } = require('node-fetch');
-const fetch = require('node-fetch');
+﻿const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
   try {
@@ -15,28 +14,25 @@ exports.handler = async (event) => {
     const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
     const filePath = `/WorshipSongs/${song}_loops.json`;
 
-    const dropboxArgs = {
-      path: filePath,
-      mode: "overwrite",
-      autorename: false,
-      mute: true,
-    };
-
-    // ✅ Build the Request manually to avoid escaping issues
-    const req = new Request('https://content.dropboxapi.com/2/files/upload', {
-      method: 'POST',
+    const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${DROPBOX_TOKEN}`,
-        'Content-Type': 'application/octet-stream',
-        'Dropbox-API-Arg': JSON.stringify(dropboxArgs),
+        "Authorization": `Bearer ${DROPBOX_TOKEN}`,
+        "Content-Type": "application/octet-stream",
+        // ⚠️ Fix: Use JSON string here directly. Do NOT encode or escape manually.
+        "Dropbox-API-Arg": JSON.stringify({
+          path: filePath,
+          mode: "overwrite",
+          autorename: false,
+          mute: true
+        })
       },
+      // ✅ Body must be plain JSON string of loop data
       body: JSON.stringify(loops)
     });
 
-    const res = await fetch(req);
-
-    if (!res.ok) {
-      const text = await res.text();
+    if (!response.ok) {
+      const text = await response.text();
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Upload failed", details: text }),
