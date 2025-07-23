@@ -1,44 +1,128 @@
-﻿async function loadSongs() {
+﻿let ACCESS_TOKEN = "";
+
+// ✅ Securely load Dropbox access token from Netlify serverless function
+async function loadDropboxToken() {
   try {
-    const response = await fetch("lyrics/song_names.txt");
-    const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
-
-    const select = document.getElementById("songSelect");
-    songNames.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
-    });
-
-    if (songNames.length > 0) {
-      loadLyrics(songNames[0]); // Load first song by default
-    }
+    const res = await fetch('/.netlify/functions/getDropboxToken');
+    const data = await res.json();
+    ACCESS_TOKEN = data.access_token;
   } catch (err) {
-    console.error("Failed to load song names:", err);
+    console.error("Failed to fetch Dropbox token:", err);
   }
 }
 
-async function loadLyrics(name) {
+const DROPBOX_FOLDER = "/WorshipSongs/";
+
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
+
+document.getElementById('vocalVolume').addEventListener('input', e => {
+  vocalAudio.volume = parseFloat(e.target.value);
+});
+document.getElementById('accompVolume').addEventListener('input', e => {
+  accompAudio.volume = parseFloat(e.target.value);
+});
+
+function adjustVolume(type, delta) {
+  const slider = document.getElementById(type === 'vocal' ? 'vocalVolume' : 'accompVolume');
+  let vol = parseFloat(slider.value) + delta;
+  vol = Math.min(1, Math.max(0, vol));
+  slider.value = vol;
+  if (type === 'vocal') vocalAudio.volume = vol;
+  else accompAudio.volume = vol;
+}
+
+async function getTemporaryLink(path) {
+  console.log("Trying to fetch from Dropbox path:", path);
+  const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + ACCESS_TOKEN,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ path })
+  });
+  if (!response.ok) throw new Error("Failed to get Dropbox link");
+  const data = await response.json();
+  return data.link;
+}
+
+// === ✅ [ ADDED ] Detect FLAC support for better quality ===
+function supportsFlac() {
+  const a = document.createElement('audio');
+  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
+}
+// === ✅ [ END ADDED ] ===
+
+async function loadSongs() {
+  await loadDropboxToken(); // ✅ Load Dropbox access token first
+  const response = await fetch("lyrics/song_names.txt");
+  const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
+  const select = document.getElementById("songSelect");
+  songNames.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  // ✅✅ FIXED: Load first song correctly
+  loadSong(songNames[0]);
+}
+
+async function loadSong(name) {
   const prefix = name.trim();
-  const lyricsBox = document.getElementById("lyricsBox");
+
+  // === ✅ [ MODIFIED ] ===
+  const ext = supportsFlac() ? "flac" : "mp3";
+  const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
+  const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
+  // === ✅ [ END MODIFIED ] ===
 
   try {
-    const response = await fetch(`lyrics/${prefix}.txt`);
-    if (!response.ok) throw new Error("Lyrics file not found");
-    const text = await response.text();
+    const [vocalURL, accompURL] = await Promise.all([
+      getTemporaryLink(vocalPath),
+      getTemporaryLink(accompPath)
+    ]);
 
-    // ✅ This preserves line breaks in desktop & mobile
-    lyricsBox.value = text;
-    lyricsBox.scrollTop = 0;
+    vocalAudio.src = vocalURL;
+    accompAudio.src = accompURL;
+
+    vocalAudio.load();
+    accompAudio.load();
+
+    // === ✅✅ [ FIXED: Make sure lyrics load correctly in both mobile and desktop ] ===
+    fetch(`lyrics/${prefix}.txt`)
+      .then(res => res.ok ? res.text() : "Lyrics not found.")
+      .then(txt => {
+        const box = document.getElementById("lyricsBox");
+        box.value = "";         // ✅ Clear previous content (important on mobile)
+        box.value = txt;        // ✅ Use .value for <textarea> for full compatibility
+        box.scrollTop = 0;      // ✅ Always scroll to top on new lyrics
+      })
+      .catch(err => {
+        document.getElementById("lyricsBox").value = "Lyrics could not be loaded.";
+        console.error("Lyrics load error:", err);
+      });
+    // === ✅✅ [ END FIXED ] ===
+
   } catch (err) {
-    lyricsBox.value = "Lyrics could not be loaded.";
-    console.error(err);
+    alert("Error loading song: " + err.message);
   }
 }
 
-document.getElementById("songSelect").addEventListener("change", (e) => {
-  loadLyrics(e.target.value);
+document.getElementById("songSelect").addEventListener("change", e => {
+  loadSong(e.target.value);
+});
+
+document.getElementById("playBtn").addEventListener("click", () => {
+  Promise.all([vocalAudio.play(), accompAudio.play()])
+    .catch(err => console.error("Playback error:", err));
+});
+
+document.getElementById("pauseBtn").addEventListener("click", () => {
+  vocalAudio.pause();
+  accompAudio.pause();
 });
 
 loadSongs();
