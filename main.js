@@ -13,40 +13,33 @@ async function loadDropboxToken() {
 
 const DROPBOX_FOLDER = "/WorshipSongs/";
 
-let audioCtx;
-let vocalBuffer, accompBuffer;
-let vocalSource, accompSource;
-let gainNodeVocal, gainNodeAccomp;
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
 
-// === ✅ [ OLD Audio elements REMOVED ] ===
-// let vocalAudio = new Audio();
-// let accompAudio = new Audio();
-// === ✅ [ END REMOVED ] ===
+// 🟢🟢 [ LOOP VARIABLES ADDED ] 🟢🟢
+let loopSegments = [];
+let currentLoopIndex = 0;
+let loopMode = true;
+// 🟢🟢 [ END LOOP VARIABLES ] 🟢🟢
 
-function supportsFlac() {
-  const a = document.createElement('audio');
-  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
-}
+document.getElementById('vocalVolume').addEventListener('input', e => {
+  vocalAudio.volume = parseFloat(e.target.value);
+});
+document.getElementById('accompVolume').addEventListener('input', e => {
+  accompAudio.volume = parseFloat(e.target.value);
+});
 
 function adjustVolume(type, delta) {
   const slider = document.getElementById(type === 'vocal' ? 'vocalVolume' : 'accompVolume');
   let vol = parseFloat(slider.value) + delta;
   vol = Math.min(1, Math.max(0, vol));
   slider.value = vol;
-
-  // ✅ Apply gain to AudioContext
-  if (type === 'vocal' && gainNodeVocal) gainNodeVocal.gain.value = vol;
-  if (type === 'accompaniment' && gainNodeAccomp) gainNodeAccomp.gain.value = vol;
+  if (type === 'vocal') vocalAudio.volume = vol;
+  else accompAudio.volume = vol;
 }
 
-document.getElementById('vocalVolume').addEventListener('input', e => {
-  if (gainNodeVocal) gainNodeVocal.gain.value = parseFloat(e.target.value);
-});
-document.getElementById('accompVolume').addEventListener('input', e => {
-  if (gainNodeAccomp) gainNodeAccomp.gain.value = parseFloat(e.target.value);
-});
-
 async function getTemporaryLink(path) {
+  console.log("Trying to fetch from Dropbox path:", path);
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
     headers: {
@@ -60,45 +53,9 @@ async function getTemporaryLink(path) {
   return data.link;
 }
 
-async function fetchAndDecodeAudio(url) {
-  const res = await fetch(url);
-  const arrayBuffer = await res.arrayBuffer();
-  return audioCtx.decodeAudioData(arrayBuffer);
-}
-
-async function playSyncedAudio(vocalURL, accompURL) {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-  // Stop previous sources if playing
-  if (vocalSource) vocalSource.stop();
-  if (accompSource) accompSource.stop();
-
-  // Decode
-  [vocalBuffer, accompBuffer] = await Promise.all([
-    fetchAndDecodeAudio(vocalURL),
-    fetchAndDecodeAudio(accompURL)
-  ]);
-
-  // Create sources
-  vocalSource = audioCtx.createBufferSource();
-  accompSource = audioCtx.createBufferSource();
-  vocalSource.buffer = vocalBuffer;
-  accompSource.buffer = accompBuffer;
-
-  // Create gain nodes
-  gainNodeVocal = audioCtx.createGain();
-  gainNodeAccomp = audioCtx.createGain();
-
-  gainNodeVocal.gain.value = parseFloat(document.getElementById('vocalVolume').value);
-  gainNodeAccomp.gain.value = parseFloat(document.getElementById('accompVolume').value);
-
-  // Connect to context
-  vocalSource.connect(gainNodeVocal).connect(audioCtx.destination);
-  accompSource.connect(gainNodeAccomp).connect(audioCtx.destination);
-
-  const startTime = audioCtx.currentTime + 0.1;
-  vocalSource.start(startTime);
-  accompSource.start(startTime);
+function supportsFlac() {
+  const a = document.createElement('audio');
+  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
 }
 
 async function loadSongs() {
@@ -127,15 +84,12 @@ async function loadSong(name) {
       getTemporaryLink(accompPath)
     ]);
 
-    // === ✅ NEW: preload buffers for synchronized playback ===
-    vocalBuffer = null;
-    accompBuffer = null;
-    await Promise.all([
-      fetchAndDecodeAudio(vocalURL).then(b => vocalBuffer = b),
-      fetchAndDecodeAudio(accompURL).then(b => accompBuffer = b)
-    ]);
+    vocalAudio.src = vocalURL;
+    accompAudio.src = accompURL;
 
-    // === ✅ FIXED: load lyrics ===
+    vocalAudio.load();
+    accompAudio.load();
+
     fetch(`lyrics/${prefix}.txt`)
       .then(res => res.ok ? res.text() : "Lyrics not found.")
       .then(txt => {
@@ -143,7 +97,24 @@ async function loadSong(name) {
         box.value = "";
         box.value = txt;
         box.scrollTop = 0;
+      })
+      .catch(err => {
+        document.getElementById("lyricsBox").value = "Lyrics could not be loaded.";
+        console.error("Lyrics load error:", err);
       });
+
+    // 🟢🟢 [ LOAD LOOPS ] 🟢🟢
+    try {
+      const loopRes = await fetch(`lyrics/${prefix}_loops.json`);
+      loopSegments = (await loopRes.json()) || [];
+      currentLoopIndex = 0;
+      document.getElementById("loopStatus").textContent = `🔁 Loaded ${loopSegments.length} loops`;
+    } catch {
+      loopSegments = [];
+      document.getElementById("loopStatus").textContent = "";
+    }
+    // 🟢🟢 [ END LOAD LOOPS ] 🟢🟢
+
   } catch (err) {
     alert("Error loading song: " + err.message);
   }
@@ -153,33 +124,53 @@ document.getElementById("songSelect").addEventListener("change", e => {
   loadSong(e.target.value);
 });
 
-document.getElementById("playBtn").addEventListener("click", async () => {
-  if (vocalBuffer && accompBuffer) {
-    // === ✅ PLAY using AudioContext ===
-    vocalSource = audioCtx.createBufferSource();
-    accompSource = audioCtx.createBufferSource();
-
-    vocalSource.buffer = vocalBuffer;
-    accompSource.buffer = accompBuffer;
-
-    gainNodeVocal = audioCtx.createGain();
-    gainNodeAccomp = audioCtx.createGain();
-
-    gainNodeVocal.gain.value = parseFloat(document.getElementById('vocalVolume').value);
-    gainNodeAccomp.gain.value = parseFloat(document.getElementById('accompVolume').value);
-
-    vocalSource.connect(gainNodeVocal).connect(audioCtx.destination);
-    accompSource.connect(gainNodeAccomp).connect(audioCtx.destination);
-
-    const startTime = audioCtx.currentTime + 0.1;
-    vocalSource.start(startTime);
-    accompSource.start(startTime);
+document.getElementById("playBtn").addEventListener("click", () => {
+  if (loopMode && loopSegments.length > 0) {
+    playNextLoop();
+  } else {
+    vocalAudio.currentTime = 0;
+    accompAudio.currentTime = 0;
+    Promise.all([vocalAudio.play(), accompAudio.play()])
+      .catch(err => console.error("Playback error:", err));
   }
 });
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
-  if (vocalSource) vocalSource.stop();
-  if (accompSource) accompSource.stop();
+  vocalAudio.pause();
+  accompAudio.pause();
 });
+
+document.getElementById("playFullBtn").addEventListener("click", () => {
+  loopMode = false;
+  document.getElementById("loopStatus").textContent = "🎵 Playing full song";
+  vocalAudio.currentTime = 0;
+  accompAudio.currentTime = 0;
+  Promise.all([vocalAudio.play(), accompAudio.play()])
+    .catch(err => console.error("Playback error:", err));
+});
+
+// 🟢🟢 [ PLAY LOOP FUNCTION ] 🟢🟢
+function playNextLoop() {
+  if (currentLoopIndex >= loopSegments.length) currentLoopIndex = 0;
+  const loop = loopSegments[currentLoopIndex];
+  const start = loop.start;
+  const end = loop.end;
+
+  vocalAudio.currentTime = start;
+  accompAudio.currentTime = start;
+
+  document.getElementById("loopStatus").textContent = `🔁 Playing Loop ${currentLoopIndex + 1} of ${loopSegments.length}`;
+
+  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err => console.error(err));
+
+  const duration = (end - start) * 1000;
+  setTimeout(() => {
+    vocalAudio.pause();
+    accompAudio.pause();
+    currentLoopIndex++;
+    playNextLoop();
+  }, duration);
+}
+// 🟢🟢 [ END PLAY LOOP FUNCTION ] 🟢🟢
 
 loadSongs();
