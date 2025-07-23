@@ -94,20 +94,20 @@ async function loadSong(name) {
     vocalAudio.load();
     accompAudio.load();
 
-    // === ✅ FIXED: Ensure lyrics show on mobile browsers too ===
-    fetch(`lyrics/${prefix}.txt?t=${Date.now()}`)  // ✅ Force refresh for mobile
+ // === ✅ FIXED LYRICS LOADING FOR MOBILE ===
+    fetch(`lyrics/${prefix}.txt?t=${Date.now()}`) // 👈 Add timestamp to avoid mobile caching issue
       .then(res => res.ok ? res.text() : "Lyrics not found.")
       .then(txt => {
         const box = document.getElementById("lyricsBox");
-        box.textContent = "";            // ✅ Clear old lyrics
-        box.innerText = txt;             // ✅ Compatible with mobile
-        box.scrollTop = 0;               // ✅ Start from top
+        box.textContent = "";      // Clear old lyrics
+        box.innerText = txt;       // Apply new lyrics
+        box.scrollTop = 0;         // Scroll to top
       })
       .catch(err => {
         document.getElementById("lyricsBox").textContent = "Lyrics could not be loaded.";
         console.error("Lyrics load error:", err);
       });
-    // === ✅ END FIXED ===
+    // === ✅ END FIXED ==
 
   } catch (err) {
     alert("Error loading song: " + err.message);
