@@ -21,22 +21,27 @@
     .controls {
       margin: 10px 0;
     }
-
-    /* ✅✅ [ UPDATED STYLES for better lyrics display ] ✅✅ */
     textarea {
       width: 100%;
       height: 200px;
       font-size: 20px;
       direction: ltr;
-      white-space: pre-wrap; /* ✅ preserves line breaks */
+      white-space: pre-wrap;
       padding: 10px;
-      line-height: 1.6;       /* ✅ improves readability */
-      resize: none;           /* ✅ disables manual resizing */
+      line-height: 1.6;
+      resize: none;
     }
-    /* ✅✅ [ END OF UPDATED STYLES ] ✅✅ */
-
     .volume-section {
       margin: 10px 0;
+    }
+    #loopEditor {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f9fc;
+      border: 1px solid #ccc;
+    }
+    .loop-item {
+      margin: 5px 0;
     }
   </style>
 </head>
@@ -48,14 +53,11 @@
     <select id="songSelect"></select>
   </div>
 
-  <!-- 🟢🟢 [ UPDATED: Controls with loop support ] 🟢🟢 -->
   <div class="controls">
     <button id="playBtn">▶️ Play</button>
     <button id="pauseBtn">⏸️ Pause</button>
-    <button id="playFullBtn" style="margin-left: 30px;">🎶 Full Song</button>
-    <div id="loopStatus" style="margin-top: 8px; color: #555;"></div>
+    <button id="playFullBtn">🎶 Play Full Song</button>
   </div>
-  <!-- 🟢🟢 [ END UPDATED CONTROLS ] 🟢🟢 -->
 
   <div class="volume-section">
     <label>🎤 Vocal Volume: </label>
@@ -71,15 +73,26 @@
     <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
   </div>
 
-  <!-- ✅✅ Lyrics display will dynamically fill this box -->
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
+
+  <div id="loopStatus" style="margin-top: 10px; font-weight: bold;"></div>
+
+  <!-- 🟢🟢 [ ADDED: Loop Creation Panel ] 🟢🟢 -->
+  <div id="loopEditor">
+    <h3>✂️ Create Loops (Owner only)</h3>
+    <button id="markStart">Mark Start</button>
+    <button id="markEnd">Mark End</button>
+    <ul id="loopList"></ul>
+    <input type="password" id="ownerCode" placeholder="Enter owner code" />
+    <button id="saveLoops">💾 Save Loops</button>
+    <div id="saveStatus"></div>
+  </div>
+  <!-- 🟢🟢 [ END ADDED ] 🟢🟢 -->
 
   <script src="main.js"></script>
 
-  <!-- 🟢🟢 [ ADDED: Browser check for Firefox only ] 🟢🟢 -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-
     if (!isFirefox) {
       document.body.innerHTML = `
         <div style="padding: 30px; text-align: center; font-family: Arial;">
@@ -93,7 +106,5 @@
       `;
     }
   </script>
-  <!-- 🟢🟢 [ END OF ADDED SECTION ] 🟢🟢 -->
-
 </body>
 </html>

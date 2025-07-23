@@ -1,5 +1,4 @@
-﻿
-let ACCESS_TOKEN = "";
+﻿let ACCESS_TOKEN = "";
 
 // ✅ Securely load Dropbox access token from Netlify serverless function
 async function loadDropboxToken() {
@@ -17,11 +16,13 @@ const DROPBOX_FOLDER = "/WorshipSongs/";
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
-// 🟢🟢 [ LOOP VARIABLES ADDED ] 🟢🟢
-let loopSegments = [];
+// 🟢🟢 [ LOOP VARIABLES ] 🟢🟢
+let loopData = [];
 let currentLoopIndex = 0;
-let loopMode = true;
-let isOwnerVerified = false;
+let isLoopMode = true;
+let currentSongName = "";
+let startTime = null;
+let endTime = null;
 // 🟢🟢 [ END LOOP VARIABLES ] 🟢🟢
 
 document.getElementById('vocalVolume').addEventListener('input', e => {
@@ -41,7 +42,6 @@ function adjustVolume(type, delta) {
 }
 
 async function getTemporaryLink(path) {
-  console.log("Trying to fetch from Dropbox path:", path);
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
     headers: {
@@ -75,6 +75,7 @@ async function loadSongs() {
 }
 
 async function loadSong(name) {
+  currentSongName = name;
   const prefix = name.trim();
   const ext = supportsFlac() ? "flac" : "mp3";
   const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
@@ -88,7 +89,6 @@ async function loadSong(name) {
 
     vocalAudio.src = vocalURL;
     accompAudio.src = accompURL;
-
     vocalAudio.load();
     accompAudio.load();
 
@@ -105,36 +105,34 @@ async function loadSong(name) {
         console.error("Lyrics load error:", err);
       });
 
-    // 🟢🟢 [ LOAD LOOPS ] 🟢🟢
-    try {
-      const loopRes = await fetch(`lyrics/${prefix}_loops.json`);
-      loopSegments = (await loopRes.json()) || [];
+    fetch(`https://content.dropboxapi.com/2/files/download`, {
+      method: "POST",
+      headers: {
+        'Authorization': 'Bearer ' + ACCESS_TOKEN,
+        'Dropbox-API-Arg': JSON.stringify({ path: `${DROPBOX_FOLDER}${prefix}_loops.json` })
+      }
+    })
+    .then(res => res.ok ? res.text() : Promise.resolve("[]"))
+    .then(json => {
+      loopData = JSON.parse(json);
       currentLoopIndex = 0;
-      document.getElementById("loopStatus").textContent = `🔁 Loaded ${loopSegments.length} loops`;
-    } catch {
-      loopSegments = [];
-      document.getElementById("loopStatus").textContent = "";
-    }
-    // 🟢🟢 [ END LOAD LOOPS ] 🟢🟢
+      document.getElementById("loopStatus").innerText = loopData.length ? `🔁 Looping ${loopData.length} segment(s)` : "🔁 No loops defined for this song.";
+    })
+    .catch(err => {
+      loopData = [];
+      document.getElementById("loopStatus").innerText = "🔁 No loops available.";
+    });
 
   } catch (err) {
     alert("Error loading song: " + err.message);
   }
 }
 
-document.getElementById("songSelect").addEventListener("change", e => {
-  loadSong(e.target.value);
-});
+document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
 
 document.getElementById("playBtn").addEventListener("click", () => {
-  if (loopMode && loopSegments.length > 0) {
-    playNextLoop();
-  } else {
-    vocalAudio.currentTime = 0;
-    accompAudio.currentTime = 0;
-    Promise.all([vocalAudio.play(), accompAudio.play()])
-      .catch(err => console.error("Playback error:", err));
-  }
+  if (loopData.length) playLoop();
+  else Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err => console.error("Playback error:", err));
 });
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
@@ -143,60 +141,62 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
 });
 
 document.getElementById("playFullBtn").addEventListener("click", () => {
-  loopMode = false;
-  document.getElementById("loopStatus").textContent = "🎵 Playing full song";
+  isLoopMode = false;
   vocalAudio.currentTime = 0;
   accompAudio.currentTime = 0;
-  Promise.all([vocalAudio.play(), accompAudio.play()])
-    .catch(err => console.error("Playback error:", err));
+  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err => console.error("Playback error:", err));
 });
 
-// 🟢🟢 [ PLAY LOOP FUNCTION ] 🟢🟢
-function playNextLoop() {
-  if (currentLoopIndex >= loopSegments.length) currentLoopIndex = 0;
-  const loop = loopSegments[currentLoopIndex];
-  const start = loop.start;
-  const end = loop.end;
+function playLoop() {
+  if (!loopData.length) return;
+  isLoopMode = true;
+  const loop = loopData[currentLoopIndex];
+  vocalAudio.currentTime = loop.start;
+  accompAudio.currentTime = loop.start;
+  vocalAudio.play();
+  accompAudio.play();
 
-  vocalAudio.currentTime = start;
-  accompAudio.currentTime = start;
-
-  document.getElementById("loopStatus").textContent = `🔁 Playing Loop ${currentLoopIndex + 1} of ${loopSegments.length}`;
-
-  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err => console.error(err));
-
-  const duration = (end - start) * 1000;
-  setTimeout(() => {
-    vocalAudio.pause();
-    accompAudio.pause();
-    currentLoopIndex++;
-    playNextLoop();
-  }, duration);
-}
-// 🟢🟢 [ END PLAY LOOP FUNCTION ] 🟢🟢
-
-// 🟢🟢 [ OWNER CODE VERIFICATION ] 🟢🟢
-document.getElementById("ownerCodeBtn").addEventListener("click", async () => {
-  const code = prompt("Enter owner code to enable loop creation:");
-  if (!code) return;
-  try {
-    const res = await fetch("/.netlify/functions/checkLoopOwner", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
-    const result = await res.json();
-    if (result.success) {
-      isOwnerVerified = true;
-      document.getElementById("loopCreationArea").style.display = "block";
-      alert("✅ Owner verified. Loop creation enabled.");
-    } else {
-      alert("❌ Invalid code");
+  const interval = setInterval(() => {
+    if (vocalAudio.currentTime >= loop.end || accompAudio.currentTime >= loop.end) {
+      vocalAudio.pause();
+      accompAudio.pause();
+      clearInterval(interval);
+      currentLoopIndex = (currentLoopIndex + 1) % loopData.length;
+      playLoop();
     }
-  } catch (err) {
-    alert("❌ Error verifying code");
+  }, 200);
+}
+
+document.getElementById("markStart").addEventListener("click", () => {
+  startTime = Math.min(vocalAudio.currentTime, accompAudio.currentTime);
+});
+
+document.getElementById("markEnd").addEventListener("click", () => {
+  endTime = Math.max(vocalAudio.currentTime, accompAudio.currentTime);
+  if (startTime != null && endTime > startTime) {
+    loopData.push({ start: startTime, end: endTime });
+    const li = document.createElement("li");
+    li.textContent = `Loop ${loopData.length}: ${startTime.toFixed(1)}s - ${endTime.toFixed(1)}s`;
+    document.getElementById("loopList").appendChild(li);
+    startTime = null;
+    endTime = null;
   }
 });
-// 🟢🟢 [ END OWNER CODE VERIFICATION ] 🟢🟢
+
+document.getElementById("saveLoops").addEventListener("click", async () => {
+  const code = document.getElementById("ownerCode").value;
+  const response = await fetch("/.netlify/functions/saveLoops", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, song: currentSongName, loops: loopData })
+  });
+
+  if (response.ok) {
+    document.getElementById("saveStatus").textContent = `✅ Loops saved for ${currentSongName}`;
+  } else {
+    const msg = await response.text();
+    document.getElementById("saveStatus").textContent = `❌ Failed: ${msg}`;
+  }
+});
 
 loadSongs();
