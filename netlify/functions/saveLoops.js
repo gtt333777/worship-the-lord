@@ -1,49 +1,77 @@
 ﻿const fetch = require("node-fetch");
 
+const DROPBOX_APP_KEY = process.env.DROPBOX_APP_KEY;
+const DROPBOX_APP_SECRET = process.env.DROPBOX_APP_SECRET;
+const DROPBOX_REFRESH_TOKEN = process.env.DROPBOX_REFRESH_TOKEN;
+const OWNER_SECRET_CODE = process.env.OWNER_SECRET_CODE;
+
 exports.handler = async (event) => {
   try {
-    const { code, song, loops } = JSON.parse(event.body);
+    const { ownerCode, songName, loops } = JSON.parse(event.body);
 
-    if (code.trim() !== process.env.OWNER_SECRET_CODE) {
+    // ✅ Check owner secret
+    if (ownerCode !== OWNER_SECRET_CODE) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ error: "Invalid owner code" }),
+        body: JSON.stringify({ error: "Unauthorized access" }),
       };
     }
 
-    const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
-    const filePath = `/WorshipSongs/${song}_loops.json`;
-
-    const dropboxArg = {
-      path: filePath,
-      mode: "overwrite",
-      autorename: false,
-      mute: true,
-    };
-
-    const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
+    // ✅ Get short-lived Dropbox access token using refresh token
+    const auth = Buffer.from(`${DROPBOX_APP_KEY}:${DROPBOX_APP_SECRET}`).toString("base64");
+    const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${DROPBOX_TOKEN}`,
-        "Content-Type": "application/octet-stream",
-        // ✅ Use utf8-encoded JSON string (no manual escaping!)
-        "Dropbox-API-Arg": Buffer.from(JSON.stringify(dropboxArg)).toString("utf8")
+        "Authorization": `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded"
       },
-      body: Buffer.from(JSON.stringify(loops), "utf8") // Send body in UTF-8
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: DROPBOX_REFRESH_TOKEN
+      })
     });
 
-    const resultText = await response.text();
-    if (!response.ok) {
+    const tokenData = await tokenRes.json();
+
+    if (!tokenData.access_token) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Upload failed", details: resultText }),
+        body: JSON.stringify({ error: "Token fetch failed", details: tokenData }),
+      };
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // ✅ Upload loops JSON to Dropbox
+    const uploadPath = `/WorshipSongs/${songName}_loops.json`;
+    const dropboxRes = await fetch("https://content.dropboxapi.com/2/files/upload", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/octet-stream",
+        "Dropbox-API-Arg": JSON.stringify({
+          path: uploadPath,
+          mode: "overwrite",
+          autorename: false
+        })
+      },
+      body: JSON.stringify(loops)
+    });
+
+    const dropboxData = await dropboxRes.json();
+
+    if (dropboxRes.status !== 200) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Upload failed", details: dropboxData }),
       };
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Loop saved successfully", result: resultText }),
+      body: JSON.stringify({ message: "Loops saved successfully", metadata: dropboxData }),
     };
+
   } catch (err) {
     return {
       statusCode: 500,
