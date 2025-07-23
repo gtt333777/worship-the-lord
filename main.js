@@ -1,4 +1,5 @@
-﻿let ACCESS_TOKEN = "";
+﻿
+let ACCESS_TOKEN = "";
 
 // ✅ Securely load Dropbox access token from Netlify serverless function
 async function loadDropboxToken() {
@@ -20,6 +21,7 @@ let accompAudio = new Audio();
 let loopSegments = [];
 let currentLoopIndex = 0;
 let loopMode = true;
+let isOwnerVerified = false;
 // 🟢🟢 [ END LOOP VARIABLES ] 🟢🟢
 
 document.getElementById('vocalVolume').addEventListener('input', e => {
@@ -172,5 +174,29 @@ function playNextLoop() {
   }, duration);
 }
 // 🟢🟢 [ END PLAY LOOP FUNCTION ] 🟢🟢
+
+// 🟢🟢 [ OWNER CODE VERIFICATION ] 🟢🟢
+document.getElementById("ownerCodeBtn").addEventListener("click", async () => {
+  const code = prompt("Enter owner code to enable loop creation:");
+  if (!code) return;
+  try {
+    const res = await fetch("/.netlify/functions/checkLoopOwner", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code })
+    });
+    const result = await res.json();
+    if (result.success) {
+      isOwnerVerified = true;
+      document.getElementById("loopCreationArea").style.display = "block";
+      alert("✅ Owner verified. Loop creation enabled.");
+    } else {
+      alert("❌ Invalid code");
+    }
+  } catch (err) {
+    alert("❌ Error verifying code");
+  }
+});
+// 🟢🟢 [ END OWNER CODE VERIFICATION ] 🟢🟢
 
 loadSongs();
