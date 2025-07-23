@@ -3,109 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Worship The Lord</title>
+  <title>🎵 Worship The Lord</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #eaf3fb;
-      color: #2c3e50;
+      background-color: #eef3f7;
+      text-align: center;
       padding: 20px;
     }
     h1 {
-      text-align: center;
+      font-size: 2rem;
+      color: #2c3e50;
     }
-    select, button {
-      font-size: 16px;
-      margin: 5px;
+    select, button, input[type=range] {
+      margin: 10px;
+      padding: 5px;
     }
-    .controls {
-      margin: 10px 0;
+    .volume-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .volume-control label {
+      margin-right: 5px;
+      width: 140px;
+      text-align: right;
     }
     textarea {
-      width: 100%;
-      height: 200px;
-      font-size: 20px;
-      direction: ltr;
+      width: 90%;
+      height: 300px;
+      margin-top: 10px;
+      font-size: 1.1em;
+      padding: 10px;
       white-space: pre-wrap;
-      padding: 10px;
-      line-height: 1.6;
-      resize: none;
-    }
-    .volume-section {
-      margin: 10px 0;
-    }
-    #loopEditor {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #f5f9fc;
-      border: 1px solid #ccc;
-    }
-    .loop-item {
-      margin: 5px 0;
+      direction: ltr;
     }
   </style>
 </head>
 <body>
   <h1>🎵 Worship The Lord</h1>
+  <label for="songSelect">Choose a song:</label>
+  <select id="songSelect" onchange="loadSong()"></select><br/>
+  <button onclick="play()">▶️ Play</button>
+  <button onclick="pause()">⏸️ Pause</button>
+  <button onclick="playFullSong()">⏯️ Play Full Song</button>
 
-  <div>
-    <label><strong>Choose a song:</strong></label>
-    <select id="songSelect"></select>
+  <div class="volume-control">
+    <label for="vocalVolume">🎤 Vocal Volume:</label>
+    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1">
+    <button onclick="adjustVolume('vocal', 0.1)">＋</button>
+    <button onclick="adjustVolume('vocal', -0.1)">－</button>
   </div>
 
-  <div class="controls">
-    <button id="playBtn">▶️ Play</button>
-    <button id="pauseBtn">⏸️ Pause</button>
-    <button id="playFullBtn">🎶 Play Full Song</button>
+  <div class="volume-control">
+    <label for="accompVolume">🎼 Accompaniment Volume:</label>
+    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1">
+    <button onclick="adjustVolume('accomp', 0.1)">＋</button>
+    <button onclick="adjustVolume('accomp', -0.1)">－</button>
   </div>
 
-  <div class="volume-section">
-    <label>🎤 Vocal Volume: </label>
-    <button onclick="adjustVolume('vocal', -0.1)">-</button>
-    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('vocal', 0.1)">+</button>
-  </div>
+  <textarea id="lyrics" readonly></textarea>
 
-  <div class="volume-section">
-    <label>🏛️ Accompaniment Volume: </label>
-    <button onclick="adjustVolume('accompaniment', -0.1)">-</button>
-    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
-  </div>
+  <p id="loopInfo">🔁 No loops available.</p>
 
-  <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
+  <h3>🎛️ Create Loops (Owner only)</h3>
+  <button onclick="markStart()">Mark Start</button>
+  <button onclick="markEnd()">Mark End</button>
+  <ul id="loopList"></ul>
 
-  <div id="loopStatus" style="margin-top: 10px; font-weight: bold;"></div>
+  <input type="password" id="ownerCodeInput" placeholder="Enter owner code" />
+  <button onclick="downloadLoops()">💾 Download Loops</button>
 
-  <div id="loopEditor">
-    <h3>✂️ Create Loops (Owner only)</h3>
-    <button id="markStart">Mark Start</button>
-    <button id="markEnd">Mark End</button>
-    <ul id="loopList"></ul>
-    <input type="password" id="ownerCode" placeholder="Enter owner code" />
-    <button id="saveLoops">💾 Save Loops</button>
-    <div id="saveStatus"></div>
-  </div>
-
-  <!-- ✅ Load main.js only if Firefox -->
-  <script>
-    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-    if (isFirefox) {
-      const script = document.createElement('script');
-      script.src = 'main.js';
-      document.body.appendChild(script);
-    } else {
-      document.body.innerHTML = `
-        <div style="padding: 30px; text-align: center; font-family: Arial;">
-          <h2>⚠️ Worship The Lord App Requires Firefox</h2>
-          <p>This application is designed to work only in the Firefox browser for best performance.</p>
-          <p>Please install Firefox and reopen the site in it.</p>
-          <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 20px; color: blue;">
-            👉 Click here to download Firefox
-          </a>
-        </div>
-      `;
-    }
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>

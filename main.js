@@ -1,204 +1,168 @@
-﻿let ACCESS_TOKEN = "";
-
-// ✅ Securely load Dropbox access token from Netlify serverless function
-async function loadDropboxToken() {
-  try {
-    const res = await fetch('/.netlify/functions/getDropboxToken');
-    const data = await res.json();
-    ACCESS_TOKEN = data.access_token;
-  } catch (err) {
-    console.error("Failed to fetch Dropbox token:", err);
-  }
-}
-
+﻿const ACCESS_TOKEN = "YOUR_DROPBOX_ACCESS_TOKEN_HERE"; // Replace if needed
 const DROPBOX_FOLDER = "/WorshipSongs/";
-
+let currentSongName = "";
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
+let loopList = [];
+let loopStart = null;
+let loopEnd = null;
+let loopIndex = 0;
+let isLooping = true;
 
-// 🟢🟢 [ LOOP VARIABLES ] 🟢🟢
-let loopData = [];
-let currentLoopIndex = 0;
-let isLoopMode = true;
-let currentSongName = "";
-let startTime = null;
-let endTime = null;
-// 🟢🟢 [ END LOOP VARIABLES ] 🟢🟢
-
-document.getElementById('vocalVolume').addEventListener('input', e => {
-  vocalAudio.volume = parseFloat(e.target.value);
-});
-document.getElementById('accompVolume').addEventListener('input', e => {
-  accompAudio.volume = parseFloat(e.target.value);
-});
-
-function adjustVolume(type, delta) {
-  const slider = document.getElementById(type === 'vocal' ? 'vocalVolume' : 'accompVolume');
-  let vol = parseFloat(slider.value) + delta;
-  vol = Math.min(1, Math.max(0, vol));
-  slider.value = vol;
-  if (type === 'vocal') vocalAudio.volume = vol;
-  else accompAudio.volume = vol;
+async function fetchTextFile(path) {
+  const response = await fetch(path);
+  return response.ok ? response.text() : "";
 }
 
-async function getTemporaryLink(path) {
-  const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + ACCESS_TOKEN,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ path })
-  });
-  if (!response.ok) throw new Error("Failed to get Dropbox link");
-  const data = await response.json();
-  return data.link;
-}
-
-function supportsFlac() {
-  const a = document.createElement('audio');
-  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
-}
-
-async function loadSongs() {
-  await loadDropboxToken();
-  const response = await fetch("lyrics/song_names.txt");
-  const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
+async function loadSongList() {
+  const response = await fetch("lyrics/songs_names.txt");
+  const names = (await response.text()).trim().split("\n");
   const select = document.getElementById("songSelect");
-  songNames.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
+  names.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
   });
-  loadSong(songNames[0]);
+  loadSong(); // Load first song
 }
 
-async function loadSong(name) {
+async function loadSong() {
+  loopList = [];
+  loopIndex = 0;
+  isLooping = true;
+  document.getElementById("loopInfo").textContent = "🔁 No loops available.";
+  document.getElementById("loopList").innerHTML = "";
+  const name = document.getElementById("songSelect").value;
   currentSongName = name;
-  const prefix = name.trim();
-  const ext = supportsFlac() ? "flac" : "mp3";
-  const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
-  const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
+
+  const prefix = encodeURIComponent(name);
+  const lyrics = await fetchTextFile(`lyrics/${prefix}.txt`);
+  document.getElementById("lyrics").value = lyrics;
+
+  const accUrl = `https://content.dropboxapi.com/2/files/download`;
+  const accHeaders = {
+    Authorization: `Bearer ${ACCESS_TOKEN}`,
+    "Dropbox-API-Arg": JSON.stringify({ path: `${DROPBOX_FOLDER}${name}_acc.wav` }),
+  };
+  const vocalHeaders = {
+    Authorization: `Bearer ${ACCESS_TOKEN}`,
+    "Dropbox-API-Arg": JSON.stringify({ path: `${DROPBOX_FOLDER}${name}_vocal.wav` }),
+  };
+
+  vocalAudio = new Audio();
+  accompAudio = new Audio();
+
+  vocalAudio.src = URL.createObjectURL(await (await fetch(accUrl, { headers: vocalHeaders })).blob());
+  accompAudio.src = URL.createObjectURL(await (await fetch(accUrl, { headers: accHeaders })).blob());
+
+  vocalAudio.addEventListener("ended", handleEnded);
+  accompAudio.addEventListener("ended", handleEnded);
 
   try {
-    const [vocalURL, accompURL] = await Promise.all([
-      getTemporaryLink(vocalPath),
-      getTemporaryLink(accompPath)
-    ]);
-
-    vocalAudio.src = vocalURL;
-    accompAudio.src = accompURL;
-    vocalAudio.load();
-    accompAudio.load();
-
-    fetch(`lyrics/${prefix}.txt`)
-      .then(res => res.ok ? res.text() : "Lyrics not found.")
-      .then(txt => {
-        const box = document.getElementById("lyricsBox");
-        box.value = "";
-        box.value = txt;
-        box.scrollTop = 0;
-      })
-      .catch(err => {
-        document.getElementById("lyricsBox").value = "Lyrics could not be loaded.";
-        console.error("Lyrics load error:", err);
-      });
-
-    fetch(`https://content.dropboxapi.com/2/files/download`, {
+    const res = await fetch(`https://content.dropboxapi.com/2/files/download`, {
       method: "POST",
       headers: {
-        'Authorization': 'Bearer ' + ACCESS_TOKEN,
-        'Dropbox-API-Arg': JSON.stringify({ path: `${DROPBOX_FOLDER}${prefix}_loops.json` })
-      }
-    })
-    .then(res => res.ok ? res.text() : Promise.resolve("[]"))
-    .then(json => {
-      loopData = JSON.parse(json);
-      currentLoopIndex = 0;
-      document.getElementById("loopStatus").innerText = loopData.length ? `🔁 Looping ${loopData.length} segment(s)` : "🔁 No loops defined for this song.";
-    })
-    .catch(err => {
-      loopData = [];
-      document.getElementById("loopStatus").innerText = "🔁 No loops available.";
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Dropbox-API-Arg": JSON.stringify({ path: `${DROPBOX_FOLDER}${name}_loops.json` }),
+      },
     });
-
-  } catch (err) {
-    alert("Error loading song: " + err.message);
-  }
+    if (res.ok) {
+      loopList = await res.json();
+      updateLoopUI();
+    }
+  } catch (e) {}
 }
 
-document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
-
-document.getElementById("playBtn").addEventListener("click", () => {
-  if (loopData.length) playLoop();
-  else Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err => console.error("Playback error:", err));
-});
-
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  vocalAudio.pause();
-  accompAudio.pause();
-});
-
-document.getElementById("playFullBtn").addEventListener("click", () => {
-  isLoopMode = false;
-  vocalAudio.currentTime = 0;
-  accompAudio.currentTime = 0;
-  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err => console.error("Playback error:", err));
-});
-
-function playLoop() {
-  if (!loopData.length) return;
-  isLoopMode = true;
-  const loop = loopData[currentLoopIndex];
-  vocalAudio.currentTime = loop.start;
-  accompAudio.currentTime = loop.start;
+function play() {
+  syncTime();
   vocalAudio.play();
   accompAudio.play();
-
-  const interval = setInterval(() => {
-    if (vocalAudio.currentTime >= loop.end || accompAudio.currentTime >= loop.end) {
-      vocalAudio.pause();
-      accompAudio.pause();
-      clearInterval(interval);
-      currentLoopIndex = (currentLoopIndex + 1) % loopData.length;
-      playLoop();
-    }
-  }, 200);
 }
 
-document.getElementById("markStart").addEventListener("click", () => {
-  startTime = Math.min(vocalAudio.currentTime, accompAudio.currentTime);
-});
+function pause() {
+  vocalAudio.pause();
+  accompAudio.pause();
+}
 
-document.getElementById("markEnd").addEventListener("click", () => {
-  endTime = Math.max(vocalAudio.currentTime, accompAudio.currentTime);
-  if (startTime != null && endTime > startTime) {
-    loopData.push({ start: startTime, end: endTime });
+function syncTime() {
+  accompAudio.currentTime = vocalAudio.currentTime;
+}
+
+function handleEnded() {
+  if (isLooping && loopList.length > 0) {
+    loopIndex = (loopIndex + 1) % loopList.length;
+    const loop = loopList[loopIndex];
+    vocalAudio.currentTime = loop.start;
+    accompAudio.currentTime = loop.start;
+    play();
+  }
+}
+
+function playFullSong() {
+  isLooping = false;
+  loopIndex = 0;
+  vocalAudio.currentTime = 0;
+  accompAudio.currentTime = 0;
+  play();
+}
+
+function adjustVolume(type, delta) {
+  const audio = type === "vocal" ? vocalAudio : accompAudio;
+  const slider = document.getElementById(type + "Volume");
+  let newVal = Math.max(0, Math.min(1, parseFloat(slider.value) + delta));
+  audio.volume = newVal;
+  slider.value = newVal;
+}
+
+function markStart() {
+  loopStart = vocalAudio.currentTime.toFixed(1);
+  alert("Marked start: " + loopStart + "s");
+}
+
+function markEnd() {
+  if (loopStart === null) {
+    alert("Mark start first!");
+    return;
+  }
+  loopEnd = vocalAudio.currentTime.toFixed(1);
+  loopList.push({ start: parseFloat(loopStart), end: parseFloat(loopEnd) });
+  updateLoopUI();
+  loopStart = null;
+  loopEnd = null;
+}
+
+function updateLoopUI() {
+  const list = document.getElementById("loopList");
+  list.innerHTML = "";
+  loopList.forEach((loop, i) => {
     const li = document.createElement("li");
-    li.textContent = `Loop ${loopData.length}: ${startTime.toFixed(1)}s - ${endTime.toFixed(1)}s`;
-    document.getElementById("loopList").appendChild(li);
-    startTime = null;
-    endTime = null;
-  }
-});
-
-document.getElementById("saveLoops").addEventListener("click", async () => {
-  const code = document.getElementById("ownerCode").value.trim();
-  console.log("🔍 Sending ownerCode:", code);  // Optional debug
-
-  const response = await fetch("/.netlify/functions/saveLoops", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, song: currentSongName, loops: loopData })
+    li.textContent = `● Loop ${i + 1}: ${loop.start}s - ${loop.end}s`;
+    list.appendChild(li);
   });
+  document.getElementById("loopInfo").textContent = `🔁 ${loopList.length} loop(s) available.`;
+}
 
-  if (response.ok) {
-    document.getElementById("saveStatus").textContent = `✅ Loops saved for ${currentSongName}`;
-  } else {
-    const msg = await response.text();
-    document.getElementById("saveStatus").textContent = `❌ Failed: ${msg}`;
+function downloadLoops() {
+  const code = document.getElementById("ownerCodeInput").value.trim();
+  if (code !== "jesus_owns") {
+    alert("Incorrect owner code.");
+    return;
   }
-});
 
-loadSongs();
+  if (!currentSongName || loopList.length === 0) {
+    alert("Please select a song and create at least one loop.");
+    return;
+  }
+
+  const blob = new Blob([JSON.stringify(loopList, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentSongName}_loops.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  alert(`Downloaded: ${currentSongName}_loops.json\nPlease upload it manually to Dropbox.`);
+}
+
+window.onload = loadSongList;
