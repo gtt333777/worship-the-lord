@@ -6,7 +6,6 @@ exports.handler = async (event) => {
   try {
     const { code, song, loops } = JSON.parse(event.body);
 
-    // Owner-only access check
     if (code.trim() !== process.env.OWNER_SECRET_CODE) {
       return {
         statusCode: 403,
@@ -14,9 +13,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // Dropbox access token from env variable
     const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
-
     const filePath = `/WorshipSongs/${song}_loops.json`;
 
     const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
@@ -24,14 +21,14 @@ exports.handler = async (event) => {
       headers: {
         "Authorization": `Bearer ${DROPBOX_TOKEN}`,
         "Content-Type": "application/octet-stream",
-        "Dropbox-API-Arg": encodeURIComponent(JSON.stringify({
+        "Dropbox-API-Arg": JSON.stringify({
           path: filePath,
           mode: "overwrite",
           autorename: false,
           mute: true
-        })),
+        }),
       },
-      body: JSON.stringify(loops),
+      body: Buffer.from(JSON.stringify(loops), "utf8"),
     });
 
     if (!response.ok) {
