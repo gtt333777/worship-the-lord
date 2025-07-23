@@ -77,7 +77,6 @@
 
   <div id="loopStatus" style="margin-top: 10px; font-weight: bold;"></div>
 
-  <!-- 🟢🟢 [ ADDED: Loop Creation Panel ] 🟢🟢 -->
   <div id="loopEditor">
     <h3>✂️ Create Loops (Owner only)</h3>
     <button id="markStart">Mark Start</button>
@@ -87,13 +86,15 @@
     <button id="saveLoops">💾 Save Loops</button>
     <div id="saveStatus"></div>
   </div>
-  <!-- 🟢🟢 [ END ADDED ] 🟢🟢 -->
 
-  <script src="main.js"></script>
-
+  <!-- ✅ Load main.js only if Firefox -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-    if (!isFirefox) {
+    if (isFirefox) {
+      const script = document.createElement('script');
+      script.src = 'main.js';
+      document.body.appendChild(script);
+    } else {
       document.body.innerHTML = `
         <div style="padding: 30px; text-align: center; font-family: Arial;">
           <h2>⚠️ Worship The Lord App Requires Firefox</h2>
