@@ -1,53 +1,43 @@
 ﻿const fetch = require("node-fetch");
 
-exports.handler = async (event) => {
-  // Step 1: Check method
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: "Method Not Allowed",
-    };
-  }
-
+exports.handler = async function (event, context) {
   try {
-    // Step 2: Parse request body
     const { code, song, loops } = JSON.parse(event.body);
 
-    // Step 3: Check against OWNER_SECRET_CODE set in Netlify
-    const expectedCode = process.env.OWNER_SECRET_CODE;
+    const OWNER_SECRET_CODE = process.env.OWNER_SECRET_CODE;
 
-    if (code !== expectedCode) {
+    if (code.trim() !== OWNER_SECRET_CODE) {
       return {
         statusCode: 403,
         body: JSON.stringify({ error: "Invalid owner code" }),
       };
     }
 
-    // Step 4: Prepare to upload to Dropbox
-    const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
-    const DROPBOX_UPLOAD_URL = "https://content.dropboxapi.com/2/files/upload";
     const filePath = `/WorshipSongs/${song}_loops.json`;
 
-    const uploadResponse = await fetch(DROPBOX_UPLOAD_URL, {
+    const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
+
+    const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+        "Authorization": `Bearer ${DROPBOX_TOKEN}`,
+        "Content-Type": "application/octet-stream",
         "Dropbox-API-Arg": JSON.stringify({
-          path: filePath,
+          path: encodeURI(filePath), // ✅ Encode for Tamil/Unicode
           mode: "overwrite",
           autorename: false,
-          mute: true,
+          mute: true
         }),
-        "Content-Type": "application/octet-stream",
       },
-      body: Buffer.from(JSON.stringify(loops)),
+      body: JSON.stringify(loops),
     });
 
-    if (!uploadResponse.ok) {
-      const err = await uploadResponse.text();
+    const result = await response.json();
+
+    if (!response.ok) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Dropbox upload failed", details: err }),
+        body: JSON.stringify({ error: "Server error", details: result }),
       };
     }
 
@@ -55,10 +45,11 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify({ message: "Loops uploaded successfully" }),
     };
+
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Server error", details: err.message }),
+      body: JSON.stringify({ error: "Unexpected error", details: err.message }),
     };
   }
 };
