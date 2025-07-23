@@ -1,34 +1,43 @@
 ﻿async function loadSongs() {
-  const response = await fetch("lyrics/song_names.txt");
-  const names = (await response.text()).split('\n').map(n => n.trim()).filter(Boolean);
-
-  const select = document.getElementById("songSelect");
-  names.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
-
-  loadLyrics(names[0]); // Load the first song by default
-}
-
-async function loadLyrics(name) {
-  const filePath = `lyrics/${name}.txt`;
-  const box = document.getElementById("lyricsBox");
-  box.value = "Loading...";
-
   try {
-    const res = await fetch(filePath);
-    const text = await res.text();
-    box.value = text;
-    box.scrollTop = 0;
+    const response = await fetch("lyrics/song_names.txt");
+    const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
+
+    const select = document.getElementById("songSelect");
+    songNames.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+
+    if (songNames.length > 0) {
+      loadLyrics(songNames[0]); // Load first song by default
+    }
   } catch (err) {
-    box.value = "Failed to load lyrics.";
+    console.error("Failed to load song names:", err);
   }
 }
 
-document.getElementById("songSelect").addEventListener("change", e => {
+async function loadLyrics(name) {
+  const prefix = name.trim();
+  const lyricsBox = document.getElementById("lyricsBox");
+
+  try {
+    const response = await fetch(`lyrics/${prefix}.txt`);
+    if (!response.ok) throw new Error("Lyrics file not found");
+    const text = await response.text();
+
+    // ✅ This preserves line breaks in desktop & mobile
+    lyricsBox.value = text;
+    lyricsBox.scrollTop = 0;
+  } catch (err) {
+    lyricsBox.value = "Lyrics could not be loaded.";
+    console.error(err);
+  }
+}
+
+document.getElementById("songSelect").addEventListener("change", (e) => {
   loadLyrics(e.target.value);
 });
 

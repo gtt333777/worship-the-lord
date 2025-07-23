@@ -3,32 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sample Lyrics Viewer</title>
+  <title>🎵 Worship The Lord – Lyrics Only</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f8ff;
+      background-color: #eaf3fb;
+      color: #2c3e50;
       padding: 20px;
     }
     h1 {
       text-align: center;
     }
-    select, textarea {
+    label {
+      font-weight: bold;
+    }
+    select {
       font-size: 16px;
+      padding: 5px;
       margin: 10px 0;
-      width: 100%;
     }
     textarea {
+      width: 100%;
       height: 300px;
-      padding: 10px;
+      font-size: 20px;
+      line-height: 1.6;
+      padding: 15px;
       white-space: pre-wrap;
+      resize: none;
     }
   </style>
 </head>
 <body>
-  <h1>🎶 Sample Lyrics Viewer</h1>
-  <label for="songSelect"><strong>Choose a song:</strong></label>
-  <select id="songSelect"></select>
+  <h1>🎵 Worship The Lord</h1>
+
+  <div>
+    <label for="songSelect">Choose a song:</label>
+    <select id="songSelect"></select>
+  </div>
 
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
 
