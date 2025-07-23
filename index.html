@@ -71,5 +71,25 @@
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
 
   <script src="main.js"></script>
+
+  <!-- 🟢🟢 [ ADDED: Browser check for Firefox only ] 🟢🟢 -->
+  <script>
+    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+    if (!isFirefox) {
+      document.body.innerHTML = `
+        <div style="padding: 30px; text-align: center; font-family: Arial;">
+          <h2>⚠️ Worship The Lord App Requires Firefox</h2>
+          <p>This application is designed to work only in the Firefox browser for best performance.</p>
+          <p>Please install Firefox and reopen the site in it.</p>
+          <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 20px; color: blue;">
+            👉 Click here to download Firefox
+          </a>
+        </div>
+      `;
+    }
+  </script>
+  <!-- 🟢🟢 [ END OF ADDED SECTION ] 🟢🟢 -->
+
 </body>
 </html>
