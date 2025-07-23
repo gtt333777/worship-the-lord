@@ -1,5 +1,4 @@
-﻿// netlify/functions/saveLoops.js
-const fetch = require("node-fetch");
+﻿const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
   try {
@@ -15,32 +14,35 @@ exports.handler = async (event) => {
     const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
     const filePath = `/WorshipSongs/${song}_loops.json`;
 
-    const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
+    const headers = {
+      "Authorization": `Bearer ${DROPBOX_TOKEN}`,
+      "Content-Type": "application/octet-stream",
+      // JSON.stringify must NOT be escaped; keep it clean
+      "Dropbox-API-Arg": JSON.stringify({
+        path: filePath,
+        mode: "overwrite",
+        autorename: false,
+        mute: true
+      }),
+    };
+
+    const uploadRes = await fetch("https://content.dropboxapi.com/2/files/upload", {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${DROPBOX_TOKEN}`,
-        "Content-Type": "application/octet-stream",
-        "Dropbox-API-Arg": JSON.stringify({
-          path: filePath,
-          mode: "overwrite",
-          autorename: false,
-          mute: true
-        }),
-      },
-      body: Buffer.from(JSON.stringify(loops), "utf8"),
+      headers: headers,
+      body: JSON.stringify(loops),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!uploadRes.ok) {
+      const errorText = await uploadRes.text();
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Server error", details: errorText }),
+        body: JSON.stringify({ error: "Upload failed", details: errorText }),
       };
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Loops saved successfully" }),
+      body: JSON.stringify({ message: "Loop saved successfully" }),
     };
   } catch (err) {
     return {
