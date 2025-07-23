@@ -1,91 +1,64 @@
-﻿const fetch = require('node-fetch');
+﻿const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
+  // Step 1: Check method
+  if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
+      body: "Method Not Allowed",
     };
   }
 
-  const { songName, loopsJson, ownerCode } = JSON.parse(event.body || '{}');
+  try {
+    // Step 2: Parse request body
+    const { code, song, loops } = JSON.parse(event.body);
 
-  // Validate environment variables
-  const {
-    DROPBOX_APP_KEY,
-    DROPBOX_APP_SECRET,
-    DROPBOX_REFRESH_TOKEN,
-    OWNER_SECRET_CODE
-  } = process.env;
+    // Step 3: Check against OWNER_SECRET_CODE set in Netlify
+    const expectedCode = process.env.OWNER_SECRET_CODE;
 
-  if (!DROPBOX_APP_KEY || !DROPBOX_APP_SECRET || !DROPBOX_REFRESH_TOKEN || !OWNER_SECRET_CODE) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Missing environment variables' }),
-    };
-  }
+    if (code !== expectedCode) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: "Invalid owner code" }),
+      };
+    }
 
-  // ✅ Step 1: Validate owner
-  if (ownerCode !== OWNER_SECRET_CODE) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ error: 'Invalid owner code' }),
-    };
-  }
+    // Step 4: Prepare to upload to Dropbox
+    const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
+    const DROPBOX_UPLOAD_URL = "https://content.dropboxapi.com/2/files/upload";
+    const filePath = `/WorshipSongs/${song}_loops.json`;
 
-  // ✅ Step 2: Generate access token from refresh token
-  const tokenResponse = await fetch("https://api.dropboxapi.com/oauth2/token", {
-    method: 'POST',
-    headers: {
-      "Authorization": "Basic " + Buffer.from(`${DROPBOX_APP_KEY}:${DROPBOX_APP_SECRET}`).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: DROPBOX_REFRESH_TOKEN,
-    }),
-  });
+    const uploadResponse = await fetch(DROPBOX_UPLOAD_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+        "Dropbox-API-Arg": JSON.stringify({
+          path: filePath,
+          mode: "overwrite",
+          autorename: false,
+          mute: true,
+        }),
+        "Content-Type": "application/octet-stream",
+      },
+      body: Buffer.from(JSON.stringify(loops)),
+    });
 
-  const tokenData = await tokenResponse.json();
-  const accessToken = tokenData.access_token;
+    if (!uploadResponse.ok) {
+      const err = await uploadResponse.text();
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Dropbox upload failed", details: err }),
+      };
+    }
 
-  if (!accessToken) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to obtain Dropbox access token' }),
-    };
-  }
-
-  // ✅ Step 3: Upload the _loops.json to Dropbox
-  const filePath = `/WorshipSongs/${songName}_loops.json`;
-
-  const uploadResponse = await fetch("https://content.dropboxapi.com/2/files/upload", {
-    method: 'POST',
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({
-        path: filePath,
-        mode: "overwrite",
-        autorename: false,
-        mute: true,
-        strict_conflict: false
-      }),
-      "Content-Type": "application/octet-stream"
-    },
-    body: Buffer.from(JSON.stringify(loopsJson)),
-  });
-
-  const uploadResult = await uploadResponse.json();
-
-  if (uploadResponse.ok) {
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Loop uploaded successfully', details: uploadResult }),
+      body: JSON.stringify({ message: "Loops uploaded successfully" }),
     };
-  } else {
+  } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to upload file to Dropbox', details: uploadResult }),
+      body: JSON.stringify({ error: "Server error", details: err.message }),
     };
   }
 };
