@@ -184,7 +184,9 @@ document.getElementById("markEnd").addEventListener("click", () => {
 });
 
 document.getElementById("saveLoops").addEventListener("click", async () => {
-  const code = document.getElementById("ownerCode").value;
+  const code = document.getElementById("ownerCode").value.trim();
+  console.log("🔍 Sending ownerCode:", code);  // Optional debug
+
   const response = await fetch("/.netlify/functions/saveLoops", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
