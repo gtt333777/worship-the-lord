@@ -14,34 +14,35 @@ exports.handler = async (event) => {
     const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
     const filePath = `/WorshipSongs/${song}_loops.json`;
 
+    const dropboxArg = {
+      path: filePath,
+      mode: "overwrite",
+      autorename: false,
+      mute: true,
+    };
+
     const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${DROPBOX_TOKEN}`,
         "Content-Type": "application/octet-stream",
-        // ⚠️ Fix: Use JSON string here directly. Do NOT encode or escape manually.
-        "Dropbox-API-Arg": JSON.stringify({
-          path: filePath,
-          mode: "overwrite",
-          autorename: false,
-          mute: true
-        })
+        // ✅ Use utf8-encoded JSON string (no manual escaping!)
+        "Dropbox-API-Arg": Buffer.from(JSON.stringify(dropboxArg)).toString("utf8")
       },
-      // ✅ Body must be plain JSON string of loop data
-      body: JSON.stringify(loops)
+      body: Buffer.from(JSON.stringify(loops), "utf8") // Send body in UTF-8
     });
 
+    const resultText = await response.text();
     if (!response.ok) {
-      const text = await response.text();
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Upload failed", details: text }),
+        body: JSON.stringify({ error: "Upload failed", details: resultText }),
       };
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Loop saved successfully" }),
+      body: JSON.stringify({ message: "Loop saved successfully", result: resultText }),
     };
   } catch (err) {
     return {
