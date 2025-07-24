@@ -70,7 +70,7 @@ async function loadSongs() {
 let loops = [];
 let activeLoopIndex = 0;
 
-// 🔁 LOOP CODE START — add loop bar
+// 🖁 LOOP CODE START — add loop bar
 const loopCanvas = document.getElementById("loopCanvas");
 const ctx = loopCanvas.getContext("2d");
 let currentPrefix = "";
@@ -119,6 +119,20 @@ loopCanvas.addEventListener("click", e => {
   }
 });
 
+// ➕/➖ buttons for loop adjustment
+function adjustLoopStart(delta) {
+  if (activeLoopIndex >= 0) {
+    loops[activeLoopIndex].start = Math.max(0, loops[activeLoopIndex].start + delta);
+    drawLoops(vocalAudio.duration);
+  }
+}
+function adjustLoopEnd(delta) {
+  if (activeLoopIndex >= 0) {
+    loops[activeLoopIndex].end = Math.max(loops[activeLoopIndex].start + 0.1, loops[activeLoopIndex].end + delta);
+    drawLoops(vocalAudio.duration);
+  }
+}
+
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
 
@@ -141,7 +155,7 @@ vocalAudio.addEventListener("timeupdate", () => {
     }
   }
 });
-// 🔁 LOOP CODE END
+// 🖁 LOOP CODE END
 
 async function loadSong(name) {
   const prefix = name.trim();
@@ -175,7 +189,7 @@ async function loadSong(name) {
         console.error("Lyrics load error:", err);
       });
 
-    // 🔁 LOOP CODE START — load loop segments
+    // 🖁 LOOP CODE START — load loop segments
     const loopPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
     try {
       const loopURL = await getTemporaryLink(loopPath);
@@ -189,7 +203,7 @@ async function loadSong(name) {
       activeLoopIndex = -1;
       console.warn("No loop file for", prefix);
     }
-    // 🔁 LOOP CODE END
+    // 🖁 LOOP CODE END
 
   } catch (err) {
     alert("Error loading song: " + err.message);
