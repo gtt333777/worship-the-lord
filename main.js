@@ -68,7 +68,7 @@ async function loadSongs() {
 }
 
 let loops = [];
-let activeLoopIndex = -1;
+let activeLoopIndex = 0;
 
 // 🔁 LOOP CODE START — add loop bar
 const loopCanvas = document.getElementById("loopCanvas");
@@ -104,7 +104,7 @@ function drawLoops(duration) {
 }
 
 loopCanvas.addEventListener("click", e => {
-  if (!vocalAudio.duration) return;
+  if (!vocalAudio.duration || !loops.length) return;
   const rect = loopCanvas.getBoundingClientRect();
   const clickX = e.clientX - rect.left;
   const seconds = clickX * vocalAudio.duration / loopCanvas.width;
@@ -116,20 +116,18 @@ loopCanvas.addEventListener("click", e => {
     accompAudio.currentTime = loops[activeLoopIndex].start;
     vocalAudio.play();
     accompAudio.play();
-  } else {
-    activeLoopIndex = -1;
-    vocalAudio.currentTime = seconds;
-    accompAudio.currentTime = seconds;
-    vocalAudio.play();
-    accompAudio.play();
   }
 });
 
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
 
-  if (activeLoopIndex >= 0) {
+  if (activeLoopIndex >= 0 && loops.length) {
     const loop = loops[activeLoopIndex];
+    if (vocalAudio.currentTime < loop.start) {
+      vocalAudio.currentTime = loop.start;
+      accompAudio.currentTime = loop.start;
+    }
     if (vocalAudio.currentTime >= loop.end) {
       activeLoopIndex++;
       if (activeLoopIndex < loops.length) {
@@ -183,9 +181,12 @@ async function loadSong(name) {
       const loopURL = await getTemporaryLink(loopPath);
       const loopRes = await fetch(loopURL);
       loops = await loopRes.json();
-      activeLoopIndex = -1;
+      activeLoopIndex = 0;
+      vocalAudio.currentTime = loops[0].start;
+      accompAudio.currentTime = loops[0].start;
     } catch (err) {
       loops = [];
+      activeLoopIndex = -1;
       console.warn("No loop file for", prefix);
     }
     // 🔁 LOOP CODE END
@@ -200,6 +201,10 @@ document.getElementById("songSelect").addEventListener("change", e => {
 });
 
 document.getElementById("playBtn").addEventListener("click", () => {
+  if (loops.length) {
+    vocalAudio.currentTime = loops[activeLoopIndex >= 0 ? activeLoopIndex : 0].start;
+    accompAudio.currentTime = vocalAudio.currentTime;
+  }
   Promise.all([vocalAudio.play(), accompAudio.play()])
     .catch(err => console.error("Playback error:", err));
 });
