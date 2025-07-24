@@ -54,9 +54,11 @@ function supportsFlac() {
 }
 // === ✅ [ END ADDED ] ===
 
-// === ✅ [ LOOP DATA + PROGRESS BAR ] ===
+// 🔁 LOOP CODE START
+/*
 let loops = [];
 let activeLoopIndex = -1;
+
 const canvas = document.getElementById("progressCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -71,13 +73,11 @@ function drawProgressBar() {
     const xEnd = loop.end * pxPerSec;
     ctx.fillStyle = i < activeLoopIndex ? "#8B4513" : (i === activeLoopIndex ? "#228B22" : "#FF6347");
     ctx.fillRect(xStart, 0, xEnd - xStart, canvas.height);
-
     ctx.fillStyle = "white";
     ctx.font = "14px Arial";
     ctx.fillText(i + 1, xStart + 4, canvas.height / 2 + 5);
   });
 
-  // Draw current time marker
   const currentX = vocalAudio.currentTime * pxPerSec;
   ctx.strokeStyle = "black";
   ctx.beginPath();
@@ -91,7 +91,6 @@ canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const clickedTime = (x / canvas.width) * vocalAudio.duration;
-
   const clickedIndex = loops.findIndex(loop => clickedTime >= loop.start && clickedTime <= loop.end);
   if (clickedIndex !== -1) {
     activeLoopIndex = clickedIndex;
@@ -120,12 +119,12 @@ function handleLoopPlayback() {
 }
 
 vocalAudio.addEventListener("timeupdate", handleLoopPlayback);
-
-// === ✅ [ END LOOP DATA ] ===
+*/
+// 🔁 LOOP CODE END
 
 async function loadSongs() {
   await loadDropboxToken(); // ✅ Load Dropbox access token first
-  const response = await fetch("lyrics/songs_names.txt");
+  const response = await fetch("lyrics/song_names.txt");
   const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
   const select = document.getElementById("songSelect");
   songNames.forEach(name => {
@@ -141,30 +140,35 @@ async function loadSongs() {
 
 async function loadSong(name) {
   const prefix = name.trim();
-
   const ext = supportsFlac() ? "flac" : "mp3";
   const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
   const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
-  const loopsPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
+  // 🔁 LOOP CODE START
+  // const loopsPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
+  // 🔁 LOOP CODE END
 
   try {
-    const [vocalURL, accompURL, loopsURL] = await Promise.all([
+    const [vocalURL, accompURL /*, loopsURL*/] = await Promise.all([
       getTemporaryLink(vocalPath),
       getTemporaryLink(accompPath),
-      getTemporaryLink(loopsPath)
+      // getTemporaryLink(loopsPath)
     ]);
 
     vocalAudio.src = vocalURL;
     accompAudio.src = accompURL;
+
     vocalAudio.load();
     accompAudio.load();
 
-    // Fetch loop JSON
+    // 🔁 LOOP CODE START
+    /*
     const loopsRes = await fetch(loopsURL);
     loops = await loopsRes.json();
     activeLoopIndex = -1;
+    */
+    // 🔁 LOOP CODE END
 
-    // === ✅✅ Lyrics Load (unchanged) ===
+    // === ✅✅ [ FIXED: Make sure lyrics load correctly in both mobile and desktop ] ===
     fetch(`lyrics/${prefix}.txt`)
       .then(res => res.ok ? res.text() : "Lyrics not found.")
       .then(txt => {
@@ -177,6 +181,7 @@ async function loadSong(name) {
         document.getElementById("lyricsBox").value = "Lyrics could not be loaded.";
         console.error("Lyrics load error:", err);
       });
+    // === ✅✅ [ END FIXED ] ===
 
   } catch (err) {
     alert("Error loading song: " + err.message);
@@ -188,11 +193,16 @@ document.getElementById("songSelect").addEventListener("change", e => {
 });
 
 document.getElementById("playBtn").addEventListener("click", () => {
+  // 🔁 LOOP CODE START
+  /*
   if (loops.length) {
     activeLoopIndex = 0;
     vocalAudio.currentTime = loops[0].start;
     accompAudio.currentTime = loops[0].start;
   }
+  */
+  // 🔁 LOOP CODE END
+
   Promise.all([vocalAudio.play(), accompAudio.play()])
     .catch(err => console.error("Playback error:", err));
 });
