@@ -36,7 +36,7 @@
     }
     canvas#loopCanvas {
       display: block;
-      margin: 20px auto 10px auto;
+      margin: 10px auto;
       border: 1px solid #ccc;
       background-color: #fff8f0;
     }
@@ -51,11 +51,11 @@
       margin: 0 10px;
     }
 
-    /* 🆕 Tamil message */
     .tamil-message {
       text-align: center;
       font-size: 14px;
       font-weight: bold;
+      margin-top: 10px;
       margin-bottom: 10px;
       line-height: 1.4;
     }
@@ -88,14 +88,14 @@
     <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
   </div>
 
-  <!-- 🔁 Loop Progress Bar -->
-  <canvas id="loopCanvas" width="600" height="30" style="margin: 20px auto; display: block;"></canvas>
-
-  <!-- 🆕 Tamil Instruction Message -->
+  <!-- 🆕 Tamil Instruction Message (Moved ABOVE canvas) -->
   <div class="tamil-message">
     கீழுள்ள ஏதாவது வண்ண பகுதியை தொட்டு, அந்த பகுதி பாடலை கேட்கலாம்.<br>
     Vocal Volume மட்டும் குறைத்து, நீங்கள் இசையோடு பாடி பழகலாம்.
   </div>
+
+  <!-- 🔁 Loop Progress Bar -->
+  <canvas id="loopCanvas" width="600" height="30" style="display: block;"></canvas>
 
   <!-- 🆕 Skip 1s Buttons -->
   <div class="skip-buttons">
