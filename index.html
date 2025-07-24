@@ -28,10 +28,10 @@
       height: 200px;
       font-size: 20px;
       direction: ltr;
-      white-space: pre-wrap; /* ✅ preserves line breaks */
+      white-space: pre-wrap;
       padding: 10px;
-      line-height: 1.6;       /* ✅ improves readability */
-      resize: none;           /* ✅ disables manual resizing */
+      line-height: 1.6;
+      resize: none;
     }
     /* ✅✅ [ END OF UPDATED STYLES ] ✅✅ */
 
@@ -40,7 +40,7 @@
     }
 
     /* 🎨 Style for loop progress bar */
-    canvas#progressCanvas {
+    canvas#loopCanvas {
       display: block;
       margin: 20px auto 10px auto;
       border: 1px solid #ccc;
@@ -75,10 +75,8 @@
     <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
   </div>
 
-  <!-- ✅✅ Loop progress bar (NEWLY ADDED, no other changes) -->
- <!-- 🔁 Loop Progress Bar -->
-<canvas id="loopCanvas" width="600" height="30" style="margin: 20px auto; display: block;"></canvas>
-
+  <!-- 🔁 Loop Progress Bar -->
+  <canvas id="loopCanvas" width="600" height="30" style="margin: 20px auto; display: block;"></canvas>
 
   <!-- ✅✅ Lyrics display will dynamically fill this box -->
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
