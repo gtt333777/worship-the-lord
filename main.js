@@ -32,6 +32,18 @@ function adjustVolume(type, delta) {
   else accompAudio.volume = vol;
 }
 
+// 🔁 Skip back/forward by 1s
+function skipSeconds(delta) {
+  const newTime = Math.max(0, vocalAudio.currentTime + delta);
+  vocalAudio.currentTime = newTime;
+  accompAudio.currentTime = newTime;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') skipSeconds(-1);
+  if (e.key === 'ArrowRight') skipSeconds(1);
+});
+
 async function getTemporaryLink(path) {
   console.log("Trying to fetch from Dropbox path:", path);
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
