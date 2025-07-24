@@ -47,61 +47,88 @@ async function getTemporaryLink(path) {
   return data.link;
 }
 
-// === ✅ [ ADDED ] Detect FLAC support for better quality ===
 function supportsFlac() {
   const a = document.createElement('audio');
   return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
 }
-// === ✅ [ END ADDED ] ===
 
-// 🔁 LOOP CODE START
-/*
+async function loadSongs() {
+  await loadDropboxToken();
+  const response = await fetch("lyrics/song_names.txt");
+  const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
+  const select = document.getElementById("songSelect");
+  songNames.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  loadSong(songNames[0]);
+}
+
 let loops = [];
 let activeLoopIndex = -1;
 
-const canvas = document.getElementById("progressCanvas");
-const ctx = canvas.getContext("2d");
+// 🔁 LOOP CODE START — add loop bar
+const loopCanvas = document.getElementById("loopCanvas");
+const ctx = loopCanvas.getContext("2d");
+let currentPrefix = "";
 
-function drawProgressBar() {
-  if (!vocalAudio.duration || !loops.length) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawLoops(duration) {
+  ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
+  if (!loops.length || !duration) return;
 
-  const pxPerSec = canvas.width / vocalAudio.duration;
+  const width = loopCanvas.width;
+  const height = loopCanvas.height;
+  const pxPerSec = width / duration;
 
-  loops.forEach((loop, i) => {
+  loops.forEach((loop, index) => {
     const xStart = loop.start * pxPerSec;
     const xEnd = loop.end * pxPerSec;
-    ctx.fillStyle = i < activeLoopIndex ? "#8B4513" : (i === activeLoopIndex ? "#228B22" : "#FF6347");
-    ctx.fillRect(xStart, 0, xEnd - xStart, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.font = "14px Arial";
-    ctx.fillText(i + 1, xStart + 4, canvas.height / 2 + 5);
+    ctx.fillStyle = "#e0b0ff"; // lavender segment
+    ctx.fillRect(xStart, 0, xEnd - xStart, height);
+
+    ctx.fillStyle = "#333";
+    ctx.font = "12px sans-serif";
+    ctx.fillText(index + 1, xStart + 3, 15);
   });
 
-  const currentX = vocalAudio.currentTime * pxPerSec;
-  ctx.strokeStyle = "black";
+  // Draw current position line
+  const progressX = vocalAudio.currentTime * pxPerSec;
+  ctx.strokeStyle = "#000";
   ctx.beginPath();
-  ctx.moveTo(currentX, 0);
-  ctx.lineTo(currentX, canvas.height);
+  ctx.moveTo(progressX, 0);
+  ctx.lineTo(progressX, height);
   ctx.stroke();
 }
 
-canvas.addEventListener("click", (e) => {
-  if (!vocalAudio.duration || !loops.length) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const clickedTime = (x / canvas.width) * vocalAudio.duration;
-  const clickedIndex = loops.findIndex(loop => clickedTime >= loop.start && clickedTime <= loop.end);
-  if (clickedIndex !== -1) {
+loopCanvas.addEventListener("click", e => {
+  if (!vocalAudio.duration) return;
+  const rect = loopCanvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const seconds = clickX * vocalAudio.duration / loopCanvas.width;
+
+  const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
+  if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
     vocalAudio.currentTime = loops[activeLoopIndex].start;
     accompAudio.currentTime = loops[activeLoopIndex].start;
-    Promise.all([vocalAudio.play(), accompAudio.play()]);
+    vocalAudio.play();
+    accompAudio.play();
+  } else {
+    activeLoopIndex = -1;
+    vocalAudio.currentTime = seconds;
+    accompAudio.currentTime = seconds;
+    vocalAudio.play();
+    accompAudio.play();
   }
 });
 
-function handleLoopPlayback() {
-  if (activeLoopIndex >= 0 && activeLoopIndex < loops.length) {
+vocalAudio.addEventListener("timeupdate", () => {
+  drawLoops(vocalAudio.duration);
+
+  if (activeLoopIndex >= 0) {
     const loop = loops[activeLoopIndex];
     if (vocalAudio.currentTime >= loop.end) {
       activeLoopIndex++;
@@ -115,43 +142,20 @@ function handleLoopPlayback() {
       }
     }
   }
-  drawProgressBar();
-}
-
-vocalAudio.addEventListener("timeupdate", handleLoopPlayback);
-*/
+});
 // 🔁 LOOP CODE END
-
-async function loadSongs() {
-  await loadDropboxToken(); // ✅ Load Dropbox access token first
-  const response = await fetch("lyrics/song_names.txt");
-  const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
-  const select = document.getElementById("songSelect");
-  songNames.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
-
-  // ✅✅ FIXED: Load first song correctly
-  loadSong(songNames[0]);
-}
 
 async function loadSong(name) {
   const prefix = name.trim();
+  currentPrefix = prefix;
   const ext = supportsFlac() ? "flac" : "mp3";
   const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
   const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
-  // 🔁 LOOP CODE START
-  // const loopsPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
-  // 🔁 LOOP CODE END
 
   try {
-    const [vocalURL, accompURL /*, loopsURL*/] = await Promise.all([
+    const [vocalURL, accompURL] = await Promise.all([
       getTemporaryLink(vocalPath),
-      getTemporaryLink(accompPath),
-      // getTemporaryLink(loopsPath)
+      getTemporaryLink(accompPath)
     ]);
 
     vocalAudio.src = vocalURL;
@@ -160,15 +164,6 @@ async function loadSong(name) {
     vocalAudio.load();
     accompAudio.load();
 
-    // 🔁 LOOP CODE START
-    /*
-    const loopsRes = await fetch(loopsURL);
-    loops = await loopsRes.json();
-    activeLoopIndex = -1;
-    */
-    // 🔁 LOOP CODE END
-
-    // === ✅✅ [ FIXED: Make sure lyrics load correctly in both mobile and desktop ] ===
     fetch(`lyrics/${prefix}.txt`)
       .then(res => res.ok ? res.text() : "Lyrics not found.")
       .then(txt => {
@@ -181,7 +176,19 @@ async function loadSong(name) {
         document.getElementById("lyricsBox").value = "Lyrics could not be loaded.";
         console.error("Lyrics load error:", err);
       });
-    // === ✅✅ [ END FIXED ] ===
+
+    // 🔁 LOOP CODE START — load loop segments
+    const loopPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
+    try {
+      const loopURL = await getTemporaryLink(loopPath);
+      const loopRes = await fetch(loopURL);
+      loops = await loopRes.json();
+      activeLoopIndex = -1;
+    } catch (err) {
+      loops = [];
+      console.warn("No loop file for", prefix);
+    }
+    // 🔁 LOOP CODE END
 
   } catch (err) {
     alert("Error loading song: " + err.message);
@@ -193,16 +200,6 @@ document.getElementById("songSelect").addEventListener("change", e => {
 });
 
 document.getElementById("playBtn").addEventListener("click", () => {
-  // 🔁 LOOP CODE START
-  /*
-  if (loops.length) {
-    activeLoopIndex = 0;
-    vocalAudio.currentTime = loops[0].start;
-    accompAudio.currentTime = loops[0].start;
-  }
-  */
-  // 🔁 LOOP CODE END
-
   Promise.all([vocalAudio.play(), accompAudio.play()])
     .catch(err => console.error("Playback error:", err));
 });
