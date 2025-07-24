@@ -21,8 +21,6 @@
     .controls {
       margin: 10px 0;
     }
-
-    /* ✅✅ [ UPDATED STYLES for better lyrics display ] ✅✅ */
     textarea {
       width: 100%;
       height: 200px;
@@ -33,18 +31,25 @@
       line-height: 1.6;
       resize: none;
     }
-    /* ✅✅ [ END OF UPDATED STYLES ] ✅✅ */
-
     .volume-section {
       margin: 10px 0;
     }
-
-    /* 🎨 Style for loop progress bar */
     canvas#loopCanvas {
       display: block;
       margin: 20px auto 10px auto;
       border: 1px solid #ccc;
       background-color: #fff8f0;
+    }
+
+    /* 🆕 Buttons below loop bar */
+    .skip-buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .skip-buttons button {
+      font-size: 16px;
+      padding: 5px 10px;
+      margin: 0 10px;
     }
   </style>
 </head>
@@ -78,15 +83,19 @@
   <!-- 🔁 Loop Progress Bar -->
   <canvas id="loopCanvas" width="600" height="30" style="margin: 20px auto; display: block;"></canvas>
 
-  <!-- ✅✅ Lyrics display will dynamically fill this box -->
+  <!-- 🆕 Skip 1s Buttons -->
+  <div class="skip-buttons">
+    <button onclick="skipSeconds(-1)">⏪ -1 sec</button>
+    <button onclick="skipSeconds(1)">+1 sec ⏩</button>
+  </div>
+
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
 
   <script src="main.js"></script>
 
-  <!-- 🟢🟢 [ ADDED: Browser check for Firefox only ] 🟢🟢 -->
+  <!-- 🟢 Browser check for Firefox only -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-
     if (!isFirefox) {
       document.body.innerHTML = `
         <div style="padding: 30px; text-align: center; font-family: Arial;">
@@ -100,7 +109,5 @@
       `;
     }
   </script>
-  <!-- 🟢🟢 [ END OF ADDED SECTION ] 🟢🟢 -->
-
 </body>
 </html>
