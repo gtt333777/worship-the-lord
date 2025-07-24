@@ -119,20 +119,6 @@ loopCanvas.addEventListener("click", e => {
   }
 });
 
-// ➕/➖ buttons for loop adjustment
-function adjustLoopStart(delta) {
-  if (activeLoopIndex >= 0) {
-    loops[activeLoopIndex].start = Math.max(0, loops[activeLoopIndex].start + delta);
-    drawLoops(vocalAudio.duration);
-  }
-}
-function adjustLoopEnd(delta) {
-  if (activeLoopIndex >= 0) {
-    loops[activeLoopIndex].end = Math.max(loops[activeLoopIndex].start + 0.1, loops[activeLoopIndex].end + delta);
-    drawLoops(vocalAudio.duration);
-  }
-}
-
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
 
