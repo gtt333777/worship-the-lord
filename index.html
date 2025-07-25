@@ -116,7 +116,7 @@
 
   <script src="main.js"></script>
 
-  <!-- ✅ Improved Firefox-only browser check (bilingual + copy link) -->
+  <!-- ✅ Improved Firefox-only browser check (copy instruction below link) -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
     if (!isFirefox) {
@@ -126,16 +126,26 @@
           <h2>⚠️ Worship The Lord App Requires Firefox</h2>
           <p>This app works only in the Firefox browser for full audio support (FLAC format).</p>
           <p>இந்த செயலி (FLAC) ஒலி வடிவத்தை முழுமையாக இயங்க, Firefox Browser தேவை.</p>
-          
-          <button onclick="copyAndInstruct()" style="font-size: 18px; padding: 10px 20px; margin-top: 15px;">
+
+          <!-- ✅ Firefox Download Link -->
+          <p style="margin: 20px 0;">
+            <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 18px; color: blue;">
+              👉 Click here to download Firefox / Firefox-ஐ இங்கே கிளிக் செய்து பதிவிறக்கவும்
+            </a>
+          </p>
+
+          <!-- ✅ Copy Link Button BELOW Firefox Link -->
+          <button onclick="copyAndInstruct()" style="font-size: 18px; padding: 10px 20px;">
             📋 Copy App Link / லிங்க் நகலெடு
           </button>
 
           <p id="copyMsg" style="margin-top: 15px; font-size: 14px; color: green;"></p>
 
-          <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 18px; color: blue; margin-top: 10px; display: inline-block;">
-            👉 Click here to download Firefox / Firefox-ஐ இங்கே கிளிக் செய்து பதிவிறக்கவும்
-          </a>
+          <!-- ✅ Clear Bilingual Instructions -->
+          <p style="font-size: 15px; margin-top: 10px;">
+            ✅ Now open the Firefox browser manually. In the address bar, right-click and paste the copied link, then press Enter. Your app will open.<br>
+            ✅ இப்போது Firefox browser ஐ தாங்கள் தானாகத் திறக்கவும். Address bar-இல் right-click செய்து நகலெடுத்த லிங்கை paste செய்து Enter அழுத்தவும். அப்பிளிக்கேஷன் திறக்கும்.
+          </p>
         </div>
       `;
     }
@@ -144,11 +154,11 @@
       navigator.clipboard.writeText(window.location.href)
         .then(() => {
           document.getElementById('copyMsg').innerHTML =
-            "✅ Worship The Lord App link copied. Now please open Firefox manually, paste it in the address bar, and press Enter. <br>✅ Worship The Lord App லிங்க் நகலெடுக்கப்பட்டது. தயவுசெய்து Firefox-ஐ திறந்து, மேலே பேஸ்ட் செய்து Enter அழுத்தவும்.";
+            "✅ Worship The Lord App link copied successfully / Worship The Lord App லிங்க் வெற்றிகரமாக நகலெடுக்கப்பட்டது.";
         })
         .catch(() => {
           document.getElementById('copyMsg').innerHTML =
-            "❌ Unable to copy. Please copy the URL manually from the address bar. <br>❌ நகலெடுக்க முடியவில்லை. மேலுள்ள address bar-இலிருந்து URL-ஐ கைமுறையாக நகலெடுக்கவும்.";
+            "❌ Unable to copy. Please copy the URL manually from the address bar. / ❌ நகலெடுக்க முடியவில்லை. மேலுள்ள address bar-இலிருந்து URL-ஐ கைமுறையாக நகலெடுக்கவும்.";
         });
     }
   </script>
