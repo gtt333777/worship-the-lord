@@ -116,18 +116,23 @@
 
   <script src="main.js"></script>
 
-  <!-- 🟢 Browser check for Firefox only -->
+  <!-- ✅ Improved Firefox-only browser check -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
     if (!isFirefox) {
+      const currentUrl = window.location.href;
       document.body.innerHTML = `
         <div style="padding: 30px; text-align: center; font-family: Arial;">
           <h2>⚠️ Worship The Lord App Requires Firefox</h2>
-          <p>This application is designed to work only in the Firefox browser for best performance.</p>
-          <p>Please install Firefox and reopen the site in it.</p>
-          <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 20px; color: blue;">
-            👉 Click here to download Firefox
-          </a>
+          <p>This app needs the Firefox browser for full audio support (FLAC format).</p>
+          <p>Please install Firefox and manually open this site in it.</p>
+          <p style="margin: 20px 0;">
+            <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 18px; color: blue;">
+              👉 Click here to download Firefox
+            </a>
+          </p>
+          <p style="font-size: 16px; margin-bottom: 8px;">Copy and open this link in Firefox:</p>
+          <input type="text" value="${currentUrl}" readonly onclick="this.select()" style="width: 80%; padding: 8px; font-size: 16px;" />
         </div>
       `;
     }
