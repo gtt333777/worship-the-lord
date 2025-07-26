@@ -29,14 +29,14 @@
 
     textarea {
       width: 100%;
-      height: 280px;
+      height: 270px;              /* ⬅️ Reduced height */
       font-size: 20px;
       direction: ltr;
       white-space: pre-wrap;
       padding: 10px;
       line-height: 1.6;
       resize: none;
-      margin-bottom: 5px; /* ✅ Reduced bottom margin */
+      margin-bottom: 5px;         /* ⬅️ Reduced bottom margin */
     }
 
     .volume-section {
@@ -118,7 +118,7 @@
 
   <script src="main.js"></script>
 
-  <!-- ✅ Improved Firefox-only browser check (copy instruction below link) -->
+  <!-- ✅ Improved Firefox-only browser check -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
     if (!isFirefox) {
@@ -129,21 +129,18 @@
           <p>This app works only in the Firefox browser for full audio support (FLAC format).</p>
           <p>இந்த செயலி (FLAC) ஒலி வடிவத்தை முழுமையாக இயங்க, Firefox Browser தேவை.</p>
 
-          <!-- ✅ Firefox Download Link -->
           <p style="margin: 20px 0;">
             <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 18px; color: blue;">
               👉 Click here to download Firefox / Firefox-ஐ இங்கே கிளிக் செய்து பதிவிறக்கவும்
             </a>
           </p>
 
-          <!-- ✅ Copy Link Button BELOW Firefox Link -->
           <button onclick="copyAndInstruct()" style="font-size: 18px; padding: 10px 20px;">
             📋 Copy App Link / லிங்க் நகலெடு
           </button>
 
           <p id="copyMsg" style="margin-top: 15px; font-size: 14px; color: green;"></p>
 
-          <!-- ✅ Clear Bilingual Instructions -->
           <p style="font-size: 15px; margin-top: 10px;">
             ✅ Now open the Firefox browser manually. In the address bar, right-click and paste the copied link, then press Enter. Your app will open.<br>
             ✅ இப்போது Firefox browser ஐ தாங்கள் தானாகத் திறக்கவும். Address bar-இல் right-click செய்து நகலெடுத்த லிங்கை paste செய்து Enter அழுத்தவும். அப்பிளிக்கேஷன் திறக்கும்.
