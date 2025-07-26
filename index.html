@@ -29,14 +29,13 @@
 
     textarea {
       width: 100%;
-      height: calc(100vh - 540px); /* ✅ Dynamic height based on screen size */
+      height: 280px;
       font-size: 20px;
       direction: ltr;
       white-space: pre-wrap;
       padding: 10px;
       line-height: 1.6;
       resize: none;
-      margin-bottom: 0; /* ✅ No extra bottom margin */
     }
 
     .volume-section {
@@ -52,7 +51,7 @@
 
     .skip-buttons {
       text-align: center;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     .skip-buttons button {
@@ -99,7 +98,7 @@
     <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
   </div>
 
-  <!-- 🆕 Tamil Instruction Message (Above loop bar) -->
+  <!-- ✅ Tamil Instruction Message moved ABOVE the loop canvas -->
   <div class="tamil-message">
     கீழுள்ள ஏதாவது வண்ண பகுதியை தொட்டு, அந்த பகுதி பாடலை கேட்கலாம்.<br>
     Vocal Volume மட்டும் குறைத்து, நீங்கள் இசையோடு பாடி, Speaker வைத்து, ஆராதனை நடத்தலாம்.
@@ -108,7 +107,7 @@
   <!-- 🔁 Loop Progress Bar -->
   <canvas id="loopCanvas" width="600" height="30" style="display: block;"></canvas>
 
-  <!-- 🆕 Skip 1s Buttons -->
+  <!-- ⏩ Skip Buttons -->
   <div class="skip-buttons">
     <button onclick="skipSeconds(-1)">⏪ -1 sec</button>
     <button onclick="skipSeconds(1)">+1 sec ⏩</button>
@@ -118,7 +117,7 @@
 
   <script src="main.js"></script>
 
-  <!-- ✅ Improved Firefox-only browser check (copy instruction below link) -->
+  <!-- ✅ Firefox browser check with copy instruction -->
   <script>
     const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
     if (!isFirefox) {
@@ -136,14 +135,14 @@
             </a>
           </p>
 
-          <!-- ✅ Copy Link Button BELOW Firefox Link -->
+          <!-- ✅ Copy App Link Button -->
           <button onclick="copyAndInstruct()" style="font-size: 18px; padding: 10px 20px;">
             📋 Copy App Link / லிங்க் நகலெடு
           </button>
 
           <p id="copyMsg" style="margin-top: 15px; font-size: 14px; color: green;"></p>
 
-          <!-- ✅ Clear Bilingual Instructions -->
+          <!-- ✅ Explicit Clear Instructions -->
           <p style="font-size: 15px; margin-top: 10px;">
             ✅ Now open the Firefox browser manually. In the address bar, right-click and paste the copied link, then press Enter. Your app will open.<br>
             ✅ இப்போது Firefox browser ஐ தாங்கள் தானாகத் திறக்கவும். Address bar-இல் right-click செய்து நகலெடுத்த லிங்கை paste செய்து Enter அழுத்தவும். அப்பிளிக்கேஷன் திறக்கும்.
