@@ -221,9 +221,6 @@ function getBookmarkFolders() {
 
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
-  const allSongs = new Set();
-  Object.values(folderData).forEach(songList => songList.forEach(song => allSongs.add(song)));
-
   const select = document.createElement("select");
   select.style.marginLeft = "10px";
   select.id = "bookmarkDropdown";
@@ -233,12 +230,17 @@ function populateBookmarkedDropdown() {
   defaultOpt.textContent = "🎯 Bookmarked Songs";
   select.appendChild(defaultOpt);
 
-  [...allSongs].forEach(song => {
-    const opt = document.createElement("option");
-    opt.value = song;
-    opt.textContent = song;
-    select.appendChild(opt);
-  });
+  for (const folderName in folderData) {
+    const group = document.createElement("optgroup");
+    group.label = folderName;
+    folderData[folderName].forEach(song => {
+      const opt = document.createElement("option");
+      opt.value = song;
+      opt.textContent = song;
+      group.appendChild(opt);
+    });
+    select.appendChild(group);
+  }
 
   select.addEventListener("change", (e) => {
     if (e.target.value) loadSong(e.target.value);
