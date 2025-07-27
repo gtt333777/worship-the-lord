@@ -307,6 +307,66 @@ document.getElementById("bookmarkBtn").addEventListener("click", () => {
   document.getElementById("bookmarkModal").style.display = "block";
 });
 
+// ✅ New Bookmark Manager UI
+function showBookmarkManager() {
+  const bookmarks = getBookmarkFolders();
+  let html = `<div style="padding:20px;"><h3>📚 Bookmarks</h3>`;
+
+  for (const folder in bookmarks) {
+    html += `<h4>${folder} <button onclick="renameFolder('${folder}')">✏️ Rename</button> <button onclick="deleteFolder('${folder}')">🗑️ Delete</button></h4><ul>`;
+    for (const song of bookmarks[folder]) {
+      html += `<li>${song} <button onclick="deleteSong('${folder}','${song}')">❌</button></li>`;
+    }
+    html += `</ul>`;
+  }
+
+  html += `<button onclick="closeBookmarkManager()">Close</button></div>`;
+
+  const div = document.createElement("div");
+  div.id = "bookmarkManagerOverlay";
+  div.style.position = "fixed";
+  div.style.top = "0";
+  div.style.left = "0";
+  div.style.width = "100%";
+  div.style.height = "100%";
+  div.style.background = "rgba(0,0,0,0.5)";
+  div.style.zIndex = "10000";
+  div.innerHTML = `<div style="background:white; max-width:500px; margin:50px auto; padding:20px; border-radius:8px;">${html}</div>`;
+  document.body.appendChild(div);
+}
+
+function closeBookmarkManager() {
+  document.getElementById("bookmarkManagerOverlay").remove();
+}
+
+function deleteFolder(folder) {
+  if (!confirm(`Delete folder "${folder}"?`)) return;
+  const bookmarks = getBookmarkFolders();
+  delete bookmarks[folder];
+  setBookmarkFolders(bookmarks);
+  closeBookmarkManager();
+  showBookmarkManager();
+}
+
+function deleteSong(folder, song) {
+  const bookmarks = getBookmarkFolders();
+  bookmarks[folder] = bookmarks[folder].filter(s => s !== song);
+  setBookmarkFolders(bookmarks);
+  closeBookmarkManager();
+  showBookmarkManager();
+}
+
+function renameFolder(oldName) {
+  const newName = prompt("New folder name:", oldName);
+  if (!newName || newName === oldName) return;
+  const bookmarks = getBookmarkFolders();
+  bookmarks[newName] = bookmarks[oldName];
+  delete bookmarks[oldName];
+  setBookmarkFolders(bookmarks);
+  closeBookmarkManager();
+  showBookmarkManager();
+}
+
 // Wrap and override loadSong to include bookmark updates
 const originalLoadSong = loadSong;
 loadSong = async function (name) {
