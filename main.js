@@ -300,13 +300,17 @@ function saveBookmark() {
     setBookmarkFolders(bookmarks);
     document.getElementById("bookmarkStatus").textContent = `✅ "${song}" added to "${folder}"`;
     updateStarIcon();
+
+    // ✅ Auto-close modal after 1 second
+    setTimeout(closeBookmarkModal, 1000);
   } else {
     document.getElementById("bookmarkStatus").textContent = `✅ Already in "${folder}"`;
-  }
 
-  // ✅ Ensure modal closes after saving
-  closeBookmarkModal();
+    // ✅ Auto-close modal after 1 second
+    setTimeout(closeBookmarkModal, 1000);
+  }
 }
+
 
 function updateStarIcon() {
   const song = currentPrefix;
