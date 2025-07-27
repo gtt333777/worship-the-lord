@@ -263,6 +263,18 @@ function populateExistingFolders() {
     defaultOpt.textContent = "My Bookmarks";
     dropdown.appendChild(defaultOpt);
   }
+
+  // 🆕 Update folder select dropdown for user to browse saved songs
+  const folderSelect = document.getElementById("bookmarkFolderSelect");
+  if (folderSelect) {
+    folderSelect.innerHTML = "";
+    Object.keys(folders).forEach(folder => {
+      const opt = document.createElement("option");
+      opt.value = folder;
+      opt.textContent = folder;
+      folderSelect.appendChild(opt);
+    });
+  }
 }
 
 function getBookmarkFolders() {
@@ -292,6 +304,8 @@ function saveBookmark() {
     document.getElementById("bookmarkStatus").textContent = `✅ Already in "${folder}"`;
     setTimeout(closeBookmarkModal, 1000);
   }
+
+  populateExistingFolders();
 }
 
 function updateStarIcon() {
@@ -307,7 +321,28 @@ document.getElementById("bookmarkBtn").addEventListener("click", () => {
   document.getElementById("bookmarkModal").style.display = "block";
 });
 
-// ✅ New Bookmark Manager UI
+// ✅ Select bookmark folder and populate songs
+document.getElementById("bookmarkFolderSelect").addEventListener("change", () => {
+  const folder = document.getElementById("bookmarkFolderSelect").value;
+  const bookmarks = getBookmarkFolders();
+  const songList = bookmarks[folder] || [];
+  const songSelect = document.getElementById("bookmarkedSongsSelect");
+  songSelect.innerHTML = "";
+  songList.forEach(song => {
+    const opt = document.createElement("option");
+    opt.value = song;
+    opt.textContent = song;
+    songSelect.appendChild(opt);
+  });
+});
+
+// ✅ Load song on selecting from bookmarked songs list
+document.getElementById("bookmarkedSongsSelect").addEventListener("change", () => {
+  const song = document.getElementById("bookmarkedSongsSelect").value;
+  if (song) loadSong(song);
+});
+
+// === BOOKMARK MANAGER ===
 function showBookmarkManager() {
   const bookmarks = getBookmarkFolders();
   let html = `<div style="padding:20px;"><h3>📚 Bookmarks</h3>`;
@@ -374,7 +409,5 @@ loadSong = async function (name) {
   updateStarIcon();
   updateSongLoadCount();
 };
-
-// === 🔖 BOOKMARK LOGIC END ===
 
 loadSongs();

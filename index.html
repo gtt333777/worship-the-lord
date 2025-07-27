@@ -70,7 +70,6 @@
       font-weight: normal;
     }
 
-    /* 📌 Bookmark Manager Popup */
     #bookmarkManagerModal {
       display: none;
       position: fixed;
@@ -124,6 +123,14 @@
     <button id="bookmarkBtn" title="Bookmark this song">⭐</button>
   </div>
 
+  <!-- ✅ Bookmarked Songs Dropdown -->
+  <div style="text-align:center;">
+    <label><strong>Play from Bookmarked Songs:</strong></label>
+    <select id="bookmarkPlaySelect" onchange="if(this.value) loadSong(this.value)">
+      <option value="">-- Select from Bookmarks --</option>
+    </select>
+  </div>
+
   <!-- 📣 Bookmark Prompt Message -->
   <div id="bookmarkPrompt" style="display: none; text-align: center; margin: 10px 0; background-color: #fff3cd; padding: 10px; border: 1px solid #ffeeba; border-radius: 5px; font-size: 14px;">
     📌 <strong>Shall I bookmark this song for you?</strong><br/>
@@ -136,12 +143,10 @@
     <button onclick="dismissBookmark()">No</button>
   </div>
 
-  <!-- 🔧 Manage Bookmarks Link -->
   <div style="text-align: center; font-size: 13px; margin-top: 8px;">
     <a href="#" onclick="showBookmarkManager()">📌 Manage Bookmarks / Bookmark ஐ மாற்றவும்</a>
   </div>
 
-  <!-- 📌 Bookmark Modal -->
   <div id="bookmarkModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
     <div style="background:#fff; width:90%; max-width:400px; margin:60px auto; padding:20px; border-radius:8px; text-align:center; position:relative;">
       <h3>📌 Bookmark This Song</h3>
@@ -164,7 +169,6 @@
     </div>
   </div>
 
-  <!-- 📌 Bookmark Manager Modal -->
   <div id="bookmarkManagerModal">
     <div id="bookmarkManagerContent">
       <h3>📂 Your Bookmarks</h3>
