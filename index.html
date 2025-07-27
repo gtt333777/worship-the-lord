@@ -77,6 +77,47 @@
   <div>
     <label><strong>Choose a song:</strong></label>
     <select id="songSelect"></select>
+    <button id="bookmarkBtn" title="Bookmark this song">⭐</button>
+  </div>
+
+  <!-- 📣 Bookmark Prompt Message -->
+  <div id="bookmarkPrompt" style="display: none; text-align: center; margin: 10px 0; background-color: #fff3cd; padding: 10px; border: 1px solid #ffeeba; border-radius: 5px; font-size: 14px;">
+    📌 <strong>Shall I bookmark this song for you?</strong><br/>
+    ✅ It will be useful for your next worship session.<br/>
+    📝 Later, you can edit and change the bookmark folder name.<br/><br/>
+    📌 <strong>இந்தப் பாடலை bookmark செய்யவா?</strong><br/>
+    ✅ அடுத்த ஆராதனைக்கு பயனாக இருக்கும்.<br/>
+    📝 பின்பு bookmark folder-ஐ மாற்றவும், பெயரைத் திருத்தவும் முடியும்.<br/><br/>
+    <button onclick="confirmBookmark()">Yes</button>
+    <button onclick="dismissBookmark()">No</button>
+  </div>
+
+  <!-- 🔧 Manage Bookmarks Link -->
+  <div style="text-align: center; font-size: 13px; margin-top: 8px;">
+    <a href="#" onclick="showBookmarkPrompt()">📌 Manage Bookmarks / Bookmark ஐ மாற்றவும்</a>
+  </div>
+
+  <!-- 📌 Bookmark Modal -->
+  <div id="bookmarkModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div style="background:#fff; width:90%; max-width:400px; margin:60px auto; padding:20px; border-radius:8px; text-align:center; position:relative;">
+      <h3>📌 Bookmark This Song</h3>
+      <p>
+        Choose a folder or create a new one to bookmark this song.<br>
+        <small>Later, you can edit folders and remove songs if needed.</small><br>
+        <small>இந்தப் பாடலை Folder-இல் சேர்க்கவும். பின்னர் அதை திருத்தலாம்.</small>
+      </p>
+
+      <label for="existingFolders"><strong>Choose Folder:</strong></label><br>
+      <select id="existingFolders" style="width:80%; margin:5px 0;"></select><br>
+
+      <label for="newFolderName"><strong>Or create new folder:</strong></label><br>
+      <input type="text" id="newFolderName" placeholder="New folder name" style="width:80%; padding:5px;"><br><br>
+
+      <button onclick="saveBookmark()">✅ Save Bookmark</button>
+      <button onclick="closeBookmarkModal()">❌ Cancel</button>
+
+      <div id="bookmarkStatus" style="margin-top:10px; font-size:13px; color:green;"></div>
+    </div>
   </div>
 
   <div class="controls">
@@ -116,5 +157,5 @@
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
 
   <script src="main.js"></script>
-  </body>
-  </html>
+</body>
+</html>

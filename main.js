@@ -106,7 +106,6 @@ function drawLoops(duration) {
     ctx.fillText(index + 1, xStart + 3, 15);
   });
 
-  // Draw current position line
   const progressX = vocalAudio.currentTime * pxPerSec;
   ctx.strokeStyle = "#000";
   ctx.beginPath();
@@ -158,10 +157,7 @@ vocalAudio.addEventListener("timeupdate", () => {
 async function loadSong(name) {
   const prefix = name.trim();
   currentPrefix = prefix;
-
-  // 🎯 UPDATE MADE HERE — Always use .mp3 instead of checking FLAC support
   const ext = "mp3";
-
   const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
   const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
 
@@ -228,5 +224,108 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
 });
+
+// === 🔖 BOOKMARK LOGIC START ===
+
+let songLoadCount = parseInt(localStorage.getItem("songLoadCount") || "0");
+
+function updateSongLoadCount() {
+  songLoadCount++;
+  localStorage.setItem("songLoadCount", songLoadCount);
+  if (songLoadCount % 10 === 0) {
+    showBookmarkPrompt();
+  }
+}
+
+function showBookmarkPrompt() {
+  const prompt = document.getElementById("bookmarkPrompt");
+  if (prompt) prompt.style.display = "block";
+}
+
+function dismissBookmark() {
+  document.getElementById("bookmarkPrompt").style.display = "none";
+}
+
+function confirmBookmark() {
+  populateExistingFolders();
+  document.getElementById("bookmarkPrompt").style.display = "none";
+  document.getElementById("bookmarkModal").style.display = "block";
+}
+
+function closeBookmarkModal() {
+  document.getElementById("bookmarkModal").style.display = "none";
+  document.getElementById("bookmarkStatus").textContent = "";
+  document.getElementById("newFolderName").value = "";
+}
+
+function populateExistingFolders() {
+  const folders = getBookmarkFolders();
+  const dropdown = document.getElementById("existingFolders");
+  dropdown.innerHTML = "";
+
+  Object.keys(folders).forEach(folder => {
+    const opt = document.createElement("option");
+    opt.value = folder;
+    opt.textContent = folder;
+    dropdown.appendChild(opt);
+  });
+
+  if (!dropdown.options.length) {
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "My Bookmarks";
+    defaultOpt.textContent = "My Bookmarks";
+    dropdown.appendChild(defaultOpt);
+  }
+}
+
+function getBookmarkFolders() {
+  return JSON.parse(localStorage.getItem("bookmarks") || "{}");
+}
+
+function setBookmarkFolders(bookmarks) {
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+}
+
+function saveBookmark() {
+  const song = currentPrefix;
+  const newFolder = document.getElementById("newFolderName").value.trim();
+  const selectedFolder = document.getElementById("existingFolders").value;
+  const folder = newFolder || selectedFolder;
+
+  let bookmarks = getBookmarkFolders();
+  if (!bookmarks[folder]) bookmarks[folder] = [];
+
+  if (!bookmarks[folder].includes(song)) {
+    bookmarks[folder].push(song);
+    setBookmarkFolders(bookmarks);
+    document.getElementById("bookmarkStatus").textContent = `✅ "${song}" added to "${folder}"`;
+    updateStarIcon();
+  } else {
+    document.getElementById("bookmarkStatus").textContent = `✅ Already in "${folder}"`;
+  }
+}
+
+function updateStarIcon() {
+  const song = currentPrefix;
+  const btn = document.getElementById("bookmarkBtn");
+  const folders = getBookmarkFolders();
+  const isBookmarked = Object.values(folders).some(list => list.includes(song));
+  btn.textContent = isBookmarked ? "⭐️" : "☆";
+}
+
+document.getElementById("bookmarkBtn").addEventListener("click", () => {
+  populateExistingFolders();
+  document.getElementById("bookmarkModal").style.display = "block";
+});
+
+// Wrap and override loadSong to inject star + count
+const originalLoadSong = loadSong;
+loadSong = async function (name) {
+  await originalLoadSong(name);
+  updateStarIcon();
+  updateSongLoadCount();
+};
+
+// === 🔖 BOOKMARK LOGIC END ===
 
 loadSongs();
