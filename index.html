@@ -98,7 +98,7 @@
     <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
   </div>
 
-  <!-- ✅ Tamil Instruction Message moved ABOVE the loop canvas -->
+  <!-- 🆕 Tamil Instruction Message (Above loop bar) -->
   <div class="tamil-message">
     கீழுள்ள ஏதாவது வண்ண பகுதியை தொட்டு, அந்த பகுதி பாடலை கேட்கலாம்.<br>
     Vocal Volume மட்டும் குறைத்து, நீங்கள் இசையோடு பாடி, Speaker வைத்து, ஆராதனை நடத்தலாம்.
@@ -107,7 +107,7 @@
   <!-- 🔁 Loop Progress Bar -->
   <canvas id="loopCanvas" width="600" height="30" style="display: block;"></canvas>
 
-  <!-- ⏩ Skip Buttons -->
+  <!-- 🆕 Skip 1s Buttons -->
   <div class="skip-buttons">
     <button onclick="skipSeconds(-1)">⏪ -1 sec</button>
     <button onclick="skipSeconds(1)">+1 sec ⏩</button>
@@ -116,52 +116,5 @@
   <textarea id="lyricsBox" readonly>Lyrics will appear here...</textarea>
 
   <script src="main.js"></script>
-
-  <!-- ✅ Firefox browser check with copy instruction -->
-  <script>
-    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-    if (!isFirefox) {
-      const currentUrl = window.location.href;
-      document.body.innerHTML = `
-        <div style="padding: 30px; text-align: center; font-family: Arial;">
-          <h2>⚠️ Worship The Lord App Requires Firefox</h2>
-          <p>This app works only in the Firefox browser for full audio support (FLAC format).</p>
-          <p>இந்த செயலி (FLAC) ஒலி வடிவத்தை முழுமையாக இயங்க, Firefox Browser தேவை.</p>
-
-          <!-- ✅ Firefox Download Link -->
-          <p style="margin: 20px 0;">
-            <a href="https://www.mozilla.org/firefox/new/" target="_blank" style="font-size: 18px; color: blue;">
-              👉 Click here to download Firefox / Firefox-ஐ இங்கே கிளிக் செய்து பதிவிறக்கவும்
-            </a>
-          </p>
-
-          <!-- ✅ Copy App Link Button -->
-          <button onclick="copyAndInstruct()" style="font-size: 18px; padding: 10px 20px;">
-            📋 Copy App Link / லிங்க் நகலெடு
-          </button>
-
-          <p id="copyMsg" style="margin-top: 15px; font-size: 14px; color: green;"></p>
-
-          <!-- ✅ Explicit Clear Instructions -->
-          <p style="font-size: 15px; margin-top: 10px;">
-            ✅ Now open the Firefox browser manually. In the address bar, right-click and paste the copied link, then press Enter. Your app will open.<br>
-            ✅ இப்போது Firefox browser ஐ தாங்கள் தானாகத் திறக்கவும். Address bar-இல் right-click செய்து நகலெடுத்த லிங்கை paste செய்து Enter அழுத்தவும். அப்பிளிக்கேஷன் திறக்கும்.
-          </p>
-        </div>
-      `;
-    }
-
-    function copyAndInstruct() {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => {
-          document.getElementById('copyMsg').innerHTML =
-            "✅ Worship The Lord App link copied successfully / Worship The Lord App லிங்க் வெற்றிகரமாக நகலெடுக்கப்பட்டது.";
-        })
-        .catch(() => {
-          document.getElementById('copyMsg').innerHTML =
-            "❌ Unable to copy. Please copy the URL manually from the address bar. / ❌ நகலெடுக்க முடியவில்லை. மேலுள்ள address bar-இலிருந்து URL-ஐ கைமுறையாக நகலெடுக்கவும்.";
-        });
-    }
-  </script>
-</body>
-</html>
+  </body>
+  </html>
