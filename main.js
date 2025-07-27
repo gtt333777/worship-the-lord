@@ -32,7 +32,6 @@ function adjustVolume(type, delta) {
   else accompAudio.volume = vol;
 }
 
-// 🔁 Skip back/forward by 1s
 function skipSeconds(delta) {
   const newTime = Math.max(0, vocalAudio.currentTime + delta);
   vocalAudio.currentTime = newTime;
@@ -45,7 +44,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 async function getTemporaryLink(path) {
-  console.log("Trying to fetch from Dropbox path:", path);
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
     headers: {
@@ -57,11 +55,6 @@ async function getTemporaryLink(path) {
   if (!response.ok) throw new Error("Failed to get Dropbox link");
   const data = await response.json();
   return data.link;
-}
-
-function supportsFlac() {
-  const a = document.createElement('audio');
-  return !!a.canPlayType && a.canPlayType('audio/flac; codecs="flac"') !== "";
 }
 
 async function loadSongs() {
@@ -81,8 +74,6 @@ async function loadSongs() {
 
 let loops = [];
 let activeLoopIndex = 0;
-
-// 🖁 LOOP CODE START — add loop bar
 const loopCanvas = document.getElementById("loopCanvas");
 const ctx = loopCanvas.getContext("2d");
 let currentPrefix = "";
@@ -98,9 +89,8 @@ function drawLoops(duration) {
   loops.forEach((loop, index) => {
     const xStart = loop.start * pxPerSec;
     const xEnd = loop.end * pxPerSec;
-    ctx.fillStyle = "#e0b0ff"; // lavender segment
+    ctx.fillStyle = "#e0b0ff";
     ctx.fillRect(xStart, 0, xEnd - xStart, height);
-
     ctx.fillStyle = "#333";
     ctx.font = "12px sans-serif";
     ctx.fillText(index + 1, xStart + 3, 15);
@@ -152,7 +142,6 @@ vocalAudio.addEventListener("timeupdate", () => {
     }
   }
 });
-// 🖁 LOOP CODE END
 
 async function loadSong(name) {
   const prefix = name.trim();
@@ -186,7 +175,6 @@ async function loadSong(name) {
         console.error("Lyrics load error:", err);
       });
 
-    // 🖁 LOOP CODE START — load loop segments
     const loopPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
     try {
       const loopURL = await getTemporaryLink(loopPath);
@@ -200,7 +188,6 @@ async function loadSong(name) {
       activeLoopIndex = -1;
       console.warn("No loop file for", prefix);
     }
-    // 🖁 LOOP CODE END
 
   } catch (err) {
     alert("Error loading song: " + err.message);
@@ -300,17 +287,12 @@ function saveBookmark() {
     setBookmarkFolders(bookmarks);
     document.getElementById("bookmarkStatus").textContent = `✅ "${song}" added to "${folder}"`;
     updateStarIcon();
-
-    // ✅ Auto-close modal after 1 second
     setTimeout(closeBookmarkModal, 1000);
   } else {
     document.getElementById("bookmarkStatus").textContent = `✅ Already in "${folder}"`;
-
-    // ✅ Auto-close modal after 1 second
     setTimeout(closeBookmarkModal, 1000);
   }
 }
-
 
 function updateStarIcon() {
   const song = currentPrefix;
@@ -325,7 +307,7 @@ document.getElementById("bookmarkBtn").addEventListener("click", () => {
   document.getElementById("bookmarkModal").style.display = "block";
 });
 
-// Wrap and override loadSong to inject star + count
+// Wrap and override loadSong to include bookmark updates
 const originalLoadSong = loadSong;
 loadSong = async function (name) {
   await originalLoadSong(name);
