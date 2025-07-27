@@ -250,4 +250,58 @@ function populateBookmarkedDropdown() {
   }
 }
 
+// === ✅ Expose global for Bookmark Manager button ===
+function showBookmarkManager() {
+  const bookmarks = getBookmarkFolders();
+  let html = `<div style="padding:20px;"><h3>📚 Bookmarks</h3>`;
+
+  for (const folder in bookmarks) {
+    html += `<h4>${folder} <button onclick="renameFolder('${folder}')">✏️ Rename</button> <button onclick="deleteFolder('${folder}')">🗑️ Delete</button></h4><ul>`;
+    for (const song of bookmarks[folder]) {
+      html += `<li>${song} <button onclick="deleteSong('${folder}','${song}')">❌</button></li>`;
+    }
+    html += `</ul>`;
+  }
+
+  html += `<button onclick="document.getElementById('bookmarkManagerOverlay').remove()">Close</button></div>`;
+
+  const div = document.createElement("div");
+  div.id = "bookmarkManagerOverlay";
+  div.style.position = "fixed";
+  div.style.top = "0";
+  div.style.left = "0";
+  div.style.width = "100%";
+  div.style.height = "100%";
+  div.style.background = "rgba(0,0,0,0.5)";
+  div.style.zIndex = "10000";
+  div.innerHTML = `<div style="background:white; max-width:500px; margin:50px auto; padding:20px; border-radius:8px;">${html}</div>`;
+  document.body.appendChild(div);
+}
+
+function renameFolder(folder) {
+  const newName = prompt("Enter new name for folder:", folder);
+  if (!newName || newName === folder) return;
+  const bookmarks = getBookmarkFolders();
+  bookmarks[newName] = bookmarks[folder];
+  delete bookmarks[folder];
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  showBookmarkManager();
+}
+
+function deleteFolder(folder) {
+  if (!confirm(`Delete entire folder "${folder}"?`)) return;
+  const bookmarks = getBookmarkFolders();
+  delete bookmarks[folder];
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  showBookmarkManager();
+}
+
+function deleteSong(folder, song) {
+  const bookmarks = getBookmarkFolders();
+  bookmarks[folder] = bookmarks[folder].filter(s => s !== song);
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  showBookmarkManager();
+}
+
 loadSongs();
+window.showBookmarkManager = showBookmarkManager;
