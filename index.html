@@ -69,6 +69,50 @@
       color: green;
       font-weight: normal;
     }
+
+    /* 📌 Bookmark Manager Popup */
+    #bookmarkManagerModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    #bookmarkManagerContent {
+      background: #fff;
+      width: 90%;
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    #bookmarkManagerContent h3 {
+      text-align: center;
+    }
+
+    .folder-item {
+      margin-top: 10px;
+    }
+
+    .folder-item button {
+      margin-left: 10px;
+      font-size: 12px;
+    }
+
+    .song-item {
+      margin-left: 20px;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .song-item button {
+      font-size: 11px;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
@@ -113,11 +157,21 @@
       <label for="newFolderName"><strong>Or create new folder:</strong></label><br>
       <input type="text" id="newFolderName" placeholder="New folder name" style="width:80%; padding:5px;"><br><br>
 
-      <!-- ✅ Fixed Save Button to close modal -->
       <button onclick="saveBookmark(); closeBookmarkModal();">✅ Save Bookmark</button>
       <button onclick="closeBookmarkModal()">❌ Cancel</button>
 
       <div id="bookmarkStatus" style="margin-top:10px; font-size:13px; color:green;"></div>
+    </div>
+  </div>
+
+  <!-- 📌 Bookmark Manager Modal -->
+  <div id="bookmarkManagerModal">
+    <div id="bookmarkManagerContent">
+      <h3>📂 Your Bookmarks</h3>
+      <div id="bookmarkList"></div>
+      <div style="text-align:center; margin-top:20px;">
+        <button onclick="closeBookmarkManager()">Close</button>
+      </div>
     </div>
   </div>
 
@@ -140,16 +194,13 @@
     <button onclick="adjustVolume('accompaniment', 0.1)">+</button>
   </div>
 
-  <!-- 🆕 Tamil Instruction Message (Above loop bar) -->
   <div class="tamil-message">
     கீழுள்ள ஏதாது வண்ண பகுதியை தோட்டு, அந்த பகுதி பாடலை கேட்கலாம்.<br>
     Vocal Volume மதும் குறைத்து, நீங்கள் இசையோடு பாடி, Speaker வைச்சு, ஆராதனை நடத்தலாம்.
   </div>
 
-  <!-- 🔁 Loop Progress Bar -->
-  <canvas id="loopCanvas" width="600" height="30" style="display: block;"></canvas>
+  <canvas id="loopCanvas" width="600" height="30"></canvas>
 
-  <!-- 🆕 Skip 1s Buttons -->
   <div class="skip-buttons">
     <button onclick="skipSeconds(-1)">⏪ -1 sec</button>
     <button onclick="skipSeconds(1)">+1 sec ⏩</button>
