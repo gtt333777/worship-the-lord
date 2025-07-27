@@ -113,7 +113,8 @@
       <label for="newFolderName"><strong>Or create new folder:</strong></label><br>
       <input type="text" id="newFolderName" placeholder="New folder name" style="width:80%; padding:5px;"><br><br>
 
-      <button onclick="saveBookmark()">✅ Save Bookmark</button>
+      <!-- ✅ Fixed Save Button to close modal -->
+      <button onclick="saveBookmark(); closeBookmarkModal();">✅ Save Bookmark</button>
       <button onclick="closeBookmarkModal()">❌ Cancel</button>
 
       <div id="bookmarkStatus" style="margin-top:10px; font-size:13px; color:green;"></div>

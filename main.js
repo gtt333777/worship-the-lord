@@ -303,6 +303,9 @@ function saveBookmark() {
   } else {
     document.getElementById("bookmarkStatus").textContent = `✅ Already in "${folder}"`;
   }
+
+  // ✅ Ensure modal closes after saving
+  closeBookmarkModal();
 }
 
 function updateStarIcon() {
