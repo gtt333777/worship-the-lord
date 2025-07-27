@@ -158,7 +158,10 @@ vocalAudio.addEventListener("timeupdate", () => {
 async function loadSong(name) {
   const prefix = name.trim();
   currentPrefix = prefix;
-  const ext = supportsFlac() ? "flac" : "mp3";
+
+  // 🎯 UPDATE MADE HERE — Always use .mp3 instead of checking FLAC support
+  const ext = "mp3";
+
   const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
   const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
 
