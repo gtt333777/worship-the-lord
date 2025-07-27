@@ -69,6 +69,7 @@ async function loadSongs() {
     select.appendChild(opt);
   });
 
+  populateBookmarkedDropdown(); // 🆕 Add this to show bookmarked songs
   loadSong(songNames[0]);
 }
 
@@ -214,200 +215,39 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
 
 // === 🔖 BOOKMARK LOGIC START ===
 
-let songLoadCount = parseInt(localStorage.getItem("songLoadCount") || "0");
-
-function updateSongLoadCount() {
-  songLoadCount++;
-  localStorage.setItem("songLoadCount", songLoadCount);
-  if (songLoadCount % 10 === 0) {
-    showBookmarkPrompt();
-  }
-}
-
-function showBookmarkPrompt() {
-  const prompt = document.getElementById("bookmarkPrompt");
-  if (prompt) prompt.style.display = "block";
-}
-
-function dismissBookmark() {
-  document.getElementById("bookmarkPrompt").style.display = "none";
-}
-
-function confirmBookmark() {
-  populateExistingFolders();
-  document.getElementById("bookmarkPrompt").style.display = "none";
-  document.getElementById("bookmarkModal").style.display = "block";
-}
-
-function closeBookmarkModal() {
-  document.getElementById("bookmarkModal").style.display = "none";
-  document.getElementById("bookmarkStatus").textContent = "";
-  document.getElementById("newFolderName").value = "";
-}
-
-function populateExistingFolders() {
-  const folders = getBookmarkFolders();
-  const dropdown = document.getElementById("existingFolders");
-  dropdown.innerHTML = "";
-
-  Object.keys(folders).forEach(folder => {
-    const opt = document.createElement("option");
-    opt.value = folder;
-    opt.textContent = folder;
-    dropdown.appendChild(opt);
-  });
-
-  if (!dropdown.options.length) {
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "My Bookmarks";
-    defaultOpt.textContent = "My Bookmarks";
-    dropdown.appendChild(defaultOpt);
-  }
-
-  // 🆕 Update folder select dropdown for user to browse saved songs
-  const folderSelect = document.getElementById("bookmarkFolderSelect");
-  if (folderSelect) {
-    folderSelect.innerHTML = "";
-    Object.keys(folders).forEach(folder => {
-      const opt = document.createElement("option");
-      opt.value = folder;
-      opt.textContent = folder;
-      folderSelect.appendChild(opt);
-    });
-  }
-}
-
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
 }
 
-function setBookmarkFolders(bookmarks) {
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-}
+function populateBookmarkedDropdown() {
+  const folderData = getBookmarkFolders();
+  const allSongs = new Set();
+  Object.values(folderData).forEach(songList => songList.forEach(song => allSongs.add(song)));
 
-function saveBookmark() {
-  const song = currentPrefix;
-  const newFolder = document.getElementById("newFolderName").value.trim();
-  const selectedFolder = document.getElementById("existingFolders").value;
-  const folder = newFolder || selectedFolder;
+  const select = document.createElement("select");
+  select.style.marginLeft = "10px";
+  select.id = "bookmarkDropdown";
 
-  let bookmarks = getBookmarkFolders();
-  if (!bookmarks[folder]) bookmarks[folder] = [];
+  const defaultOpt = document.createElement("option");
+  defaultOpt.value = "";
+  defaultOpt.textContent = "🎯 Bookmarked Songs";
+  select.appendChild(defaultOpt);
 
-  if (!bookmarks[folder].includes(song)) {
-    bookmarks[folder].push(song);
-    setBookmarkFolders(bookmarks);
-    document.getElementById("bookmarkStatus").textContent = `✅ "${song}" added to "${folder}"`;
-    updateStarIcon();
-    setTimeout(closeBookmarkModal, 1000);
-  } else {
-    document.getElementById("bookmarkStatus").textContent = `✅ Already in "${folder}"`;
-    setTimeout(closeBookmarkModal, 1000);
-  }
-
-  populateExistingFolders();
-}
-
-function updateStarIcon() {
-  const song = currentPrefix;
-  const btn = document.getElementById("bookmarkBtn");
-  const folders = getBookmarkFolders();
-  const isBookmarked = Object.values(folders).some(list => list.includes(song));
-  btn.textContent = isBookmarked ? "⭐️" : "☆";
-}
-
-document.getElementById("bookmarkBtn").addEventListener("click", () => {
-  populateExistingFolders();
-  document.getElementById("bookmarkModal").style.display = "block";
-});
-
-// ✅ Select bookmark folder and populate songs
-document.getElementById("bookmarkFolderSelect").addEventListener("change", () => {
-  const folder = document.getElementById("bookmarkFolderSelect").value;
-  const bookmarks = getBookmarkFolders();
-  const songList = bookmarks[folder] || [];
-  const songSelect = document.getElementById("bookmarkedSongsSelect");
-  songSelect.innerHTML = "";
-  songList.forEach(song => {
+  [...allSongs].forEach(song => {
     const opt = document.createElement("option");
     opt.value = song;
     opt.textContent = song;
-    songSelect.appendChild(opt);
+    select.appendChild(opt);
   });
-});
 
-// ✅ Load song on selecting from bookmarked songs list
-document.getElementById("bookmarkedSongsSelect").addEventListener("change", () => {
-  const song = document.getElementById("bookmarkedSongsSelect").value;
-  if (song) loadSong(song);
-});
+  select.addEventListener("change", (e) => {
+    if (e.target.value) loadSong(e.target.value);
+  });
 
-// === BOOKMARK MANAGER ===
-function showBookmarkManager() {
-  const bookmarks = getBookmarkFolders();
-  let html = `<div style="padding:20px;"><h3>📚 Bookmarks</h3>`;
-
-  for (const folder in bookmarks) {
-    html += `<h4>${folder} <button onclick="renameFolder('${folder}')">✏️ Rename</button> <button onclick="deleteFolder('${folder}')">🗑️ Delete</button></h4><ul>`;
-    for (const song of bookmarks[folder]) {
-      html += `<li>${song} <button onclick="deleteSong('${folder}','${song}')">❌</button></li>`;
-    }
-    html += `</ul>`;
+  const label = document.querySelector("label[for='songSelect']") || document.querySelector("label strong");
+  if (label && label.parentNode) {
+    label.parentNode.insertBefore(select, label.nextSibling);
   }
-
-  html += `<button onclick="closeBookmarkManager()">Close</button></div>`;
-
-  const div = document.createElement("div");
-  div.id = "bookmarkManagerOverlay";
-  div.style.position = "fixed";
-  div.style.top = "0";
-  div.style.left = "0";
-  div.style.width = "100%";
-  div.style.height = "100%";
-  div.style.background = "rgba(0,0,0,0.5)";
-  div.style.zIndex = "10000";
-  div.innerHTML = `<div style="background:white; max-width:500px; margin:50px auto; padding:20px; border-radius:8px;">${html}</div>`;
-  document.body.appendChild(div);
 }
-
-function closeBookmarkManager() {
-  document.getElementById("bookmarkManagerOverlay").remove();
-}
-
-function deleteFolder(folder) {
-  if (!confirm(`Delete folder "${folder}"?`)) return;
-  const bookmarks = getBookmarkFolders();
-  delete bookmarks[folder];
-  setBookmarkFolders(bookmarks);
-  closeBookmarkManager();
-  showBookmarkManager();
-}
-
-function deleteSong(folder, song) {
-  const bookmarks = getBookmarkFolders();
-  bookmarks[folder] = bookmarks[folder].filter(s => s !== song);
-  setBookmarkFolders(bookmarks);
-  closeBookmarkManager();
-  showBookmarkManager();
-}
-
-function renameFolder(oldName) {
-  const newName = prompt("New folder name:", oldName);
-  if (!newName || newName === oldName) return;
-  const bookmarks = getBookmarkFolders();
-  bookmarks[newName] = bookmarks[oldName];
-  delete bookmarks[oldName];
-  setBookmarkFolders(bookmarks);
-  closeBookmarkManager();
-  showBookmarkManager();
-}
-
-// Wrap and override loadSong to include bookmark updates
-const originalLoadSong = loadSong;
-loadSong = async function (name) {
-  await originalLoadSong(name);
-  updateStarIcon();
-  updateSongLoadCount();
-};
 
 loadSongs();
