@@ -57,6 +57,8 @@ let activeLoopIndex = 0;
 let suppressAdvanceOnce = false;
 
 const loopCanvas = document.getElementById("loopCanvas");
+loopCanvas.width = 800;  // internal drawing resolution (not visible size)
+loopCanvas.height = 30;
 const ctx = loopCanvas.getContext("2d");
 let currentPrefix = "";
 
