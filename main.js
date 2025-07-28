@@ -79,19 +79,25 @@ function drawLoops(duration) {
   ctx.stroke();
 }
 
+// 🔁 LOOP-ONLY MODE: Click inside a loop to start from its beginning and continue till end
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
+
   const rect = loopCanvas.getBoundingClientRect();
   const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
+
   const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
-    vocalAudio.currentTime = loops[activeLoopIndex].start;
-    accompAudio.currentTime = loops[activeLoopIndex].start;
+    const startTime = loops[activeLoopIndex].start;
+    vocalAudio.currentTime = startTime;
+    accompAudio.currentTime = startTime;
     vocalAudio.play();
     accompAudio.play();
   }
-});
+
+  // 🚫 No else block — clicking outside a loop does nothing
+})
 
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
@@ -145,14 +151,17 @@ async function loadSong(name) {
 }
 
 document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
+// 🔁 LOOP-ONLY MODE: Play button always starts from first loop
 document.getElementById("playBtn").addEventListener("click", () => {
-  if (loops.length && activeLoopIndex >= 0) {
-    const t = loops[activeLoopIndex].start;
-    vocalAudio.currentTime = t;
-    accompAudio.currentTime = t;
+  if (loops.length) {
+    activeLoopIndex = 0;
+    const start = loops[0].start;
+    vocalAudio.currentTime = start;
+    accompAudio.currentTime = start;
+    Promise.all([vocalAudio.play(), accompAudio.play()]).catch(console.error);
   }
-  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(console.error);
 });
+
 document.getElementById("pauseBtn").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
