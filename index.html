@@ -106,10 +106,10 @@
     <button onclick="adjustVolume('accomp', 0.1)">+</button>
   </div>
 
-<!-- ✅ Proper loop canvas with visual size + resolution fix -->
-<div style="overflow-x: auto;">
-  <canvas id="loopCanvas" width="1000" height="30"
-    style="display: block; width: 900px; height: 30px;"></canvas>
+<!-- ✅ Centered, narrow canvas with responsive behavior -->
+<div style="overflow-x: auto; display: flex; justify-content: center;">
+  <canvas id="loopCanvas" width="600" height="30"
+    style="display: block; width: 100%; max-width: 400px; height: 30px;"></canvas>
 </div>
   <div>
     <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
