@@ -54,7 +54,7 @@ async function getTemporaryLink(path) {
 
 let loops = [];
 let activeLoopIndex = 0;
-let loopClickActivated = false; // 🔁 Prevents skipping touched loop
+let suppressAdvanceOnce = false;
 
 const loopCanvas = document.getElementById("loopCanvas");
 const ctx = loopCanvas.getContext("2d");
@@ -81,7 +81,7 @@ function drawLoops(duration) {
   ctx.stroke();
 }
 
-// 🔁 LOOP-ONLY MODE: Fix for skipping clicked loop on touch
+// 🔁 Click on loop = start from that loop (no skipping)
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
 
@@ -89,15 +89,13 @@ loopCanvas.addEventListener("click", e => {
   const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
 
   const clickedIndex = loops.findIndex(loop =>
-    seconds >= loop.start && seconds <= loop.end + 0.1
+    seconds >= loop.start && seconds <= loop.end
   );
 
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
-    const startTime = loops[clickedIndex].start;
-
-    loopClickActivated = true;
-
+    suppressAdvanceOnce = true; // Prevents skipping touched loop
+    const startTime = loops[activeLoopIndex].start;
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
     vocalAudio.play();
@@ -105,18 +103,26 @@ loopCanvas.addEventListener("click", e => {
   }
 });
 
+// 🔁 Prevent skipping after seek
+vocalAudio.addEventListener("seeked", () => {
+  if (suppressAdvanceOnce) {
+    suppressAdvanceOnce = false;
+  }
+});
+
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
   if (activeLoopIndex >= 0 && loops.length) {
-    if (loopClickActivated) {
-      loopClickActivated = false;
-      return;
-    }
     const loop = loops[activeLoopIndex];
     if (vocalAudio.currentTime < loop.start) {
       vocalAudio.currentTime = loop.start;
       accompAudio.currentTime = loop.start;
     } else if (vocalAudio.currentTime >= loop.end) {
+      if (suppressAdvanceOnce) {
+        // Skip advancing just this once after click
+        suppressAdvanceOnce = false;
+        return;
+      }
       activeLoopIndex++;
       if (activeLoopIndex < loops.length) {
         vocalAudio.currentTime = loops[activeLoopIndex].start;
@@ -150,6 +156,8 @@ async function loadSong(name) {
       const loopURL = await getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_loops.json`);
       loops = await (await fetch(loopURL)).json();
       activeLoopIndex = 0;
+      // ✅ Immediately draw loops
+      drawLoops(vocalAudio.duration || 1); 
     } catch {
       loops = [];
       activeLoopIndex = -1;
@@ -162,7 +170,7 @@ async function loadSong(name) {
 
 document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
 
-// 🔁 LOOP-ONLY MODE: Play button always starts from first loop
+// 🔁 Play = Start from loop 1
 document.getElementById("playBtn").addEventListener("click", () => {
   if (loops.length) {
     activeLoopIndex = 0;
