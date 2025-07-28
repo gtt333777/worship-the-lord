@@ -13,6 +13,7 @@ async function loadDropboxToken() {
 const DROPBOX_FOLDER = "/WorshipSongs/";
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
+let currentPrefix = "";
 
 ["vocal", "accomp"].forEach(type => {
   document.getElementById(`${type}Volume`).addEventListener("input", e => {
@@ -56,7 +57,6 @@ let loops = [];
 let activeLoopIndex = 0;
 const loopCanvas = document.getElementById("loopCanvas");
 const ctx = loopCanvas.getContext("2d");
-let currentPrefix = "";
 
 function drawLoops(duration) {
   ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
@@ -138,6 +138,7 @@ async function loadSong(name) {
       loops = [];
       activeLoopIndex = -1;
     }
+    updateBookmarkStar();
   } catch (err) {
     alert("Error loading song: " + err.message);
   }
@@ -157,24 +158,54 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   accompAudio.pause();
 });
 
+// ⭐️ Bookmark System
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
 }
+function saveBookmarkFolders(data) {
+  localStorage.setItem("bookmarks", JSON.stringify(data));
+}
+function updateBookmarkStar() {
+  const data = getBookmarkFolders();
+  let isBookmarked = false;
+  for (const folder in data) {
+    if (data[folder].includes(currentPrefix)) {
+      isBookmarked = true;
+      break;
+    }
+  }
+  document.getElementById("bookmarkBtn").textContent = isBookmarked ? "🌟" : "⭐";
+}
+function toggleBookmark() {
+  const data = getBookmarkFolders();
+  let isAlreadyBookmarked = false;
+  let existingFolder = "";
+  for (const folder in data) {
+    if (data[folder].includes(currentPrefix)) {
+      isAlreadyBookmarked = true;
+      existingFolder = folder;
+      break;
+    }
+  }
+  if (isAlreadyBookmarked) {
+    data[existingFolder] = data[existingFolder].filter(x => x !== currentPrefix);
+  } else {
+    const chosen = prompt("Add to which Favorites? (1 to 5)", "1");
+    const folder = `Favorites ${chosen}`;
+    if (!data[folder]) data[folder] = [];
+    if (!data[folder].includes(currentPrefix)) data[folder].push(currentPrefix);
+  }
+  saveBookmarkFolders(data);
+  populateBookmarkedDropdown();
+  updateBookmarkStar();
+}
+document.getElementById("bookmarkBtn").addEventListener("click", toggleBookmark);
 
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
   const select = document.getElementById("bookmarkDropdown");
   select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-
-  const orderedFolders = Object.keys(folderData)
-    .filter(name => name && name.toLowerCase() !== "favorites" && name.toLowerCase().includes("favorites"))
-    .sort((a, b) => {
-      const numA = parseInt(a.replace(/\D/g, "")) || 0;
-      const numB = parseInt(b.replace(/\D/g, "")) || 0;
-      return numA - numB;
-    });
-
-  for (const folder of orderedFolders) {
+  for (const folder in folderData) {
     const group = document.createElement("optgroup");
     group.label = folder;
     folderData[folder].forEach(song => {
@@ -185,10 +216,9 @@ function populateBookmarkedDropdown() {
     });
     select.appendChild(group);
   }
-
-  select.addEventListener("change", e => {
+  select.onchange = e => {
     if (e.target.value) loadSong(e.target.value);
-  });
+  };
 }
 
 async function loadSongs() {
