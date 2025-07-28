@@ -46,27 +46,6 @@
       margin: 10px auto;
       display: block;
     }
-    #bookmarkManagerModal {
-      display: none;
-      position: fixed;
-      top: 10%;
-      left: 10%;
-      width: 80%;
-      background: #fff;
-      border: 1px solid #333;
-      padding: 20px;
-      z-index: 10;
-      max-height: 80%;
-      overflow: auto;
-    }
-    .folder-item {
-      border-bottom: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-    .song-item {
-      margin-left: 20px;
-      font-size: 0.95rem;
-    }
   </style>
 </head>
 <body>
@@ -83,10 +62,6 @@
     <select id="bookmarkDropdown">
       <option value="">🎯 Bookmarked Songs</option>
     </select>
-  </div>
-
-  <div>
-    <a href="#" onclick="showBookmarkManager()">📌 Manage Bookmarks / Bookmark ஐ மாற்றவும்</a>
   </div>
 
   <br>
@@ -116,13 +91,6 @@
   </div>
 
   <textarea id="lyricsBox" readonly></textarea>
-
-  <!-- Bookmark Manager Modal -->
-  <div id="bookmarkManagerModal">
-    <h2>📂 Manage Bookmarks</h2>
-    <div id="bookmarkList"></div>
-    <button onclick="closeBookmarkManager()">Close</button>
-  </div>
 
   <script src="main.js"></script>
 </body>
