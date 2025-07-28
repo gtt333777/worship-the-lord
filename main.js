@@ -155,7 +155,7 @@ async function loadSong(name) {
       const loopURL = await getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_loops.json`);
       loops = await (await fetch(loopURL)).json();
       activeLoopIndex = 0;
-      loopCanvas.width = Math.max(600, loops.length * 200); // ✅ Set canvas width dynamically
+      
     } catch {
       loops = [];
       activeLoopIndex = -1;
