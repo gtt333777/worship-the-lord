@@ -54,6 +54,8 @@ async function getTemporaryLink(path) {
 
 let loops = [];
 let activeLoopIndex = 0;
+let loopClickActivated = false; // 🔁 Prevents skipping touched loop
+
 const loopCanvas = document.getElementById("loopCanvas");
 const ctx = loopCanvas.getContext("2d");
 let currentPrefix = "";
@@ -79,21 +81,23 @@ function drawLoops(duration) {
   ctx.stroke();
 }
 
-// 🔁 LOOP-ONLY MODE: Improved loop click detection with tolerance
+// 🔁 LOOP-ONLY MODE: Fix for skipping clicked loop on touch
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
 
   const rect = loopCanvas.getBoundingClientRect();
   const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
 
-  // Add tolerance for better user interaction
-  const clickedIndex = loops.findIndex(loop => 
-    seconds >= loop.start && seconds <= loop.end + 0.2
+  const clickedIndex = loops.findIndex(loop =>
+    seconds >= loop.start && seconds <= loop.end + 0.1
   );
 
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
-    const startTime = loops[activeLoopIndex].start;
+    const startTime = loops[clickedIndex].start;
+
+    loopClickActivated = true;
+
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
     vocalAudio.play();
@@ -104,6 +108,10 @@ loopCanvas.addEventListener("click", e => {
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
   if (activeLoopIndex >= 0 && loops.length) {
+    if (loopClickActivated) {
+      loopClickActivated = false;
+      return;
+    }
     const loop = loops[activeLoopIndex];
     if (vocalAudio.currentTime < loop.start) {
       vocalAudio.currentTime = loop.start;
@@ -153,6 +161,7 @@ async function loadSong(name) {
 }
 
 document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
+
 // 🔁 LOOP-ONLY MODE: Play button always starts from first loop
 document.getElementById("playBtn").addEventListener("click", () => {
   if (loops.length) {
@@ -214,7 +223,6 @@ function updateBookmarkStar() {
   starBtn.textContent = isBookmarked ? "⭐" : "☆";
 }
 
-
 document.getElementById("bookmarkBtn").addEventListener("click", () => {
   const folders = getBookmarkFolders();
   const allFolders = Array.from({ length: 5 }, (_, i) => `Favorites ${i + 1}`);
@@ -239,7 +247,7 @@ document.getElementById("bookmarkBtn").addEventListener("click", () => {
 
   setBookmarkFolders(folders);
   populateBookmarkedDropdown();
-  updateBookmarkStar(); // ✅ Fixes icon update
+  updateBookmarkStar();
 });
 
 async function loadSongs() {
@@ -259,7 +267,6 @@ async function loadSongs() {
 
 loadSongs();
 
-// ✅ PWA install prompt control (optional, duplicate safeguard — also present in index.html)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js').catch(console.error);
 }
