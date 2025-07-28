@@ -1,241 +1,190 @@
-﻿// === Updated main.js — Sorted Favorites + skip empty folders ===
+﻿const vocalAudio = new Audio();
+const accompAudio = new Audio();
+let bookmarks = {};
+let currentFavoritesFolder = "Favorites 1";
 
-let ACCESS_TOKEN = "";
-
-async function loadDropboxToken() {
-  try {
-    const res = await fetch('/.netlify/functions/getDropboxToken');
-    const data = await res.json();
-    ACCESS_TOKEN = data.access_token;
-  } catch (err) {
-    console.error("Failed to fetch Dropbox token:", err);
-  }
+function loadSongs() {
+  fetch("lyrics/songs_names.txt")
+    .then((response) => response.text())
+    .then((text) => {
+      const songList = document.getElementById("songList");
+      const lines = text.trim().split("\n");
+      lines.forEach((line) => {
+        const option = document.createElement("option");
+        option.value = option.textContent = line.trim();
+        songList.appendChild(option);
+      });
+      loadBookmarksFromStorage();
+      updateBookmarkDropdown();
+      updateStarIcon();
+    });
 }
 
-const DROPBOX_FOLDER = "/WorshipSongs/";
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
-
-// Volume controls
-["vocal", "accomp"].forEach(type => {
-  document.getElementById(`${type}Volume`).addEventListener("input", e => {
-    (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
-  });
-});
-
-function adjustVolume(type, delta) {
-  const slider = document.getElementById(`${type}Volume`);
-  let vol = Math.min(1, Math.max(0, parseFloat(slider.value) + delta));
-  slider.value = vol;
-  (type === "vocal" ? vocalAudio : accompAudio).volume = vol;
+function loadLyrics(songName) {
+  fetch(`lyrics/${songName}.txt`)
+    .then((response) => response.text())
+    .then((text) => {
+      document.getElementById("lyricsDisplay").textContent = text;
+    });
 }
 
-function skipSeconds(delta) {
-  const newTime = Math.max(0, vocalAudio.currentTime + delta);
-  vocalAudio.currentTime = newTime;
-  accompAudio.currentTime = newTime;
+function getFileUrl(fileName) {
+  const prefix = fileName.trim();
+  const folder = "https://content.dropboxapi.com/2/files/download";
+  const path = `/WorshipSongs/${prefix}`;
+  return {
+    vocal: `/proxy?path=${encodeURIComponent(path + "_vocal.flac")}`,
+    acc: `/proxy?path=${encodeURIComponent(path + "_acc.flac")}`,
+  };
 }
 
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") skipSeconds(-1);
-  if (e.key === "ArrowRight") skipSeconds(1);
-});
+function playAudio() {
+  const songName = document.getElementById("songList").value;
+  const urls = getFileUrl(songName);
+  vocalAudio.src = urls.vocal;
+  accompAudio.src = urls.acc;
 
-async function getTemporaryLink(path) {
-  const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + ACCESS_TOKEN,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ path })
-  });
-  if (!response.ok) throw new Error("Failed to get Dropbox link");
-  const data = await response.json();
-  return data.link;
+  vocalAudio.volume = parseFloat(document.getElementById("vocalVolume").value);
+  accompAudio.volume = parseFloat(document.getElementById("accompVolume").value);
+
+  vocalAudio.play();
+  accompAudio.play();
 }
 
-let loops = [];
-let activeLoopIndex = 0;
-const loopCanvas = document.getElementById("loopCanvas");
-const ctx = loopCanvas.getContext("2d");
-let currentPrefix = "";
-
-function drawLoops(duration) {
-  ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
-  if (!loops.length || !duration) return;
-  const width = loopCanvas.width;
-  const height = loopCanvas.height;
-  const pxPerSec = width / duration;
-  loops.forEach((loop, i) => {
-    const xStart = loop.start * pxPerSec;
-    const xEnd = loop.end * pxPerSec;
-    ctx.fillStyle = "#e0b0ff";
-    ctx.fillRect(xStart, 0, xEnd - xStart, height);
-    ctx.fillStyle = "#333";
-    ctx.fillText(i + 1, xStart + 3, 15);
-  });
-  ctx.strokeStyle = "#000";
-  ctx.beginPath();
-  ctx.moveTo(vocalAudio.currentTime * pxPerSec, 0);
-  ctx.lineTo(vocalAudio.currentTime * pxPerSec, height);
-  ctx.stroke();
-}
-
-loopCanvas.addEventListener("click", e => {
-  if (!vocalAudio.duration || !loops.length) return;
-  const rect = loopCanvas.getBoundingClientRect();
-  const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
-  const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
-  if (clickedIndex >= 0) {
-    activeLoopIndex = clickedIndex;
-    vocalAudio.currentTime = loops[activeLoopIndex].start;
-    accompAudio.currentTime = loops[activeLoopIndex].start;
-    vocalAudio.play();
-    accompAudio.play();
-  }
-});
-
-vocalAudio.addEventListener("timeupdate", () => {
-  drawLoops(vocalAudio.duration);
-  if (activeLoopIndex >= 0 && loops.length) {
-    const loop = loops[activeLoopIndex];
-    if (vocalAudio.currentTime < loop.start) {
-      vocalAudio.currentTime = loop.start;
-      accompAudio.currentTime = loop.start;
-    } else if (vocalAudio.currentTime >= loop.end) {
-      activeLoopIndex++;
-      if (activeLoopIndex < loops.length) {
-        vocalAudio.currentTime = loops[activeLoopIndex].start;
-        accompAudio.currentTime = loops[activeLoopIndex].start;
-      } else {
-        vocalAudio.pause();
-        accompAudio.pause();
-        activeLoopIndex = -1;
-      }
-    }
-  }
-});
-
-async function loadSong(name) {
-  const prefix = name.trim();
-  currentPrefix = prefix;
-  const ext = "mp3";
-  try {
-    const [vocalURL, accompURL] = await Promise.all([
-      getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_vocal.${ext}`),
-      getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_acc.${ext}`)
-    ]);
-    vocalAudio.src = vocalURL;
-    accompAudio.src = accompURL;
-    vocalAudio.load();
-    accompAudio.load();
-    document.getElementById("lyricsBox").value = "Loading...";
-    const lyrics = await fetch(`lyrics/${prefix}.txt`).then(r => r.ok ? r.text() : "Lyrics not found");
-    document.getElementById("lyricsBox").value = lyrics;
-    try {
-      const loopURL = await getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_loops.json`);
-      loops = await (await fetch(loopURL)).json();
-      activeLoopIndex = 0;
-    } catch {
-      loops = [];
-      activeLoopIndex = -1;
-    }
-
-    updateBookmarkButtonState();
-
-  } catch (err) {
-    alert("Error loading song: " + err.message);
-  }
-}
-
-document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
-document.getElementById("playBtn").addEventListener("click", () => {
-  if (loops.length && activeLoopIndex >= 0) {
-    const t = loops[activeLoopIndex].start;
-    vocalAudio.currentTime = t;
-    accompAudio.currentTime = t;
-  }
-  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(console.error);
-});
-document.getElementById("pauseBtn").addEventListener("click", () => {
+function pauseAudio() {
   vocalAudio.pause();
   accompAudio.pause();
+}
+
+function adjustVolume(audio, delta) {
+  let newVolume = Math.min(1, Math.max(0, audio.volume + delta));
+  audio.volume = newVolume;
+}
+
+function adjustBookmarkStar() {
+  const songName = document.getElementById("songList").value;
+  const isBookmarked = isSongBookmarked(songName);
+  const star = document.getElementById("bookmarkStar");
+  star.textContent = isBookmarked ? "☆" : "★";
+}
+
+function toggleBookmark() {
+  const songName = document.getElementById("songList").value;
+  if (isSongBookmarked(songName)) {
+    removeBookmark(songName);
+  } else {
+    const selected = prompt("Add to Favorites 1 to 5. Enter number:");
+    if (!selected || !["1", "2", "3", "4", "5"].includes(selected)) return;
+
+    const folder = "Favorites " + selected;
+    if (!bookmarks[folder]) bookmarks[folder] = [];
+    if (!bookmarks[folder].includes(songName)) {
+      bookmarks[folder].push(songName);
+    }
+    saveBookmarksToStorage();
+  }
+  updateBookmarkDropdown();
+  updateStarIcon();
+}
+
+function isSongBookmarked(songName) {
+  return Object.values(bookmarks).some((list) => list.includes(songName));
+}
+
+function removeBookmark(songName) {
+  for (let folder in bookmarks) {
+    bookmarks[folder] = bookmarks[folder].filter((s) => s !== songName);
+  }
+  saveBookmarksToStorage();
+}
+
+function updateBookmarkDropdown() {
+  const dropdown = document.getElementById("bookmarkDropdown");
+  dropdown.innerHTML = "";
+  const opt = document.createElement("option");
+  opt.textContent = "📕 Bookmarked Songs";
+  opt.disabled = true;
+  dropdown.appendChild(opt);
+
+  Object.keys(bookmarks)
+    .filter((f) => /^Favorites [1-5]$/.test(f))
+    .sort((a, b) => {
+      const numA = parseInt(a.split(" ")[1]);
+      const numB = parseInt(b.split(" ")[1]);
+      return numA - numB;
+    })
+    .forEach((folder) => {
+      const folderOpt = document.createElement("option");
+      folderOpt.disabled = true;
+      folderOpt.textContent = folder;
+      dropdown.appendChild(folderOpt);
+      bookmarks[folder].forEach((song) => {
+        const opt = document.createElement("option");
+        opt.value = song;
+        opt.textContent = song;
+        dropdown.appendChild(opt);
+      });
+    });
+}
+
+function saveBookmarksToStorage() {
+  localStorage.setItem("worshipBookmarks", JSON.stringify(bookmarks));
+}
+
+function loadBookmarksFromStorage() {
+  const data = localStorage.getItem("worshipBookmarks");
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      if (typeof parsed === "object" && parsed !== null) {
+        bookmarks = parsed;
+      }
+    } catch (e) {
+      bookmarks = {};
+    }
+  }
+}
+
+function updateStarIcon() {
+  const songName = document.getElementById("songList").value;
+  const isBookmarked = isSongBookmarked(songName);
+  document.getElementById("bookmarkStar").textContent = isBookmarked ? "★" : "☆";
+}
+
+// Event Listeners
+document.getElementById("songList").addEventListener("change", function () {
+  loadLyrics(this.value);
+  updateStarIcon();
 });
 
-// ⭐ Bookmark logic
-function getBookmarkFolders() {
-  return JSON.parse(localStorage.getItem("bookmarks") || "{}");
-}
-function saveBookmarks(folders) {
-  localStorage.setItem("bookmarks", JSON.stringify(folders));
-}
-function toggleBookmark() {
-  const folders = getBookmarkFolders();
-  let folderList = ["Favorites 1", "Favorites 2", "Favorites 3", "Favorites 4", "Favorites 5"];
-  const target = currentPrefix;
-  const alreadyIn = Object.entries(folders).find(([_, list]) => list.includes(target));
-  if (alreadyIn) {
-    folders[alreadyIn[0]] = folders[alreadyIn[0]].filter(s => s !== target);
-  } else {
-    const chosen = prompt("Add to which Favorites? (1-5)", "1");
-    const label = "Favorites " + chosen;
-    if (!folders[label]) folders[label] = [];
-    folders[label].push(target);
+document.getElementById("bookmarkStar").addEventListener("click", toggleBookmark);
+
+document.getElementById("bookmarkDropdown").addEventListener("change", function () {
+  if (this.value) {
+    document.getElementById("songList").value = this.value;
+    loadLyrics(this.value);
+    updateStarIcon();
   }
-  saveBookmarks(folders);
-  populateBookmarkedDropdown();
-  updateBookmarkButtonState();
-}
-function updateBookmarkButtonState() {
-  const btn = document.getElementById("bookmarkBtn");
-  const folders = getBookmarkFolders();
-  const isBookmarked = Object.values(folders).some(arr => arr.includes(currentPrefix));
-  btn.textContent = isBookmarked ? "⭐" : "☆";
-}
-function populateBookmarkedDropdown() {
-  const folderData = getBookmarkFolders();
-  const select = document.getElementById("bookmarkDropdown");
-  select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-  const sortedFolders = Object.keys(folderData)
-    .filter(f => folderData[f] && folderData[f].length)
-    .sort((a, b) => {
-      const aNum = parseInt(a.replace(/\D/g, '')) || 0;
-      const bNum = parseInt(b.replace(/\D/g, '')) || 0;
-      return aNum - bNum;
-    });
+});
 
-  for (const folder of sortedFolders) {
-    const group = document.createElement("optgroup");
-    group.label = folder;
-    folderData[folder].forEach(song => {
-      const opt = document.createElement("option");
-      opt.value = song;
-      opt.textContent = song;
-      group.appendChild(opt);
-    });
-    select.appendChild(group);
-  }
-  select.addEventListener("change", e => {
-    if (e.target.value) loadSong(e.target.value);
-  });
-}
+document.getElementById("playBtn").addEventListener("click", playAudio);
+document.getElementById("pauseBtn").addEventListener("click", pauseAudio);
 
-// Initial song loading
-async function loadSongs() {
-  await loadDropboxToken();
-  const txt = await fetch("lyrics/song_names.txt").then(r => r.text());
-  const names = txt.split("\n").map(x => x.trim()).filter(Boolean);
-  const select = document.getElementById("songSelect");
-  names.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
-  populateBookmarkedDropdown();
-  loadSong(names[0]);
-}
+document.getElementById("vocalPlus").addEventListener("click", () => {
+  adjustVolume(vocalAudio, 0.1);
+});
 
+document.getElementById("vocalMinus").addEventListener("click", () => {
+  adjustVolume(vocalAudio, -0.1);
+});
+
+document.getElementById("accompPlus").addEventListener("click", () => {
+  adjustVolume(accompAudio, 0.1);
+});
+
+document.getElementById("accompMinus").addEventListener("click", () => {
+  adjustVolume(accompAudio, -0.1);
+});
+
+// Load everything
 loadSongs();
-window.toggleBookmark = toggleBookmark;
