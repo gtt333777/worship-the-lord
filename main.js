@@ -1,37 +1,45 @@
-﻿// === GOLD STANDARD MAIN.JS (Only Bookmark Star Toggle Logic Updated) ===
+﻿// === Bookmark-enhanced main.js with add/remove popup and proper star toggling ===
 
 let ACCESS_TOKEN = "";
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
-const DROPBOX_FOLDER = "/WorshipSongs/";
-
-document.getElementById("vocalVolume").addEventListener("input", e => {
-  vocalAudio.volume = parseFloat(e.target.value);
-});
-document.getElementById("accompVolume").addEventListener("input", e => {
-  accompAudio.volume = parseFloat(e.target.value);
-});
-function adjustVolume(type, delta) {
-  const el = document.getElementById(type + "Volume");
-  el.value = Math.min(1, Math.max(0, parseFloat(el.value) + delta));
-  (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(el.value);
-}
-function skipSeconds(sec) {
-  vocalAudio.currentTime += sec;
-  accompAudio.currentTime += sec;
-}
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") skipSeconds(-1);
-  else if (e.key === "ArrowRight") skipSeconds(1);
-});
 
 async function loadDropboxToken() {
   const res = await fetch('/.netlify/functions/getDropboxToken');
   const data = await res.json();
   ACCESS_TOKEN = data.access_token;
 }
+
+const DROPBOX_FOLDER = "/WorshipSongs/";
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
+let currentSong = "";
+
+// Volume controls
+["vocal", "accomp"].forEach(type => {
+  document.getElementById(`${type}Volume`).addEventListener("input", e => {
+    (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
+  });
+});
+
+function adjustVolume(type, delta) {
+  const slider = document.getElementById(`${type}Volume`);
+  let vol = Math.min(1, Math.max(0, parseFloat(slider.value) + delta));
+  slider.value = vol;
+  (type === "vocal" ? vocalAudio : accompAudio).volume = vol;
+}
+
+function skipSeconds(delta) {
+  const newTime = Math.max(0, vocalAudio.currentTime + delta);
+  vocalAudio.currentTime = newTime;
+  accompAudio.currentTime = newTime;
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") skipSeconds(-1);
+  if (e.key === "ArrowRight") skipSeconds(1);
+});
+
 async function getTemporaryLink(path) {
-  const res = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
+  const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
     headers: {
       "Authorization": "Bearer " + ACCESS_TOKEN,
@@ -39,52 +47,59 @@ async function getTemporaryLink(path) {
     },
     body: JSON.stringify({ path })
   });
-  const data = await res.json();
+  if (!response.ok) throw new Error("Failed to get Dropbox link");
+  const data = await response.json();
   return data.link;
 }
 
 let loops = [];
-let activeLoopIndex = -1;
-let currentPrefix = "";
-const canvas = document.getElementById("loopCanvas");
-const ctx = canvas.getContext("2d");
+let activeLoopIndex = 0;
+const loopCanvas = document.getElementById("loopCanvas");
+const ctx = loopCanvas.getContext("2d");
 
 function drawLoops(duration) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (!duration || !loops.length) return;
-  const pxPerSec = canvas.width / duration;
-  loops.forEach((loop, idx) => {
-    const x1 = loop.start * pxPerSec;
-    const x2 = loop.end * pxPerSec;
+  ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
+  if (!loops.length || !duration) return;
+  const width = loopCanvas.width;
+  const height = loopCanvas.height;
+  const pxPerSec = width / duration;
+  loops.forEach((loop, i) => {
+    const xStart = loop.start * pxPerSec;
+    const xEnd = loop.end * pxPerSec;
     ctx.fillStyle = "#e0b0ff";
-    ctx.fillRect(x1, 0, x2 - x1, canvas.height);
-    ctx.fillStyle = "#000";
-    ctx.fillText((idx + 1).toString(), x1 + 3, 15);
+    ctx.fillRect(xStart, 0, xEnd - xStart, height);
+    ctx.fillStyle = "#333";
+    ctx.fillText(i + 1, xStart + 3, 15);
   });
   ctx.strokeStyle = "#000";
   ctx.beginPath();
-  const x = vocalAudio.currentTime * pxPerSec;
-  ctx.moveTo(x, 0);
-  ctx.lineTo(x, canvas.height);
+  ctx.moveTo(vocalAudio.currentTime * pxPerSec, 0);
+  ctx.lineTo(vocalAudio.currentTime * pxPerSec, height);
   ctx.stroke();
 }
-canvas.addEventListener("click", e => {
+
+loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
-  const seconds = (e.offsetX / canvas.width) * vocalAudio.duration;
-  const found = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
-  if (found >= 0) {
-    activeLoopIndex = found;
-    vocalAudio.currentTime = loops[found].start;
-    accompAudio.currentTime = loops[found].start;
+  const rect = loopCanvas.getBoundingClientRect();
+  const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
+  const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
+  if (clickedIndex >= 0) {
+    activeLoopIndex = clickedIndex;
+    vocalAudio.currentTime = loops[activeLoopIndex].start;
+    accompAudio.currentTime = loops[activeLoopIndex].start;
     vocalAudio.play();
     accompAudio.play();
   }
 });
+
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
   if (activeLoopIndex >= 0 && loops.length) {
     const loop = loops[activeLoopIndex];
-    if (vocalAudio.currentTime >= loop.end) {
+    if (vocalAudio.currentTime < loop.start) {
+      vocalAudio.currentTime = loop.start;
+      accompAudio.currentTime = loop.start;
+    } else if (vocalAudio.currentTime >= loop.end) {
       activeLoopIndex++;
       if (activeLoopIndex < loops.length) {
         vocalAudio.currentTime = loops[activeLoopIndex].start;
@@ -99,7 +114,7 @@ vocalAudio.addEventListener("timeupdate", () => {
 });
 
 async function loadSong(name) {
-  currentPrefix = name;
+  currentSong = name;
   try {
     const [vocalURL, accompURL] = await Promise.all([
       getTemporaryLink(`${DROPBOX_FOLDER}${name}_vocal.mp3`),
@@ -127,6 +142,9 @@ async function loadSong(name) {
 }
 
 document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
+document.getElementById("bookmarkDropdown").addEventListener("change", e => {
+  if (e.target.value) loadSong(e.target.value);
+});
 document.getElementById("playBtn").addEventListener("click", () => {
   if (loops.length && activeLoopIndex >= 0) {
     const t = loops[activeLoopIndex].start;
@@ -143,71 +161,60 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
 }
+
 function saveBookmarkFolders(data) {
   localStorage.setItem("bookmarks", JSON.stringify(data));
 }
 
 function updateBookmarkStar() {
+  const star = document.getElementById("bookmarkBtn");
   const data = getBookmarkFolders();
-  let found = false;
-  for (const folder in data) {
-    if (data[folder].includes(currentPrefix)) {
-      found = true;
-      break;
-    }
-  }
-  document.getElementById("bookmarkBtn").textContent = found ? "⭐" : "☆";
+  const isBookmarked = Object.values(data).some(list => list.includes(currentSong));
+  star.textContent = isBookmarked ? "⭐" : "☆";
 }
 
-function populateBookmarkedDropdown() {
-  const data = getBookmarkFolders();
+function populateBookmarkDropdown() {
   const select = document.getElementById("bookmarkDropdown");
   select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-  const sortedFolders = Object.keys(data).filter(f => data[f].length).sort((a, b) => {
-    const fa = parseInt(a.split(" ")[1] || 0);
-    const fb = parseInt(b.split(" ")[1] || 0);
-    return fa - fb;
-  });
-  sortedFolders.forEach(folder => {
-    const optgroup = document.createElement("optgroup");
-    optgroup.label = folder;
-    data[folder].forEach(song => {
-      const opt = document.createElement("option");
-      opt.value = song;
-      opt.textContent = song;
-      optgroup.appendChild(opt);
-    });
-    select.appendChild(optgroup);
-  });
+  const folders = getBookmarkFolders();
+  for (const name of ["Favorites 1", "Favorites 2", "Favorites 3", "Favorites 4", "Favorites 5"]) {
+    const songs = folders[name] || [];
+    if (songs.length) {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = name;
+      songs.forEach(song => {
+        const opt = document.createElement("option");
+        opt.value = song;
+        opt.textContent = song;
+        optgroup.appendChild(opt);
+      });
+      select.appendChild(optgroup);
+    }
+  }
 }
 
 document.getElementById("bookmarkBtn").addEventListener("click", () => {
   const data = getBookmarkFolders();
-  const isBookmarked = Object.values(data).some(songs => songs.includes(currentPrefix));
-  if (!isBookmarked) {
-    const folder = prompt("Add to which Favorites? (Favorites 1–5)");
-    if (!folder) return;
-    data[folder] = data[folder] || [];
-    if (!data[folder].includes(currentPrefix)) data[folder].push(currentPrefix);
-    saveBookmarkFolders(data);
-    populateBookmarkedDropdown();
-    updateBookmarkStar();
+  const isBookmarked = Object.values(data).some(list => list.includes(currentSong));
+
+  const folderList = Object.keys(data).filter(name => name.startsWith("Favorites")).map(f => {
+    const songs = data[f] || [];
+    return `${f}:\n  ${songs.join("\n  ") || "(empty)"}`;
+  }).join("\n\n");
+
+  const chosen = prompt(`${isBookmarked ? "Remove from" : "Add to"} which Favorites folder?\n\n${folderList}`, "Favorites 1");
+  if (!chosen) return;
+
+  data[chosen] = data[chosen] || [];
+  if (isBookmarked) {
+    data[chosen] = data[chosen].filter(x => x !== currentSong);
   } else {
-    const allFolders = Object.entries(data).filter(([_, songs]) => songs.includes(currentPrefix));
-    if (!allFolders.length) return;
-    let menu = "Select folder to remove bookmark:\n";
-    allFolders.forEach(([f], i) => menu += `${i + 1}. ${f}\n`);
-    const choice = prompt(menu)?.trim();
-    const idx = parseInt(choice) - 1;
-    if (idx >= 0 && idx < allFolders.length) {
-      const folder = allFolders[idx][0];
-      data[folder] = data[folder].filter(s => s !== currentPrefix);
-      if (data[folder].length === 0) delete data[folder];
-      saveBookmarkFolders(data);
-      populateBookmarkedDropdown();
-      updateBookmarkStar();
-    }
+    if (!data[chosen].includes(currentSong)) data[chosen].push(currentSong);
   }
+
+  saveBookmarkFolders(data);
+  updateBookmarkStar();
+  populateBookmarkDropdown();
 });
 
 async function loadSongs() {
@@ -215,13 +222,14 @@ async function loadSongs() {
   const txt = await fetch("lyrics/song_names.txt").then(r => r.text());
   const names = txt.split("\n").map(x => x.trim()).filter(Boolean);
   const select = document.getElementById("songSelect");
+  select.innerHTML = "";
   names.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
     select.appendChild(opt);
   });
-  populateBookmarkedDropdown();
+  populateBookmarkDropdown();
   loadSong(names[0]);
 }
 
