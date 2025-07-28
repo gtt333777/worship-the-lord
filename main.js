@@ -192,15 +192,17 @@ function populateBookmarkedDropdown() {
 function updateBookmarkStar() {
   const starBtn = document.getElementById("bookmarkBtn");
   const folders = getBookmarkFolders();
+  const normalizedPrefix = currentPrefix.trim();
   let isBookmarked = false;
   for (const list of Object.values(folders)) {
-    if (list.includes(currentPrefix)) {
+    if (list.some(song => song.trim() === normalizedPrefix)) {
       isBookmarked = true;
       break;
     }
   }
   starBtn.textContent = isBookmarked ? "⭐" : "☆";
 }
+
 
 document.getElementById("bookmarkBtn").addEventListener("click", () => {
   const folders = getBookmarkFolders();
@@ -209,22 +211,24 @@ document.getElementById("bookmarkBtn").addEventListener("click", () => {
     const songs = folders[f]?.join(", ") || "(none)";
     return `${f}: ${songs}`;
   }).join("\n");
+
   const folderChoice = prompt(`Select folder:\n\n${list}`, allFolders[0]);
   if (!folderChoice || !allFolders.includes(folderChoice)) return;
 
   if (!folders[folderChoice]) folders[folderChoice] = [];
 
-  const alreadyBookmarked = folders[folderChoice].includes(currentPrefix);
+  const normalizedPrefix = currentPrefix.trim();
+  const alreadyBookmarked = folders[folderChoice].some(x => x.trim() === normalizedPrefix);
 
   if (alreadyBookmarked) {
-    folders[folderChoice] = folders[folderChoice].filter(x => x !== currentPrefix);
+    folders[folderChoice] = folders[folderChoice].filter(x => x.trim() !== normalizedPrefix);
   } else {
     folders[folderChoice].push(currentPrefix);
   }
 
   setBookmarkFolders(folders);
   populateBookmarkedDropdown();
-  updateBookmarkStar();
+  updateBookmarkStar(); // ✅ Fixes icon update
 });
 
 async function loadSongs() {
