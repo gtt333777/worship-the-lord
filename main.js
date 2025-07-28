@@ -1,6 +1,4 @@
-﻿// === Updated main.js with folder-grouped bookmarks ===
-
-let ACCESS_TOKEN = "";
+﻿let ACCESS_TOKEN = "";
 
 async function loadDropboxToken() {
   try {
@@ -168,17 +166,32 @@ function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
   const select = document.getElementById("bookmarkDropdown");
   select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
+
+  let anyBookmarks = false;
+
   for (const folder in folderData) {
+    if (folderData[folder].length === 0) continue;
     const group = document.createElement("optgroup");
     group.label = folder;
+
     folderData[folder].forEach(song => {
       const opt = document.createElement("option");
       opt.value = song;
       opt.textContent = song;
       group.appendChild(opt);
+      anyBookmarks = true;
     });
+
     select.appendChild(group);
   }
+
+  if (!anyBookmarks) {
+    const opt = document.createElement("option");
+    opt.textContent = "🔖 No bookmarked songs";
+    opt.disabled = true;
+    select.appendChild(opt);
+  }
+
   select.addEventListener("change", e => {
     if (e.target.value) loadSong(e.target.value);
   });
