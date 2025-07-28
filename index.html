@@ -11,22 +11,18 @@
       color: #2c3e50;
       padding: 20px;
     }
-
     h1 {
       text-align: center;
       font-size: 20px;
       margin: 10px 0;
     }
-
     select, button {
       font-size: 16px;
       margin: 5px;
     }
-
     .controls {
       margin: 10px 0;
     }
-
     textarea {
       width: 100%;
       height: 280px;
@@ -37,29 +33,24 @@
       line-height: 1.6;
       resize: none;
     }
-
     .volume-section {
       margin: 10px 0;
     }
-
     canvas#loopCanvas {
       display: block;
       margin: 10px auto;
       border: 1px solid #ccc;
       background-color: #fff8f0;
     }
-
     .skip-buttons {
       text-align: center;
       margin-bottom: 20px;
     }
-
     .skip-buttons button {
       font-size: 13px;
       padding: 3px 6px;
       margin: 0 6px;
     }
-
     .tamil-message {
       text-align: center;
       font-size: 11px;
@@ -78,7 +69,6 @@
       background: rgba(0,0,0,0.5);
       z-index: 1000;
     }
-
     #bookmarkManagerContent {
       background: #fff;
       width: 90%;
@@ -87,27 +77,24 @@
       padding: 20px;
       border-radius: 8px;
       text-align: left;
+      max-height: 80vh;
+      overflow-y: auto;
     }
-
     #bookmarkManagerContent h3 {
       text-align: center;
     }
-
     .folder-item {
       margin-top: 10px;
     }
-
     .folder-item button {
       margin-left: 10px;
       font-size: 12px;
     }
-
     .song-item {
       margin-left: 20px;
       font-size: 14px;
       margin-top: 5px;
     }
-
     .song-item button {
       font-size: 11px;
       margin-left: 10px;
@@ -121,13 +108,10 @@
     <label><strong>Choose a song:</strong></label>
     <select id="songSelect"></select>
     <button id="bookmarkBtn" title="Bookmark this song">⭐</button>
-  </div>
 
-  <!-- ✅ Bookmarked Songs Dropdown -->
-  <div style="text-align:center;">
-    <label><strong>Play from Bookmarked Songs:</strong></label>
-    <select id="bookmarkPlaySelect" onchange="if(this.value) loadSong(this.value)">
-      <option value="">-- Select from Bookmarks --</option>
+    <!-- 🆕 Bookmark dropdown inside same block -->
+    <select id="bookmarkDropdown">
+      <option value="">🎯 Bookmarked Songs</option>
     </select>
   </div>
 
@@ -147,6 +131,7 @@
     <a href="#" onclick="showBookmarkManager()">📌 Manage Bookmarks / Bookmark ஐ மாற்றவும்</a>
   </div>
 
+  <!-- 📌 Bookmark Modal -->
   <div id="bookmarkModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
     <div style="background:#fff; width:90%; max-width:400px; margin:60px auto; padding:20px; border-radius:8px; text-align:center; position:relative;">
       <h3>📌 Bookmark This Song</h3>
@@ -169,6 +154,7 @@
     </div>
   </div>
 
+  <!-- 📌 Bookmark Manager Modal -->
   <div id="bookmarkManagerModal">
     <div id="bookmarkManagerContent">
       <h3>📂 Your Bookmarks</h3>

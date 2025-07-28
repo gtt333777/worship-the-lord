@@ -1,6 +1,7 @@
-﻿let ACCESS_TOKEN = "";
+﻿// === Updated main.js with folder-grouped bookmarks ===
 
-// ✅ Securely load Dropbox access token from Netlify serverless function
+let ACCESS_TOKEN = "";
+
 async function loadDropboxToken() {
   try {
     const res = await fetch('/.netlify/functions/getDropboxToken');
@@ -12,24 +13,21 @@ async function loadDropboxToken() {
 }
 
 const DROPBOX_FOLDER = "/WorshipSongs/";
-
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
-document.getElementById('vocalVolume').addEventListener('input', e => {
-  vocalAudio.volume = parseFloat(e.target.value);
-});
-document.getElementById('accompVolume').addEventListener('input', e => {
-  accompAudio.volume = parseFloat(e.target.value);
+// Volume controls
+["vocal", "accomp"].forEach(type => {
+  document.getElementById(`${type}Volume`).addEventListener("input", e => {
+    (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
+  });
 });
 
 function adjustVolume(type, delta) {
-  const slider = document.getElementById(type === 'vocal' ? 'vocalVolume' : 'accompVolume');
-  let vol = parseFloat(slider.value) + delta;
-  vol = Math.min(1, Math.max(0, vol));
+  const slider = document.getElementById(`${type}Volume`);
+  let vol = Math.min(1, Math.max(0, parseFloat(slider.value) + delta));
   slider.value = vol;
-  if (type === 'vocal') vocalAudio.volume = vol;
-  else accompAudio.volume = vol;
+  (type === "vocal" ? vocalAudio : accompAudio).volume = vol;
 }
 
 function skipSeconds(delta) {
@@ -38,9 +36,9 @@ function skipSeconds(delta) {
   accompAudio.currentTime = newTime;
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') skipSeconds(-1);
-  if (e.key === 'ArrowRight') skipSeconds(1);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") skipSeconds(-1);
+  if (e.key === "ArrowRight") skipSeconds(1);
 });
 
 async function getTemporaryLink(path) {
@@ -57,22 +55,6 @@ async function getTemporaryLink(path) {
   return data.link;
 }
 
-async function loadSongs() {
-  await loadDropboxToken();
-  const response = await fetch("lyrics/song_names.txt");
-  const songNames = (await response.text()).split('\n').map(s => s.trim()).filter(Boolean);
-  const select = document.getElementById("songSelect");
-  songNames.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
-
-  populateBookmarkedDropdown(); // 🆕 Add this to show bookmarked songs
-  loadSong(songNames[0]);
-}
-
 let loops = [];
 let activeLoopIndex = 0;
 const loopCanvas = document.getElementById("loopCanvas");
@@ -82,35 +64,28 @@ let currentPrefix = "";
 function drawLoops(duration) {
   ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
   if (!loops.length || !duration) return;
-
   const width = loopCanvas.width;
   const height = loopCanvas.height;
   const pxPerSec = width / duration;
-
-  loops.forEach((loop, index) => {
+  loops.forEach((loop, i) => {
     const xStart = loop.start * pxPerSec;
     const xEnd = loop.end * pxPerSec;
     ctx.fillStyle = "#e0b0ff";
     ctx.fillRect(xStart, 0, xEnd - xStart, height);
     ctx.fillStyle = "#333";
-    ctx.font = "12px sans-serif";
-    ctx.fillText(index + 1, xStart + 3, 15);
+    ctx.fillText(i + 1, xStart + 3, 15);
   });
-
-  const progressX = vocalAudio.currentTime * pxPerSec;
   ctx.strokeStyle = "#000";
   ctx.beginPath();
-  ctx.moveTo(progressX, 0);
-  ctx.lineTo(progressX, height);
+  ctx.moveTo(vocalAudio.currentTime * pxPerSec, 0);
+  ctx.lineTo(vocalAudio.currentTime * pxPerSec, height);
   ctx.stroke();
 }
 
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
   const rect = loopCanvas.getBoundingClientRect();
-  const clickX = e.clientX - rect.left;
-  const seconds = clickX * vocalAudio.duration / loopCanvas.width;
-
+  const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
   const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
@@ -123,14 +98,12 @@ loopCanvas.addEventListener("click", e => {
 
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
-
   if (activeLoopIndex >= 0 && loops.length) {
     const loop = loops[activeLoopIndex];
     if (vocalAudio.currentTime < loop.start) {
       vocalAudio.currentTime = loop.start;
       accompAudio.currentTime = loop.start;
-    }
-    if (vocalAudio.currentTime >= loop.end) {
+    } else if (vocalAudio.currentTime >= loop.end) {
       activeLoopIndex++;
       if (activeLoopIndex < loops.length) {
         vocalAudio.currentTime = loops[activeLoopIndex].start;
@@ -148,72 +121,44 @@ async function loadSong(name) {
   const prefix = name.trim();
   currentPrefix = prefix;
   const ext = "mp3";
-  const vocalPath = `${DROPBOX_FOLDER}${prefix}_vocal.${ext}`;
-  const accompPath = `${DROPBOX_FOLDER}${prefix}_acc.${ext}`;
-
   try {
     const [vocalURL, accompURL] = await Promise.all([
-      getTemporaryLink(vocalPath),
-      getTemporaryLink(accompPath)
+      getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_vocal.${ext}`),
+      getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_acc.${ext}`)
     ]);
-
     vocalAudio.src = vocalURL;
     accompAudio.src = accompURL;
-
     vocalAudio.load();
     accompAudio.load();
-
-    fetch(`lyrics/${prefix}.txt`)
-      .then(res => res.ok ? res.text() : "Lyrics not found.")
-      .then(txt => {
-        const box = document.getElementById("lyricsBox");
-        box.value = "";
-        box.value = txt;
-        box.scrollTop = 0;
-      })
-      .catch(err => {
-        document.getElementById("lyricsBox").value = "Lyrics could not be loaded.";
-        console.error("Lyrics load error:", err);
-      });
-
-    const loopPath = `${DROPBOX_FOLDER}${prefix}_loops.json`;
+    document.getElementById("lyricsBox").value = "Loading...";
+    const lyrics = await fetch(`lyrics/${prefix}.txt`).then(r => r.ok ? r.text() : "Lyrics not found");
+    document.getElementById("lyricsBox").value = lyrics;
     try {
-      const loopURL = await getTemporaryLink(loopPath);
-      const loopRes = await fetch(loopURL);
-      loops = await loopRes.json();
+      const loopURL = await getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_loops.json`);
+      loops = await (await fetch(loopURL)).json();
       activeLoopIndex = 0;
-      vocalAudio.currentTime = loops[0].start;
-      accompAudio.currentTime = loops[0].start;
-    } catch (err) {
+    } catch {
       loops = [];
       activeLoopIndex = -1;
-      console.warn("No loop file for", prefix);
     }
-
   } catch (err) {
     alert("Error loading song: " + err.message);
   }
 }
 
-document.getElementById("songSelect").addEventListener("change", e => {
-  loadSong(e.target.value);
-});
-
+document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
 document.getElementById("playBtn").addEventListener("click", () => {
-  if (loops.length) {
-    vocalAudio.currentTime = loops[activeLoopIndex >= 0 ? activeLoopIndex : 0].start;
-    accompAudio.currentTime = vocalAudio.currentTime;
+  if (loops.length && activeLoopIndex >= 0) {
+    const t = loops[activeLoopIndex].start;
+    vocalAudio.currentTime = t;
+    accompAudio.currentTime = t;
   }
-  Promise.all([vocalAudio.play(), accompAudio.play()])
-    .catch(err => console.error("Playback error:", err));
+  Promise.all([vocalAudio.play(), accompAudio.play()]).catch(console.error);
 });
-
 document.getElementById("pauseBtn").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
 });
-
-// === 🔖 BOOKMARK LOGIC START ===
 
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
@@ -221,19 +166,12 @@ function getBookmarkFolders() {
 
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
-  const select = document.createElement("select");
-  select.style.marginLeft = "10px";
-  select.id = "bookmarkDropdown";
-
-  const defaultOpt = document.createElement("option");
-  defaultOpt.value = "";
-  defaultOpt.textContent = "🎯 Bookmarked Songs";
-  select.appendChild(defaultOpt);
-
-  for (const folderName in folderData) {
+  const select = document.getElementById("bookmarkDropdown");
+  select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
+  for (const folder in folderData) {
     const group = document.createElement("optgroup");
-    group.label = folderName;
-    folderData[folderName].forEach(song => {
+    group.label = folder;
+    folderData[folder].forEach(song => {
       const opt = document.createElement("option");
       opt.value = song;
       opt.textContent = song;
@@ -241,68 +179,68 @@ function populateBookmarkedDropdown() {
     });
     select.appendChild(group);
   }
-
-  select.addEventListener("change", (e) => {
+  select.addEventListener("change", e => {
     if (e.target.value) loadSong(e.target.value);
   });
-
-  const label = document.querySelector("label[for='songSelect']") || document.querySelector("label strong");
-  if (label && label.parentNode) {
-    label.parentNode.insertBefore(select, label.nextSibling);
-  }
 }
 
-// === ✅ Expose global for Bookmark Manager button ===
+// Bookmark modal handling
 function showBookmarkManager() {
-  const bookmarks = getBookmarkFolders();
-  let html = `<div style="padding:20px;"><h3>📚 Bookmarks</h3>`;
-
-  for (const folder in bookmarks) {
-    html += `<h4>${folder} <button onclick="renameFolder('${folder}')">✏️ Rename</button> <button onclick="deleteFolder('${folder}')">🗑️ Delete</button></h4><ul>`;
-    for (const song of bookmarks[folder]) {
-      html += `<li>${song} <button onclick="deleteSong('${folder}','${song}')">❌</button></li>`;
-    }
-    html += `</ul>`;
-  }
-
-  html += `<button onclick="document.getElementById('bookmarkManagerOverlay').remove()">Close</button></div>`;
-
-  const div = document.createElement("div");
-  div.id = "bookmarkManagerOverlay";
-  div.style.position = "fixed";
-  div.style.top = "0";
-  div.style.left = "0";
-  div.style.width = "100%";
-  div.style.height = "100%";
-  div.style.background = "rgba(0,0,0,0.5)";
-  div.style.zIndex = "10000";
-  div.innerHTML = `<div style="background:white; max-width:500px; margin:50px auto; padding:20px; border-radius:8px;">${html}</div>`;
-  document.body.appendChild(div);
+  const modal = document.getElementById("bookmarkManagerModal");
+  const list = document.getElementById("bookmarkList");
+  const data = getBookmarkFolders();
+  list.innerHTML = Object.entries(data).map(([folder, songs]) =>
+    `<div class='folder-item'><strong>${folder}</strong>
+      <button onclick="renameFolder('${folder}')">✏️</button>
+      <button onclick="deleteFolder('${folder}')">🗑️</button>
+      ${songs.map(song => `<div class='song-item'>${song}<button onclick="deleteSong('${folder}','${song}')">❌</button></div>`).join('')}
+    </div>`
+  ).join('');
+  modal.style.display = "block";
 }
-
+function closeBookmarkManager() {
+  document.getElementById("bookmarkManagerModal").style.display = "none";
+}
 function renameFolder(folder) {
-  const newName = prompt("Enter new name for folder:", folder);
+  const newName = prompt("Rename folder:", folder);
   if (!newName || newName === folder) return;
-  const bookmarks = getBookmarkFolders();
-  bookmarks[newName] = bookmarks[folder];
-  delete bookmarks[folder];
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  const data = getBookmarkFolders();
+  data[newName] = data[folder];
+  delete data[folder];
+  localStorage.setItem("bookmarks", JSON.stringify(data));
+  populateBookmarkedDropdown();
   showBookmarkManager();
 }
-
 function deleteFolder(folder) {
-  if (!confirm(`Delete entire folder "${folder}"?`)) return;
-  const bookmarks = getBookmarkFolders();
-  delete bookmarks[folder];
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  if (!confirm("Delete folder?")) return;
+  const data = getBookmarkFolders();
+  delete data[folder];
+  localStorage.setItem("bookmarks", JSON.stringify(data));
+  populateBookmarkedDropdown();
+  showBookmarkManager();
+}
+function deleteSong(folder, song) {
+  const data = getBookmarkFolders();
+  data[folder] = data[folder].filter(s => s !== song);
+  localStorage.setItem("bookmarks", JSON.stringify(data));
+  populateBookmarkedDropdown();
   showBookmarkManager();
 }
 
-function deleteSong(folder, song) {
-  const bookmarks = getBookmarkFolders();
-  bookmarks[folder] = bookmarks[folder].filter(s => s !== song);
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-  showBookmarkManager();
+// Load songs
+async function loadSongs() {
+  await loadDropboxToken();
+  const txt = await fetch("lyrics/song_names.txt").then(r => r.text());
+  const names = txt.split("\n").map(x => x.trim()).filter(Boolean);
+  const select = document.getElementById("songSelect");
+  names.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  populateBookmarkedDropdown();
+  loadSong(names[0]);
 }
 
 loadSongs();
