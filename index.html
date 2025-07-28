@@ -106,11 +106,10 @@
     <button onclick="adjustVolume('accomp', 0.1)">+</button>
   </div>
 
-  <!-- ✅ Fixed: Wide loop canvas with horizontal scroll -->
-  <div style="overflow-x: auto;">
-    <canvas id="loopCanvas" width="100" height="20" style="display: block;"></canvas>
-  </div>
-
+<!-- ✅ Auto-sized loop canvas with horizontal scroll -->
+<div style="overflow-x: auto;">
+  <canvas id="loopCanvas" height="30" style="display: block;"></canvas>
+</div>
   <div>
     <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
     <button onclick="skipSeconds(1)">+1 sec ⏭️</button>
