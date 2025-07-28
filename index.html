@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
+
+  <!-- ✅ PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
+  <meta name="theme-color" content="#2c3e50" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -46,10 +52,27 @@
       margin: 10px auto;
       display: block;
     }
+
+    /* ✅ Install prompt style */
+    #installPrompt {
+      display: none;
+      background: #fff8dc;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px auto;
+      width: 90%;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
   <h1>🎵 Worship The Lord</h1>
+
+  <!-- ✅ PWA Install Prompt -->
+  <div id="installPrompt">
+    📲 You can install this app on your device.
+    <button id="installButton">Install</button>
+  </div>
 
   <div>
     <label for="songSelect"><strong>Choose a song:</strong></label>
@@ -93,5 +116,27 @@
   <textarea id="lyricsBox" readonly></textarea>
 
   <script src="main.js"></script>
+
+  <!-- ✅ PWA Install & Service Worker Script -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(console.error);
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBar = document.getElementById('installPrompt');
+      if (installBar) installBar.style.display = 'block';
+
+      document.getElementById('installButton').onclick = async () => {
+        installBar.style.display = 'none';
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      };
+    });
+  </script>
 </body>
 </html>

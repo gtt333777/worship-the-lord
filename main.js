@@ -247,3 +247,8 @@ async function loadSongs() {
 }
 
 loadSongs();
+
+// ✅ PWA install prompt control (optional, duplicate safeguard — also present in index.html)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(console.error);
+}
