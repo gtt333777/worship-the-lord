@@ -1,190 +1,166 @@
-﻿const vocalAudio = new Audio();
+﻿// === Audio Elements ===
+const vocalAudio = new Audio();
 const accompAudio = new Audio();
-let bookmarks = {};
-let currentFavoritesFolder = "Favorites 1";
+let currentSong = '';
+let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
 
-function loadSongs() {
-  fetch("lyrics/songs_names.txt")
-    .then((response) => response.text())
-    .then((text) => {
-      const songList = document.getElementById("songList");
-      const lines = text.trim().split("\n");
-      lines.forEach((line) => {
-        const option = document.createElement("option");
-        option.value = option.textContent = line.trim();
-        songList.appendChild(option);
-      });
-      loadBookmarksFromStorage();
-      updateBookmarkDropdown();
-      updateStarIcon();
+// === DOM Elements ===
+const songSelect = document.getElementById('songSelect');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const vocalVolumeSlider = document.getElementById('vocalVolume');
+const accompVolumeSlider = document.getElementById('accompVolume');
+const lyricsBox = document.getElementById('lyricsBox');
+const bookmarkBtn = document.getElementById('bookmarkBtn');
+const bookmarkDropdown = document.getElementById('bookmarkDropdown');
+
+// === Load Songs ===
+fetch('lyrics/songs_names.txt')
+  .then(res => res.text())
+  .then(text => {
+    const songs = text.split('\n').map(line => line.trim()).filter(Boolean);
+    songs.forEach(song => {
+      const option = document.createElement('option');
+      option.value = song;
+      option.textContent = song;
+      songSelect.appendChild(option);
     });
-}
+  });
 
+// === Load Song ===
+songSelect.addEventListener('change', () => {
+  const songName = songSelect.value;
+  currentSong = songName;
+  loadLyrics(songName);
+  loadAudio(songName);
+  updateBookmarkStar();
+});
+
+// === Load Lyrics ===
 function loadLyrics(songName) {
   fetch(`lyrics/${songName}.txt`)
-    .then((response) => response.text())
-    .then((text) => {
-      document.getElementById("lyricsDisplay").textContent = text;
+    .then(res => res.text())
+    .then(text => {
+      lyricsBox.value = text;
     });
 }
 
-function getFileUrl(fileName) {
-  const prefix = fileName.trim();
-  const folder = "https://content.dropboxapi.com/2/files/download";
-  const path = `/WorshipSongs/${prefix}`;
-  return {
-    vocal: `/proxy?path=${encodeURIComponent(path + "_vocal.flac")}`,
-    acc: `/proxy?path=${encodeURIComponent(path + "_acc.flac")}`,
-  };
+// === Load Audio ===
+function loadAudio(songName) {
+  const base = `https://worship-the-lord.netlify.app/.netlify/functions/proxy?path=%2FWorshipSongs%2F${encodeURIComponent(songName)}`;
+  vocalAudio.src = `${base}_vocal.wav`;
+  accompAudio.src = `${base}_acc.wav`;
 }
 
-function playAudio() {
-  const songName = document.getElementById("songList").value;
-  const urls = getFileUrl(songName);
-  vocalAudio.src = urls.vocal;
-  accompAudio.src = urls.acc;
-
-  vocalAudio.volume = parseFloat(document.getElementById("vocalVolume").value);
-  accompAudio.volume = parseFloat(document.getElementById("accompVolume").value);
-
+// === Playback Control ===
+playBtn.addEventListener('click', () => {
   vocalAudio.play();
   accompAudio.play();
-}
+});
 
-function pauseAudio() {
+pauseBtn.addEventListener('click', () => {
   vocalAudio.pause();
   accompAudio.pause();
-}
+});
 
-function adjustVolume(audio, delta) {
+// === Volume Control ===
+function adjustVolume(type, delta) {
+  const audio = type === 'vocal' ? vocalAudio : accompAudio;
+  const slider = type === 'vocal' ? vocalVolumeSlider : accompVolumeSlider;
   let newVolume = Math.min(1, Math.max(0, audio.volume + delta));
   audio.volume = newVolume;
+  slider.value = newVolume;
 }
 
-function adjustBookmarkStar() {
-  const songName = document.getElementById("songList").value;
-  const isBookmarked = isSongBookmarked(songName);
-  const star = document.getElementById("bookmarkStar");
-  star.textContent = isBookmarked ? "☆" : "★";
+vocalVolumeSlider.addEventListener('input', () => {
+  vocalAudio.volume = vocalVolumeSlider.value;
+});
+
+accompVolumeSlider.addEventListener('input', () => {
+  accompAudio.volume = accompVolumeSlider.value;
+});
+
+// === Skip Seconds ===
+function skipSeconds(seconds) {
+  vocalAudio.currentTime += seconds;
+  accompAudio.currentTime += seconds;
 }
 
-function toggleBookmark() {
-  const songName = document.getElementById("songList").value;
-  if (isSongBookmarked(songName)) {
-    removeBookmark(songName);
+// === Bookmark Logic ===
+bookmarkBtn.addEventListener('click', () => {
+  if (!currentSong) return;
+
+  let category = prompt("Choose Favorites number (1-5):", "1");
+  if (!category || isNaN(category) || category < 1 || category > 5) return;
+
+  const folder = `Favorites ${category}`;
+
+  if (!bookmarks[folder]) {
+    bookmarks[folder] = [];
+  }
+
+  // Toggle Bookmark
+  const idx = bookmarks[folder].indexOf(currentSong);
+  if (idx === -1) {
+    // Add
+    bookmarks[folder].push(currentSong);
   } else {
-    const selected = prompt("Add to Favorites 1 to 5. Enter number:");
-    if (!selected || !["1", "2", "3", "4", "5"].includes(selected)) return;
-
-    const folder = "Favorites " + selected;
-    if (!bookmarks[folder]) bookmarks[folder] = [];
-    if (!bookmarks[folder].includes(songName)) {
-      bookmarks[folder].push(songName);
+    // Remove
+    bookmarks[folder].splice(idx, 1);
+    // Clean up empty folders
+    if (bookmarks[folder].length === 0) {
+      delete bookmarks[folder];
     }
-    saveBookmarksToStorage();
   }
+
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
   updateBookmarkDropdown();
-  updateStarIcon();
-}
+  updateBookmarkStar();
+});
 
-function isSongBookmarked(songName) {
-  return Object.values(bookmarks).some((list) => list.includes(songName));
-}
-
-function removeBookmark(songName) {
-  for (let folder in bookmarks) {
-    bookmarks[folder] = bookmarks[folder].filter((s) => s !== songName);
+function updateBookmarkStar() {
+  let isBookmarked = false;
+  for (const folder in bookmarks) {
+    if (Array.isArray(bookmarks[folder]) && bookmarks[folder].includes(currentSong)) {
+      isBookmarked = true;
+      break;
+    }
   }
-  saveBookmarksToStorage();
+  bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
 }
 
 function updateBookmarkDropdown() {
-  const dropdown = document.getElementById("bookmarkDropdown");
-  dropdown.innerHTML = "";
-  const opt = document.createElement("option");
-  opt.textContent = "📕 Bookmarked Songs";
-  opt.disabled = true;
-  dropdown.appendChild(opt);
-
-  Object.keys(bookmarks)
-    .filter((f) => /^Favorites [1-5]$/.test(f))
+  bookmarkDropdown.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
+  const sortedKeys = Object.keys(bookmarks)
+    .filter(key => /^Favorites [1-5]$/.test(key))
     .sort((a, b) => {
-      const numA = parseInt(a.split(" ")[1]);
-      const numB = parseInt(b.split(" ")[1]);
+      const numA = parseInt(a.split(' ')[1]);
+      const numB = parseInt(b.split(' ')[1]);
       return numA - numB;
-    })
-    .forEach((folder) => {
-      const folderOpt = document.createElement("option");
-      folderOpt.disabled = true;
-      folderOpt.textContent = folder;
-      dropdown.appendChild(folderOpt);
-      bookmarks[folder].forEach((song) => {
-        const opt = document.createElement("option");
-        opt.value = song;
-        opt.textContent = song;
-        dropdown.appendChild(opt);
-      });
     });
+
+  sortedKeys.forEach(folder => {
+    const optGroup = document.createElement('optgroup');
+    optGroup.label = folder;
+
+    bookmarks[folder].forEach(song => {
+      const option = document.createElement('option');
+      option.value = song;
+      option.textContent = song;
+      optGroup.appendChild(option);
+    });
+
+    bookmarkDropdown.appendChild(optGroup);
+  });
 }
 
-function saveBookmarksToStorage() {
-  localStorage.setItem("worshipBookmarks", JSON.stringify(bookmarks));
-}
-
-function loadBookmarksFromStorage() {
-  const data = localStorage.getItem("worshipBookmarks");
-  if (data) {
-    try {
-      const parsed = JSON.parse(data);
-      if (typeof parsed === "object" && parsed !== null) {
-        bookmarks = parsed;
-      }
-    } catch (e) {
-      bookmarks = {};
-    }
-  }
-}
-
-function updateStarIcon() {
-  const songName = document.getElementById("songList").value;
-  const isBookmarked = isSongBookmarked(songName);
-  document.getElementById("bookmarkStar").textContent = isBookmarked ? "★" : "☆";
-}
-
-// Event Listeners
-document.getElementById("songList").addEventListener("change", function () {
-  loadLyrics(this.value);
-  updateStarIcon();
-});
-
-document.getElementById("bookmarkStar").addEventListener("click", toggleBookmark);
-
-document.getElementById("bookmarkDropdown").addEventListener("change", function () {
-  if (this.value) {
-    document.getElementById("songList").value = this.value;
-    loadLyrics(this.value);
-    updateStarIcon();
+// === Load from Dropdown ===
+bookmarkDropdown.addEventListener('change', () => {
+  if (bookmarkDropdown.value) {
+    songSelect.value = bookmarkDropdown.value;
+    songSelect.dispatchEvent(new Event('change'));
   }
 });
 
-document.getElementById("playBtn").addEventListener("click", playAudio);
-document.getElementById("pauseBtn").addEventListener("click", pauseAudio);
-
-document.getElementById("vocalPlus").addEventListener("click", () => {
-  adjustVolume(vocalAudio, 0.1);
-});
-
-document.getElementById("vocalMinus").addEventListener("click", () => {
-  adjustVolume(vocalAudio, -0.1);
-});
-
-document.getElementById("accompPlus").addEventListener("click", () => {
-  adjustVolume(accompAudio, 0.1);
-});
-
-document.getElementById("accompMinus").addEventListener("click", () => {
-  adjustVolume(accompAudio, -0.1);
-});
-
-// Load everything
-loadSongs();
+// === Initialize ===
+updateBookmarkDropdown();
