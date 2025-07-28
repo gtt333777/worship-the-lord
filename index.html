@@ -45,9 +45,9 @@
       font-size: 1.2rem;
       white-space: pre-wrap;
     }
+
+    /* ✅ Updated canvas style */
     #loopCanvas {
-      width: 90%;
-      height: 30px;
       border: 1px solid #888;
       margin: 10px auto;
       display: block;
@@ -106,7 +106,10 @@
     <button onclick="adjustVolume('accomp', 0.1)">+</button>
   </div>
 
-  <canvas id="loopCanvas" width="800" height="30"></canvas>
+  <!-- ✅ Updated: Wide loop canvas with scroll support -->
+  <div style="overflow-x: auto;">
+    <canvas id="loopCanvas" width="1200" height="30" style="display: block;"></canvas>
+  </div>
 
   <div>
     <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
