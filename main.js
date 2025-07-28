@@ -52,7 +52,15 @@ async function getTemporaryLink(path) {
   return data.link;
 }
 
-// ✅ Added: Canvas scaling function
+let loops = [];
+let activeLoopIndex = 0;
+let suppressAdvanceOnce = false;
+
+const loopCanvas = document.getElementById("loopCanvas");
+const ctx = loopCanvas.getContext("2d");
+let currentPrefix = "";
+
+// ✅ Resize canvas correctly to fix Chrome full-screen issue
 function resizeCanvasToDisplaySize(canvas) {
   const rect = canvas.getBoundingClientRect();
   const width = Math.floor(rect.width);
@@ -65,16 +73,13 @@ function resizeCanvasToDisplaySize(canvas) {
   return false;
 }
 
-let loops = [];
-let activeLoopIndex = 0;
-let suppressAdvanceOnce = false;
-
-const loopCanvas = document.getElementById("loopCanvas");
-const ctx = loopCanvas.getContext("2d");
-let currentPrefix = "";
+// ✅ Auto-resize canvas when layout stabilizes
+new ResizeObserver(() => {
+  resizeCanvasToDisplaySize(loopCanvas);
+  drawLoops(vocalAudio.duration || 1);
+}).observe(loopCanvas);
 
 function drawLoops(duration) {
-  resizeCanvasToDisplaySize(loopCanvas); // ✅ Ensure canvas matches display
   ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
   if (!loops.length || !duration) return;
   const width = loopCanvas.width;
@@ -95,17 +100,13 @@ function drawLoops(duration) {
   ctx.stroke();
 }
 
-// 🔁 Click on loop = start from that loop (no skipping)
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
-
   const rect = loopCanvas.getBoundingClientRect();
   const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
-
   const clickedIndex = loops.findIndex(loop =>
     seconds >= loop.start && seconds <= loop.end
   );
-
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
     suppressAdvanceOnce = true;
