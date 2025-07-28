@@ -79,14 +79,18 @@ function drawLoops(duration) {
   ctx.stroke();
 }
 
-// 🔁 LOOP-ONLY MODE: Click inside a loop to start from its beginning and continue till end
+// 🔁 LOOP-ONLY MODE: Improved loop click detection with tolerance
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
 
   const rect = loopCanvas.getBoundingClientRect();
   const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
 
-  const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
+  // Add tolerance for better user interaction
+  const clickedIndex = loops.findIndex(loop => 
+    seconds >= loop.start && seconds <= loop.end + 0.2
+  );
+
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
     const startTime = loops[activeLoopIndex].start;
@@ -95,9 +99,7 @@ loopCanvas.addEventListener("click", e => {
     vocalAudio.play();
     accompAudio.play();
   }
-
-  // 🚫 No else block — clicking outside a loop does nothing
-})
+});
 
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
