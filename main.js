@@ -60,25 +60,6 @@ const loopCanvas = document.getElementById("loopCanvas");
 const ctx = loopCanvas.getContext("2d");
 let currentPrefix = "";
 
-// ✅ Resize canvas correctly to fix Chrome full-screen issue
-function resizeCanvasToDisplaySize(canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const width = Math.floor(rect.width);
-  const height = Math.floor(rect.height);
-  if (canvas.width !== width || canvas.height !== height) {
-    canvas.width = width;
-    canvas.height = height;
-    return true;
-  }
-  return false;
-}
-
-// ✅ Auto-resize canvas when layout stabilizes
-new ResizeObserver(() => {
-  resizeCanvasToDisplaySize(loopCanvas);
-  drawLoops(vocalAudio.duration || 1);
-}).observe(loopCanvas);
-
 function drawLoops(duration) {
   ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
   if (!loops.length || !duration) return;
@@ -100,16 +81,20 @@ function drawLoops(duration) {
   ctx.stroke();
 }
 
+// 🔁 Click on loop = start from that loop (no skipping)
 loopCanvas.addEventListener("click", e => {
   if (!vocalAudio.duration || !loops.length) return;
+
   const rect = loopCanvas.getBoundingClientRect();
   const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
+
   const clickedIndex = loops.findIndex(loop =>
     seconds >= loop.start && seconds <= loop.end
   );
+
   if (clickedIndex >= 0) {
     activeLoopIndex = clickedIndex;
-    suppressAdvanceOnce = true;
+    suppressAdvanceOnce = true; // Prevents skipping touched loop
     const startTime = loops[activeLoopIndex].start;
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
@@ -118,6 +103,7 @@ loopCanvas.addEventListener("click", e => {
   }
 });
 
+// 🔁 Prevent skipping after seek
 vocalAudio.addEventListener("seeked", () => {
   if (suppressAdvanceOnce) {
     suppressAdvanceOnce = false;
@@ -169,7 +155,6 @@ async function loadSong(name) {
       const loopURL = await getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_loops.json`);
       loops = await (await fetch(loopURL)).json();
       activeLoopIndex = 0;
-      drawLoops(vocalAudio.duration || 1);
     } catch {
       loops = [];
       activeLoopIndex = -1;
@@ -182,6 +167,7 @@ async function loadSong(name) {
 
 document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
 
+// 🔁 Play = Start from loop 1 with sturdy draw fix
 document.getElementById("playBtn").addEventListener("click", () => {
   if (loops.length) {
     activeLoopIndex = 0;
@@ -189,6 +175,9 @@ document.getElementById("playBtn").addEventListener("click", () => {
     vocalAudio.currentTime = start;
     accompAudio.currentTime = start;
     Promise.all([vocalAudio.play(), accompAudio.play()]).catch(console.error);
+
+    // ✅ Ensures loops are drawn correctly after layout is settled
+    setTimeout(() => drawLoops(vocalAudio.duration || 1), 300);
   }
 });
 
