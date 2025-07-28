@@ -1,4 +1,6 @@
-﻿let ACCESS_TOKEN = "";
+﻿// === Updated main.js with toggling star for bookmark/unbookmark ===
+
+let ACCESS_TOKEN = "";
 
 async function loadDropboxToken() {
   try {
@@ -139,6 +141,7 @@ async function loadSong(name) {
       loops = [];
       activeLoopIndex = -1;
     }
+    updateStarStatus(); // 🔄 Check current bookmark status and update star
   } catch (err) {
     alert("Error loading song: " + err.message);
   }
@@ -158,46 +161,68 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   accompAudio.pause();
 });
 
+// === Bookmark Star Toggle Logic ===
+const bookmarkBtn = document.getElementById("bookmarkBtn");
+
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
 }
+
+function updateStarStatus() {
+  const song = document.getElementById("songSelect").value;
+  const data = getBookmarkFolders();
+  const isBookmarked = Object.values(data).some(songs => songs.includes(song));
+  bookmarkBtn.textContent = isBookmarked ? "⭐" : "☆";
+}
+
+bookmarkBtn.addEventListener("click", () => {
+  const song = document.getElementById("songSelect").value;
+  const data = getBookmarkFolders();
+  let modified = false;
+
+  // Try to remove if exists
+  for (const folder in data) {
+    const index = data[folder].indexOf(song);
+    if (index !== -1) {
+      data[folder].splice(index, 1);
+      modified = true;
+      if (data[folder].length === 0) delete data[folder];
+      break;
+    }
+  }
+
+  // If not removed, add to default folder
+  if (!modified) {
+    if (!data["Favorites"]) data["Favorites"] = [];
+    data["Favorites"].push(song);
+  }
+
+  localStorage.setItem("bookmarks", JSON.stringify(data));
+  populateBookmarkedDropdown();
+  updateStarStatus();
+});
 
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
   const select = document.getElementById("bookmarkDropdown");
   select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-
-  let anyBookmarks = false;
-
   for (const folder in folderData) {
-    if (folderData[folder].length === 0) continue;
     const group = document.createElement("optgroup");
     group.label = folder;
-
     folderData[folder].forEach(song => {
       const opt = document.createElement("option");
       opt.value = song;
       opt.textContent = song;
       group.appendChild(opt);
-      anyBookmarks = true;
     });
-
     select.appendChild(group);
   }
-
-  if (!anyBookmarks) {
-    const opt = document.createElement("option");
-    opt.textContent = "🔖 No bookmarked songs";
-    opt.disabled = true;
-    select.appendChild(opt);
-  }
-
   select.addEventListener("change", e => {
     if (e.target.value) loadSong(e.target.value);
   });
 }
 
-// Bookmark modal handling
+// Bookmark Manager Functions
 function showBookmarkManager() {
   const modal = document.getElementById("bookmarkManagerModal");
   const list = document.getElementById("bookmarkList");
@@ -240,7 +265,6 @@ function deleteSong(folder, song) {
   showBookmarkManager();
 }
 
-// Load songs
 async function loadSongs() {
   await loadDropboxToken();
   const txt = await fetch("lyrics/song_names.txt").then(r => r.text());
