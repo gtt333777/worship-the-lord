@@ -1,6 +1,4 @@
-﻿// === Updated main.js — Sorted Favorites + skip empty folders ===
-
-let ACCESS_TOKEN = "";
+﻿let ACCESS_TOKEN = "";
 
 async function loadDropboxToken() {
   try {
@@ -16,7 +14,6 @@ const DROPBOX_FOLDER = "/WorshipSongs/";
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
-// Volume controls
 ["vocal", "accomp"].forEach(type => {
   document.getElementById(`${type}Volume`).addEventListener("input", e => {
     (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
@@ -141,9 +138,6 @@ async function loadSong(name) {
       loops = [];
       activeLoopIndex = -1;
     }
-
-    updateBookmarkButtonState();
-
   } catch (err) {
     alert("Error loading song: " + err.message);
   }
@@ -163,49 +157,24 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   accompAudio.pause();
 });
 
-// ⭐ Bookmark logic
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
 }
-function saveBookmarks(folders) {
-  localStorage.setItem("bookmarks", JSON.stringify(folders));
-}
-function toggleBookmark() {
-  const folders = getBookmarkFolders();
-  let folderList = ["Favorites 1", "Favorites 2", "Favorites 3", "Favorites 4", "Favorites 5"];
-  const target = currentPrefix;
-  const alreadyIn = Object.entries(folders).find(([_, list]) => list.includes(target));
-  if (alreadyIn) {
-    folders[alreadyIn[0]] = folders[alreadyIn[0]].filter(s => s !== target);
-  } else {
-    const chosen = prompt("Add to which Favorites? (1-5)", "1");
-    const label = "Favorites " + chosen;
-    if (!folders[label]) folders[label] = [];
-    folders[label].push(target);
-  }
-  saveBookmarks(folders);
-  populateBookmarkedDropdown();
-  updateBookmarkButtonState();
-}
-function updateBookmarkButtonState() {
-  const btn = document.getElementById("bookmarkBtn");
-  const folders = getBookmarkFolders();
-  const isBookmarked = Object.values(folders).some(arr => arr.includes(currentPrefix));
-  btn.textContent = isBookmarked ? "⭐" : "☆";
-}
+
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
   const select = document.getElementById("bookmarkDropdown");
   select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-  const sortedFolders = Object.keys(folderData)
-    .filter(f => folderData[f] && folderData[f].length)
+
+  const orderedFolders = Object.keys(folderData)
+    .filter(name => name && name.toLowerCase() !== "favorites" && name.toLowerCase().includes("favorites"))
     .sort((a, b) => {
-      const aNum = parseInt(a.replace(/\D/g, '')) || 0;
-      const bNum = parseInt(b.replace(/\D/g, '')) || 0;
-      return aNum - bNum;
+      const numA = parseInt(a.replace(/\D/g, "")) || 0;
+      const numB = parseInt(b.replace(/\D/g, "")) || 0;
+      return numA - numB;
     });
 
-  for (const folder of sortedFolders) {
+  for (const folder of orderedFolders) {
     const group = document.createElement("optgroup");
     group.label = folder;
     folderData[folder].forEach(song => {
@@ -216,12 +185,12 @@ function populateBookmarkedDropdown() {
     });
     select.appendChild(group);
   }
+
   select.addEventListener("change", e => {
     if (e.target.value) loadSong(e.target.value);
   });
 }
 
-// Initial song loading
 async function loadSongs() {
   await loadDropboxToken();
   const txt = await fetch("lyrics/song_names.txt").then(r => r.text());
@@ -238,4 +207,3 @@ async function loadSongs() {
 }
 
 loadSongs();
-window.toggleBookmark = toggleBookmark;
