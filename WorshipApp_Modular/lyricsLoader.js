@@ -1,26 +1,23 @@
-﻿export async function loadLyricsForSelectedSong(songNameObject) {
+﻿export async function loadLyricsForSelectedSong(songNameOption) {
   try {
-    // Support both string and object format (from dropdowns)
-    const songName = (typeof songNameObject === "string") ? songNameObject : songNameObject.text;
+    // Get the selected <option>'s text content
+    const songName = songNameOption.textContent.trim(); // This is the visible name in dropdown (Tamil name)
 
-    // Construct the correct file path from song name
-    const lyricsFileName = `lyrics/${songName.trim()}.txt`;
+    // Lyrics files are named as `lyrics/<Tamil Name>.txt`
+    const lyricsPath = `lyrics/${songName}.txt`;
 
-    // Try fetching the lyrics file
-    const response = await fetch(lyricsFileName);
-
+    const response = await fetch(lyricsPath);
     if (!response.ok) {
       throw new Error("Lyrics file not found");
     }
 
     const lyricsText = await response.text();
 
-    // Show in the textarea
     const lyricsBox = document.getElementById("lyricsDisplay");
     if (lyricsBox) {
       lyricsBox.value = lyricsText;
     } else {
-      console.error("Textarea for lyrics not found");
+      console.warn("Lyrics display textarea not found");
     }
 
   } catch (err) {
