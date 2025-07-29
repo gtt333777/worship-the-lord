@@ -1,49 +1,41 @@
-﻿// initApp.js
+﻿// === initApp.js ===
 
 const playBtn = document.getElementById("playBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const songSelect = document.getElementById("songSelect");
 const lyricsArea = document.getElementById("lyricsArea");
 
-playBtn.addEventListener("click", async () => {
-  if (window.vocalAudio && window.accompAudio) {
-    try {
-      await Promise.all([
-        window.vocalAudio.play(),
-        window.accompAudio.play()
-      ]);
-    } catch (err) {
-      console.error("Playback failed:", err);
-    }
+// === 1. Play / Pause buttons with safeguard ===
+playBtn.addEventListener("click", () => {
+  if (vocalAudio && accompAudio) {
+    vocalAudio.play().catch(err => console.error("Vocal play error:", err));
+    accompAudio.play().catch(err => console.error("Accompaniment play error:", err));
   }
 });
 
 pauseBtn.addEventListener("click", () => {
-  if (window.vocalAudio && window.accompAudio) {
-    window.vocalAudio.pause();
-    window.accompAudio.pause();
+  if (vocalAudio && accompAudio) {
+    vocalAudio.pause();
+    accompAudio.pause();
   }
 });
 
-// ✅ Main logic: On song change
+// === 2. Song selection logic ===
 songSelect.addEventListener("change", async () => {
   const selectedTamilName = songSelect.value;
 
-  // ✅ Load lyrics from local /lyrics/ folder
-  try {
-    const res = await fetch(`lyrics/${selectedTamilName}.txt`);
-    const text = await res.text();
-    lyricsArea.value = text;
-    console.log("Lyrics loaded successfully!");
-  } catch (err) {
-    console.error("Error loading lyrics:", err);
-    lyricsArea.value = "Lyrics not found.";
-  }
+  // === 2A: Load lyrics ===
+  fetch(`lyrics/${selectedTamilName}.txt`)
+    .then(res => res.text())
+    .then(text => {
+      lyricsArea.value = text;
+      console.log("Lyrics loaded successfully!");
+    })
+    .catch(err => {
+      console.error("Error loading lyrics:", err);
+      lyricsArea.value = "Lyrics not found.";
+    });
 
-  // ✅ Stream the correct audio
-  try {
-    await streamSelectedSong(selectedTamilName);
-  } catch (err) {
-    console.error("streamSelectedSong failed:", err);
-  }
+  // === 2B: Load audio using songLoader.js helper ===
+  await streamSelectedSong(selectedTamilName);
 });
