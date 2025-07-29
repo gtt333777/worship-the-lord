@@ -1,78 +1,75 @@
 ﻿// === App Initializer ===
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const songSelect = document.getElementById("songSelect");
-    const playBtn = document.getElementById("playBtn");
-    const pauseBtn = document.getElementById("pauseBtn");
-    const lyricsArea = document.getElementById("lyricsArea");
+document.addEventListener("DOMContentLoaded", () => {
+  const songSelect = document.getElementById("songSelect");
+  const playBtn = document.getElementById("playBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
 
-    if (!songSelect || !playBtn || !pauseBtn || !lyricsArea) {
-      throw new Error("Missing essential DOM elements.");
-    }
+  if (!songSelect || !playBtn || !pauseBtn) {
+    console.error("Missing critical DOM elements.");
+    alert("Something went wrong during app initialization.");
+    return;
+  }
 
-    // Play button
-    playBtn.addEventListener("click", () => {
+  // ✅ Safely handle play/pause if audio objects are defined
+  playBtn.addEventListener("click", () => {
+    if (vocalAudio && accompAudio) {
       vocalAudio.play();
       accompAudio.play();
-    });
+    } else {
+      console.warn("Audio objects not initialized.");
+    }
+  });
 
-    // Pause button
-    pauseBtn.addEventListener("click", () => {
+  pauseBtn.addEventListener("click", () => {
+    if (vocalAudio && accompAudio) {
       vocalAudio.pause();
       accompAudio.pause();
-    });
+    } else {
+      console.warn("Audio objects not initialized.");
+    }
+  });
 
-    // Song selection handler
-    songSelect.addEventListener("change", async () => {
-      const tamilName = songSelect.value;
-      if (!tamilName) return;
+  songSelect.addEventListener("change", () => {
+    const tamilName = songSelect.value;
+    if (!tamilName) return;
 
-      // Load lyrics
-      try {
-        const res = await fetch(`lyrics/${tamilName}.txt`);
-        const text = await res.text();
-        lyricsArea.value = text;
+    // Load lyrics
+    fetch(`lyrics/${tamilName}.txt`)
+      .then(res => res.text())
+      .then(text => {
+        document.getElementById("lyricsArea").value = text;
         console.log("Lyrics updated for selected song.");
-      } catch (err) {
-        console.error("Lyrics load failed:", err);
-      }
+      })
+      .catch(err => console.error("Error loading lyrics:", err));
 
-      // Build Dropbox path
-      const prefix = encodeURIComponent(tamilName);
-      const basePath = "/WorshipSongs/";
-      const vocalPath = basePath + prefix + "_vocal.mp3";
-      const accompPath = basePath + prefix + "_acc.mp3";
+    // Construct audio URLs using ACCESS_TOKEN
+    const prefix = encodeURIComponent(tamilName);
+    const basePath = "/WorshipSongs/";
 
-      // Fetch and stream MP3s
-      try {
-        const res = await fetch("/.netlify/functions/getDropboxToken");
-        const data = await res.json();
+    fetch("/.netlify/functions/getDropboxToken")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.access_token) throw new Error("Token missing");
         const token = data.access_token;
 
-        const streamDropboxAudio = (audioEl, path) => {
+        const setAudioSource = (audio, dropboxPath) => {
           const xhr = new XMLHttpRequest();
           xhr.open("POST", "https://content.dropboxapi.com/2/files/download");
           xhr.setRequestHeader("Authorization", "Bearer " + token);
-          xhr.setRequestHeader("Dropbox-API-Arg", JSON.stringify({ path }));
+          xhr.setRequestHeader("Dropbox-API-Arg", JSON.stringify({ path: dropboxPath }));
           xhr.responseType = "blob";
           xhr.onload = () => {
-            audioEl.src = URL.createObjectURL(xhr.response);
-            console.log("Audio loaded:", path);
+            const blobUrl = URL.createObjectURL(xhr.response);
+            audio.src = blobUrl;
+            console.log(`Audio loaded: ${dropboxPath}`);
           };
-          xhr.onerror = () => {
-            console.error("Audio failed to load:", path);
-          };
+          xhr.onerror = () => console.error(`Failed to load audio: ${dropboxPath}`);
           xhr.send();
         };
 
-        streamDropboxAudio(vocalAudio, vocalPath);
-        streamDropboxAudio(accompAudio, accompPath);
-      } catch (err) {
-        console.error("Audio setup failed:", err);
-      }
-    });
-  } catch (error) {
-    console.error("Initialization failed:", error);
-    alert("Something went wrong during app initialization.");
-  }
+        setAudioSource(vocalAudio, basePath + prefix + "_vocal.mp3");
+        setAudioSource(accompAudio, basePath + prefix + "_acc.mp3");
+      })
+      .catch((err) => console.error("Audio token fetch failed:", err));
+  });
 });
