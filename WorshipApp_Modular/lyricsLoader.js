@@ -1,6 +1,6 @@
 ﻿export async function loadLyricsForSelectedSong(songName) {
   try {
-    const cleanName = songName.toString().trim(); // ✅ fix applied
+    const cleanName = songName.toString().trim(); // make sure it's a string
     const lyricsFilePath = `lyrics/${cleanName}.txt`;
 
     const response = await fetch(lyricsFilePath);
