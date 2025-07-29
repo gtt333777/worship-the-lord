@@ -1,44 +1,39 @@
-﻿// WorshipApp_Modular/initApp.js
+﻿import { loadDropboxToken } from './tokenLoader.js';
+import { loadSongNames } from './songNamesLoader.js';
 import { loadLyricsForSelectedSong } from './lyricsLoader.js';
 
-window.initApp = function () {
-  const songSelect = document.getElementById("songSelect");
-  const playBtn = document.getElementById("playBtn");
-  const pauseBtn = document.getElementById("pauseBtn");
+async function initApp() {
+  try {
+    await loadDropboxToken();
+    console.log("Dropbox token loaded successfully!");
 
-  playBtn.addEventListener("click", () => {
-    window.vocalAudio.play();
-    window.accompAudio.play();
-  });
+    const songNames = await loadSongNames();
+    console.log("Song names loaded successfully!");
 
-  pauseBtn.addEventListener("click", () => {
-    window.vocalAudio.pause();
-    window.accompAudio.pause();
-  });
+    const songSelect = document.getElementById("songSelect");
+    songNames.forEach(name => {
+      const option = document.createElement("option");
+      option.textContent = name; // Visible Tamil name
+      songSelect.appendChild(option);
+    });
 
-  songSelect.addEventListener("change", () => {
-    const selectedIndex = songSelect.selectedIndex;
-    loadLyricsForSelectedSong(selectedIndex);
+    // Load lyrics when user changes song selection
+    songSelect.addEventListener("change", (e) => {
+      const selectedOption = e.target.selectedOptions[0];
+      loadLyricsForSelectedSong(selectedOption);
+    });
 
-    const prefix = String(selectedIndex).padStart(2, '0'); // "00", "01", etc.
-
-    // Set audio source URLs
-    const vocalUrl = `${window.DROPBOX_FOLDER}${prefix}_vocal.mp3`;
-    const accompUrl = `${window.DROPBOX_FOLDER}${prefix}_acc.mp3`;
-
-    // Set audio sources
-    window.vocalAudio.src = `https://content.dropboxapi.com/2/files/download`;
-    window.vocalAudio.setAttribute("data-path", vocalUrl);
-    window.accompAudio.src = `https://content.dropboxapi.com/2/files/download`;
-    window.accompAudio.setAttribute("data-path", accompUrl);
-
-    // Force token refresh and load
-    if (typeof loadDropboxToken === "function") {
-      loadDropboxToken(); // reload token before playing new song
+    // Trigger initial load for the first song
+    if (songSelect.options.length > 0) {
+      songSelect.selectedIndex = 0;
+      loadLyricsForSelectedSong(songSelect.options[0]);
     }
-  });
 
-  console.log("App initialized.");
-};
+    console.log("App initialized.");
+  } catch (error) {
+    console.error("Error initializing app:", error);
+    alert("Initialization error: " + error.message);
+  }
+}
 
-document.addEventListener("DOMContentLoaded", window.initApp);
+initApp();
