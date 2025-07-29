@@ -1,71 +1,81 @@
-// songLoader.js
-export let vocalAudio = new Audio();
-export let accompAudio = new Audio();
+﻿// songLoader.js
 
-export function setupVolumeControls() {
-  const vocalSlider = document.getElementById("vocalVolume");
-  const accompSlider = document.getElementById("accompVolume");
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
 
-  vocalSlider.addEventListener("input", (e) => {
-    vocalAudio.volume = parseFloat(e.target.value);
-  });
+// 🔄 Stream one song at a time — this clears previous src and plays only selected
+function streamSelectedSong(tamilName) {
+  const slug = encodeURIComponent(tamilName);
 
-  accompSlider.addEventListener("input", (e) => {
-    accompAudio.volume = parseFloat(e.target.value);
-  });
-}
-
-export function loadAudioFiles(songName, accessToken) {
-  const folder = "/WorshipSongs/";
-  const vocalPath = folder + songName + "_vocal.mp3";
-  const accompPath = folder + songName + "_acc.mp3";
-
-  const headers = new Headers({
-    "Authorization": "Bearer " + accessToken,
-    "Dropbox-API-Arg": JSON.stringify({ path: vocalPath })
-  });
-
-  fetch("https://content.dropboxapi.com/2/files/download", { method: "POST", headers })
-    .then(res => res.blob())
-    .then(blob => {
-      vocalAudio.src = URL.createObjectURL(blob);
-      vocalAudio.load();
-    }).catch(err => console.error("Error loading vocal:", err));
-
-  const accompHeaders = new Headers({
-    "Authorization": "Bearer " + accessToken,
-    "Dropbox-API-Arg": JSON.stringify({ path: accompPath })
-  });
-
-  fetch("https://content.dropboxapi.com/2/files/download", { method: "POST", headers: accompHeaders })
-    .then(res => res.blob())
-    .then(blob => {
-      accompAudio.src = URL.createObjectURL(blob);
-      accompAudio.load();
-    }).catch(err => console.error("Error loading accompaniment:", err));
-}
-
-export async function playBoth() {
-  try {
-    await Promise.all([vocalAudio.play(), accompAudio.play()]);
-  } catch (err) {
-    console.error("Playback error:", err);
-  }
-}
-
-export function pauseBoth() {
   vocalAudio.pause();
   accompAudio.pause();
+
+  vocalAudio.src = "";
+  accompAudio.src = "";
+
+  // Get new token each time
+  fetch("/.netlify/functions/getDropboxToken")
+    .then(res => res.json())
+    .then(data => {
+      const token = data.access_token;
+      const pathVocal = `/WorshipSongs/${slug}_vocal.wav.mp3`;
+      const pathAcc = `/WorshipSongs/${slug}_acc.wav.mp3`;
+
+      // Fetch audio blob and set src
+      const fetchBlob = (path, audioEl) => {
+        fetch("https://content.dropboxapi.com/2/files/download", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Dropbox-API-Arg": JSON.stringify({ path })
+          }
+        })
+          .then(res => {
+            if (!res.ok) throw new Error("Download failed");
+            return res.blob();
+          })
+          .then(blob => {
+            audioEl.src = URL.createObjectURL(blob);
+            audioEl.load();
+            console.log("Audio loaded:", path);
+          })
+          .catch(err => console.error("Failed to stream audio:", err));
+      };
+
+      fetchBlob(pathVocal, vocalAudio);
+      fetchBlob(pathAcc, accompAudio);
+    })
+    .catch(err => {
+      console.error("Error fetching token or audio:", err);
+      alert("Something went wrong while loading the song.");
+    });
 }
 
-export function syncDuringPlayback() {
-  vocalAudio.onplay = () => accompAudio.play();
-  vocalAudio.onpause = () => accompAudio.pause();
-  vocalAudio.onseeking = () => accompAudio.currentTime = vocalAudio.currentTime;
-  vocalAudio.ontimeupdate = () => {
-    const diff = Math.abs(vocalAudio.currentTime - accompAudio.currentTime);
-    if (diff > 0.3) {
-      accompAudio.currentTime = vocalAudio.currentTime;
-    }
-  };
-}
+// ⏯️ Unified play/pause
+document.getElementById("playBtn").addEventListener("click", async () => {
+  try {
+    await vocalAudio.play();
+    await accompAudio.play();
+  } catch (e) {
+    console.error("Playback failed:", e);
+  }
+});
+
+document.getElementById("pauseBtn").addEventListener("click", () => {
+  vocalAudio.pause();
+  accompAudio.pause();
+});
+
+// 🔊 Volume control
+["vocal", "accomp"].forEach(type => {
+  document.getElementById(`${type}Volume`).addEventListener("input", e => {
+    const vol = parseFloat(e.target.value);
+    if (type === "vocal") vocalAudio.volume = vol;
+    else accompAudio.volume = vol;
+  });
+});
+
+// ⬆️ Make it available globally
+window.streamSelectedSong = streamSelectedSong;
+window.vocalAudio = vocalAudio;
+window.accompAudio = accompAudio;
