@@ -3,20 +3,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const songSelect = document.getElementById("songSelect");
   const playBtn = document.getElementById("playBtn");
   const pauseBtn = document.getElementById("pauseBtn");
+  const lyricsArea = document.getElementById("lyricsArea");
 
-  if (!songSelect || !playBtn || !pauseBtn) {
-    console.error("Missing critical DOM elements.");
+  if (!songSelect || !playBtn || !pauseBtn || !lyricsArea) {
     alert("Something went wrong during app initialization.");
+    console.error("Missing critical DOM elements.");
     return;
   }
 
-  // ✅ Safely handle play/pause if audio objects are defined
+  // Play and Pause buttons
   playBtn.addEventListener("click", () => {
     if (vocalAudio && accompAudio) {
       vocalAudio.play();
       accompAudio.play();
-    } else {
-      console.warn("Audio objects not initialized.");
     }
   });
 
@@ -24,11 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (vocalAudio && accompAudio) {
       vocalAudio.pause();
       accompAudio.pause();
-    } else {
-      console.warn("Audio objects not initialized.");
     }
   });
 
+  // Song change event
   songSelect.addEventListener("change", () => {
     const tamilName = songSelect.value;
     if (!tamilName) return;
@@ -37,13 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch(`lyrics/${tamilName}.txt`)
       .then(res => res.text())
       .then(text => {
-        document.getElementById("lyricsArea").value = text;
+        lyricsArea.value = text;
         console.log("Lyrics updated for selected song.");
       })
       .catch(err => console.error("Error loading lyrics:", err));
 
     // Construct audio URLs using ACCESS_TOKEN
-    const prefix = encodeURIComponent(tamilName);
+    const prefix = tamilName; // Keep raw name, do NOT encode
     const basePath = "/WorshipSongs/";
 
     fetch("/.netlify/functions/getDropboxToken")
