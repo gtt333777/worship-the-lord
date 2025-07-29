@@ -1,68 +1,55 @@
-﻿// === songLoader.js ===
+﻿// WorshipApp_Modular/songLoader.js
 
-// 1. Convert Tamil name to Dropbox file prefix
-function getSlugFromTamil(tamilName) {
-  const slugMap = {
-    "இயேசு நந்தமே நந்தமே நந்தமே": "yesu_nanthame",
-    "வேலை செய்யும் தேவன்": "velai_seyyum",
-    "ஆசீர்வாதம் தரும்": "aaseervadham_dharum",
-    // ✅ Add more mappings here based on your songs_names.txt
-  };
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
 
-  return slugMap[tamilName.trim()];
-}
-
-// 2. Build Dropbox download URL
-function buildDropboxURL() {
-  return "https://content.dropboxapi.com/2/files/download";
-}
-
-// 3. Stream and set audio sources
 async function streamSelectedSong(tamilName) {
-  const slug = getSlugFromTamil(tamilName);
-  if (!slug) {
-    alert("Prefix not found for selected song!");
-    return;
-  }
-
-  const vocalPath = `/WorshipSongs/${slug}_vocal.wav.mp3`;
-  const accPath = `/WorshipSongs/${slug}_acc.wav.mp3`;
-
   try {
-    // === Fetch vocal file
-    const headers = {
-      Authorization: "Bearer " + ACCESS_TOKEN,
-      "Dropbox-API-Arg": JSON.stringify({ path: vocalPath }),
-    };
+    // Fetch songs_names.txt to get mapping
+    const res = await fetch("lyrics/songs_names.txt");
+    const lines = await res.text();
+    const entries = lines.trim().split("\n");
 
-    const vocalRes = await fetch(buildDropboxURL(), {
-      method: "POST",
-      headers,
-    });
+    // Find matching line
+    const match = entries.find(line => line.trim().endsWith(tamilName.trim()));
+    if (!match) {
+      alert("Prefix not found for selected song!");
+      return;
+    }
 
-    if (!vocalRes.ok) throw new Error("Vocal fetch failed");
+    const prefix = match.split(" ")[0]; // Get prefix from the first word
+    const vocalPath = `/WorshipSongs/${prefix}_vocal.wav.mp3`;
+    const accompPath = `/WorshipSongs/${prefix}_acc.wav.mp3`;
 
-    const vocalBlob = await vocalRes.blob();
+    // Get Dropbox token
+    const tokenRes = await fetch("/.netlify/functions/getDropboxToken");
+    const { access_token } = await tokenRes.json();
 
-    // === Fetch accompaniment file
-    headers["Dropbox-API-Arg"] = JSON.stringify({ path: accPath });
+    // Generate URLs
+    const [vocalURL, accompURL] = await Promise.all([
+      getDropboxURL(vocalPath, access_token),
+      getDropboxURL(accompPath, access_token)
+    ]);
 
-    const accRes = await fetch(buildDropboxURL(), {
-      method: "POST",
-      headers,
-    });
+    vocalAudio.src = vocalURL;
+    accompAudio.src = accompURL;
 
-    if (!accRes.ok) throw new Error("Accompaniment fetch failed");
-
-    const accBlob = await accRes.blob();
-
-    // === Assign to audio elements
-    vocalAudio.src = URL.createObjectURL(vocalBlob);
-    accompAudio.src = URL.createObjectURL(accBlob);
-
-    console.log("Audio files loaded successfully.");
-  } catch (error) {
-    console.error("Failed to stream audio:", error);
-    alert("Audio loading error! Please check the file prefix or token.");
+    console.log("Audio sources set successfully.");
+  } catch (err) {
+    console.error("Error streaming audio:", err);
   }
+}
+
+async function getDropboxURL(path, token) {
+  const res = await fetch("https://content.dropboxapi.com/2/files/download", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Dropbox-API-Arg": JSON.stringify({ path })
+    }
+  });
+
+  if (!res.ok) throw new Error("Download failed");
+
+  return URL.createObjectURL(await res.blob());
 }
