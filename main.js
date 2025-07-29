@@ -1,5 +1,4 @@
-﻿// === Dropbox Token Loading ===
-let ACCESS_TOKEN = "";
+﻿let ACCESS_TOKEN = "";
 
 async function loadDropboxToken() {
   try {
@@ -11,12 +10,10 @@ async function loadDropboxToken() {
   }
 }
 
-// === Constants ===
 const DROPBOX_FOLDER = "/WorshipSongs/";
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
-// === Volume Controls ===
 ["vocal", "accomp"].forEach(type => {
   document.getElementById(`${type}Volume`).addEventListener("input", e => {
     (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
@@ -41,7 +38,6 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") skipSeconds(1);
 });
 
-// === Dropbox File Link ===
 async function getTemporaryLink(path) {
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
@@ -56,7 +52,6 @@ async function getTemporaryLink(path) {
   return data.link;
 }
 
-// === Song Loading ===
 let currentPrefix = "";
 let segments = [];
 
@@ -69,17 +64,24 @@ async function loadSong(name) {
       getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_vocal.${ext}`),
       getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_acc.${ext}`)
     ]);
+
+    console.log("\u2714 Vocal URL:", vocalURL);
+    console.log("\u2714 Accompaniment URL:", accompURL);
+
     vocalAudio.src = vocalURL;
     accompAudio.src = accompURL;
     vocalAudio.load();
     accompAudio.load();
+
+    vocalAudio.onloadedmetadata = () => console.log("\ud83c\udfa4 Vocal audio duration:", vocalAudio.duration);
+    accompAudio.onloadedmetadata = () => console.log("\ud83c\udfb9 Accompaniment audio duration:", accompAudio.duration);
 
     // Load lyrics
     document.getElementById("lyricsBox").value = "Loading...";
     const lyrics = await fetch(`lyrics/${prefix}.txt`).then(r => r.ok ? r.text() : "Lyrics not found");
     document.getElementById("lyricsBox").value = lyrics;
 
-    // Load segments from local folder
+    // Load segments (formerly loops)
     try {
       segments = await fetch(`lyrics/${prefix}_loops.json`).then(r => r.json());
     } catch {
@@ -110,18 +112,18 @@ function showSegmentButtons() {
   });
 }
 
-// === Playback Buttons ===
 document.getElementById("songSelect").addEventListener("change", e => loadSong(e.target.value));
+
 document.getElementById("playBtn").addEventListener("click", () => {
   vocalAudio.play();
   accompAudio.play();
 });
+
 document.getElementById("pauseBtn").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
 });
 
-// === Bookmark Logic ===
 function getBookmarkFolders() {
   return JSON.parse(localStorage.getItem("bookmarks") || "{}");
 }
@@ -133,7 +135,7 @@ function setBookmarkFolders(data) {
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
   const select = document.getElementById("bookmarkDropdown");
-  select.innerHTML = '<option value="">\uD83C\uDFAF Bookmarked Songs</option>';
+  select.innerHTML = '<option value="">\ud83c\udfaf Bookmarked Songs</option>';
   for (let i = 1; i <= 5; i++) {
     const folder = `Favorites ${i}`;
     if (folderData[folder]?.length) {
@@ -164,7 +166,7 @@ function updateBookmarkStar() {
       break;
     }
   }
-  starBtn.textContent = isBookmarked ? "⭐" : "☆";
+  starBtn.textContent = isBookmarked ? "\u2b50" : "\u2606";
 }
 
 document.getElementById("bookmarkBtn").addEventListener("click", () => {
@@ -194,7 +196,6 @@ document.getElementById("bookmarkBtn").addEventListener("click", () => {
   updateBookmarkStar();
 });
 
-// === Initialization ===
 async function loadSongs() {
   await loadDropboxToken();
   const txt = await fetch("lyrics/song_names.txt").then(r => r.text());
