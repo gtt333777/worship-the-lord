@@ -1,1 +1,0 @@
-// Manages bookmark logic
