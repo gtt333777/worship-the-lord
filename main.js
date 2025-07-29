@@ -74,12 +74,17 @@ async function loadSong(name) {
     const lyrics = await fetch(`lyrics/${prefix}.txt`).then(r => r.ok ? r.text() : "Lyrics not found");
     document.getElementById("lyricsBox").value = lyrics;
 
-    // Load segments (formerly loops)
+    // Load segments (from local instead of Dropbox)
     try {
-      segments = await fetch(`lyrics/${prefix}_loops.json`).then(r => r.json());
+      const res = await fetch(`lyrics/${prefix}_loops.json`);
+      if (!res.ok) throw new Error("Local loop file not found");
+      segments = await res.json();
+      console.log("✅ Loaded local segments:", segments);
     } catch {
       segments = [];
+      console.warn("⚠️ No local loop file found");
     }
+
     showSegmentButtons();
     updateBookmarkStar();
   } catch (err) {
