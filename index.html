@@ -1,144 +1,19 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ta">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
-
-  <!-- ✅ PWA -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-192.png" type="image/png" />
   <meta name="theme-color" content="#2c3e50" />
-
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eaf3fb;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #2c3e50;
-    }
-    select, button {
-      padding: 5px 10px;
-      margin: 5px;
-    }
-    .volume-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 10px;
-    }
-    .volume-control label {
-      margin-right: 5px;
-      width: 140px;
-      text-align: right;
-    }
-    .volume-control input[type="range"] {
-      width: 200px;
-    }
-    #lyricsBox {
-      width: 90%;
-      height: 300px;
-      margin-top: 20px;
-      font-size: 1.2rem;
-      white-space: pre-wrap;
-    }
-
-    #segments {
-      margin: 10px 0;
-    }
-
-    .segment-button {
-      margin: 3px;
-      padding: 4px 8px;
-      font-size: 0.9rem;
-    }
-
-    #installPrompt {
-      display: none;
-      background: #fff8dc;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px auto;
-      width: 90%;
-      font-size: 1rem;
-    }
+    body { font-family: Arial, sans-serif; background-color: #eaf3fb; text-align: center; padding: 20px; }
+    h1 { color: #2c3e50; }
   </style>
 </head>
 <body>
   <h1>🎵 Worship The Lord</h1>
-
-  <!-- ✅ PWA Install Prompt -->
-  <div id="installPrompt">
-    📲 You can install this app on your device.
-    <button id="installButton">Install</button>
-  </div>
-
-  <div>
-    <label for="songSelect"><strong>Choose a song:</strong></label>
-    <select id="songSelect"></select>
-
-    <!-- ⭐️ Bookmark Toggle -->
-    <button id="bookmarkBtn" style="font-size: 1.3rem;">☆</button>
-
-    <!-- Bookmarked Songs Dropdown -->
-    <select id="bookmarkDropdown">
-      <option value="">🎯 Bookmarked Songs</option>
-    </select>
-  </div>
-
-  <br />
-
-  <button id="playBtn">▶️ Play</button>
-  <button id="pauseBtn">⏸️ Pause</button>
-
-  <div class="volume-control">
-    <label for="vocalVolume">🎤 Vocal Volume:</label>
-    <button onclick="adjustVolume('vocal', -0.1)">-</button>
-    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('vocal', 0.1)">+</button>
-  </div>
-
-  <div class="volume-control">
-    <label for="accompVolume">🏛️ Accompaniment Volume:</label>
-    <button onclick="adjustVolume('accomp', -0.1)">-</button>
-    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('accomp', 0.1)">+</button>
-  </div>
-
-  <!-- ✅ Vocal Segments Navigation -->
-  <div id="segments"></div>
-
-  <div>
-    <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
-    <button onclick="skipSeconds(1)">+1 sec ⏭️</button>
-  </div>
-
-  <textarea id="lyricsBox" readonly></textarea>
-
   <script src="main.js"></script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').catch(console.error);
-    }
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBar = document.getElementById('installPrompt');
-      if (installBar) installBar.style.display = 'block';
-
-      document.getElementById('installButton').onclick = async () => {
-        installBar.style.display = 'none';
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      };
-    });
-  </script>
 </body>
 </html>
