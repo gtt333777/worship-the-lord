@@ -1,7 +1,8 @@
-// === Audio Control ===
-const DROPBOX_FOLDER = "/WorshipSongs/";
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
+// audioControl.js
+
+// Global audio elements
+if (!window.vocalAudio) window.vocalAudio = new Audio();
+if (!window.accompAudio) window.accompAudio = new Audio();
 
 ["vocal", "accomp"].forEach(type => {
   document.getElementById(`${type}Volume`).addEventListener("input", e => {
@@ -11,18 +12,8 @@ let accompAudio = new Audio();
 
 function adjustVolume(type, delta) {
   const slider = document.getElementById(`${type}Volume`);
-  let vol = Math.min(1, Math.max(0, parseFloat(slider.value) + delta));
-  slider.value = vol;
-  (type === "vocal" ? vocalAudio : accompAudio).volume = vol;
+  slider.value = Math.min(1, Math.max(0, parseFloat(slider.value) + delta)).toFixed(2);
+  slider.dispatchEvent(new Event("input"));
 }
 
-function skipSeconds(delta) {
-  const newTime = Math.max(0, vocalAudio.currentTime + delta);
-  vocalAudio.currentTime = newTime;
-  accompAudio.currentTime = newTime;
-}
-
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") skipSeconds(-1);
-  if (e.key === "ArrowRight") skipSeconds(1);
-});
+window.adjustVolume = adjustVolume;
