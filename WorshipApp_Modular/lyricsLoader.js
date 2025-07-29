@@ -1,8 +1,6 @@
 ﻿// === lyricsLoader.js ===
-
 export async function loadLyricsForSelectedSong(songName) {
   try {
-    // Clean the name to match exact file
     const cleanName = songName.trim();
     const lyricsFilePath = `lyrics/${cleanName}.txt`;
 
