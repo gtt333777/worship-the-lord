@@ -1,34 +1,30 @@
-﻿// === lyricsLoader.js ===
-// Load lyrics from lyrics/ folder using auto-derived prefix
-async function loadLyricsForSelectedSong(songName) {
-  try {
-    const response = await fetch("lyrics/songs_names.txt");
-    const songList = await response.text();
-    const songNames = songList.trim().split("\n");
-    const index = songNames.findIndex(name => name.trim() === songName.trim());
+﻿// lyricsLoader.js
 
-    if (index === -1) {
-      throw new Error("Prefix not found for selected song");
-    }
+/**
+ * Loads the lyrics file based on the selected song.
+ * It uses the prefix derived from the song's index in the list.
+ */
+export function loadLyricsForSelectedSong(selectedIndex) {
+  const lyricsArea = document.getElementById("lyricsArea");
 
-    const prefix = String(index + 1).padStart(2, '0');
-    const lyricsFilePath = `lyrics/${prefix}.txt`;
+  // Get prefix by zero-padding index (e.g., 0 → 00, 1 → 01)
+  const prefix = String(selectedIndex).padStart(2, '0'); // "00", "01", etc.
 
-    const lyricsResponse = await fetch(lyricsFilePath);
-    if (!lyricsResponse.ok) {
-      throw new Error("Lyrics file not found");
-    }
+  const lyricsFilePath = `lyrics/${prefix}.txt`;
 
-    const lyricsText = await lyricsResponse.text();
-    const textarea = document.getElementById("lyricsArea");
-    if (textarea) {
-      textarea.value = lyricsText;
-    } else {
-      console.error("Lyrics textarea not found in DOM");
-    }
-
-  } catch (err) {
-    console.error("Error loading lyrics:", err);
-    alert("Error loading lyrics: " + err.message);
-  }
+  fetch(lyricsFilePath)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Lyrics file not found");
+      }
+      return response.text();
+    })
+    .then(text => {
+      lyricsArea.value = text;
+    })
+    .catch(error => {
+      console.error("Error loading lyrics:", error.message);
+      lyricsArea.value = "";
+      alert("Error loading lyrics: " + error.message);
+    });
 }
