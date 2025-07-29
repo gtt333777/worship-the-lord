@@ -1,6 +1,12 @@
-﻿export async function loadLyricsForSelectedSong(songName) {
+﻿export async function loadLyricsForSelectedSong(songNameObject) {
   try {
+    // Support both string and object format (from dropdowns)
+    const songName = (typeof songNameObject === "string") ? songNameObject : songNameObject.text;
+
+    // Construct the correct file path from song name
     const lyricsFileName = `lyrics/${songName.trim()}.txt`;
+
+    // Try fetching the lyrics file
     const response = await fetch(lyricsFileName);
 
     if (!response.ok) {
@@ -8,6 +14,8 @@
     }
 
     const lyricsText = await response.text();
+
+    // Show in the textarea
     const lyricsBox = document.getElementById("lyricsDisplay");
     if (lyricsBox) {
       lyricsBox.value = lyricsText;
