@@ -46,14 +46,16 @@
       white-space: pre-wrap;
     }
 
-    /* ✅ Canvas style remains the same */
-    #loopCanvas {
-      border: 1px solid #888;
-      margin: 10px auto;
-      display: block;
+    #segments {
+      margin: 10px 0;
     }
 
-    /* ✅ Install prompt style */
+    .segment-button {
+      margin: 3px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+    }
+
     #installPrompt {
       display: none;
       background: #fff8dc;
@@ -106,11 +108,9 @@
     <button onclick="adjustVolume('accomp', 0.1)">+</button>
   </div>
 
-<!-- ✅ Centered, narrow canvas with responsive behavior -->
-<div style="overflow-x: auto; display: flex; justify-content: center;">
-  <canvas id="loopCanvas" width="600" height="30"
-    style="display: block; width: 100%; max-width: 400px; height: 30px;"></canvas>
-</div>
+  <!-- ✅ Vocal Segments Navigation -->
+  <div id="segments"></div>
+
   <div>
     <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
     <button onclick="skipSeconds(1)">+1 sec ⏭️</button>
@@ -120,7 +120,6 @@
 
   <script src="main.js"></script>
 
-  <!-- ✅ PWA Install & Service Worker Script -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(console.error);
