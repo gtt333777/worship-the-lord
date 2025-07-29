@@ -1,75 +1,47 @@
-﻿// WorshipApp_Modular/initApp.js
-
-import { loadToken } from "./tokenLoader.js";
-import { loadSongNames } from "./songNamesLoader.js";
-import { loadLyrics } from "./lyricsLoader.js";
-import {
-  vocalAudio,
-  accompAudio,
-  loadAudioFiles,
-  setupVolumeControls,
-  playBoth,
-  pauseBoth,
-  syncDuringPlayback
-} from "./songLoader.js";
-
-// === DOM Elements ===
-const songSelect = document.getElementById("songSelect");
-const playBtn = document.getElementById("playBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-
-let ACCESS_TOKEN = "";
-
-// === INIT APP ===
-async function initApp() {
+﻿// === App Initializer ===
+document.addEventListener("DOMContentLoaded", () => {
   try {
-    ACCESS_TOKEN = await loadToken();
-    console.log("Dropbox token loaded successfully!");
+    const songSelect = document.getElementById("songSelect");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
 
-    const songNames = await loadSongNames();
-    populateSongDropdown(songNames);
-    console.log("Song names loaded successfully!");
-
-    setupVolumeControls();
-    syncDuringPlayback();
-
-    songSelect.addEventListener("change", async () => {
-      const selected = songSelect.value;
-      if (!selected) return;
-
-      const prefix = selected.split(" ")[0]; // Assume filename prefix comes first
-      await loadLyrics(prefix);
-      loadAudioFiles(prefix, ACCESS_TOKEN);
-    });
+    if (!songSelect || !playBtn || !pauseBtn) {
+      console.error("Missing essential DOM elements.");
+      return;
+    }
 
     playBtn.addEventListener("click", () => {
-      playBoth();
+      if (vocalAudio && accompAudio) {
+        vocalAudio.play().catch(err => console.error("Vocal play error:", err));
+        accompAudio.play().catch(err => console.error("Accompaniment play error:", err));
+      }
     });
 
     pauseBtn.addEventListener("click", () => {
-      pauseBoth();
+      if (vocalAudio && accompAudio) {
+        vocalAudio.pause();
+        accompAudio.pause();
+      }
     });
 
-    // Preload first song if one is selected
-    if (songSelect.value) {
-      const prefix = songSelect.value.split(" ")[0];
-      await loadLyrics(prefix);
-      loadAudioFiles(prefix, ACCESS_TOKEN);
-    }
+    songSelect.addEventListener("change", async () => {
+      const selectedTamilName = songSelect.value;
+
+      // Load lyrics
+      fetch(`lyrics/${selectedTamilName}.txt`)
+        .then(res => res.text())
+        .then(text => {
+          document.getElementById("lyricsArea").value = text;
+          console.log("Lyrics loaded successfully.");
+        })
+        .catch(err => console.error("Error loading lyrics:", err));
+
+      // Load audio
+      await streamSelectedSong(selectedTamilName);
+    });
 
   } catch (error) {
-    console.error("App initialization error:", error);
+    console.error("Initialization error:", error);
     alert("Something went wrong during app initialization.");
   }
-}
-
-// === Helper: Populate dropdown ===
-function populateSongDropdown(songNames) {
-  songNames.forEach(name => {
-    const option = document.createElement("option");
-    option.textContent = name;
-    songSelect.appendChild(option);
-  });
-}
-
-initApp();
+});
