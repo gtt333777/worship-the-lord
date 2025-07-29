@@ -1,80 +1,75 @@
-﻿// === App Initializer ===
-document.addEventListener("DOMContentLoaded", () => {
-  const songSelect = document.getElementById("songSelect");
-  const playBtn = document.getElementById("playBtn");
-  const pauseBtn = document.getElementById("pauseBtn");
-  const lyricsArea = document.getElementById("lyricsArea");
+﻿// WorshipApp_Modular/initApp.js
 
-  if (!songSelect || !playBtn || !pauseBtn || !lyricsArea) {
+import { loadToken } from "./tokenLoader.js";
+import { loadSongNames } from "./songNamesLoader.js";
+import { loadLyrics } from "./lyricsLoader.js";
+import {
+  vocalAudio,
+  accompAudio,
+  loadAudioFiles,
+  setupVolumeControls,
+  playBoth,
+  pauseBoth,
+  syncDuringPlayback
+} from "./songLoader.js";
+
+// === DOM Elements ===
+const songSelect = document.getElementById("songSelect");
+const playBtn = document.getElementById("playBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+
+let ACCESS_TOKEN = "";
+
+// === INIT APP ===
+async function initApp() {
+  try {
+    ACCESS_TOKEN = await loadToken();
+    console.log("Dropbox token loaded successfully!");
+
+    const songNames = await loadSongNames();
+    populateSongDropdown(songNames);
+    console.log("Song names loaded successfully!");
+
+    setupVolumeControls();
+    syncDuringPlayback();
+
+    songSelect.addEventListener("change", async () => {
+      const selected = songSelect.value;
+      if (!selected) return;
+
+      const prefix = selected.split(" ")[0]; // Assume filename prefix comes first
+      await loadLyrics(prefix);
+      loadAudioFiles(prefix, ACCESS_TOKEN);
+    });
+
+    playBtn.addEventListener("click", () => {
+      playBoth();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      pauseBoth();
+    });
+
+    // Preload first song if one is selected
+    if (songSelect.value) {
+      const prefix = songSelect.value.split(" ")[0];
+      await loadLyrics(prefix);
+      loadAudioFiles(prefix, ACCESS_TOKEN);
+    }
+
+  } catch (error) {
+    console.error("App initialization error:", error);
     alert("Something went wrong during app initialization.");
-    console.error("Initialization failed: Missing DOM elements");
-    return;
   }
+}
 
-  playBtn.addEventListener("click", () => {
-    if (vocalAudio && accompAudio) {
-      vocalAudio.play();
-      accompAudio.play();
-    }
+// === Helper: Populate dropdown ===
+function populateSongDropdown(songNames) {
+  songNames.forEach(name => {
+    const option = document.createElement("option");
+    option.textContent = name;
+    songSelect.appendChild(option);
   });
+}
 
-  pauseBtn.addEventListener("click", () => {
-    if (vocalAudio && accompAudio) {
-      vocalAudio.pause();
-      accompAudio.pause();
-    }
-  });
-
-  songSelect.addEventListener("change", async () => {
-    const tamilName = songSelect.value;
-    if (!tamilName) return;
-
-    // === Load Lyrics ===
-    try {
-      const res = await fetch(`lyrics/${tamilName}.txt`);
-      const text = await res.text();
-      lyricsArea.value = text;
-      console.log("Lyrics loaded successfully!");
-    } catch (err) {
-      console.error("Error loading lyrics:", err);
-    }
-
-    // === Load Dropbox Token ===
-    try {
-      const tokenRes = await fetch("/.netlify/functions/getDropboxToken");
-      const { access_token } = await tokenRes.json();
-      if (!access_token) throw new Error("No access token received.");
-      console.log("Dropbox token loaded successfully!");
-
-      // === Load Audio Files ===
-      const prefix = encodeURIComponent(tamilName);
-      const basePath = "/WorshipSongs/";
-
-      const setDropboxAudio = (audio, path) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://content.dropboxapi.com/2/files/download");
-        xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-        xhr.setRequestHeader("Dropbox-API-Arg", JSON.stringify({ path }));
-        xhr.responseType = "blob";
-
-        xhr.onload = () => {
-          const blobUrl = URL.createObjectURL(xhr.response);
-          audio.src = blobUrl;
-          console.log(`Audio loaded: ${path}`);
-        };
-
-        xhr.onerror = () => {
-          console.error(`Failed to load audio: ${path}`);
-        };
-
-        xhr.send();
-      };
-
-      setDropboxAudio(vocalAudio, basePath + prefix + "_vocal.mp3");
-      setDropboxAudio(accompAudio, basePath + prefix + "_acc.mp3");
-
-    } catch (err) {
-      console.error("Dropbox audio loading failed:", err);
-    }
-  });
-});
+initApp();
