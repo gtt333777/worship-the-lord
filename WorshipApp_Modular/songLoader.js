@@ -1,55 +1,45 @@
 ﻿// WorshipApp_Modular/songLoader.js
 
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
-
 async function streamSelectedSong(tamilName) {
   try {
-    // Fetch songs_names.txt to get mapping
-    const res = await fetch("lyrics/songs_names.txt");
-    const lines = await res.text();
-    const entries = lines.trim().split("\n");
+    const response = await fetch("lyrics/songs_names.txt");
+    const lines = (await response.text()).split("\n").map(line => line.trim()).filter(Boolean);
+    
+    let prefix = null;
+    for (const line of lines) {
+      const [pfx, name] = line.split("=");
+      if (name.trim() === tamilName.trim()) {
+        prefix = pfx.trim();
+        break;
+      }
+    }
 
-    // Find matching line
-    const match = entries.find(line => line.trim().endsWith(tamilName.trim()));
-    if (!match) {
+    if (!prefix) {
       alert("Prefix not found for selected song!");
       return;
     }
 
-    const prefix = match.split(" ")[0]; // Get prefix from the first word
-    const vocalPath = `/WorshipSongs/${prefix}_vocal.wav.mp3`;
-    const accompPath = `/WorshipSongs/${prefix}_acc.wav.mp3`;
+    const vocalUrl = `https://content.dropboxapi.com/2/files/download`;
+    const accompUrl = `https://content.dropboxapi.com/2/files/download`;
 
-    // Get Dropbox token
-    const tokenRes = await fetch("/.netlify/functions/getDropboxToken");
-    const { access_token } = await tokenRes.json();
+    const headers = {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${prefix}_vocal.wav.mp3` })
+    };
+    const headers2 = {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${prefix}_acc.wav.mp3` })
+    };
 
-    // Generate URLs
-    const [vocalURL, accompURL] = await Promise.all([
-      getDropboxURL(vocalPath, access_token),
-      getDropboxURL(accompPath, access_token)
-    ]);
+    const vocalBlob = await fetch(vocalUrl, { method: "POST", headers }).then(r => r.blob());
+    const accompBlob = await fetch(accompUrl, { method: "POST", headers: headers2 }).then(r => r.blob());
 
-    vocalAudio.src = vocalURL;
-    accompAudio.src = accompURL;
-
-    console.log("Audio sources set successfully.");
+    vocalAudio.src = URL.createObjectURL(vocalBlob);
+    accompAudio.src = URL.createObjectURL(accompBlob);
+    console.log("Audio files loaded successfully.");
   } catch (err) {
     console.error("Error streaming audio:", err);
   }
 }
 
-async function getDropboxURL(path, token) {
-  const res = await fetch("https://content.dropboxapi.com/2/files/download", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Dropbox-API-Arg": JSON.stringify({ path })
-    }
-  });
-
-  if (!res.ok) throw new Error("Download failed");
-
-  return URL.createObjectURL(await res.blob());
-}
+window.streamSelectedSong = streamSelectedSong;
