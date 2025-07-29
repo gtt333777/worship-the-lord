@@ -1,4 +1,6 @@
-﻿let ACCESS_TOKEN = "";
+﻿// === Updated main.js ===
+
+let ACCESS_TOKEN = "";
 
 async function loadDropboxToken() {
   try {
@@ -38,6 +40,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") skipSeconds(1);
 });
 
+// 🔁 Updated to log full Dropbox error
 async function getTemporaryLink(path) {
   const response = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
     method: "POST",
@@ -47,7 +50,11 @@ async function getTemporaryLink(path) {
     },
     body: JSON.stringify({ path })
   });
-  if (!response.ok) throw new Error("Failed to get Dropbox link");
+
+  if (!response.ok) {
+    console.error("Dropbox error", await response.text());
+    throw new Error("Failed to get Dropbox link");
+  }
   const data = await response.json();
   return data.link;
 }
@@ -64,17 +71,10 @@ async function loadSong(name) {
       getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_vocal.${ext}`),
       getTemporaryLink(`${DROPBOX_FOLDER}${prefix}_acc.${ext}`)
     ]);
-
-    console.log("\u2714 Vocal URL:", vocalURL);
-    console.log("\u2714 Accompaniment URL:", accompURL);
-
     vocalAudio.src = vocalURL;
     accompAudio.src = accompURL;
     vocalAudio.load();
     accompAudio.load();
-
-    vocalAudio.onloadedmetadata = () => console.log("\ud83c\udfa4 Vocal audio duration:", vocalAudio.duration);
-    accompAudio.onloadedmetadata = () => console.log("\ud83c\udfb9 Accompaniment audio duration:", accompAudio.duration);
 
     // Load lyrics
     document.getElementById("lyricsBox").value = "Loading...";
@@ -135,7 +135,7 @@ function setBookmarkFolders(data) {
 function populateBookmarkedDropdown() {
   const folderData = getBookmarkFolders();
   const select = document.getElementById("bookmarkDropdown");
-  select.innerHTML = '<option value="">\ud83c\udfaf Bookmarked Songs</option>';
+  select.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
   for (let i = 1; i <= 5; i++) {
     const folder = `Favorites ${i}`;
     if (folderData[folder]?.length) {
@@ -166,7 +166,7 @@ function updateBookmarkStar() {
       break;
     }
   }
-  starBtn.textContent = isBookmarked ? "\u2b50" : "\u2606";
+  starBtn.textContent = isBookmarked ? "⭐" : "☆";
 }
 
 document.getElementById("bookmarkBtn").addEventListener("click", () => {
