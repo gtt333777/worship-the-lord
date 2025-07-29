@@ -1,4 +1,4 @@
-// === LOAD LYRICS FOR SELECTED SONG ===
+﻿// === LOAD LYRICS FOR SELECTED SONG ===
 
 async function loadLyrics(tamilName) {
   try {
@@ -8,7 +8,9 @@ async function loadLyrics(tamilName) {
 
     let prefix = null;
     for (const line of lines) {
-      const [pfx, name] = line.split("=");
+      const parts = line.split("=");
+      if (parts.length !== 2) continue;  // ✅ Skip malformed lines
+      const [pfx, name] = parts;
       if (name.trim() === tamilName.trim()) {
         prefix = pfx.trim();
         break;
@@ -27,8 +29,9 @@ async function loadLyrics(tamilName) {
       lyricsArea.value = lyricsText;
       console.log("Lyrics loaded successfully!");
     } else {
-      console.warn("lyricsArea textarea not found.");
+      console.warn("lyricsArea not found.");
     }
+
   } catch (err) {
     console.error("Error loading lyrics:", err);
     alert("Error loading lyrics: " + err.message);
