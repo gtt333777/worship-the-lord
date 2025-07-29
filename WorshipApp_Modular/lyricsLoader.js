@@ -1,7 +1,6 @@
-﻿// === lyricsLoader.js ===
-export async function loadLyricsForSelectedSong(songName) {
+﻿export async function loadLyricsForSelectedSong(songName) {
   try {
-    const cleanName = songName.trim();
+    const cleanName = songName.toString().trim(); // ✅ fix applied
     const lyricsFilePath = `lyrics/${cleanName}.txt`;
 
     const response = await fetch(lyricsFilePath);
