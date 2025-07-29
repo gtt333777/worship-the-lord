@@ -2,8 +2,14 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadDropboxToken(); // Ensure token is ready
-  await populateSongList(); // Populate the song dropdown
-  console.log("App initialized successfully.");
+
+  if (typeof populateSongList === "function") {
+    await populateSongList();
+  } else {
+    console.error("populateSongList is not defined!");
+  }
+
+  console.log("App initialized.");
 });
 
 document.getElementById("songSelect").addEventListener("change", async (e) => {
