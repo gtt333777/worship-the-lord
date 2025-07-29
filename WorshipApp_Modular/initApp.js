@@ -1,18 +1,13 @@
-﻿// WorshipApp_Modular/initApp.js
-//This script triggers the stream and loads lyrics when a song is selected:
+﻿// === INIT APP ===
 
-document.getElementById("songSelect").addEventListener("change", async () => {
-  const selectedTamilName = document.getElementById("songSelect").value;
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadDropboxToken(); // Ensure token is ready
+  await populateSongList(); // Populate the song dropdown
+  console.log("App initialized successfully.");
+});
 
-  // Load lyrics
-  fetch(`lyrics/${selectedTamilName}.txt`)
-    .then(res => res.text())
-    .then(text => {
-      document.getElementById("lyricsArea").value = text;
-      console.log("Lyrics loaded successfully.");
-    })
-    .catch(err => console.error("Error loading lyrics:", err));
-
-  // Load and stream audio
-  await streamSelectedSong(selectedTamilName);
+document.getElementById("songSelect").addEventListener("change", async (e) => {
+  const tamilName = (e.target.value || "").trim();
+  await loadLyrics(tamilName);
+  await streamSelectedSong(tamilName);
 });
