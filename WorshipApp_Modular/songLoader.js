@@ -1,45 +1,25 @@
-﻿// WorshipApp_Modular/songLoader.js
+﻿// === songLoader.js ===
 
-async function streamSelectedSong(tamilName) {
+async function streamSelectedSong(songName) {
   try {
     const response = await fetch("lyrics/songs_names.txt");
-    const lines = (await response.text()).split("\n").map(line => line.trim()).filter(Boolean);
-    
-    let prefix = null;
-    for (const line of lines) {
-      const [pfx, name] = line.split("=");
-      if (name.trim() === tamilName.trim()) {
-        prefix = pfx.trim();
-        break;
-      }
+    const songList = await response.text();
+    const songNames = songList.trim().split("\n");
+    const index = songNames.findIndex(name => name.trim() === songName.trim());
+
+    if (index === -1) {
+      throw new Error("Prefix not found for selected song");
     }
 
-    if (!prefix) {
-      alert("Prefix not found for selected song!");
-      return;
-    }
+    const prefix = String(index + 1).padStart(2, '0');
 
-    const vocalUrl = `https://content.dropboxapi.com/2/files/download`;
-    const accompUrl = `https://content.dropboxapi.com/2/files/download`;
+    const vocalUrl = await getDropboxURL(`${prefix}_vocal.mp3`);
+    const accompUrl = await getDropboxURL(`${prefix}_acc.mp3`);
 
-    const headers = {
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
-      "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${prefix}_vocal.wav.mp3` })
-    };
-    const headers2 = {
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
-      "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${prefix}_acc.wav.mp3` })
-    };
-
-    const vocalBlob = await fetch(vocalUrl, { method: "POST", headers }).then(r => r.blob());
-    const accompBlob = await fetch(accompUrl, { method: "POST", headers: headers2 }).then(r => r.blob());
-
-    vocalAudio.src = URL.createObjectURL(vocalBlob);
-    accompAudio.src = URL.createObjectURL(accompBlob);
-    console.log("Audio files loaded successfully.");
+    vocalAudio.src = vocalUrl;
+    accompAudio.src = accompUrl;
   } catch (err) {
     console.error("Error streaming audio:", err);
+    alert("Error streaming audio: " + err.message);
   }
 }
-
-window.streamSelectedSong = streamSelectedSong;

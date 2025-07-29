@@ -1,35 +1,31 @@
-﻿// === LOAD LYRICS FOR SELECTED SONG ===
+﻿// === lyricsLoader.js ===
 
-async function loadLyrics(tamilName) {
+// Load lyrics from lyrics/ folder using auto-derived prefix
+async function loadLyricsForSelectedSong(songName) {
   try {
     const response = await fetch("lyrics/songs_names.txt");
-    const text = await response.text();
-    const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+    const songList = await response.text();
+    const songNames = songList.trim().split("\n");
+    const index = songNames.findIndex(name => name.trim() === songName.trim());
 
-    let prefix = null;
-    for (const line of lines) {
-      const parts = line.split("=");
-      if (parts.length !== 2) continue;  // ✅ Skip malformed lines
-      const [pfx, name] = parts;
-      if (name.trim() === tamilName.trim()) {
-        prefix = pfx.trim();
-        break;
-      }
+    if (index === -1) {
+      throw new Error("Prefix not found for selected song");
     }
 
-    if (!prefix) {
-      throw new Error("Prefix not found for selected song!");
+    const prefix = String(index + 1).padStart(2, '0');
+    const lyricsFilePath = `lyrics/${prefix}.txt`;
+
+    const lyricsResponse = await fetch(lyricsFilePath);
+    if (!lyricsResponse.ok) {
+      throw new Error("Lyrics file not found");
     }
 
-    const lyricsResponse = await fetch(`lyrics/${prefix}.txt`);
     const lyricsText = await lyricsResponse.text();
-
-    const lyricsArea = document.getElementById("lyricsArea");
-    if (lyricsArea) {
-      lyricsArea.value = lyricsText;
-      console.log("Lyrics loaded successfully!");
+    const textarea = document.getElementById("lyricsDisplay");
+    if (textarea) {
+      textarea.value = lyricsText;
     } else {
-      console.warn("lyricsArea not found.");
+      console.error("Lyrics textarea not found in DOM");
     }
 
   } catch (err) {
