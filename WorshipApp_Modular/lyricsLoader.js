@@ -1,7 +1,7 @@
 ﻿// === lyricsLoader.js ===
 
 // Load lyrics from lyrics/ folder using auto-derived prefix
-async function loadLyricsForSelectedSong(songName) {
+export async function loadLyricsForSelectedSong(songName) {
   try {
     const response = await fetch("lyrics/songs_names.txt");
     const songList = await response.text();
