@@ -1,46 +1,21 @@
-﻿function getPrefixForTamilName(tamilName) {
-  console.log("🔍 getPrefixForTamilName() called with:", tamilName);
+﻿// lyricsLoader.js
 
-  const map = {
-    "உன்னததே உம பாதுகாப்பில்": "unnathathae_uma_paathugaappil",
-    "இயேசு நந்தமும் நந்தமும் நந்தமும்": "yesu_nandhamum_nandhamum_nandhamum"
-    // Add all other Tamil-to-prefix mappings here
-  };
+async function loadLyricsForSelectedSong(selectElement) {
+  const tamilName = selectElement.value;
+  const filename = `lyrics/${tamilName}.txt`;
 
-  const prefix = map[tamilName];
-  if (!prefix) {
-    console.warn("❌ Prefix not found for selected Tamil name:", tamilName);
-  } else {
-    console.log("✅ Found prefix:", prefix);
-  }
-
-  return prefix || "";
-}
-
-async function loadLyricsForSelectedSong(select) {
-  const tamilName = select.value;
-  console.log("🎵 Selected Tamil name from dropdown:", tamilName);
-
-  const prefix = getPrefixForTamilName(tamilName);
-  if (!prefix) {
-    document.getElementById("lyricsArea").value = "Lyrics not found.";
-    return;
-  }
-
-  const lyricsPath = `lyrics/${prefix}.txt`;
-  console.log("📄 Attempting to load lyrics from:", lyricsPath);
+  console.log(`🎵 Selected Tamil name: ${tamilName}`);
+  console.log(`📄 Attempting to load lyrics from: ${filename}`);
 
   try {
-    const res = await fetch(lyricsPath);
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-    }
+    const response = await fetch(filename);
+    if (!response.ok) throw new Error("Lyrics file not found");
 
-    const text = await res.text();
+    const text = await response.text();
     document.getElementById("lyricsArea").value = text;
     console.log("✅ Lyrics loaded successfully.");
   } catch (err) {
-    console.error("❌ Error loading lyrics:", err);
+    console.error("❌ Error loading lyrics:", err.message);
     document.getElementById("lyricsArea").value = "Lyrics not found.";
   }
 }
