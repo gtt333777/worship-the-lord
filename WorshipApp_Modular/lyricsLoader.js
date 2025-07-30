@@ -1,37 +1,46 @@
 ﻿function getPrefixForTamilName(tamilName) {
-  const txtFiles = window.availableTxtFiles || [];
+  console.log("🔍 getPrefixForTamilName() called with:", tamilName);
 
-  for (const file of txtFiles) {
-    if (file.endsWith(".txt") && file.includes(tamilName)) {
-      return file.replace(".txt", "");
-    }
+  const map = {
+    "உன்னததே உம பாதுகாப்பில்": "unnathathae_uma_paathugaappil",
+    "இயேசு நந்தமும் நந்தமும் நந்தமும்": "yesu_nandhamum_nandhamum_nandhamum"
+    // Add all other Tamil-to-prefix mappings here
+  };
+
+  const prefix = map[tamilName];
+  if (!prefix) {
+    console.warn("❌ Prefix not found for selected Tamil name:", tamilName);
+  } else {
+    console.log("✅ Found prefix:", prefix);
   }
 
-  console.error("❌ Prefix not found for selected Tamil name");
-  return "";
+  return prefix || "";
 }
 
-async function loadLyricsForSelectedSong(selectElement) {
-  const tamilName = selectElement.value;
-  console.log("🎵 Selected song name:", tamilName);
+async function loadLyricsForSelectedSong(select) {
+  const tamilName = select.value;
+  console.log("🎵 Selected Tamil name from dropdown:", tamilName);
 
   const prefix = getPrefixForTamilName(tamilName);
   if (!prefix) {
-    document.getElementById("lyricsText").value = "Lyrics not found.";
+    document.getElementById("lyricsArea").value = "Lyrics not found.";
     return;
   }
 
   const lyricsPath = `lyrics/${prefix}.txt`;
-  console.log("📖 Trying to load lyrics from:", lyricsPath);
+  console.log("📄 Attempting to load lyrics from:", lyricsPath);
 
   try {
-    const response = await fetch(lyricsPath);
-    if (!response.ok) throw new Error("Lyrics not found");
+    const res = await fetch(lyricsPath);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+    }
 
-    const text = await response.text();
-    document.getElementById("lyricsText").value = text;
+    const text = await res.text();
+    document.getElementById("lyricsArea").value = text;
+    console.log("✅ Lyrics loaded successfully.");
   } catch (err) {
     console.error("❌ Error loading lyrics:", err);
-    document.getElementById("lyricsText").value = "Lyrics not found.";
+    document.getElementById("lyricsArea").value = "Lyrics not found.";
   }
 }
