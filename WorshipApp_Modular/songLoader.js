@@ -15,6 +15,9 @@ async function loadAndPlaySong(tamilName) {
   const vocalPath = `/WorshipSongs/${prefix}_vocal.mp3`;
   const accompPath = `/WorshipSongs/${prefix}_acc.mp3`;
 
+  console.log("🎯 Preparing to fetch vocal file from:", vocalPath);
+  console.log("🎯 Preparing to fetch accompaniment file from:", accompPath);
+
   try {
     const vocalUrl = await getDropboxFileUrl(vocalPath);
     const accompUrl = await getDropboxFileUrl(accompPath);
@@ -22,7 +25,7 @@ async function loadAndPlaySong(tamilName) {
     vocalAudio.src = vocalUrl;
     accompAudio.src = accompUrl;
 
-    console.log("🎧 Both audio tracks ready:", prefix);
+    console.log("✅ Both audio tracks loaded for prefix:", prefix);
   } catch (error) {
     console.error("❌ Failed to load audio files:", error);
   }
@@ -38,22 +41,24 @@ async function getDropboxFileUrl(filePath) {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch file: ${filePath}`);
+    throw new Error(`Failed to fetch: ${filePath}`);
   }
 
   return URL.createObjectURL(await response.blob());
 }
 
+// Play button logic
 document.getElementById("playButton").addEventListener("click", () => {
   vocalAudio.currentTime = 0;
   accompAudio.currentTime = 0;
   vocalAudio.play();
   accompAudio.play();
-  console.log("▶️ Play button clicked.");
+  console.log("▶️ Play triggered");
 });
 
+// Pause button logic
 document.getElementById("pauseButton").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
-  console.log("⏸️ Pause button clicked.");
+  console.log("⏸️ Pause triggered");
 });
