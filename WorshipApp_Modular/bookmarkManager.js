@@ -30,7 +30,9 @@ function updateBookmarkButtonVisual(forceStatus = null) {
   const btn = document.getElementById("bookmarkBtn");
   const songSelect = document.getElementById("songSelect");
   const selectedSong = songSelect.value;
-  const isBookmarked = forceStatus !== null ? forceStatus : isSongBookmarked(selectedSong);
+
+  const isBookmarked =
+    forceStatus !== null ? forceStatus : isSongBookmarked(selectedSong);
 
   btn.textContent = isBookmarked ? "★" : "☆";
   btn.style.color = isBookmarked ? "gold" : "";
@@ -96,7 +98,7 @@ function confirmFolder() {
 
   saveBookmarks(bookmarks);
   populateBookmarkDropdown();
-  updateBookmarkButtonVisual(); // Refresh visual after change
+  updateBookmarkButtonVisual(); // refresh star only for current song
   cancelFolder();
 }
 
@@ -114,7 +116,7 @@ function populateBookmarkDropdown() {
     });
   });
 
-  // Update star visual for selected song
+  // Update star only for selected song
   const songSelect = document.getElementById("songSelect");
   const selectedSong = songSelect.value;
   updateBookmarkButtonVisual(isSongBookmarked(selectedSong));
