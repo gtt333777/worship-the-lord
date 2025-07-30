@@ -1,38 +1,35 @@
-﻿// === Lyrics Loader ===
+﻿function getPrefixForTamilName(tamilName) {
+  const txtFiles = window.availableTxtFiles || [];
 
-function getPrefixForTamilName(tamilName) {
-  const map = {
-    "உன்னததே உம் பாதுகாப்பில்": "unnathathae_uma_paathugaappil",
-    "கர்த்தரையே நோக்கி": "kartharaiae_nokki",
-    "துன்பங்கள் வந்தாலும்": "thunbangal_vandhaalum",
-    "நீரே எனது பற்று": "neerae_enathu_patru",
-    "யேசுவே என் ஒக்கான்பாவே": "yesaenokkanbanavae",
-    "சரியான அழகான நாள்": "sariyanaalaganaal"
-  };
+  for (const file of txtFiles) {
+    if (file.endsWith(".txt") && file.includes(tamilName)) {
+      return file.replace(".txt", "");
+    }
+  }
 
-  return map[tamilName] || "";
+  console.error("❌ Prefix not found for selected Tamil name");
+  return "";
 }
 
-async function loadLyricsForSelectedSong(optionElement) {
-  const rawName = optionElement.value;
-  console.log("🎵 Selected song name:", rawName);
+async function loadLyricsForSelectedSong(selectElement) {
+  const tamilName = selectElement.value;
+  console.log("🎵 Selected song name:", tamilName);
 
-  const prefix = getPrefixForTamilName(rawName);
+  const prefix = getPrefixForTamilName(tamilName);
   if (!prefix) {
-    console.error("❌ Prefix not found for selected Tamil name");
     document.getElementById("lyricsText").value = "Lyrics not found.";
     return;
   }
 
-  const lyricsFile = `lyrics/${prefix}.txt`;
-  console.log("📄 Trying to load lyrics from:", lyricsFile);
+  const lyricsPath = `lyrics/${prefix}.txt`;
+  console.log("📖 Trying to load lyrics from:", lyricsPath);
 
   try {
-    const response = await fetch(lyricsFile);
+    const response = await fetch(lyricsPath);
     if (!response.ok) throw new Error("Lyrics not found");
+
     const text = await response.text();
     document.getElementById("lyricsText").value = text;
-    console.log("✅ Lyrics loaded successfully");
   } catch (err) {
     console.error("❌ Error loading lyrics:", err);
     document.getElementById("lyricsText").value = "Lyrics not found.";

@@ -1,28 +1,27 @@
-﻿function loadSongNames() {
-  fetch("lyrics/songs_names.txt")
-    .then(response => {
-      if (!response.ok) throw new Error("songs_names.txt not found");
-      return response.text();
-    })
-    .then(text => {
-      const lines = text
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
+﻿async function loadSongNames() {
+  try {
+    // Get list of .txt files in lyrics/ folder
+    const res = await fetch("lyrics/");
+    const html = await res.text();
+    const matches = [...html.matchAll(/href="([^"]+\.txt)"/g)].map(m => m[1]);
+    window.availableTxtFiles = matches;
 
-      const dropdown = document.getElementById("songSelect");
-      dropdown.innerHTML = ""; // Clear any existing items
+    // Load Tamil names from songs_names.txt
+    const nameRes = await fetch("lyrics/songs_names.txt");
+    const nameText = await nameRes.text();
+    const songNames = nameText.trim().split("\n");
 
-      lines.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        dropdown.appendChild(option);
-      });
+    const select = document.getElementById("songSelect");
+    select.innerHTML = "";
+    for (const name of songNames) {
+      const option = document.createElement("option");
+      option.value = name.trim();
+      option.textContent = name.trim();
+      select.appendChild(option);
+    }
 
-      console.log("✅ Tamil song names loaded into dropdown");
-    })
-    .catch(err => {
-      console.error("❌ Error loading songs_names.txt:", err);
-    });
+    console.log("✅ Tamil song names loaded into dropdown");
+  } catch (err) {
+    console.error("❌ Error loading song names:", err);
+  }
 }
