@@ -1,30 +1,35 @@
-﻿// lyricsLoader.js
-export function loadLyricsForSelectedSong() {
-  const select = document.getElementById("songSelect");
-  const rawName = select.value;
+﻿// WorshipApp_Modular/lyricsLoader.js
 
+function generatePrefixFromTamilName(name) {
+  return name
+    .normalize("NFD")                          // Split complex characters
+    .replace(/[^\u0000-\u007F]/g, "")        // Remove non-ASCII (Tamil etc.)
+    .replace(/[\s\W]+/g, "_")                 // Replace spaces/punctuation with _
+    .replace(/_+/g, "_")                        // Collapse multiple underscores
+    .replace(/^_+|_+$/g, "")                     // Trim leading/trailing _
+    .toLowerCase();                             // Lowercase
+}
+
+async function loadLyricsForSelectedSong(optionElement) {
+  const rawName = optionElement.value;
   console.log("🎵 Selected song name (raw):", rawName);
 
-  const trimmed = rawName.trim();
-  console.log("✂️ Trimmed name:", trimmed);
+  const prefix = generatePrefixFromTamilName(rawName);
+  console.log("📁 Generated prefix:", prefix);
 
-  // ❌ Removed encodeURIComponent — it breaks Tamil file names
-  // const encoded = encodeURIComponent(trimmed);
-  // console.log("🔤 Encoded file name:", encoded);
-
-  const filePath = `lyrics/${trimmed}.txt`;
+  const filePath = `lyrics/${prefix}.txt`;
   console.log("📄 Final lyrics file path:", filePath);
 
-  fetch(filePath)
-    .then((res) => {
-      if (!res.ok) throw new Error("Lyrics file not found.");
-      return res.text();
-    })
-    .then((text) => {
-      document.getElementById("lyricsBox").value = text;
-    })
-    .catch((err) => {
-      console.error("❌ Error loading lyrics:", err.message);
-      document.getElementById("lyricsBox").value = "Lyrics not found.";
-    });
+  try {
+    const response = await fetch(filePath);
+    if (!response.ok) throw new Error("Lyrics not found");
+    const text = await response.text();
+    document.getElementById("lyricsText").value = lyrics;
+    console.log("✅ Lyrics loaded successfully");
+  } catch (err) {
+    console.error("❌ Error loading lyrics:", err);
+    document.getElementById("lyricsArea").value = "Lyrics not found.";
+  }
 }
+
+export { loadLyricsForSelectedSong };
