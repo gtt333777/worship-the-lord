@@ -1,50 +1,59 @@
 ﻿// WorshipApp_Modular/songLoader.js
 
-// Global audio elements
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
-
-// === Play/Pause ===
-document.getElementById("playBtn").addEventListener("click", () => {
-  console.log("▶️ Play button clicked");
-
+async function loadAndPlaySong(tamilName) {
   if (!ACCESS_TOKEN) {
-    console.error("❌ ACCESS_TOKEN not yet loaded.");
+    console.error("❌ ACCESS_TOKEN not ready yet.");
     return;
   }
 
-  const songName = document.getElementById("songSelect").value;
-  if (!songName) {
-    console.warn("⚠️ No song selected.");
+  const prefix = getPrefixForTamilName(tamilName);
+  if (!prefix) {
+    console.error("❌ Prefix not found for:", tamilName);
     return;
   }
 
-  const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
-  const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+  const vocalPath = `/WorshipSongs/${prefix}_vocal.mp3`;
+  const accompPath = `/WorshipSongs/${prefix}_acc.mp3`;
 
-  console.log("🎧 Streaming vocal from:", vocalUrl);
-  console.log("🎧 Streaming accompaniment from:", accUrl);
+  try {
+    const vocalUrl = await getDropboxFileUrl(vocalPath);
+    const accompUrl = await getDropboxFileUrl(accompPath);
 
-  vocalAudio.src = vocalUrl;
-  accompAudio.src = accUrl;
+    vocalAudio.src = vocalUrl;
+    accompAudio.src = accompUrl;
 
-  // Sync playback
-  Promise.all([
-    vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
-    accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
-  ]).then(() => {
-    console.log("✅ Both audio tracks started.");
+    console.log("🎧 Both audio tracks ready:", prefix);
+  } catch (error) {
+    console.error("❌ Failed to load audio files:", error);
+  }
+}
+
+async function getDropboxFileUrl(filePath) {
+  const response = await fetch("https://content.dropboxapi.com/2/files/download", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + ACCESS_TOKEN,
+      "Dropbox-API-Arg": JSON.stringify({ path: filePath })
+    }
   });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file: ${filePath}`);
+  }
+
+  return URL.createObjectURL(await response.blob());
+}
+
+document.getElementById("playButton").addEventListener("click", () => {
+  vocalAudio.currentTime = 0;
+  accompAudio.currentTime = 0;
+  vocalAudio.play();
+  accompAudio.play();
+  console.log("▶️ Play button clicked.");
 });
 
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  console.log("⏸️ Pause button clicked");
+document.getElementById("pauseButton").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
+  console.log("⏸️ Pause button clicked.");
 });
-
-// === Dropbox URL Builder ===
-function getDropboxFileURL(filename) {
-  const dropboxPath = "/WorshipSongs/" + filename;
-  return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg={"path":"${dropboxPath}"}`;
-}
