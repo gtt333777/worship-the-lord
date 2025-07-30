@@ -1,11 +1,13 @@
-﻿function generatePrefixFromTamilName(name) {
+﻿// WorshipApp_Modular/lyricsLoader.js
+
+function generatePrefixFromTamilName(name) {
   return name
     .normalize("NFD")                          // Split complex characters
-    .replace(/[^\u0000-\u007F]/g, "")          // Remove non-ASCII (Tamil etc.)
-    .replace(/[\s\W]+/g, "_")                  // Replace spaces/punctuation with _
-    .replace(/_+/g, "_")                       // Collapse multiple underscores
-    .replace(/^_+|_+$/g, "")                   // Trim leading/trailing _
-    .toLowerCase();                            // Lowercase
+    .replace(/[^\u0000-\u007F]/g, "")        // Remove non-ASCII (Tamil etc.)
+    .replace(/[\s\W]+/g, "_")                 // Replace spaces/punctuation with _
+    .replace(/_+/g, "_")                        // Collapse multiple underscores
+    .replace(/^_+|_+$/g, "")                     // Trim leading/trailing _
+    .toLowerCase();                             // Lowercase
 }
 
 async function loadLyricsForSelectedSong(optionElement) {
@@ -22,10 +24,12 @@ async function loadLyricsForSelectedSong(optionElement) {
     const response = await fetch(filePath);
     if (!response.ok) throw new Error("Lyrics not found");
     const text = await response.text();
-    document.getElementById("lyricsText").value = text;
+    document.getElementById("lyricsText").value = lyrics;
     console.log("✅ Lyrics loaded successfully");
   } catch (err) {
     console.error("❌ Error loading lyrics:", err);
-    document.getElementById("lyricsText").value = "Lyrics not found.";
+    document.getElementById("lyricsArea").value = "Lyrics not found.";
   }
 }
+
+export { loadLyricsForSelectedSong };
