@@ -1,4 +1,5 @@
-﻿let vocalAudio = new Audio();
+﻿console.log("🔐 ACCESS_TOKEN at load time:", ACCESS_TOKEN);
+let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
 // === Volume Control ===
