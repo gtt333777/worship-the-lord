@@ -1,27 +1,23 @@
-﻿export async function loadLyricsForSelectedSong(songNameOption) {
+﻿function getLyricsPrefix(tamilName) {
+  return tamilName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]|_/g, "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+
+async function loadLyricsForSelectedSong(selectedOption) {
   try {
-    // Get the selected <option>'s text content
-    const songName = songNameOption.textContent.trim(); // This is the visible name in dropdown (Tamil name)
-
-    // Lyrics files are named as `lyrics/<Tamil Name>.txt`
-    const lyricsPath = `lyrics/${songName}.txt`;
-
-    const response = await fetch(lyricsPath);
-    if (!response.ok) {
-      throw new Error("Lyrics file not found");
-    }
-
+    const songName = selectedOption.textContent;
+    const prefix = getLyricsPrefix(songName);
+    const response = await fetch(`lyrics/${prefix}.txt`);
     const lyricsText = await response.text();
-
-    const lyricsBox = document.getElementById("lyricsDisplay");
-    if (lyricsBox) {
-      lyricsBox.value = lyricsText;
-    } else {
-      console.warn("Lyrics display textarea not found");
-    }
-
+    document.querySelector("textarea").value = lyricsText;
   } catch (err) {
-    console.error("Error loading lyrics:", err);
     alert("Error loading lyrics: " + err.message);
+    console.error("Error loading lyrics:", err);
   }
 }
+
+export { loadLyricsForSelectedSong };
