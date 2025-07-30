@@ -21,6 +21,26 @@ function saveBookmarks(bookmarks) {
   localStorage.setItem("bookmarkedFolders", JSON.stringify(bookmarks));
 }
 
+function openBookmarkModal() {
+  const dropdown = document.getElementById("songSelect");
+  const selectedSong = dropdown.value;
+  if (!selectedSong) return;
+
+  const bookmarks = loadBookmarks();
+  let folderWithSong = null;
+
+  for (let folder in bookmarks) {
+    if (bookmarks[folder].includes(selectedSong)) {
+      folderWithSong = folder;
+      break;
+    }
+  }
+
+  pendingSong = selectedSong;
+  pendingAction = folderWithSong ? "unbookmark" : "bookmark";
+  showFolderModal();
+}
+
 function showFolderModal() {
   const label = document.querySelector("#folderModal label");
   if (pendingAction === "bookmark") {
