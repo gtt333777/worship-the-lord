@@ -21,8 +21,17 @@ function saveBookmarks(bookmarks) {
   localStorage.setItem("bookmarkedFolders", JSON.stringify(bookmarks));
 }
 
-function updateBookmarkButtonVisual(isBookmarked) {
+function isSongBookmarked(songName) {
+  const bookmarks = loadBookmarks();
+  return Object.values(bookmarks).some(folderSongs => folderSongs.includes(songName));
+}
+
+function updateBookmarkButtonVisual(forceStatus = null) {
   const btn = document.getElementById("bookmarkBtn");
+  const songSelect = document.getElementById("songSelect");
+  const selectedSong = songSelect.value;
+  const isBookmarked = forceStatus !== null ? forceStatus : isSongBookmarked(selectedSong);
+
   btn.textContent = isBookmarked ? "★" : "☆";
   btn.style.color = isBookmarked ? "gold" : "";
 }
@@ -54,6 +63,13 @@ function toggleBookmark() {
 }
 
 function showFolderModal() {
+  const label = document.querySelector("#folderModal label");
+  if (pendingAction === "bookmark") {
+    label.textContent = "📁 Select folder to ADD this song:";
+  } else {
+    label.textContent = "📁 Select folder to REMOVE this song:";
+  }
+
   document.getElementById("folderModal").style.display = "block";
   document.getElementById("folderSelect").value = "";
 }
@@ -74,14 +90,13 @@ function confirmFolder() {
     if (!bookmarks[folder].includes(pendingSong)) {
       bookmarks[folder].push(pendingSong);
     }
-    updateBookmarkButtonVisual(true);
   } else if (pendingAction === "unbookmark") {
     bookmarks[folder] = bookmarks[folder].filter(song => song !== pendingSong);
-    updateBookmarkButtonVisual(false);
   }
 
   saveBookmarks(bookmarks);
   populateBookmarkDropdown();
+  updateBookmarkButtonVisual(); // Refresh visual after change
   cancelFolder();
 }
 
@@ -102,16 +117,7 @@ function populateBookmarkDropdown() {
   // Update star visual for selected song
   const songSelect = document.getElementById("songSelect");
   const selectedSong = songSelect.value;
-  let found = false;
-
-  for (let folder in bookmarks) {
-    if (bookmarks[folder].includes(selectedSong)) {
-      found = true;
-      break;
-    }
-  }
-
-  updateBookmarkButtonVisual(found);
+  updateBookmarkButtonVisual(isSongBookmarked(selectedSong));
 }
 
 function handleBookmarkDropdownChange() {
