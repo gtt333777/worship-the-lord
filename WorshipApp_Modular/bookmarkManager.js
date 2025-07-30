@@ -21,49 +21,6 @@ function saveBookmarks(bookmarks) {
   localStorage.setItem("bookmarkedFolders", JSON.stringify(bookmarks));
 }
 
-function isSongBookmarked(songName) {
-  const bookmarks = loadBookmarks();
-  return Object.values(bookmarks).some(folderSongs => folderSongs.includes(songName));
-}
-
-function updateBookmarkButtonVisual(forceStatus = null) {
-  const btn = document.getElementById("bookmarkBtn");
-  const songSelect = document.getElementById("songSelect");
-  const selectedSong = songSelect.value;
-
-  const isBookmarked =
-    forceStatus !== null ? forceStatus : isSongBookmarked(selectedSong);
-
-  btn.textContent = isBookmarked ? "★" : "☆";
-  btn.style.color = isBookmarked ? "gold" : "";
-}
-
-function toggleBookmark() {
-  const dropdown = document.getElementById("songSelect");
-  const selectedSong = dropdown.value;
-  if (!selectedSong) return;
-
-  const bookmarks = loadBookmarks();
-  let folderWithSong = null;
-
-  for (let folder in bookmarks) {
-    if (bookmarks[folder].includes(selectedSong)) {
-      folderWithSong = folder;
-      break;
-    }
-  }
-
-  pendingSong = selectedSong;
-
-  if (folderWithSong) {
-    pendingAction = "unbookmark";
-  } else {
-    pendingAction = "bookmark";
-  }
-
-  showFolderModal();
-}
-
 function showFolderModal() {
   const label = document.querySelector("#folderModal label");
   if (pendingAction === "bookmark") {
@@ -98,7 +55,6 @@ function confirmFolder() {
 
   saveBookmarks(bookmarks);
   populateBookmarkDropdown();
-  updateBookmarkButtonVisual(); // refresh star only for current song
   cancelFolder();
 }
 
@@ -115,11 +71,6 @@ function populateBookmarkDropdown() {
       dropdown.appendChild(opt);
     });
   });
-
-  // Update star only for selected song
-  const songSelect = document.getElementById("songSelect");
-  const selectedSong = songSelect.value;
-  updateBookmarkButtonVisual(isSongBookmarked(selectedSong));
 }
 
 function handleBookmarkDropdownChange() {
@@ -137,7 +88,6 @@ function handleBookmarkDropdownChange() {
 
 // === Attach Events ===
 window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("bookmarkBtn").addEventListener("click", toggleBookmark);
   document.getElementById("bookmarkDropdown").addEventListener("change", handleBookmarkDropdownChange);
   populateBookmarkDropdown();
 });
