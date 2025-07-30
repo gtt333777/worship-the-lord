@@ -1,28 +1,30 @@
 ﻿// lyricsLoader.js
+export function loadLyricsForSelectedSong() {
+  const select = document.getElementById("songSelect");
+  const rawName = select.value;
 
-export async function loadLyricsForSelectedSong(option) {
-  const selectedName = option.value || option.textContent;
+  console.log("🎵 Selected song name (raw):", rawName);
 
-  // Step-by-step logging for debugging
-  console.log("🔍 Selected song name (raw):", selectedName);
+  const trimmed = rawName.trim();
+  console.log("✂️ Trimmed name:", trimmed);
 
-  const trimmedName = selectedName.trim();
-  console.log("🔧 Trimmed name:", trimmedName);
+  // ❌ Removed encodeURIComponent — it breaks Tamil file names
+  // const encoded = encodeURIComponent(trimmed);
+  // console.log("🔤 Encoded file name:", encoded);
 
-  const encodedName = encodeURIComponent(trimmedName);
-  console.log("🌐 Encoded file name:", encodedName);
+  const filePath = `lyrics/${trimmed}.txt`;
+  console.log("📄 Final lyrics file path:", filePath);
 
-  const lyricsUrl = `lyrics/${encodedName}.txt`;
-  console.log("📂 Final lyrics file path:", lyricsUrl);
-
-  try {
-    const res = await fetch(lyricsUrl);
-    if (!res.ok) throw new Error("Not found");
-    const text = await res.text();
-    document.getElementById("lyricsBox").value = text;
-  } catch (err) {
-    console.error("❌ Error loading lyrics:", err.message);
-    document.getElementById("lyricsBox").value = "Lyrics not found.";
-    alert(`❌ Lyrics file not found for:\n"${selectedName}"\nURL: ${lyricsUrl}`);
-  }
+  fetch(filePath)
+    .then((res) => {
+      if (!res.ok) throw new Error("Lyrics file not found.");
+      return res.text();
+    })
+    .then((text) => {
+      document.getElementById("lyricsBox").value = text;
+    })
+    .catch((err) => {
+      console.error("❌ Error loading lyrics:", err.message);
+      document.getElementById("lyricsBox").value = "Lyrics not found.";
+    });
 }
