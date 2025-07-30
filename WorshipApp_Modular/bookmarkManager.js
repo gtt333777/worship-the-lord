@@ -1,14 +1,20 @@
 ﻿// === Bookmark Manager ===
 
+// Globals to track pending action
+let pendingAction = null;
+let pendingSong = null;
+
 function loadBookmarks() {
   const stored = localStorage.getItem("bookmarkedFolders");
-  return stored ? JSON.parse(stored) : {
-    "Favorites 1": [],
-    "Favorites 2": [],
-    "Favorites 3": [],
-    "Favorites 4": [],
-    "Favorites 5": []
-  };
+  return stored
+    ? JSON.parse(stored)
+    : {
+        "Favorites 1": [],
+        "Favorites 2": [],
+        "Favorites 3": [],
+        "Favorites 4": [],
+        "Favorites 5": []
+      };
 }
 
 function saveBookmarks(bookmarks) {
@@ -17,13 +23,8 @@ function saveBookmarks(bookmarks) {
 
 function updateBookmarkButtonVisual(isBookmarked) {
   const btn = document.getElementById("bookmarkBtn");
-  if (isBookmarked) {
-    btn.textContent = "★";
-    btn.style.color = "gold";
-  } else {
-    btn.textContent = "☆";
-    btn.style.color = "";
-  }
+  btn.textContent = isBookmarked ? "★" : "☆";
+  btn.style.color = isBookmarked ? "gold" : "";
 }
 
 function toggleBookmark() {
@@ -32,46 +33,63 @@ function toggleBookmark() {
   if (!selectedSong) return;
 
   const bookmarks = loadBookmarks();
+  let folderWithSong = null;
 
-  // Check if song is already bookmarked in any folder
-  let folderContainingSong = null;
   for (let folder in bookmarks) {
     if (bookmarks[folder].includes(selectedSong)) {
-      folderContainingSong = folder;
+      folderWithSong = folder;
       break;
     }
   }
 
-  if (folderContainingSong) {
-    // === UNBOOKMARK ===
-    const folder = prompt(
-      `📂 This song is bookmarked in:\n${Object.keys(bookmarks)
-        .filter(f => bookmarks[f].includes(selectedSong))
-        .join("\n")}\n\nEnter the folder name to remove it from:`
-    );
-    if (folder && bookmarks[folder]) {
-      bookmarks[folder] = bookmarks[folder].filter(song => song !== selectedSong);
-      saveBookmarks(bookmarks);
-      updateBookmarkButtonVisual(false);
-      populateBookmarkDropdown();
-    }
+  pendingSong = selectedSong;
+
+  if (folderWithSong) {
+    pendingAction = "unbookmark";
   } else {
-    // === BOOKMARK ===
-    const folder = prompt("⭐ Select a folder to bookmark:\nFavorites 1\nFavorites 2\nFavorites 3\nFavorites 4\nFavorites 5");
-    if (folder && bookmarks[folder] && !bookmarks[folder].includes(selectedSong)) {
-      bookmarks[folder].push(selectedSong);
-      saveBookmarks(bookmarks);
-      updateBookmarkButtonVisual(true);
-      populateBookmarkDropdown();
-    }
+    pendingAction = "bookmark";
   }
+
+  showFolderModal();
+}
+
+function showFolderModal() {
+  document.getElementById("folderModal").style.display = "block";
+  document.getElementById("folderSelect").value = "";
+}
+
+function cancelFolder() {
+  document.getElementById("folderModal").style.display = "none";
+  pendingAction = null;
+  pendingSong = null;
+}
+
+function confirmFolder() {
+  const folder = document.getElementById("folderSelect").value;
+  if (!folder) return;
+
+  const bookmarks = loadBookmarks();
+
+  if (pendingAction === "bookmark") {
+    if (!bookmarks[folder].includes(pendingSong)) {
+      bookmarks[folder].push(pendingSong);
+    }
+    updateBookmarkButtonVisual(true);
+  } else if (pendingAction === "unbookmark") {
+    bookmarks[folder] = bookmarks[folder].filter(song => song !== pendingSong);
+    updateBookmarkButtonVisual(false);
+  }
+
+  saveBookmarks(bookmarks);
+  populateBookmarkDropdown();
+  cancelFolder();
 }
 
 function populateBookmarkDropdown() {
   const bookmarks = loadBookmarks();
   const dropdown = document.getElementById("bookmarkDropdown");
-
   dropdown.innerHTML = `<option value="">🎯 Bookmarked Songs</option>`;
+
   Object.keys(bookmarks).forEach(folder => {
     bookmarks[folder].forEach(song => {
       const opt = document.createElement("option");
@@ -81,16 +99,18 @@ function populateBookmarkDropdown() {
     });
   });
 
-  // Set correct star when a song is selected
+  // Update star visual for selected song
   const songSelect = document.getElementById("songSelect");
   const selectedSong = songSelect.value;
   let found = false;
+
   for (let folder in bookmarks) {
     if (bookmarks[folder].includes(selectedSong)) {
       found = true;
       break;
     }
   }
+
   updateBookmarkButtonVisual(found);
 }
 
