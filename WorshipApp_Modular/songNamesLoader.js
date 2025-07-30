@@ -11,7 +11,7 @@
         .filter(line => line.length > 0);
 
       const dropdown = document.getElementById("songSelect");
-      dropdown.innerHTML = ""; // Clear existing options
+      dropdown.innerHTML = ""; // Clear any existing items
 
       lines.forEach(name => {
         const option = document.createElement("option");

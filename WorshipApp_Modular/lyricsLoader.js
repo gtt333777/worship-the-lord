@@ -1,35 +1,31 @@
-﻿// WorshipApp_Modular/lyricsLoader.js
+﻿// === Lyrics Loader ===
 
 function generatePrefixFromTamilName(name) {
   return name
-    .normalize("NFD")                          // Split complex characters
-    .replace(/[^\u0000-\u007F]/g, "")        // Remove non-ASCII (Tamil etc.)
-    .replace(/[\s\W]+/g, "_")                 // Replace spaces/punctuation with _
-    .replace(/_+/g, "_")                        // Collapse multiple underscores
-    .replace(/^_+|_+$/g, "")                     // Trim leading/trailing _
-    .toLowerCase();                             // Lowercase
+    .normalize("NFD")                      // Normalize Unicode
+    .replace(/[^\u0000-\u007F]/g, "")     // Remove non-ASCII (Tamil etc.)
+    .replace(/[\s\W]+/g, "_")             // Replace spaces and punctuation with _
+    .replace(/_+/g, "_")                  // Collapse multiple underscores
+    .replace(/^_+|_+$/g, "")              // Trim leading/trailing _
+    .toLowerCase();
 }
 
 async function loadLyricsForSelectedSong(optionElement) {
   const rawName = optionElement.value;
-  console.log("🎵 Selected song name (raw):", rawName);
+  console.log("🎵 Selected song name:", rawName);
 
   const prefix = generatePrefixFromTamilName(rawName);
-  console.log("📁 Generated prefix:", prefix);
-
-  const filePath = `lyrics/${prefix}.txt`;
-  console.log("📄 Final lyrics file path:", filePath);
+  const lyricsFile = `lyrics/${prefix}.txt`;
+  console.log("📄 Trying to load lyrics from:", lyricsFile);
 
   try {
-    const response = await fetch(filePath);
+    const response = await fetch(lyricsFile);
     if (!response.ok) throw new Error("Lyrics not found");
     const text = await response.text();
-    document.getElementById("lyricsText").value = lyrics;
+    document.getElementById("lyricsText").value = text;
     console.log("✅ Lyrics loaded successfully");
   } catch (err) {
     console.error("❌ Error loading lyrics:", err);
-    document.getElementById("lyricsArea").value = "Lyrics not found.";
+    document.getElementById("lyricsText").value = "Lyrics not found.";
   }
 }
-
-export { loadLyricsForSelectedSong };
