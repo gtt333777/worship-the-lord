@@ -1,86 +1,104 @@
-﻿console.log("🔐 ACCESS_TOKEN at load time:", ACCESS_TOKEN);
+﻿// WorshipApp_Modular/songLoader.js
+
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
-// === Volume Control ===
-document.getElementById("vocalVolume").addEventListener("input", e => {
-  vocalAudio.volume = parseFloat(e.target.value);
-});
-document.getElementById("accompVolume").addEventListener("input", e => {
-  accompAudio.volume = parseFloat(e.target.value);
-});
+async function waitForToken() {
+  while (!ACCESS_TOKEN) {
+    console.log("⏳ Waiting for Dropbox token...");
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  console.log("✅ Dropbox token available for use.");
+}
 
-// === Skip Forward / Backward ===
-document.getElementById("skipForward").addEventListener("click", () => {
-  vocalAudio.currentTime += 1;
-  accompAudio.currentTime += 1;
-});
-document.getElementById("skipBackward").addEventListener("click", () => {
-  vocalAudio.currentTime -= 1;
-  accompAudio.currentTime -= 1;
-});
+function getDropboxFileURL(path) {
+  return fetch("/.netlify/functions/getDropboxToken")
+    .then(res => res.json())
+    .then(data => {
+      const token = data.access_token;
+      return fetch("https://content.dropboxapi.com/2/files/download", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Dropbox-API-Arg": JSON.stringify({ path })
+        }
+      }).then(res => res.blob());
+    });
+}
 
-// === Play / Pause Buttons ===
-document.getElementById("playButton").addEventListener("click", () => {
-  console.log("▶️ Play pressed");
-  vocalAudio.play();
-  accompAudio.play();
-});
-document.getElementById("pauseButton").addEventListener("click", () => {
-  console.log("⏸️ Pause pressed");
-  vocalAudio.pause();
-  accompAudio.pause();
-});
+function getFilenameFromTamilName(tamilName) {
+  const songsMap = {
+    "இயேசு ரத்தமே நந்தமே நந்தமே": "yesu_raththamae_nandhamae_nandhamae",
+    "விலையொ-Freeபெற்று நந்தமே": "vilai_perra_nandhamae",
+    "துன்பங்கள் வந்தாலும்": "thunbangal_vandhaalum"
+    // Add other Tamil to filename mappings here if needed
+  };
 
-// === Load & Stream Audio When Song Selected ===
-document.getElementById("songSelect").addEventListener("change", async e => {
-  const tamilName = e.target.value;
-  console.log(`🎵 Selected song: ${tamilName}`);
+  for (const [key, val] of Object.entries(songsMap)) {
+    if (tamilName.includes(key)) {
+      return val;
+    }
+  }
 
-  const vocalFile = `${tamilName}_vocal.mp3`;
-  const accompFile = `${tamilName}_acc.mp3`;
+  console.warn("❗ No matching filename found. Using fallback slugging.");
+  return tamilName.replace(/\s+/g, "_").replace(/[^\w_]/g, "").toLowerCase();
+}
+
+function playSong() {
+  if (vocalAudio && accompAudio) {
+    vocalAudio.play();
+    accompAudio.play();
+    console.log("▶️ Playing both audios.");
+  }
+}
+
+function pauseSong() {
+  if (vocalAudio && accompAudio) {
+    vocalAudio.pause();
+    accompAudio.pause();
+    console.log("⏸️ Paused both audios.");
+  }
+}
+
+function adjustVolume(type, delta) {
+  const audio = type === "vocal" ? vocalAudio : accompAudio;
+  const slider = document.getElementById(type + "Volume");
+  audio.volume = Math.min(1, Math.max(0, audio.volume + delta));
+  slider.value = audio.volume;
+  console.log(`🔊 ${type} volume adjusted to:`, audio.volume);
+}
+
+function skipSeconds(delta) {
+  const time = (vocalAudio.currentTime || 0) + delta;
+  vocalAudio.currentTime = time;
+  accompAudio.currentTime = time;
+  console.log(`⏩ Skipped to ${time.toFixed(2)} sec`);
+}
+
+document.getElementById("songSelect").addEventListener("change", async function () {
+  const tamilName = this.value;
+  console.log("🎵 Selected Tamil name:", tamilName);
+
+  await waitForToken();
+
+  const prefix = getFilenameFromTamilName(tamilName);
+  const vocalPath = `/WorshipSongs/${prefix}_vocal.mp3`;
+  const accompPath = `/WorshipSongs/${prefix}_acc.mp3`;
 
   try {
-    const [vocalURL, accompURL] = await Promise.all([
-      getDropboxFileURL(vocalFile),
-      getDropboxFileURL(accompFile)
-    ]);
+    console.log("📥 Fetching vocal audio:", vocalPath);
+    const vocalBlob = await getDropboxFileURL(vocalPath);
+    vocalAudio.src = URL.createObjectURL(vocalBlob);
 
-    vocalAudio.src = vocalURL;
-    accompAudio.src = accompURL;
+    console.log("📥 Fetching accompaniment audio:", accompPath);
+    const accompBlob = await getDropboxFileURL(accompPath);
+    accompAudio.src = URL.createObjectURL(accompBlob);
 
-    console.log("✅ Audio sources set:");
-    console.log("🎤 Vocal:", vocalURL);
-    console.log("🎹 Accompaniment:", accompURL);
+    vocalAudio.load();
+    accompAudio.load();
 
-    // Preload and sync
-    await Promise.all([
-      vocalAudio.load(),
-      accompAudio.load()
-    ]);
-  } catch (err) {
-    console.error("❌ Failed to load audio:", err);
+    console.log("✅ Both audio files loaded and ready.");
+  } catch (error) {
+    console.error("❌ Error loading audio files:", error);
   }
 });
-
-// === Get Dropbox Streaming URL ===
-async function getDropboxFileURL(filename) {
-  const fullPath = DROPBOX_FOLDER + filename;
-  console.log(`📦 Fetching: ${fullPath}`);
-
-  const response = await fetch("https://content.dropboxapi.com/2/files/download", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + ACCESS_TOKEN,
-      "Dropbox-API-Arg": JSON.stringify({ path: fullPath })
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Dropbox download failed: ${response.statusText}`);
-  }
-
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  return url;
-}
