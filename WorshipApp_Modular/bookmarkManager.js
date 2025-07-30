@@ -22,6 +22,7 @@ function toggleBookmark() {
   } else {
     bookmarks[selectedSong] = true;
     document.getElementById("bookmarkBtn").textContent = "★";
+    btn.style.color = "gold";
   }
 
   saveBookmarks(bookmarks);
