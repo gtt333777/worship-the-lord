@@ -19,6 +19,7 @@ function toggleBookmark() {
   if (bookmarks[selectedSong]) {
     delete bookmarks[selectedSong];
     document.getElementById("bookmarkBtn").textContent = "☆";
+    btn.style.color = ""; // ❌ Remove gold color
   } else {
     bookmarks[selectedSong] = true;
     document.getElementById("bookmarkBtn").textContent = "★";
