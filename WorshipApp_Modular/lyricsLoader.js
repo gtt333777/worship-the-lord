@@ -1,22 +1,25 @@
-﻿function getLyricsPrefix(tamilName) {
-  return tamilName
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\w\s]|_/g, "")
-    .replace(/\s+/g, "")
-    .toLowerCase();
+﻿// lyricsLoader.js
+
+function derivePrefixFromIndex(index) {
+  // Derives song file prefix based on index (e.g., song1, song2, ...)
+  return `song${index + 1}`;
 }
 
-async function loadLyricsForSelectedSong(selectedOption) {
+async function loadLyricsForSelectedSong(optionElement) {
+  const index = optionElement.index;
+  const prefix = derivePrefixFromIndex(index);
+  const lyricsFile = `lyrics/${prefix}.txt`;
+
   try {
-    const songName = selectedOption.textContent;
-    const prefix = getLyricsPrefix(songName);
-    const response = await fetch(`lyrics/${prefix}.txt`);
-    const lyricsText = await response.text();
-    document.querySelector("textarea").value = lyricsText;
-  } catch (err) {
-    alert("Error loading lyrics: " + err.message);
-    console.error("Error loading lyrics:", err);
+    const response = await fetch(lyricsFile);
+    if (!response.ok) {
+      throw new Error(`Lyrics file not found: ${lyricsFile}`);
+    }
+    const text = await response.text();
+    document.getElementById("lyricsBox").value = text;
+  } catch (error) {
+    console.error("Error loading lyrics:", error);
+    alert("Error loading lyrics: " + error.message);
   }
 }
 
