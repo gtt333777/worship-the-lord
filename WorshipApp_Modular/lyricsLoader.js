@@ -1,51 +1,28 @@
-﻿let tamilSongNames = [];
-let lyricsPrefixes = [];
+﻿// lyricsLoader.js
 
-async function loadTamilSongNames() {
-  const response = await fetch("lyrics/songs_names.txt");
-  const text = await response.text();
-  tamilSongNames = text.trim().split("\n").map(line => line.trim());
+export async function loadLyricsForSelectedSong(option) {
+  const selectedName = option.value || option.textContent;
 
-  // Generate corresponding prefixes automatically (same order as lyrics files)
-  lyricsPrefixes = tamilSongNames.map(name => {
-    return name
-      .normalize("NFD")                     // Handle Unicode Tamil properly
-      .replace(/[\u0300-\u036f]/g, "")      // Remove diacritics
-      .replace(/[^\w\s]/gi, "")             // Remove punctuation
-      .replace(/\s+/g, "")                  // Remove all spaces
-      .toLowerCase();                       // Convert to lowercase
-  });
+  // Step-by-step logging for debugging
+  console.log("🔍 Selected song name (raw):", selectedName);
 
-  // Fill dropdown
-  const songSelect = document.getElementById("songSelect");
-  tamilSongNames.forEach(name => {
-    const option = document.createElement("option");
-    option.textContent = name;
-    songSelect.appendChild(option);
-  });
-}
+  const trimmedName = selectedName.trim();
+  console.log("🔧 Trimmed name:", trimmedName);
 
-async function loadLyricsForSelectedSong(selectedOption) {
-  const selectedName = selectedOption.textContent.trim();
-  const index = tamilSongNames.findIndex(name => name === selectedName);
+  const encodedName = encodeURIComponent(trimmedName);
+  console.log("🌐 Encoded file name:", encodedName);
 
-  if (index === -1 || !lyricsPrefixes[index]) {
-    console.error("Lyrics file not found for:", selectedName);
-    document.getElementById("lyricsArea").value = "Lyrics not found.";
-    return;
-  }
-
-  const lyricsFile = `lyrics/${lyricsPrefixes[index]}.txt`;
+  const lyricsUrl = `lyrics/${encodedName}.txt`;
+  console.log("📂 Final lyrics file path:", lyricsUrl);
 
   try {
-    const response = await fetch(lyricsFile);
-    if (!response.ok) throw new Error("File not found");
-    const lyrics = await response.text();
-    document.getElementById("lyricsArea").value = lyrics;
+    const res = await fetch(lyricsUrl);
+    if (!res.ok) throw new Error("Not found");
+    const text = await res.text();
+    document.getElementById("lyricsBox").value = text;
   } catch (err) {
-    console.error("Error loading lyrics:", err);
-    document.getElementById("lyricsArea").value = "Lyrics could not be loaded.";
+    console.error("❌ Error loading lyrics:", err.message);
+    document.getElementById("lyricsBox").value = "Lyrics not found.";
+    alert(`❌ Lyrics file not found for:\n"${selectedName}"\nURL: ${lyricsUrl}`);
   }
 }
-
-export { loadTamilSongNames, loadLyricsForSelectedSong };
