@@ -22,8 +22,8 @@ document.getElementById("playBtn").addEventListener("click", () => {
   const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
   const accUrl = getDropboxFileURL(songName + "_acc.mp3");
 
-  console.log("🎧 Streaming vocal from:", vocalUrl);
-  console.log("🎧 Streaming accompaniment from:", accUrl);
+  console.log("🎧 Vocal URL built for:", songName + "_vocal.mp3");
+  console.log("🎧 Accompaniment URL built for:", songName + "_acc.mp3");
 
   vocalAudio.src = vocalUrl;
   accompAudio.src = accUrl;
