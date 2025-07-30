@@ -78,7 +78,7 @@
 
   <div>
     <label for="songSelect"><strong>Choose a song:</strong></label>
-    <select id="songSelect" onchange="loadLyricsForSelectedSong(this)"></select>
+    <select id="songSelect"></select>
 
     <!-- ⭐️ Bookmark Toggle -->
     <button id="bookmarkBtn" style="font-size: 1.3rem;">☆</button>
@@ -157,5 +157,18 @@
       };
     });
   </script>
+
+  <!-- Your other <script src="..."> tags go here -->
+
+<!-- ✅ Add this before closing </body> -->
+<script>
+  window.onload = async () => {
+    await loadSongNames(); // ✅ Load songs and set window.availableTxtFiles
+    const select = document.getElementById("songSelect");
+    loadLyricsForSelectedSong(select); // ✅ Load lyrics for first selected song
+    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+  };
+</script>
+
 </body>
 </html>
