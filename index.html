@@ -119,7 +119,13 @@
 
 <button onclick="showBookmarkFolders()">📋 Bookmarked Songs</button>
 <button id="bookmarkThisBtn" style="display: none;">⭐ Bookmark This Song</button>
-
+<select id="favoriteSelect" style="display: none;">
+  <option value="Favorites 1">Favorites 1</option>
+  <option value="Favorites 2">Favorites 2</option>
+  <option value="Favorites 3">Favorites 3</option>
+  <option value="Favorites 4">Favorites 4</option>
+  <option value="Favorites 5">Favorites 5</option>
+</select>
 <!-- ✅ Folder Container to hold Favorites 1-5 -->
 <div id="bookmarkedContainer" style="display: none; margin-top: 10px;"></div>
     
@@ -175,18 +181,17 @@
     loadLyricsForSelectedSong(select);       // ✅ Load lyrics for selected song
     select.addEventListener("change", () => loadLyricsForSelectedSong(select));
 
-    // ✅ Show Bookmark Button
-    document.getElementById("bookmarkThisBtn").style.display = "inline-block";
+   document.getElementById("bookmarkThisBtn").style.display = "inline-block";
+document.getElementById("favoriteSelect").style.display = "inline-block";
 
-    // ✅ Enable bookmarking to Favorites 1
-    document.getElementById("bookmarkThisBtn").onclick = () => {
-      const selectedSong = select.value.trim();
-      if (selectedSong) {
-        addSongToFolder(selectedSong, "Favorites 1");
-        alert(`⭐ '${selectedSong}' added to Favorites 1`);
-      }
-    };
-  };
+document.getElementById("bookmarkThisBtn").onclick = () => {
+  const selectedSong = select.value.trim();
+  const folder = document.getElementById("favoriteSelect").value;
+  if (selectedSong && folder) {
+    addSongToFolder(selectedSong, folder);
+    alert(`⭐ '${selectedSong}' added to ${folder}`);
+  }
+};
 </script>
 
 
