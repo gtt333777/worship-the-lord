@@ -172,7 +172,7 @@
     renderBookmarkFolders();                 // ✅ Show Favorites
 
     const select = document.getElementById("songSelect");
-    loadLyricsForSelectedSong(select);       // ✅ Load lyrics
+    loadLyricsForSelectedSong(select);       // ✅ Load lyrics for selected song
     select.addEventListener("change", () => loadLyricsForSelectedSong(select));
 
     // ✅ Show Bookmark Button
@@ -188,6 +188,7 @@
     };
   };
 </script>
+
 
   <!-- ✅ Service Worker -->
   <script>
