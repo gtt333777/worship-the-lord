@@ -80,8 +80,7 @@
   <label for="songSelect"><strong>Choose a song:</strong></label>
   <select id="songSelect"></select>
 
-  <button onclick="openBookmarkModal()">📌 Bookmark This Song</button>
-
+  
   <!-- Bookmarked Songs Dropdown -->
   <select id="bookmarkDropdown">
     <option value="">🎯 Bookmarked Songs</option>
@@ -171,23 +170,6 @@
     select.addEventListener("change", () => loadLyricsForSelectedSong(select));
   };
 </script>
-
-<!-- ⭐ Bookmark Folder Selection Modal -->
-  <div id="folderModal" style="display:none; position:fixed; top:40%; left:50%; transform:translate(-50%,-50%);
-   background:#fff; border:1px solid #ccc; padding:20px; box-shadow:0 4px 8px rgba(0,0,0,0.2); z-index:9999;">
-    <label for="folderSelect">📁 Select Folder:</label>
-    <select id="folderSelect">
-      <option value="">-- Choose --</option>
-      <option value="Favorites 1">Favorites 1</option>
-      <option value="Favorites 2">Favorites 2</option>
-      <option value="Favorites 3">Favorites 3</option>
-      <option value="Favorites 4">Favorites 4</option>
-      <option value="Favorites 5">Favorites 5</option>
-    </select>
-    <br><br>
-    <button onclick="confirmFolder()">✅ Confirm</button>
-    <button onclick="cancelFolder()">❌ Cancel</button>
-  </div>
 
 </body>
 </html>
