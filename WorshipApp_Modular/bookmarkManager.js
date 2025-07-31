@@ -1,8 +1,84 @@
-﻿// === Globals ===
-let selectedSongToBookmark = "";
-let currentBookmarkTarget = null;
+﻿// === Bookmark Manager ===
 
-// === Show/Hide Bookmarked Folders ===
+let copiedSong = null;
+
+// Load bookmarks from localStorage
+function loadBookmarks() {
+  const data = localStorage.getItem("bookmarks");
+  return data ? JSON.parse(data) : { "1": [], "2": [], "3": [], "4": [], "5": [] };
+}
+
+// Save bookmarks to localStorage
+function saveBookmarks(bookmarks) {
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+}
+
+// Add to a specific folder
+function addToFavorites(folderNumber, songName) {
+  const bookmarks = loadBookmarks();
+  if (!bookmarks[folderNumber].includes(songName)) {
+    bookmarks[folderNumber].push(songName);
+    saveBookmarks(bookmarks);
+    renderBookmarkFolders();
+  }
+}
+
+// Remove from folder
+function removeFromFavorites(folderNumber, songName) {
+  const bookmarks = loadBookmarks();
+  bookmarks[folderNumber] = bookmarks[folderNumber].filter((s) => s !== songName);
+  saveBookmarks(bookmarks);
+  renderBookmarkFolders();
+}
+
+// Drag and Drop handler
+function handleDrop(e, folderNumber) {
+  e.preventDefault();
+  const songName = e.dataTransfer.getData("text/plain");
+  addToFavorites(folderNumber, songName);
+}
+
+function handleDragStart(e, songName) {
+  e.dataTransfer.setData("text/plain", songName);
+}
+
+// Render folders and songs
+function renderBookmarkFolders() {
+  const container = document.getElementById("bookmarkedContainer");
+  const bookmarks = loadBookmarks();
+  container.innerHTML = "";
+
+  for (let i = 1; i <= 5; i++) {
+    const folderDiv = document.createElement("div");
+    folderDiv.className = "folder";
+    folderDiv.innerHTML = `<h3>Favorites ${i}</h3>`;
+    folderDiv.ondragover = (e) => e.preventDefault();
+    folderDiv.ondrop = (e) => handleDrop(e, i.toString());
+
+    bookmarks[i].forEach((song) => {
+      const songDiv = document.createElement("div");
+      songDiv.className = "song-entry";
+      songDiv.setAttribute("draggable", true);
+      songDiv.ondragstart = (e) => handleDragStart(e, song);
+
+      const text = document.createElement("span");
+      text.textContent = song;
+
+      const del = document.createElement("span");
+      del.className = "delete-icon";
+      del.textContent = "❌";
+      del.onclick = () => removeFromFavorites(i.toString(), song);
+
+      songDiv.appendChild(text);
+      songDiv.appendChild(del);
+      folderDiv.appendChild(songDiv);
+    });
+
+    container.appendChild(folderDiv);
+  }
+}
+
+// Show/hide the entire folder panel
 function showBookmarkFolders() {
   const container = document.getElementById('bookmarkedContainer');
   if (container.style.display === 'none') {
@@ -12,119 +88,46 @@ function showBookmarkFolders() {
   }
 }
 
-// === Create Favorites Folder Layout ===
-const bookmarkFolders = {
-  1: [],
-  2: [],
-  3: [],
-  4: [],
-  5: []
-};
-
-// === Load Bookmark UI on page load ===
-function renderBookmarkFolders() {
-  const container = document.getElementById("bookmarkedContainer");
-  container.innerHTML = ""; // Clear previous
-
-  for (let i = 1; i <= 5; i++) {
-    const folderDiv = document.createElement("div");
-    folderDiv.className = "folder";
-    folderDiv.id = `folder-${i}`;
-
-    const header = document.createElement("h3");
-    header.textContent = `Favorites ${i}`;
-    folderDiv.appendChild(header);
-
-    bookmarkFolders[i].forEach((song, index) => {
-      const entry = document.createElement("div");
-      entry.className = "song-entry";
-      entry.draggable = true;
-      entry.textContent = song;
-
-      // Delete icon
-      const del = document.createElement("span");
-      del.textContent = "❌";
-      del.className = "delete-icon";
-      del.onclick = () => {
-        bookmarkFolders[i].splice(index, 1);
-        renderBookmarkFolders();
-      };
-      entry.appendChild(del);
-
-      // Drag events
-      entry.addEventListener("dragstart", (e) => {
-        currentBookmarkTarget = { song, fromFolder: i, fromIndex: index };
-      });
-
-      folderDiv.addEventListener("dragover", (e) => e.preventDefault());
-      folderDiv.addEventListener("drop", (e) => {
-        e.preventDefault();
-        if (currentBookmarkTarget && currentBookmarkTarget.fromFolder !== i) {
-          // Remove from old
-          bookmarkFolders[currentBookmarkTarget.fromFolder].splice(currentBookmarkTarget.fromIndex, 1);
-          // Add to new
-          bookmarkFolders[i].push(currentBookmarkTarget.song);
-          currentBookmarkTarget = null;
-          renderBookmarkFolders();
-        }
-      });
-
-      folderDiv.appendChild(entry);
-    });
-
-    container.appendChild(folderDiv);
-  }
+// 📋 Right-click copy + paste into folder
+function copySongToClipboard() {
+  const select = document.getElementById("songSelect");
+  const selectedIndex = select.selectedIndex;
+  if (selectedIndex < 0) return;
+  copiedSong = select.options[selectedIndex].textContent;
+  alert(`📋 Copied: ${copiedSong}`);
 }
 
-// === Called from outside to show bookmark selector
-function triggerBookmarkDropdown(songName) {
-  selectedSongToBookmark = songName;
+// Used when clicking on folder
+function pasteSongToFolder(folderNumber) {
+  if (!copiedSong) {
+    alert("⚠️ No song copied.");
+    return;
+  }
+  addToFavorites(folderNumber, copiedSong);
+  copiedSong = null;
+}
 
-  // Create dropdown UI just below the Bookmarked Songs button
-  let dropdown = document.getElementById("bookmarkDropdownUI");
-  if (dropdown) dropdown.remove(); // Remove old one
-
-  dropdown = document.createElement("div");
-  dropdown.id = "bookmarkDropdownUI";
-  dropdown.style.background = "#fff";
-  dropdown.style.padding = "10px";
-  dropdown.style.border = "1px solid #ccc";
-  dropdown.style.borderRadius = "6px";
-  dropdown.style.margin = "10px auto";
-  dropdown.style.width = "220px";
-
-  const label = document.createElement("div");
-  label.textContent = "📁 Add to:";
-  dropdown.appendChild(label);
-
-  const select = document.createElement("select");
-  select.id = "folderSelector";
-  for (let i = 1; i <= 5; i++) {
+// 🔄 Render full song list + right-click bookmark behavior
+function renderSongListWithBookmarks(songNames) {
+  const select = document.getElementById("songSelect");
+  select.innerHTML = "";
+  songNames.forEach((name, index) => {
     const option = document.createElement("option");
-    option.value = i;
-    option.textContent = `Favorites ${i}`;
+    option.value = index;
+    option.textContent = name;
     select.appendChild(option);
-  }
-  dropdown.appendChild(select);
+  });
 
-  const saveBtn = document.createElement("button");
-  saveBtn.textContent = "✅ Save";
-  saveBtn.style.marginTop = "8px";
-  saveBtn.onclick = () => {
-    const selected = parseInt(document.getElementById("folderSelector").value);
-    if (!bookmarkFolders[selected].includes(selectedSongToBookmark)) {
-      bookmarkFolders[selected].push(selectedSongToBookmark);
-      renderBookmarkFolders();
+  // 🔖 Right-click to bookmark
+  select.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    const selectedIndex = select.selectedIndex;
+    if (selectedIndex < 0) return;
+    const songName = songNames[selectedIndex];
+    const confirmFolder = prompt("Add to which Favorites? (1–5):");
+    if (["1", "2", "3", "4", "5"].includes(confirmFolder)) {
+      addToFavorites(confirmFolder, songName);
+      showBookmarkFolders(); // Refresh
     }
-    dropdown.remove();
-  };
-  dropdown.appendChild(saveBtn);
-
-  const parent = document.getElementById("bookmarkedContainer");
-  parent.parentElement.insertBefore(dropdown, parent);
+  });
 }
-
-// === Init on Load ===
-document.addEventListener("DOMContentLoaded", () => {
-  renderBookmarkFolders();
-});
