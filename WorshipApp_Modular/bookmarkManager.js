@@ -1,113 +1,81 @@
-﻿// === BOOKMARK STORAGE LOGIC ===
-function getBookmarks() {
-  return JSON.parse(localStorage.getItem("bookmarks")) || {
-    folder1: [],
-    folder2: [],
-    folder3: [],
-    folder4: [],
-    folder5: []
-  };
-}
+﻿// === bookmarkManager.js ===
 
-function saveBookmarks(bookmarks) {
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-}
+let bookmarksByFolder = {};
+let selectedFolder = null;
 
-// === SHOW BOOKMARK FOLDERS ===
-function showBookmarkFolders() {
-  const container = document.getElementById("bookmarkedContainer");
-  container.style.display = container.style.display === "none" ? "block" : "none";
-
-  const view = document.getElementById("bookmarkFoldersView");
-  view.innerHTML = "";
-
-  const bookmarks = getBookmarks();
-
-  for (let i = 1; i <= 5; i++) {
-    const folder = document.createElement("div");
-    folder.className = "folder";
-    folder.innerHTML = `<h3>Favorites ${i}</h3>`;
-
-    bookmarks[`folder${i}`].forEach((song, index) => {
-      const songDiv = document.createElement("div");
-      songDiv.className = "song-entry";
-      songDiv.draggable = true;
-      songDiv.textContent = song;
-
-      // === Drag Logic ===
-      songDiv.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({ folder: `folder${i}`, index }));
-      });
-
-      // === Delete Icon ===
-      const del = document.createElement("span");
-      del.textContent = "❌";
-      del.className = "delete-icon";
-      del.onclick = () => {
-        bookmarks[`folder${i}`].splice(index, 1);
-        saveBookmarks(bookmarks);
-        showBookmarkFolders(); // Refresh
-      };
-      songDiv.appendChild(del);
-      folder.appendChild(songDiv);
-    });
-
-    // === Paste Target ===
-    folder.ondragover = (e) => e.preventDefault();
-    folder.ondrop = (e) => {
-      e.preventDefault();
-      const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-      const song = bookmarks[data.folder][data.index];
-      if (!bookmarks[`folder${i}`].includes(song)) {
-        bookmarks[`folder${i}`].push(song);
-        saveBookmarks(bookmarks);
-        showBookmarkFolders();
-      }
+function loadBookmarksFromStorage() {
+  const data = localStorage.getItem("worshipBookmarks");
+  if (data) {
+    bookmarksByFolder = JSON.parse(data);
+  } else {
+    bookmarksByFolder = {
+      "Favorites 1": [],
+      "Favorites 2": [],
+      "Favorites 3": [],
+      "Favorites 4": [],
+      "Favorites 5": []
     };
-
-    view.appendChild(folder);
   }
 }
 
-// === BOOKMARK BUTTON LOGIC ===
-function handleBookmarkButtonClick() {
-  const tamilName = window.currentTamilSongName;
-  if (!tamilName) return alert("⚠️ No song selected!");
+function saveBookmarksToStorage() {
+  localStorage.setItem("worshipBookmarks", JSON.stringify(bookmarksByFolder));
+}
 
-  const folderSelect = document.createElement("select");
-  for (let i = 1; i <= 5; i++) {
-    const opt = document.createElement("option");
-    opt.value = `folder${i}`;
-    opt.textContent = `Favorites ${i}`;
-    folderSelect.appendChild(opt);
-  }
+function isSongBookmarked(songName) {
+  return Object.values(bookmarksByFolder).some(folder =>
+    folder.includes(songName)
+  );
+}
 
-  const confirmBtn = document.createElement("button");
-  confirmBtn.textContent = "✅ Save";
-  confirmBtn.style.marginLeft = "10px";
+function showBookmarkFolders(callback) {
+  const folder = prompt(
+    "Choose a folder (1 to 5) to bookmark this song into:",
+    "1"
+  );
+  if (!folder || !["1", "2", "3", "4", "5"].includes(folder.trim())) return;
+  const folderName = `Favorites ${folder.trim()}`;
+  callback(folderName);
+}
 
-  const popup = document.createElement("div");
-  popup.style.position = "fixed";
-  popup.style.top = "50%";
-  popup.style.left = "50%";
-  popup.style.transform = "translate(-50%, -50%)";
-  popup.style.background = "#fff";
-  popup.style.padding = "15px";
-  popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
-  popup.style.zIndex = "9999";
-  popup.style.borderRadius = "8px";
-  popup.appendChild(folderSelect);
-  popup.appendChild(confirmBtn);
-  document.body.appendChild(popup);
+function renderSongListWithBookmarks() {
+  console.log("📁 renderSongListWithBookmarks() not yet implemented in UI");
+  // You may later implement rendering of bookmark contents.
+}
 
-  confirmBtn.onclick = () => {
-    const folder = folderSelect.value;
-    const bookmarks = getBookmarks();
-    if (!bookmarks[folder].includes(tamilName)) {
-      bookmarks[folder].push(tamilName);
-      saveBookmarks(bookmarks);
+function setupBookmarkFlow() {
+  const songSelect = document.getElementById("songSelect");
+  const bookmarkThisBtn = document.getElementById("bookmarkThisBtn");
+
+  songSelect.addEventListener("change", () => {
+    const selectedSong = songSelect.value;
+    bookmarkThisBtn.style.display = selectedSong ? "inline-block" : "none";
+    console.log("🎵 Selected:", selectedSong);
+    if (isSongBookmarked(selectedSong)) {
+      bookmarkThisBtn.textContent = "⭐ Bookmarked";
+    } else {
+      bookmarkThisBtn.textContent = "⭐ Bookmark This Song";
     }
-    document.body.removeChild(popup);
-    alert("✅ Bookmarked!");
-  };
+  });
+
+  bookmarkThisBtn.addEventListener("click", () => {
+    const song = songSelect.value;
+    if (!song) return;
+
+    if (isSongBookmarked(song)) {
+      alert("This song is already bookmarked.");
+      return;
+    }
+
+    showBookmarkFolders(folderName => {
+      bookmarksByFolder[folderName].push(song);
+      saveBookmarksToStorage();
+      bookmarkThisBtn.textContent = "⭐ Bookmarked";
+      alert(`Bookmarked to ${folderName}`);
+    });
+  });
 }
+
+// === Initialize bookmark system ===
+loadBookmarksFromStorage();
+setupBookmarkFlow();
