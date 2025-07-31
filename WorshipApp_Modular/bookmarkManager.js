@@ -3,6 +3,7 @@
 // Globals to track pending action
 let pendingAction = null;
 let pendingSong = null;
+let draggedItem = null;
 
 function loadBookmarks() {
   const stored = localStorage.getItem("bookmarkedFolders");
@@ -80,9 +81,10 @@ function confirmFolder() {
 
 function populateBookmarkDropdown() {
   const bookmarks = loadBookmarks();
+
+  // === Update Dropdown ===
   const dropdown = document.getElementById("bookmarkDropdown");
   dropdown.innerHTML = `<option value="">🎯 Bookmarked Songs</option>`;
-
   Object.keys(bookmarks).forEach(folder => {
     bookmarks[folder].forEach(song => {
       const opt = document.createElement("option");
@@ -91,8 +93,95 @@ function populateBookmarkDropdown() {
       dropdown.appendChild(opt);
     });
   });
+
+  // === Update Folder Display with Draggables & Delete Buttons ===
+  const view = document.getElementById("bookmarkFoldersView");
+  view.innerHTML = "";
+
+  Object.keys(bookmarks).forEach(folder => {
+    const title = document.createElement("h3");
+    title.textContent = `📂 ${folder}`;
+    view.appendChild(title);
+
+    const list = document.createElement("ul");
+    list.style.listStyle = "none";
+    list.style.padding = "0";
+    list.dataset.folder = folder;
+
+    bookmarks[folder].forEach(song => {
+      const li = document.createElement("li");
+      li.style.display = "flex";
+      li.style.justifyContent = "space-between";
+      li.style.alignItems = "center";
+      li.style.padding = "6px";
+      li.style.margin = "4px";
+      li.style.border = "1px solid #ccc";
+
+      // Song text
+      const span = document.createElement("span");
+      span.textContent = song;
+      span.draggable = true;
+      span.dataset.song = song;
+      span.style.flex = "1";
+      span.style.cursor = "grab";
+
+      span.addEventListener("dragstart", handleDragStart);
+      span.addEventListener("dragover", handleDragOver);
+      span.addEventListener("drop", handleDrop);
+
+      // 🗑️ Delete button
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "🗑️";
+      delBtn.style.marginLeft = "10px";
+      delBtn.onclick = () => {
+        if (confirm(`Remove "${song}" from ${folder}?`)) {
+          bookmarks[folder] = bookmarks[folder].filter(s => s !== song);
+          saveBookmarks(bookmarks);
+          populateBookmarkDropdown();
+        }
+      };
+
+      li.appendChild(span);
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+
+    view.appendChild(list);
+  });
 }
 
+// === Drag & Drop Handlers ===
+function handleDragStart(e) {
+  draggedItem = e.target;
+  e.dataTransfer.effectAllowed = "move";
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+
+  const list = e.target.closest("ul");
+  if (!list || draggedItem === e.target) return;
+
+  const folder = list.dataset.folder;
+  const bookmarks = loadBookmarks();
+  const draggedSong = draggedItem.dataset.song;
+  const targetSong = e.target.dataset.song;
+
+  const newList = bookmarks[folder].filter(s => s !== draggedSong);
+  const dropIndex = newList.indexOf(targetSong);
+  newList.splice(dropIndex, 0, draggedSong);
+
+  bookmarks[folder] = newList;
+  saveBookmarks(bookmarks);
+  populateBookmarkDropdown();
+}
+
+// === Bookmark Dropdown Selection Handler ===
 function handleBookmarkDropdownChange() {
   const name = document.getElementById("bookmarkDropdown").value;
   if (!name) return;
@@ -106,7 +195,7 @@ function handleBookmarkDropdownChange() {
   loadLyricsForSelectedSong(songSelect);
 }
 
-// === Attach Events ===
+// === Initial Setup on Page Load ===
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("bookmarkDropdown").addEventListener("change", handleBookmarkDropdownChange);
   populateBookmarkDropdown();
