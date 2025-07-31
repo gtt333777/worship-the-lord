@@ -170,7 +170,7 @@
   <script>
     window.onload = async () => {
       const songNames = await loadSongNames(); // ✅ Load songs and set window.availableTxtFiles
-      renderSongListWithBookmarks(songNames);  // ✅ Add 🔖 buttons to each song
+     renderBookmarkFolders();  // ✅ This will create the Favorites folders
 
       const select = document.getElementById("songSelect");
       loadLyricsForSelectedSong(select);       // ✅ Load lyrics for first song
