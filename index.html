@@ -17,8 +17,7 @@
       text-align: center;
       padding: 20px;
     }
-
-        h1 {
+    h1 {
       color: #2c3e50;
     }
     select, button {
@@ -66,43 +65,42 @@
       width: 90%;
       font-size: 1rem;
     }
-    /* ✅ ✅ ADD BELOW THIS LINE */
-  .folder {
-    margin-top: 15px;
-    background: #ffffff;
-    padding: 10px;
-    border-radius: 6px;
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-    text-align: left;
-  }
 
-  .folder h3 {
-    margin: 0 0 8px 10px;
-    font-size: 18px;
-  }
+    .folder {
+      margin-top: 15px;
+      background: #ffffff;
+      padding: 10px;
+      border-radius: 6px;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
 
-  .song-entry {
-    padding: 5px 10px;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f1f1f1;
-    margin: 4px 0;
-  }
+    .folder h3 {
+      margin: 0 0 8px 10px;
+      font-size: 18px;
+    }
 
-  .song-entry:hover {
-    background-color: #e0e0e0;
-  }
+    .song-entry {
+      padding: 5px 10px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f1f1f1;
+      margin: 4px 0;
+    }
 
-  .delete-icon {
-    cursor: pointer;
-    padding: 4px;
-  }
+    .song-entry:hover {
+      background-color: #e0e0e0;
+    }
 
+    .delete-icon {
+      cursor: pointer;
+      padding: 4px;
+    }
   </style>
 </head>
 <body>
@@ -115,16 +113,13 @@
   </div>
 
   <div>
-  <label for="songSelect"><strong>Choose a song:</strong></label>
-  <select id="songSelect"></select>
+    <label for="songSelect"><strong>Choose a song:</strong></label>
+    <select id="songSelect"></select>
 
-  
-<!-- ✅ Bookmarked Songs toggle -->
-<button onclick="showBookmarkFolders()">📋 Bookmarked Songs</button>
-<div id="bookmarkedContainer" style="display: none; margin-top: 10px;"></div>
-
-    </div>
-</div>
+    <button onclick="showBookmarkFolders()">📋 Bookmarked Songs</button>
+    <!-- ✅ Folder Container to hold Favorites 1-5 -->
+    <div id="bookmarkedContainer" style="display: none; margin-top: 10px;"></div>
+  </div>
 
   <br />
 
@@ -152,33 +147,34 @@
     <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
     <button onclick="skipSeconds(1)">+1 sec ⏭️</button>
   </div>
-  
-<!-- ✅ PLACE TEXTAREA JUST BELOW CONTROLS -->
-<textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
+
+  <!-- ✅ PLACE TEXTAREA JUST BELOW CONTROLS -->
+  <textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
 
   <!-- 🔁 Modular Scripts -->
-<script src="WorshipApp_Modular/tokenLoader.js"></script>
-<script src="WorshipApp_Modular/songNamesLoader.js"></script>
-<script src="WorshipApp_Modular/lyricsLoader.js"></script>
-<script src="WorshipApp_Modular/audioControl.js"></script>
-<script src="WorshipApp_Modular/skipControl.js"></script>
-<script src="WorshipApp_Modular/songLoader.js"></script>
-<script src="WorshipApp_Modular/bookmarkManager.js"></script>
-<script src="WorshipApp_Modular/pwaSetup.js"></script>
+  <script src="WorshipApp_Modular/tokenLoader.js"></script>
+  <script src="WorshipApp_Modular/songNamesLoader.js"></script>
+  <script src="WorshipApp_Modular/lyricsLoader.js"></script>
+  <script src="WorshipApp_Modular/audioControl.js"></script>
+  <script src="WorshipApp_Modular/skipControl.js"></script>
+  <script src="WorshipApp_Modular/songLoader.js"></script>
+  <script src="WorshipApp_Modular/bookmarkManager.js"></script>
+  <script src="WorshipApp_Modular/pwaSetup.js"></script>
 
-<!-- ✅ Call loadSongNames() and inject bookmarks -->
-<script>
-  window.onload = async () => {
-    const songNames = await loadSongNames(); // ⬅️ Fetch Tamil names
-    renderSongListWithBookmarks(songNames);  // ⬅️ Inject 🔖 buttons for each
-    const select = document.getElementById("songSelect");
-    loadLyricsForSelectedSong(select);       // ✅ Load lyrics for first song
-    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
-  };
-</script>
+  <!-- ✅ Unified window.onload -->
+  <script>
+    window.onload = async () => {
+      const songNames = await loadSongNames(); // ✅ Load songs and set window.availableTxtFiles
+      renderSongListWithBookmarks(songNames);  // ✅ Add 🔖 buttons to each song
 
-<!-- ✅ Service Worker -->
-<script>
+      const select = document.getElementById("songSelect");
+      loadLyricsForSelectedSong(select);       // ✅ Load lyrics for first song
+      select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+    };
+  </script>
+
+  <!-- ✅ Service Worker -->
+  <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(console.error);
     }
@@ -198,18 +194,6 @@
       };
     });
   </script>
-
-  <!-- Your other <script src="..."> tags go here -->
-
-<!-- ✅ Add this before closing </body> -->
-<script>
-  window.onload = async () => {
-    await loadSongNames(); // ✅ Load songs and set window.availableTxtFiles
-    const select = document.getElementById("songSelect");
-    loadLyricsForSelectedSong(select); // ✅ Load lyrics for first selected song
-    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
-  };
-</script>
 
 </body>
 </html>
