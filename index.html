@@ -191,9 +191,9 @@ document.getElementById("bookmarkThisBtn").onclick = () => {
     addSongToFolder(selectedSong, folder);
     alert(`⭐ '${selectedSong}' added to ${folder}`);
   }
-};
-
-</script>
+ };
+}; // ✅ close the async window.onload function
+</script> <!-- ✅ ADD THIS to close the script properly -->
 
 
   <!-- ✅ Service Worker -->
