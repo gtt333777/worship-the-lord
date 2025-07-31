@@ -119,11 +119,10 @@
   <select id="songSelect"></select>
 
   
+<!-- ✅ Bookmarked Songs toggle -->
 <button onclick="showBookmarkFolders()">📋 Bookmarked Songs</button>
+<div id="bookmarkedContainer" style="display: none; margin-top: 10px;"></div>
 
-    <!-- ✅ Corrected Bookmark Container with folders -->
-    <div id="bookmarkedContainer" style="margin-top: 10px; display: none;">
-      <div id="bookmarkFoldersView" style="margin-top: 10px;"></div>
     </div>
 </div>
 
@@ -167,10 +166,14 @@
 <script src="WorshipApp_Modular/bookmarkManager.js"></script>
 <script src="WorshipApp_Modular/pwaSetup.js"></script>
 
-<!-- ✅ Call loadSongNames() after all scripts are loaded -->
+<!-- ✅ Call loadSongNames() and inject bookmarks -->
 <script>
-  window.onload = () => {
-    loadSongNames(); // Load Tamil names into dropdown
+  window.onload = async () => {
+    const songNames = await loadSongNames(); // ⬅️ Fetch Tamil names
+    renderSongListWithBookmarks(songNames);  // ⬅️ Inject 🔖 buttons for each
+    const select = document.getElementById("songSelect");
+    loadLyricsForSelectedSong(select);       // ✅ Load lyrics for first song
+    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
   };
 </script>
 
