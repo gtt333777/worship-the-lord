@@ -166,17 +166,28 @@
   <script src="WorshipApp_Modular/bookmarkManager.js"></script>
   <script src="WorshipApp_Modular/pwaSetup.js"></script>
 
-  <!-- ✅ Unified window.onload -->
   <script>
-    window.onload = async () => {
-      const songNames = await loadSongNames(); // ✅ Load songs and set window.availableTxtFiles
-     renderBookmarkFolders();  // ✅ This will create the Favorites folders
+  window.onload = async () => {
+    const songNames = await loadSongNames(); // ✅ Load song names
+    renderBookmarkFolders();                 // ✅ Show Favorites
 
-      const select = document.getElementById("songSelect");
-      loadLyricsForSelectedSong(select);       // ✅ Load lyrics for first song
-      select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+    const select = document.getElementById("songSelect");
+    loadLyricsForSelectedSong(select);       // ✅ Load lyrics
+    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+
+    // ✅ Show Bookmark Button
+    document.getElementById("bookmarkThisBtn").style.display = "inline-block";
+
+    // ✅ Enable bookmarking to Favorites 1
+    document.getElementById("bookmarkThisBtn").onclick = () => {
+      const selectedSong = select.value.trim();
+      if (selectedSong) {
+        addSongToFolder(selectedSong, "Favorites 1");
+        alert(`⭐ '${selectedSong}' added to Favorites 1`);
+      }
     };
-  </script>
+  };
+</script>
 
   <!-- ✅ Service Worker -->
   <script>
