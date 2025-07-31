@@ -187,11 +187,12 @@ document.getElementById("favoriteSelect").style.display = "inline-block";
 document.getElementById("bookmarkThisBtn").onclick = () => {
   const selectedSong = select.value.trim();
   const folder = document.getElementById("favoriteSelect").value;
-  if (selectedSong && folder) {
+    if (selectedSong && folder) {
     addSongToFolder(selectedSong, folder);
     alert(`⭐ '${selectedSong}' added to ${folder}`);
   }
 };
+
 </script>
 
 
