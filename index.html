@@ -198,7 +198,13 @@
 
     const select = document.getElementById("songSelect");
     loadLyricsForSelectedSong(select);       // ✅ Load lyrics for selected song
-    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+    select.addEventListener("change", () => {
+  loadLyricsForSelectedSong(select);
+
+  // ✅ Call this function to preload loop segments and show buttons
+  const songName = select.value;
+  onSongSelectionChange(songName);  // 🔁 Loads loop JSON + prepares segment buttons
+});
 
    document.getElementById("bookmarkThisBtn").style.display = "inline-block";
 document.getElementById("favoriteSelect").style.display = "inline-block";
