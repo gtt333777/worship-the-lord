@@ -10,7 +10,9 @@
   <link rel="icon" href="icon-192.png" type="image/png" />
   <meta name="theme-color" content="#2c3e50" />
 
+  <!--
   <style>
+  [🔒 Original inline styles moved to style.css for safety – backup]
     body {
       font-family: Arial, sans-serif;
       background-color: #eaf3fb;
@@ -102,6 +104,13 @@
       padding: 4px;
     }
   </style>
+  -->
+
+
+<!-- ✅ External stylesheet now used -->
+<link rel="stylesheet" href="style.css" />
+
+
 </head>
 <body>
   <h1>🎵 Worship The Lord</h1>
@@ -197,6 +206,7 @@ document.getElementById("bookmarkThisBtn").onclick = () => {
 
 
   <!-- ✅ Service Worker -->
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(console.error);
@@ -218,8 +228,7 @@ document.getElementById("bookmarkThisBtn").onclick = () => {
     });
   </script>
 
-
-    <script>
+  <script>
   window.onload = function () {
     loadBookmarks();           // ✅ Must initialize bookmarks object
     showBookmarkFolders();     // ✅ Safe to render only after that
