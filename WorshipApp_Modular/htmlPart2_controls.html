@@ -1,0 +1,30 @@
+﻿<button id="playBtn">▶️ Play</button>
+<button id="pauseBtn">⏸️ Pause</button>
+
+<div class="volume-control">
+  <label for="vocalVolume">🎤 Vocal Volume:</label>
+  <button onclick="adjustVolume('vocal', -0.1)">-</button>
+  <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
+  <button onclick="adjustVolume('vocal', 0.1)">+</button>
+</div>
+
+<div class="volume-control">
+  <label for="accompVolume">🏛️ Accompaniment Volume:</label>
+  <button onclick="adjustVolume('accomp', -0.1)">-</button>
+  <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
+  <button onclick="adjustVolume('accomp', 0.1)">+</button>
+</div>
+
+<!-- ✅ Vocal Segments Navigation -->
+<div id="segments">
+  <button class="segment-button" id="loopBtn1">1</button>
+  <button class="segment-button" id="loopBtn2">2</button>
+  <button class="segment-button" id="loopBtn3">3</button>
+  <button class="segment-button" id="loopBtn4">4</button>
+  <button class="segment-button" id="loopBtn5">5</button>
+</div>
+
+<div>
+  <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
+  <button onclick="skipSeconds(1)">+1 sec ⏭️</button>
+</div>
