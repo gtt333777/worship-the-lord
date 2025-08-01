@@ -71,11 +71,16 @@ function playFromLoop(index) {
   const vocal = document.getElementById("vocalAudio");
   const accomp = document.getElementById("accompAudio");
 
-  vocal.currentTime = startTime;
-  accomp.currentTime = startTime;
+  if (!vocal.src || !accomp.src) {
+    console.warn("⚠️ Audio sources not loaded. Please press Play once first.");
+    return;
+}
 
-  vocal.play();
-  accomp.play();
+vocal.currentTime = startTime;
+accomp.currentTime = startTime;
+
+vocal.play();
+accomp.play();
 
   console.log(`▶️ Playing from loop ${index + 1} | Start: ${startTime}s`);
   monitorLoopPlayback();
