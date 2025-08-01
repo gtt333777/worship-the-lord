@@ -4,183 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
-
-  <!-- ✅ PWA -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-192.png" type="image/png" />
   <meta name="theme-color" content="#2c3e50" />
-
-  <!--
-  <style>
-  [🔒 Original inline styles moved to style.css for safety – backup]
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eaf3fb;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #2c3e50;
-    }
-    select, button {
-      padding: 5px 10px;
-      margin: 5px;
-    }
-    .volume-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 10px;
-    }
-    .volume-control label {
-      margin-right: 5px;
-      width: 140px;
-      text-align: right;
-    }
-    .volume-control input[type="range"] {
-      width: 200px;
-    }
-    #lyricsBox {
-      width: 90%;
-      height: 300px;
-      margin-top: 20px;
-      font-size: 1.2rem;
-      white-space: pre-wrap;
-    }
-
-    #segments {
-      margin: 10px 0;
-    }
-
-    .segment-button {
-      margin: 3px;
-      padding: 4px 8px;
-      font-size: 0.9rem;
-    }
-
-    #installPrompt {
-      display: none;
-      background: #fff8dc;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px auto;
-      width: 90%;
-      font-size: 1rem;
-    }
-
-    .folder {
-      margin-top: 15px;
-      background: #ffffff;
-      padding: 10px;
-      border-radius: 6px;
-      width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-      text-align: left;
-    }
-
-    .folder h3 {
-      margin: 0 0 8px 10px;
-      font-size: 18px;
-    }
-
-    .song-entry {
-      padding: 5px 10px;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #f1f1f1;
-      margin: 4px 0;
-    }
-
-    .song-entry:hover {
-      background-color: #e0e0e0;
-    }
-
-    .delete-icon {
-      cursor: pointer;
-      padding: 4px;
-    }
-  </style>
-  -->
-
-
-<!-- ✅ External stylesheet now used -->
-<link rel="stylesheet" href="style.css" />
-
-
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <h1>🎵 Worship The Lord</h1>
 
-  <!-- ✅ PWA Install Prompt -->
-  <div id="installPrompt">
-    📲 You can install this app on your device.
-    <button id="installButton">Install</button>
-  </div>
+  <!-- ✅ Dynamic Sections Loaded via htmlLoader.js -->
+  <div id="part1-head"><!-- Controls and UI Block --></div>
+  <div id="part2-controls"><!-- Play, Pause, Volume, Segments --></div>
+  <div id="part3-loop-script"><!-- Loop segment setup script --></div>
+  <div id="part4-service-worker"><!-- PWA and Install Prompt --></div>
+  <div id="part5-audio"><!-- Hidden audio players --></div>
 
-  <div>
-
-    <label for="songSelect"><strong>Choose a song:</strong></label>
-<select id="songSelect"></select>
-
-<button onclick="showBookmarkFolders()">📋 Bookmarked Songs</button>
-<button id="bookmarkThisBtn" style="display: none;">⭐ Bookmark This Song</button>
-<select id="favoriteSelect" style="display: none;">
-  <option value="Favorites 1">Favorites 1</option>
-  <option value="Favorites 2">Favorites 2</option>
-  <option value="Favorites 3">Favorites 3</option>
-  <option value="Favorites 4">Favorites 4</option>
-  <option value="Favorites 5">Favorites 5</option>
-</select>
-<!-- ✅ Folder Container to hold Favorites 1-5 -->
-<button id="toggleFoldersBtn">➖ Collapse Folders</button>
-<div id="bookmarkedContainer" style="display: none; margin-top: 10px;"></div>
-    
-    
-    </div>
-
-  <br />
-
-  <button id="playBtn">▶️ Play</button>
-  <button id="pauseBtn">⏸️ Pause</button>
-
-  <div class="volume-control">
-    <label for="vocalVolume">🎤 Vocal Volume:</label>
-    <button onclick="adjustVolume('vocal', -0.1)">-</button>
-    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('vocal', 0.1)">+</button>
-  </div>
-
-  <div class="volume-control">
-    <label for="accompVolume">🏛️ Accompaniment Volume:</label>
-    <button onclick="adjustVolume('accomp', -0.1)">-</button>
-    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('accomp', 0.1)">+</button>
-  </div>
-
-  <!-- ✅ Vocal Segments Navigation -->
-  <div id="segments">
-  <button class="segment-button" id="loopBtn1">1</button>
-  <button class="segment-button" id="loopBtn2">2</button>
-  <button class="segment-button" id="loopBtn3">3</button>
-  <button class="segment-button" id="loopBtn4">4</button>
-  <button class="segment-button" id="loopBtn5">5</button>
-</div>
-
-  <div>
-    <button onclick="skipSeconds(-1)">⏮️ -1 sec</button>
-    <button onclick="skipSeconds(1)">+1 sec ⏭️</button>
-  </div>
-
-  <!-- ✅ PLACE TEXTAREA JUST BELOW CONTROLS -->
-  <div id="loop-bar"></div>
-
-  <textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
-
-  <!-- 🔁 Modular Scripts -->
+  <!-- ✅ Modular Scripts (unchanged structure) -->
   <script src="WorshipApp_Modular/tokenLoader.js"></script>
   <script src="WorshipApp_Modular/songNamesLoader.js"></script>
   <script src="WorshipApp_Modular/lyricsLoader.js"></script>
@@ -190,93 +30,7 @@
   <script src="WorshipApp_Modular/bookmarkManager.js"></script>
   <script src="WorshipApp_Modular/pwaSetup.js"></script>
   <script src="WorshipApp_Modular/loopManager.js"></script>
-
-  <script>
-  window.onload = async () => {
-    const songNames = await loadSongNames(); // ✅ Load song names
-    renderBookmarkFolders();                 // ✅ Show Favorites
-
-    const select = document.getElementById("songSelect");
-    loadLyricsForSelectedSong(select);       // ✅ Load lyrics for selected song
-    select.addEventListener("change", () => {
-  loadLyricsForSelectedSong(select);
-
-  // ✅ Call this function to preload loop segments and show buttons
-  const songName = select.value;
-  onSongSelectionChange(songName);  // 🔁 Loads loop JSON + prepares segment buttons
-});
-
-   document.getElementById("bookmarkThisBtn").style.display = "inline-block";
-document.getElementById("favoriteSelect").style.display = "inline-block";
-document.getElementById("bookmarkThisBtn").onclick = () => {
-  const selectedSong = select.value.trim();
-  const folder = document.getElementById("favoriteSelect").value;
-  if (selectedSong && folder) {
-    setCurrentFolder(folder);             // ✅ Use defined global functions
-    bookmarkCurrentSong();                // ✅ Safe call
-    alert(`⭐ '${selectedSong}' added to ${folder}`);
-  }
-};
-}; // ✅ close the async window.onload function
-</script> <!-- ✅ ADD THIS to close the script properly -->
-
-
-  <!-- ✅ Service Worker -->
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').catch(console.error);
-    }
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBar = document.getElementById('installPrompt');
-      if (installBar) installBar.style.display = 'block';
-
-      document.getElementById('installButton').onclick = async () => {
-        installBar.style.display = 'none';
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      };
-    });
-  </script>
-
-<script>
-window.onload = async () => {
-  loadBookmarks();           // ✅ initialize bookmarks
-  showBookmarkFolders();     // ✅ render folders
-
-  const songNames = await loadSongNames(); // ✅ Load song names into dropdown
-  const select = document.getElementById("songSelect");
-  loadLyricsForSelectedSong(select);       // ✅ Load lyrics
-  select.addEventListener("change", () => loadLyricsForSelectedSong(select));
-
-  // ✅ Show bookmark UI elements
-  document.getElementById("bookmarkThisBtn").style.display = "inline-block";
-  document.getElementById("favoriteSelect").style.display = "inline-block";
-
-  // ✅ Handle bookmark button click
-  document.getElementById("bookmarkThisBtn").onclick = () => {
-    const selectedSong = select.value.trim();
-    const folder = document.getElementById("favoriteSelect").value;
-    if (selectedSong && folder) {
-      setCurrentFolder(folder);
-      bookmarkCurrentSong();
-      alert(`⭐ '${selectedSong}' added to ${folder}`);
-      document.getElementById("toggleFoldersBtn").onclick = toggleFolders;
-
-    }
-  };
-};
-</script>
-
-<!-- 🔊 Hidden audio players for sync -->
-<audio id="vocalAudio" hidden></audio>
-<audio id="accompAudio" hidden></audio>
-
+  <script src="WorshipApp_Modular/htmlLoader.js"></script>
 
 </body>
 </html>
