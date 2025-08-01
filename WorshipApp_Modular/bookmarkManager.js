@@ -39,113 +39,111 @@ function showBookmarkFolders() {
   const container = document.getElementById('bookmarkedContainer');
   if (container.style.display === 'none' || container.style.display === '') {
     container.style.display = 'block';
-    renderBookmarkFolders();
   } else {
     container.style.display = 'none';
   }
 }
 
-// 🎯 Add song to a specific folder
-function addSongToFolder(songName, folderName) {
-  const key = folderName.toLowerCase().replace(" ", "_");
-  let songs = JSON.parse(localStorage.getItem(key) || "[]");
-  if (!songs.includes(songName)) {
-    songs.push(songName);
-    localStorage.setItem(key, JSON.stringify(songs));
+// 🧠 Save to localStorage
+function saveBookmarks(bookmarks) {
+  localStorage.setItem("bookmarkedSongs", JSON.stringify(bookmarks));
+}
+
+// 🧠 Load from localStorage
+function loadBookmarks() {
+  const data = localStorage.getItem("bookmarkedSongs");
+  if (!data) return;
+
+  const bookmarks = JSON.parse(data);
+  for (const folder in bookmarks) {
+    const songList = document.querySelector(`.song-list[data-folder="${folder}"]`);
+    if (songList) {
+      bookmarks[folder].forEach(song => {
+        const div = document.createElement("div");
+        div.className = "bookmarkedSong";
+        div.textContent = song;
+        div.setAttribute("draggable", "true");
+
+        // 🎵 AUTOPLAY ON CLICK
+        div.addEventListener("click", () => {
+          const dropdown = document.getElementById("songDropdown");
+          dropdown.value = song;
+          dropdown.dispatchEvent(new Event("change")); // triggers lyrics/audio
+          setTimeout(() => playBoth(), 300); // slight delay to allow load
+        });
+
+        // 🗑 Add trash icon
+        const trash = document.createElement("span");
+        trash.className = "trash";
+        trash.innerHTML = "🗑";
+        trash.addEventListener("click", (e) => {
+          e.stopPropagation();
+          removeSongFromFolder(song, folder);
+        });
+        div.appendChild(trash);
+
+        // 🖱 Drag handling
+        div.addEventListener("dragstart", (e) => {
+          draggedElement = { song, from: folder };
+        });
+        div.addEventListener("dragover", (e) => e.preventDefault());
+        div.addEventListener("drop", (e) => {
+          e.preventDefault();
+          if (draggedElement && draggedElement.song !== song) {
+            moveSong(draggedElement.song, draggedElement.from, folder);
+            draggedElement = null;
+          }
+        });
+
+        songList.appendChild(div);
+      });
+    }
+  }
+}
+
+// 📥 Add song to folder
+function addSongToFolder(song, folder) {
+  const data = localStorage.getItem("bookmarkedSongs");
+  const bookmarks = data ? JSON.parse(data) : {};
+
+  if (!bookmarks[folder]) bookmarks[folder] = [];
+
+  if (!bookmarks[folder].includes(song)) {
+    bookmarks[folder].push(song);
+    saveBookmarks(bookmarks);
+    renderBookmarkFolders();
+    alert(`⭐ ${song} added to ${folder}`);
+  }
+}
+
+// 🧹 Remove song from folder
+function removeSongFromFolder(song, folder) {
+  const data = localStorage.getItem("bookmarkedSongs");
+  const bookmarks = data ? JSON.parse(data) : {};
+
+  if (bookmarks[folder]) {
+    bookmarks[folder] = bookmarks[folder].filter(s => s !== song);
+    saveBookmarks(bookmarks);
     renderBookmarkFolders();
   }
 }
 
-// 🗑️ Remove a song from a folder
-function removeSongFromFolder(songName, folderName) {
-  const key = folderName.toLowerCase().replace(" ", "_");
-  let songs = JSON.parse(localStorage.getItem(key) || "[]");
-  songs = songs.filter(name => name !== songName);
-  localStorage.setItem(key, JSON.stringify(songs));
-  renderBookmarkFolders();
-}
+// 🔄 Move song between folders
+function moveSong(song, fromFolder, toFolder) {
+  if (fromFolder === toFolder) return;
 
-// 📥 Load all saved bookmarks
-function loadBookmarks() {
-  for (let i = 1; i <= 5; i++) {
-    const folderName = `Favorites ${i}`;
-    const key = folderName.toLowerCase().replace(" ", "_");
-    const songList = document.querySelector(`.song-list[data-folder='${folderName}']`);
-    if (!songList) continue;
+  const data = localStorage.getItem("bookmarkedSongs");
+  const bookmarks = data ? JSON.parse(data) : {};
 
-    let songs = JSON.parse(localStorage.getItem(key) || "[]");
-    songs.forEach(songName => {
-      const songDiv = document.createElement("div");
-      songDiv.className = "bookmark-song";
-      songDiv.textContent = songName;
-      songDiv.draggable = true;
+  if (!bookmarks[toFolder]) bookmarks[toFolder] = [];
 
-      // Drag Events
-      songDiv.addEventListener("dragstart", (e) => {
-        draggedElement = songDiv;
-        e.dataTransfer.effectAllowed = "move";
-      });
-
-      songDiv.addEventListener("dragover", (e) => {
-        e.preventDefault();
-      });
-
-      songDiv.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const parent = songDiv.parentElement;
-        if (draggedElement && draggedElement !== songDiv) {
-          parent.insertBefore(draggedElement, songDiv.nextSibling);
-          updateLocalStorageFromDOM(parent);
-        }
-      });
-
-      // Touch Support (Mobile Reorder - basic)
-      songDiv.addEventListener("touchstart", (e) => {
-        draggedElement = songDiv;
-      });
-
-      songDiv.addEventListener("touchend", (e) => {
-        const touch = e.changedTouches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target && target.classList.contains("bookmark-song") && target !== draggedElement) {
-          const parent = target.parentElement;
-          parent.insertBefore(draggedElement, target.nextSibling);
-          updateLocalStorageFromDOM(parent);
-        }
-      });
-
-      // 🗑️ Delete icon
-      const del = document.createElement("span");
-      del.innerHTML = "🗑️";
-      del.style.float = "right";
-      del.style.cursor = "pointer";
-      del.onclick = () => removeSongFromFolder(songName, folderName);
-      songDiv.appendChild(del);
-
-      songList.appendChild(songDiv);
-    });
-
-    // Folder dragover + drop for cross-folder move
-    songList.addEventListener("dragover", (e) => e.preventDefault());
-    songList.addEventListener("drop", (e) => {
-      e.preventDefault();
-      if (draggedElement && songList !== draggedElement.parentElement) {
-        songList.appendChild(draggedElement);
-        updateLocalStorageFromDOM(draggedElement.parentElement); // from folder
-        updateLocalStorageFromDOM(songList); // to folder
-      }
-    });
+  // Remove from old
+  bookmarks[fromFolder] = bookmarks[fromFolder].filter(s => s !== song);
+  // Add to new
+  if (!bookmarks[toFolder].includes(song)) {
+    bookmarks[toFolder].push(song);
   }
-}
 
-// 💾 Update localStorage based on reordered DOM
-function updateLocalStorageFromDOM(songListElement) {
-  const folderName = songListElement.dataset.folder;
-  const key = folderName.toLowerCase().replace(" ", "_");
-  const newSongs = [];
-  songListElement.querySelectorAll(".bookmark-song").forEach(div => {
-    const name = div.childNodes[0].nodeValue.trim();
-    if (name) newSongs.push(name);
-  });
-  localStorage.setItem(key, JSON.stringify(newSongs));
+  saveBookmarks(bookmarks);
+  renderBookmarkFolders();
 }
