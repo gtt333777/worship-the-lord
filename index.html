@@ -228,11 +228,31 @@ document.getElementById("bookmarkThisBtn").onclick = () => {
     });
   </script>
 
-  <script>
-  window.onload = function () {
-    loadBookmarks();           // ✅ Must initialize bookmarks object
-    showBookmarkFolders();     // ✅ Safe to render only after that
+<script>
+window.onload = async () => {
+  loadBookmarks();           // ✅ initialize bookmarks
+  showBookmarkFolders();     // ✅ render folders
+
+  const songNames = await loadSongNames(); // ✅ Load song names into dropdown
+  const select = document.getElementById("songSelect");
+  loadLyricsForSelectedSong(select);       // ✅ Load lyrics
+  select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+
+  // ✅ Show bookmark UI elements
+  document.getElementById("bookmarkThisBtn").style.display = "inline-block";
+  document.getElementById("favoriteSelect").style.display = "inline-block";
+
+  // ✅ Handle bookmark button click
+  document.getElementById("bookmarkThisBtn").onclick = () => {
+    const selectedSong = select.value.trim();
+    const folder = document.getElementById("favoriteSelect").value;
+    if (selectedSong && folder) {
+      setCurrentFolder(folder);
+      bookmarkCurrentSong();
+      alert(`⭐ '${selectedSong}' added to ${folder}`);
+    }
   };
+};
 </script>
 
 
