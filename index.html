@@ -136,6 +136,7 @@
   <option value="Favorites 5">Favorites 5</option>
 </select>
 <!-- ✅ Folder Container to hold Favorites 1-5 -->
+<button id="toggleFoldersBtn">➖ Collapse Folders</button>
 <div id="bookmarkedContainer" style="display: none; margin-top: 10px;"></div>
     
     
@@ -250,6 +251,8 @@ window.onload = async () => {
       setCurrentFolder(folder);
       bookmarkCurrentSong();
       alert(`⭐ '${selectedSong}' added to ${folder}`);
+      document.getElementById("toggleFoldersBtn").onclick = toggleFolders;
+
     }
   };
 };
