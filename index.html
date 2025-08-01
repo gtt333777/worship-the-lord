@@ -225,5 +225,13 @@ document.getElementById("bookmarkThisBtn").onclick = () => {
     });
   </script>
 
+  <script>
+  window.onload = function () {
+    loadBookmarks();           // ✅ Must initialize bookmarks object
+    showBookmarkFolders();     // ✅ Safe to render only after that
+  };
+</script>
+
+
 </body>
 </html>
