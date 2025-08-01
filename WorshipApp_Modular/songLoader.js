@@ -14,10 +14,12 @@ document.getElementById("playBtn").addEventListener("click", () => {
   }
 
   const songName = document.getElementById("songSelect").value;
+  onSongSelectionChange(songName); // 🔁 Load loops
+
   if (!songName) {
-    console.warn("⚠️ No song selected.");
-    return;
-  }
+  console.warn("⚠️ No song selected.");
+  return;
+ }
 
   const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
   const accUrl = getDropboxFileURL(songName + "_acc.mp3");
