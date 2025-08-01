@@ -113,3 +113,36 @@ function playBookmarkedSong(songName) {
   songSelect.dispatchEvent(new Event("change"));
   console.log("▶️ Playing bookmarked song:", songName);
 }
+
+
+
+let foldersCollapsed = false;
+
+function toggleFolders() {
+  const lists = document.querySelectorAll('.bookmark-list');
+  lists.forEach(list => {
+    list.style.display = foldersCollapsed ? 'block' : 'none';
+  });
+
+  const toggleBtn = document.getElementById('toggleFoldersBtn');
+  if (toggleBtn) {
+    toggleBtn.textContent = foldersCollapsed ? '➖ Collapse Folders' : '➕ Expand Folders';
+  }
+
+  foldersCollapsed = !foldersCollapsed;
+}
+
+let foldersVisible = true;
+
+function toggleFolders() {
+  const container = document.getElementById("bookmarkedContainer");
+  if (!container) return;
+
+  foldersVisible = !foldersVisible;
+  container.style.display = foldersVisible ? "block" : "none";
+
+  const btn = document.getElementById("toggleFoldersBtn");
+  if (btn) {
+    btn.textContent = foldersVisible ? "Collapse Folders" : "Expand Folders";
+  }
+}
