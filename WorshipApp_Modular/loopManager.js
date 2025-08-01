@@ -119,7 +119,17 @@ function stopPlayback() {
   accomp.pause();
 }
 
-// 🔁 Ensure this function is called after song is selected:
 function onSongSelectionChange(songName) {
-  loadLoopsForSong(songName);
+  loadLoopsForSong(songName); // ✅ Load loop data
+
+  const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
+  const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+
+  const vocal = document.getElementById("vocalAudio");
+  const accomp = document.getElementById("accompAudio");
+
+  vocal.src = vocalUrl;
+  accomp.src = accUrl;
+
+  console.log("🎧 Audio sources preloaded for loop buttons.");
 }
