@@ -45,6 +45,18 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   accompAudio.pause();
 });
 
+// === Load Loops on Song Change BEFORE Play ===
+document.getElementById("songSelect").addEventListener("change", () => {
+  const songName = document.getElementById("songSelect").value;
+  if (songName) {
+    console.log("🎵 Song changed. Preloading loops for:", songName);
+    onSongSelectionChange(songName); // ✅ Load loops early
+  }
+});
+
+
+
+
 // === Dropbox URL Builder ===
 function getDropboxFileURL(filename) {
   const dropboxPath = "/WorshipSongs/" + filename;
