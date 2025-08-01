@@ -1,114 +1,120 @@
-// ✅ Globals
+let bookmarkData = {
+  "Favorites 1": [],
+  "Favorites 2": [],
+  "Favorites 3": [],
+  "Favorites 4": [],
+  "Favorites 5": []
+};
+
 let currentFolder = "Favorites 1";
 
-// 🔁 Get localStorage key for a folder
-function getBookmarkKey(folderName) {
-  return `bookmarks_${folderName}`;
+function setCurrentFolder(folderName) {
+  currentFolder = folderName;
 }
 
-// 🔁 Load bookmarks for a folder
-function loadBookmarks(folderName) {
-  const key = getBookmarkKey(folderName);
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : [];
-}
-
-// 💾 Save a song to current folder
 function bookmarkCurrentSong() {
   const song = document.getElementById("songSelect").value.trim();
-  const folder = document.getElementById("favoriteSelect").value;
-  const key = getBookmarkKey(folder);
-
-  let songs = loadBookmarks(folder);
-  if (!songs.includes(song)) {
-    songs.push(song);
-    localStorage.setItem(key, JSON.stringify(songs));
-    console.log(`✅ '${song}' bookmarked to ${folder}`);
-  } else {
-    console.log(`⚠️ '${song}' already in ${folder}`);
+  if (song && !bookmarkData[currentFolder].includes(song)) {
+    bookmarkData[currentFolder].push(song);
+    saveBookmarks();
+    renderBookmarkFolders();
   }
 }
 
-// 📁 Change current folder
-function setCurrentFolder(folder) {
-  currentFolder = folder;
-  localStorage.setItem("currentBookmarkFolder", folder);
+function saveBookmarks() {
+  localStorage.setItem("worshipBookmarks", JSON.stringify(bookmarkData));
 }
 
-// 📋 Build Favorites folders and entries
+function loadBookmarks() {
+  const stored = localStorage.getItem("worshipBookmarks");
+  if (stored) {
+    bookmarkData = JSON.parse(stored);
+  }
+}
+
 function renderBookmarkFolders() {
   const container = document.getElementById("bookmarkedContainer");
-  if (!container) {
-    console.warn("❌ Container for bookmarks not found");
-    return;
-  }
+  container.innerHTML = "";
+  for (let i = 1; i <= 5; i++) {
+    const folderName = `Favorites ${i}`;
+    const wrapper = document.createElement("div");
+    wrapper.className = "folder";
 
-  container.innerHTML = ""; // clear old
+    const header = document.createElement("h3");
+    header.textContent = folderName;
+    header.style.cursor = "pointer";
 
-  const folderNames = ["Favorites 1", "Favorites 2", "Favorites 3", "Favorites 4", "Favorites 5"];
-  folderNames.forEach(folder => {
-    const songs = loadBookmarks(folder);
-    if (songs.length === 0) return;
+    const songList = document.createElement("div");
+    songList.style.display = "none";
+    songList.dataset.folder = folderName;
 
-    const div = document.createElement("div");
-    div.className = "folder";
+    bookmarkData[folderName].forEach((song, index) => {
+      const row = document.createElement("div");
+      row.className = "song-entry";
+      row.draggable = true;
+      row.dataset.index = index;
+      row.dataset.folder = folderName;
+      row.textContent = song;
 
-    const heading = document.createElement("h3");
-    heading.textContent = folder;
-    div.appendChild(heading);
-
-    songs.forEach(song => {
-      const entry = document.createElement("div");
-      entry.className = "song-entry";
-      entry.textContent = song;
-
-      entry.onclick = () => {
-        const select = document.getElementById("songSelect");
-        select.value = song;
-        loadLyricsForSelectedSong(select);
+      const deleteBtn = document.createElement("span");
+      deleteBtn.textContent = "❌";
+      deleteBtn.className = "delete-icon";
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        bookmarkData[folderName].splice(index, 1);
+        saveBookmarks();
+        renderBookmarkFolders();
       };
 
-      div.appendChild(entry);
+      row.onclick = () => {
+        document.getElementById("songSelect").value = song;
+        loadLyricsForSelectedSong(document.getElementById("songSelect"));
+      };
+
+      row.appendChild(deleteBtn);
+      songList.appendChild(row);
     });
 
-    container.appendChild(div);
-  });
+    // Collapsing toggle
+    header.onclick = () => {
+      songList.style.display = songList.style.display === "none" ? "block" : "none";
+    };
 
-  console.log("📂 Bookmarked folders rendered.");
-}
+    // Drag + drop within folder
+    songList.ondragstart = (e) => {
+      e.dataTransfer.setData("text/plain", e.target.dataset.index);
+      e.dataTransfer.setData("folder", e.target.dataset.folder);
+    };
 
-// 🎯 Show folders when button is pressed
-function showBookmarkFolders() {
-  const container = document.getElementById("bookmarkedContainer");
-  if (!container) return;
+    songList.ondragover = (e) => e.preventDefault();
 
-  renderBookmarkFolders();
-  container.style.display = "block";
-  console.log("📋 Bookmarked Songs opened.");
-}
+    songList.ondrop = (e) => {
+      e.preventDefault();
+      const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"));
+      const folder = e.dataTransfer.getData("folder");
+      const target = e.target.closest(".song-entry");
 
-// 🔁 Populate dropdown on load
-function showBookmarkFoldersDropdown() {
-  const select = document.getElementById("favoriteSelect");
-  if (!select) return;
+      if (!target || folder !== target.dataset.folder) return;
 
-  select.innerHTML = "";
-  for (let i = 1; i <= 5; i++) {
-    const opt = document.createElement("option");
-    opt.value = `Favorites ${i}`;
-    opt.textContent = `Favorites ${i}`;
-    select.appendChild(opt);
+      const targetIndex = parseInt(target.dataset.index);
+      const list = bookmarkData[folder];
+      const [moved] = list.splice(draggedIndex, 1);
+      list.splice(targetIndex, 0, moved);
+
+      saveBookmarks();
+      renderBookmarkFolders();
+    };
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(songList);
+    container.appendChild(wrapper);
   }
-
-  select.value = currentFolder;
-  select.style.display = "inline-block";
-  console.log("🔽 Folder dropdown shown.");
+  console.log("✅ Bookmark folders rendered.");
 }
 
-// ✅ Called on page load
-function renderBookmarkFoldersOnLoad() {
-  const saved = localStorage.getItem("currentBookmarkFolder");
-  if (saved) currentFolder = saved;
-
-  showBookmarkFoldersDropdown();
+function showBookmarkFolders() {
+  loadBookmarks();
+  renderBookmarkFolders();
+  document.getElementById("bookmarkedContainer").style.display = "block";
+  console.log("📂 Bookmarked Songs opened.");
 }
