@@ -1,61 +1,120 @@
-// === Loop Manager ===
-let loops = [];
-let activeLoopIndex = 0;
-const loopCanvas = document.getElementById("loopCanvas");
-const ctx = loopCanvas.getContext("2d");
+﻿// WorshipApp_Modular/loopManager.js
 
-function drawLoops(duration) {
-  ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
-  if (!loops.length || !duration) return;
-  const width = loopCanvas.width;
-  const height = loopCanvas.height;
-  const pxPerSec = width / duration;
-  loops.forEach((loop, i) => {
-    const xStart = loop.start * pxPerSec;
-    const xEnd = loop.end * pxPerSec;
-    ctx.fillStyle = "#e0b0ff";
-    ctx.fillRect(xStart, 0, xEnd - xStart, height);
-    ctx.fillStyle = "#333";
-    ctx.fillText(i + 1, xStart + 3, 15);
-  });
-  ctx.strokeStyle = "#000";
-  ctx.beginPath();
-  ctx.moveTo(vocalAudio.currentTime * pxPerSec, 0);
-  ctx.lineTo(vocalAudio.currentTime * pxPerSec, height);
-  ctx.stroke();
+let loopSegments = [];
+let currentLoopIndex = -1;
+let loopBarContainer;
+
+function loadLoopsForSong(songName) {
+  const loopsFile = `lyrics/${songName}_loops.json`;
+  loopSegments = [];
+  currentLoopIndex = -1;
+
+  fetch(loopsFile)
+    .then(response => {
+      if (!response.ok) throw new Error('Loop file not found');
+      return response.json();
+    })
+    .then(data => {
+      loopSegments = data;
+      renderLoopButtons();
+      console.log("🔁 Loaded loops:", loopSegments);
+    })
+    .catch(err => {
+      console.warn("⚠️ No loops found for this song.");
+      clearLoopButtons();
+    });
 }
 
-loopCanvas.addEventListener("click", e => {
-  if (!vocalAudio.duration || !loops.length) return;
-  const rect = loopCanvas.getBoundingClientRect();
-  const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
-  const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
-  if (clickedIndex >= 0) {
-    activeLoopIndex = clickedIndex;
-    vocalAudio.currentTime = loops[activeLoopIndex].start;
-    accompAudio.currentTime = loops[activeLoopIndex].start;
-    vocalAudio.play();
-    accompAudio.play();
-  }
-});
+function renderLoopButtons() {
+  clearLoopButtons();
 
-vocalAudio.addEventListener("timeupdate", () => {
-  drawLoops(vocalAudio.duration);
-  if (activeLoopIndex >= 0 && loops.length) {
-    const loop = loops[activeLoopIndex];
-    if (vocalAudio.currentTime < loop.start) {
-      vocalAudio.currentTime = loop.start;
-      accompAudio.currentTime = loop.start;
-    } else if (vocalAudio.currentTime >= loop.end) {
-      activeLoopIndex++;
-      if (activeLoopIndex < loops.length) {
-        vocalAudio.currentTime = loops[activeLoopIndex].start;
-        accompAudio.currentTime = loops[activeLoopIndex].start;
-      } else {
-        vocalAudio.pause();
-        accompAudio.pause();
-        activeLoopIndex = -1;
-      }
-    }
+  loopBarContainer = document.getElementById("loop-bar");
+  if (!loopBarContainer) {
+    loopBarContainer = document.createElement("div");
+    loopBarContainer.id = "loop-bar";
+    loopBarContainer.style.display = "flex";
+    loopBarContainer.style.flexWrap = "nowrap";
+    loopBarContainer.style.overflowX = "auto";
+    loopBarContainer.style.padding = "10px";
+    loopBarContainer.style.gap = "6px";
+    loopBarContainer.style.marginBottom = "8px";
+    loopBarContainer.style.justifyContent = "center";
+    document.body.insertBefore(loopBarContainer, document.getElementById("lyricsArea"));
   }
-});
+
+  loopSegments.forEach((seg, index) => {
+    const btn = document.createElement("button");
+    btn.innerText = `🔁 ${index + 1}`;
+    btn.style.padding = "10px";
+    btn.style.borderRadius = "12px";
+    btn.style.border = "none";
+    btn.style.cursor = "pointer";
+    btn.style.minWidth = "60px";
+    btn.style.fontWeight = "bold";
+    btn.style.background = "#ffda77"; // pleasing yellow-orange
+    btn.style.color = "#333";
+    btn.onclick = () => playFromLoop(index);
+    loopBarContainer.appendChild(btn);
+  });
+}
+
+function clearLoopButtons() {
+  const existing = document.getElementById("loop-bar");
+  if (existing) existing.remove();
+}
+
+function playFromLoop(index) {
+  if (!loopSegments[index]) return;
+
+  currentLoopIndex = index;
+  const startTime = loopSegments[index].start;
+  const vocal = document.getElementById("vocalAudio");
+  const accomp = document.getElementById("accompAudio");
+
+  vocal.currentTime = startTime;
+  accomp.currentTime = startTime;
+
+  vocal.play();
+  accomp.play();
+
+  console.log(`▶️ Playing from loop ${index + 1} | Start: ${startTime}s`);
+  monitorLoopPlayback();
+}
+
+function monitorLoopPlayback() {
+  if (currentLoopIndex === -1 || !loopSegments[currentLoopIndex]) return;
+
+  const vocal = document.getElementById("vocalAudio");
+
+  const checkPosition = () => {
+    if (currentLoopIndex === -1) return;
+
+    const endTime = loopSegments[currentLoopIndex].end;
+    if (vocal.currentTime >= endTime) {
+      currentLoopIndex++;
+      if (loopSegments[currentLoopIndex]) {
+        console.log(`⏭️ Next loop: ${currentLoopIndex + 1}`);
+        playFromLoop(currentLoopIndex);
+      } else {
+        console.log("⏹️ All loops finished.");
+        stopPlayback();
+      }
+    } else {
+      requestAnimationFrame(checkPosition);
+    }
+  };
+
+  requestAnimationFrame(checkPosition);
+}
+
+function stopPlayback() {
+  const vocal = document.getElementById("vocalAudio");
+  const accomp = document.getElementById("accompAudio");
+  vocal.pause();
+  accomp.pause();
+}
+
+// 🔁 Ensure this function is called after song is selected:
+function onSongSelectionChange(songName) {
+  loadLoopsForSong(songName);
+}
