@@ -1,5 +1,5 @@
 ﻿// WorshipApp_Modular/loopManager.js
-
+let loopMonitorId = null;
 let loopSegments = [];
 let currentLoopIndex = -1;
 let loopBarContainer;
@@ -91,6 +91,12 @@ function monitorLoopPlayback() {
 
   const vocal = document.getElementById("vocalAudio");
 
+  // Cancel any previously running loop monitor
+  if (loopMonitorId !== null) {
+    cancelAnimationFrame(loopMonitorId);
+    loopMonitorId = null;
+  }
+
   const checkPosition = () => {
     if (currentLoopIndex === -1) return;
 
@@ -105,11 +111,11 @@ function monitorLoopPlayback() {
         stopPlayback();
       }
     } else {
-      requestAnimationFrame(checkPosition);
+      loopMonitorId = requestAnimationFrame(checkPosition);
     }
   };
 
-  requestAnimationFrame(checkPosition);
+  loopMonitorId = requestAnimationFrame(checkPosition);
 }
 
 function stopPlayback() {
