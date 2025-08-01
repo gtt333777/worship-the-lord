@@ -1,87 +1,98 @@
-﻿// 🔁 LOOP CODE START — loopManager.js
+﻿// WorshipApp_Modular/loopManager.js
 
 let loops = [];
 let currentLoopIndex = 0;
-let loopMonitorId = null;
+let loopMonitor = null;
 
-function loadLoops(loadedLoops) {
-  loops = loadedLoops;
-  currentLoopIndex = 0;
-  console.log("✅ Loaded loops:", loops);
-  renderLoopButtons();
+// Called on song change — loads loop JSON and displays buttons
+function onSongSelectionChange(songName) {
+  const loopsPath = `lyrics/${songName}_loops.json`;
+
+  fetch(loopsPath)
+    .then((res) => res.json())
+    .then((data) => {
+      loops = data;
+      currentLoopIndex = 0;
+      console.log("✅ Loaded loops:", loops);
+    })
+    .catch((err) => {
+      loops = [];
+      console.warn("⚠️ No loop file found for this song.");
+    });
 }
 
-function renderLoopButtons() {
-  const container = document.getElementById("loopButtonsContainer");
-  container.innerHTML = "";
-  loops.forEach((loop, i) => {
-    const btn = document.createElement("button");
-    btn.textContent = i + 1;
-    btn.className = "loop-btn";
-    btn.onclick = () => playFromLoop(i);
-    container.appendChild(btn);
-  });
-}
-
-function stopCurrentLoopMonitor() {
-  if (loopMonitorId !== null) {
-    cancelAnimationFrame(loopMonitorId);
-    loopMonitorId = null;
-    console.log("⏹️ Previous loop monitor cancelled.");
-  }
-}
-
+// Called when segment button is pressed
 function playFromLoop(index) {
-  if (!loops || !loops[index]) return;
+  if (!loops[index]) return;
 
-  stopCurrentLoopMonitor(); // ✅ Prevent multiple active loop trackers
+  stopLoopPlayback(); // cancel any old loop logic
 
   currentLoopIndex = index;
-  const { start } = loops[currentLoopIndex];
+
   const vocal = document.getElementById("vocalAudio");
   const accomp = document.getElementById("accompAudio");
 
   if (!vocal || !accomp || !vocal.src || !accomp.src) {
-    console.warn("⚠️ Audio sources not loaded. Please press Play once first.");
+    console.warn("⚠️ Audio sources not ready.");
     return;
   }
 
+  const { start } = loops[currentLoopIndex];
   vocal.currentTime = start;
   accomp.currentTime = start;
+
   vocal.play();
   accomp.play();
 
-  console.log(`🎯 Playing from loop ${currentLoopIndex + 1} | Start: ${start}s`);
-  monitorLoop();
+  console.log(`▶️ Playing from loop ${index + 1}: Start at ${start}s`);
+  monitorLoopPlayback();
 }
 
-function monitorLoop() {
+function monitorLoopPlayback() {
+  stopLoopPlayback(); // clear any existing monitoring
+
   const vocal = document.getElementById("vocalAudio");
   const accomp = document.getElementById("accompAudio");
-  if (!vocal || !accomp || !loops[currentLoopIndex]) return;
 
-  const { end } = loops[currentLoopIndex];
-  const currentTime = vocal.currentTime;
+  loopMonitor = setInterval(() => {
+    if (!vocal || !accomp || !loops[currentLoopIndex]) return;
 
-  if (currentTime >= end) {
-    currentLoopIndex++;
-    if (currentLoopIndex >= loops.length) {
-      console.log("✅ Finished final loop. Stopping playback.");
-      vocal.pause();
-      accomp.pause();
-      return;
+    const { end } = loops[currentLoopIndex];
+    if (vocal.currentTime >= end || accomp.currentTime >= end) {
+      currentLoopIndex++;
+      if (loops[currentLoopIndex]) {
+        const nextStart = loops[currentLoopIndex].start;
+        console.log(`⏭️ Moving to loop ${currentLoopIndex + 1}: ${nextStart}s`);
+        vocal.currentTime = nextStart;
+        accomp.currentTime = nextStart;
+        vocal.play();
+        accomp.play();
+      } else {
+        console.log("⏹️ All loops complete. Stopping.");
+        vocal.pause();
+        accomp.pause();
+        stopLoopPlayback();
+      }
     }
-    const nextStart = loops[currentLoopIndex].start;
-    vocal.currentTime = nextStart;
-    accomp.currentTime = nextStart;
-    console.log(`⏭️ Moving to loop ${currentLoopIndex + 1} | Start: ${nextStart}s`);
+  }, 150);
+}
+
+function stopLoopPlayback() {
+  if (loopMonitor) {
+    clearInterval(loopMonitor);
+    loopMonitor = null;
   }
-
-  loopMonitorId = requestAnimationFrame(monitorLoop);
 }
 
-function pauseLoopPlayback() {
-  stopCurrentLoopMonitor();
-}
+// Optional: link Pause button
+document.getElementById("pauseBtn").addEventListener("click", stopLoopPlayback);
 
-// 🔁 LOOP CODE END
+// Link segment buttons by ID
+window.addEventListener("DOMContentLoaded", () => {
+  for (let i = 1; i <= 5; i++) {
+    const btn = document.getElementById(`loopBtn${i}`);
+    if (btn) {
+      btn.addEventListener("click", () => playFromLoop(i - 1));
+    }
+  }
+});
