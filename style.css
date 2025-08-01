@@ -71,4 +71,8 @@ textarea {
   font-size: 14px;
 }
 
+/* 🔽 Show/Hide folders button spacing */
+#toggleFoldersBtn {
+  margin-bottom: 10px;
+}
 
