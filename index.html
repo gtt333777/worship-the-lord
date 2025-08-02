@@ -1,50 +1,26 @@
-﻿ 
-  <!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Worship The Lord</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>🎵 Worship The Lord</h2>
+  <h1>🎵 Worship The Lord</h1>
 
-  <!-- Buttons -->
-  <button id="playButton">⏯️ Play</button>
-  <button id="pauseButton">⏸️ Pause</button>
-
-  <!-- Lyrics Textarea (first, top) -->
-  <textarea id="lyricsDisplay" rows="10" cols="100" readonly></textarea>
-
-  <!-- ✅ Volume buttons fixed placeholder -->
-  <div id="audioControlPlaceholder"></div>
-
-  <!-- Song dropdown and bookmark section -->
-  <div>
-    <label for="songDropdown">Choose a song:</label>
-    <select id="songDropdown">
-      <option>Choose a song</option>
-    </select>
-    <button id="bookmarkButton">📑 Bookmarked Songs</button>
-    <button id="collapseFoldersBtn">➖ Collapse Folders</button>
+  <div id="html-sections">
+    <!-- HTML parts injected by htmlLoader.js -->
   </div>
 
-  <!-- Loop visual area -->
-  <div id="loopButtonsContainer"></div>
-
-  <!-- Lyrics bottom (used for loops if needed) -->
-  <textarea id="lyricsDisplayBottom" rows="10" cols="100" readonly></textarea>
-
-  <!-- Scripts -->
-  <script src="WorshipApp_Modular/htmlLoader.js"></script>
-  <script src="WorshipApp_Modular/songNamesLoader.js"></script>
-  <script src="WorshipApp_Modular/lyricsLoader.js"></script>
-  <script src="WorshipApp_Modular/audioControl.js"></script>
-  <script src="WorshipApp_Modular/skipControl.js"></script>
-  <script src="WorshipApp_Modular/songLoader.js"></script>
-  <script src="WorshipApp_Modular/bookmarkManager.js"></script>
-  <script src="WorshipApp_Modular/pwaSetup.js"></script>
-  <script src="WorshipApp_Modular/loopManager.js"></script>
-  <script src="WorshipApp_Modular/tokenLoader.js"></script>
+  <!-- JavaScript files (split, global, not modules) -->
+  <script src="htmlLoader.js"></script>
+  <script src="audioControl.js"></script>
+  <script src="songNamesLoader.js"></script>
+  <script src="songLoader.js"></script>
+  <script src="lyricsLoader.js"></script>
+  <script src="bookmarkManager.js"></script>
+  <script src="loopManager.js"></script>
+  <script src="pwaSetup.js"></script>
 </body>
 </html>
