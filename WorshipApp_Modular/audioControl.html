@@ -1,0 +1,17 @@
+﻿<!-- 🔊 AUDIO CONTROL BLOCK -->
+
+<!-- 🎚️ Audio Control Section -->
+<div class="volume-control">
+    <label for="vocalVolume">🎤 Vocal Volume:</label>
+    <button onclick="adjustVolume('vocal', -0.1)">-</button>
+    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
+    <button onclick="adjustVolume('vocal', 0.1)">+</button>
+  </div>
+
+  <div class="volume-control">
+    <label for="accompVolume">🏛️ Accompaniment Volume:</label>
+    <button onclick="adjustVolume('accomp', -0.1)">-</button>
+    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
+    <button onclick="adjustVolume('accomp', 0.1)">+</button>
+  </div>
+
