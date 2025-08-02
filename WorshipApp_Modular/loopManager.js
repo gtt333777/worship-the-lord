@@ -1,79 +1,97 @@
-﻿let currentLoopIndex = null;
-let loopButtons = [];
-let loopsData = [];
+﻿// WorshipApp_Modular/loopManager.js
 
-document.addEventListener("DOMContentLoaded", () => {
-  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-  if (!loopButtonsContainer) {
-    console.warn("⚠️ loopButtonsContainer not found during DOMContentLoaded.");
-    return;
-  }
+let loopData = [];
+let currentLoopIndex = -1;
+let isPlaying = false;
+let loopTimeout = null;
+let activeButton = null;
 
-  window.displayLoopButtons = function (loops) {
-    loopButtonsContainer.innerHTML = "";
-    loopButtons = [];
-    loopsData = loops;
+function loadLoopsFromDropbox(loopJsonUrl) {
+    fetch(loopJsonUrl)
+        .then(res => res.json())
+        .then(data => {
+            loopData = data.loops || [];
+            renderLoopButtons(loopData);
+        })
+        .catch(err => console.error('Failed to load loop JSON:', err));
+}
 
-    loops.forEach((loop, index) => {
-      const button = document.createElement("button");
-      button.textContent = `Segment ${index + 1}`;
-      button.className = "loop-segment-button";
-      button.style.margin = "2px";
-
-      button.onclick = () => {
-        playLoopSegment(index);
-      };
-
-      loopButtons.push(button);
-      loopButtonsContainer.appendChild(button);
-    });
-  };
-
-  function playLoopSegment(index) {
-    if (!loopsData[index]) return;
-
-    const loop = loopsData[index];
-    const { start, end } = loop;
-
-    if (currentLoopIndex !== null && currentLoopIndex !== index) {
-      stopPlayback();
+function renderLoopButtons(loops) {
+    const container = document.getElementById("loopButtonsContainer");
+    if (!container) {
+        console.warn("⚠️ loopButtonsContainer not found during DOMContentLoaded.");
+        return;
     }
+    container.innerHTML = "";
+    loops.forEach((loop, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = `Segment ${index + 1}`;
+        btn.className = "loop-btn";
+        btn.onclick = () => startLoopSegment(index);
+        container.appendChild(btn);
+    });
+}
 
+function startLoopSegment(index) {
+    if (!loopData[index]) return;
+
+    stopCurrentPlayback();
+
+    const { start, end } = loopData[index];
     currentLoopIndex = index;
 
-    if (!window.vocalAudio || !window.accompAudio) {
-      console.error("❌ Audio elements not available.");
-      return;
+    if (vocalAudio && accompAudio) {
+        vocalAudio.currentTime = start;
+        accompAudio.currentTime = start;
+
+        vocalAudio.play();
+        accompAudio.play();
+        isPlaying = true;
+
+        highlightActiveButton(index);
+
+        const duration = (end - start) * 1000;
+        loopTimeout = setTimeout(() => {
+            stopCurrentPlayback();
+        }, duration);
     }
+}
 
-    // Cancel any existing handlers
-    vocalAudio.onended = null;
-    accompAudio.onended = null;
+function stopCurrentPlayback() {
+    if (isPlaying) {
+        vocalAudio.pause();
+        accompAudio.pause();
+        isPlaying = false;
+    }
+    if (loopTimeout) {
+        clearTimeout(loopTimeout);
+        loopTimeout = null;
+    }
+    currentLoopIndex = -1;
+    removeButtonHighlight();
+}
 
-    // Seek and play
-    vocalAudio.currentTime = start;
-    accompAudio.currentTime = start;
+function highlightActiveButton(index) {
+    removeButtonHighlight();
+    const container = document.getElementById("loopButtonsContainer");
+    if (!container) return;
+    const buttons = container.getElementsByTagName("button");
+    if (buttons[index]) {
+        buttons[index].style.backgroundColor = "#ffd966";
+        activeButton = buttons[index];
+    }
+}
 
-    vocalAudio.play();
-    accompAudio.play();
+function removeButtonHighlight() {
+    if (activeButton) {
+        activeButton.style.backgroundColor = "";
+        activeButton = null;
+    }
+}
 
-    // Stop at segment end
-    const stopAt = () => {
-      if (vocalAudio.currentTime >= end || accompAudio.currentTime >= end) {
-        stopPlayback();
-      } else {
-        requestAnimationFrame(stopAt);
-      }
-    };
-    requestAnimationFrame(stopAt);
-  }
-
-  function stopPlayback() {
-    if (!window.vocalAudio || !window.accompAudio) return;
-    vocalAudio.pause();
-    accompAudio.pause();
-    currentLoopIndex = null;
-  }
-
-  window.stopLoopPlayback = stopPlayback;
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("loopButtonsContainer");
+    if (!container) {
+        console.warn("⚠️ loopButtonsContainer not found during DOMContentLoaded.");
+    }
 });
