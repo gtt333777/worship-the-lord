@@ -1,35 +1,34 @@
-﻿window.addEventListener("DOMContentLoaded", () => {
-  const playBtn = document.getElementById("playButton");
-  const pauseBtn = document.getElementById("pauseButton");
+﻿// 🎵 Global playback functions
+function playAudio() {
+    console.log("▶️ Play button clicked");
+    if (window.vocalAudio && window.accompAudio) {
+        vocalAudio.play();
+        accompAudio.play();
+    } else {
+        console.warn("⚠️ Audio elements not available.");
+    }
+}
 
-  const vocalAudio = new Audio();
-  const accompAudio = new Audio();
-  vocalAudio.crossOrigin = "anonymous";
-  accompAudio.crossOrigin = "anonymous";
+function pauseAudio() {
+    console.log("⏸️ Pause button clicked");
+    if (window.vocalAudio && window.accompAudio) {
+        vocalAudio.pause();
+        accompAudio.pause();
+    } else {
+        console.warn("⚠️ Audio elements not available.");
+    }
+}
 
-  function playBoth() {
-    vocalAudio.play();
-    accompAudio.play();
-  }
+// ✅ Setup event listeners AFTER DOM is ready
+function initializeAudioControls() {
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
 
-  function pauseBoth() {
-    vocalAudio.pause();
-    accompAudio.pause();
-  }
-
-  if (playBtn) {
-    playBtn.addEventListener("click", playBoth);
-  } else {
-    console.warn("⚠️ playButton not found in audioControl");
-  }
-
-  if (pauseBtn) {
-    pauseBtn.addEventListener("click", pauseBoth);
-  } else {
-    console.warn("⚠️ pauseButton not found in audioControl");
-  }
-
-  // Attach audio objects to window for global access if needed
-  window.vocalAudio = vocalAudio;
-  window.accompAudio = accompAudio;
-});
+    if (playBtn && pauseBtn) {
+        playBtn.addEventListener('click', playAudio);
+        pauseBtn.addEventListener('click', pauseAudio);
+        console.log("✅ Audio control buttons initialized.");
+    } else {
+        console.warn("⚠️ Audio control buttons NOT found in DOM.");
+    }
+}

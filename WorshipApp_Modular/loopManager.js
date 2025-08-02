@@ -1,98 +1,78 @@
-﻿// WorshipApp_Modular/loopManager.js
+﻿// 🔁 LOOP CODE START
 
-let loops = [];
-let currentLoopIndex = 0;
-let loopMonitor = null;
+let loopSegments = [];
 
-// Called on song change — loads loop JSON and displays buttons
-function onSongSelectionChange(songName) {
-  const loopsPath = `lyrics/${songName}_loops.json`;
-
-  fetch(loopsPath)
-    .then((res) => res.json())
-    .then((data) => {
-      loops = data;
-      currentLoopIndex = 0;
-      console.log("✅ Loaded loops:", loops);
-    })
-    .catch((err) => {
-      loops = [];
-      console.warn("⚠️ No loop file found for this song.");
-    });
-}
-
-// Called when segment button is pressed
-function playFromLoop(index) {
-  if (!loops[index]) return;
-
-  stopLoopPlayback(); // cancel any old loop logic
-
-  currentLoopIndex = index;
-
-  const vocal = document.getElementById("vocalAudio");
-  const accomp = document.getElementById("accompAudio");
-
-  if (!vocal || !accomp || !vocal.src || !accomp.src) {
-    console.warn("⚠️ Audio sources not ready.");
+function renderLoopProgressBar() {
+  const container = document.getElementById("loopProgressContainer");
+  if (!container) {
+    console.warn("⚠️ loopProgressContainer not found in DOM.");
     return;
   }
 
-  const { start } = loops[currentLoopIndex];
-  vocal.currentTime = start;
-  accomp.currentTime = start;
+  container.innerHTML = ""; // Clear old
 
-  vocal.play();
-  accomp.play();
+  loopSegments.forEach((loop, index) => {
+    const segment = document.createElement("div");
+    segment.className = "loopSegment";
+    segment.style.left = `${loop.startPercent}%`;
+    segment.style.width = `${loop.widthPercent}%`;
+    segment.dataset.index = index;
+    segment.innerText = index + 1;
 
-  console.log(`▶️ Playing from loop ${index + 1}: Start at ${start}s`);
-  monitorLoopPlayback();
+    segment.addEventListener("click", () => {
+      playFromLoop(index);
+    });
+
+    container.appendChild(segment);
+  });
 }
 
-function monitorLoopPlayback() {
-  stopLoopPlayback(); // clear any existing monitoring
+function loadLoopsForSong(songPrefix) {
+  const url = `https://dl.dropboxusercontent.com/s/${songPrefix}_loops.json`;
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      loopSegments = data.map((seg, i) => ({
+        ...seg,
+        startPercent: (seg.start / totalDuration) * 100,
+        widthPercent: ((seg.end - seg.start) / totalDuration) * 100,
+      }));
+      renderLoopProgressBar();
+    })
+    .catch((err) => {
+      console.warn("No loop data found for this song.");
+      loopSegments = [];
+      renderLoopProgressBar(); // Clear previous if any
+    });
+}
 
-  const vocal = document.getElementById("vocalAudio");
-  const accomp = document.getElementById("accompAudio");
+function playFromLoop(loopIndex) {
+  const loop = loopSegments[loopIndex];
+  if (!loop) return;
 
-  loopMonitor = setInterval(() => {
-    if (!vocal || !accomp || !loops[currentLoopIndex]) return;
+  if (vocalAudio && accompAudio) {
+    vocalAudio.currentTime = loop.start;
+    accompAudio.currentTime = loop.start;
 
-    const { end } = loops[currentLoopIndex];
-    if (vocal.currentTime >= end || accomp.currentTime >= end) {
-      currentLoopIndex++;
-      if (loops[currentLoopIndex]) {
-        const nextStart = loops[currentLoopIndex].start;
-        console.log(`⏭️ Moving to loop ${currentLoopIndex + 1}: ${nextStart}s`);
-        vocal.currentTime = nextStart;
-        accomp.currentTime = nextStart;
-        vocal.play();
-        accomp.play();
-      } else {
-        console.log("⏹️ All loops complete. Stopping.");
-        vocal.pause();
-        accomp.pause();
-        stopLoopPlayback();
+    vocalAudio.play();
+    accompAudio.play();
+
+    const stopTime = loop.end;
+    const interval = setInterval(() => {
+      const currentTime = vocalAudio.currentTime;
+      if (currentTime >= stopTime) {
+        vocalAudio.pause();
+        accompAudio.pause();
+        clearInterval(interval);
       }
-    }
-  }, 150);
-}
-
-function stopLoopPlayback() {
-  if (loopMonitor) {
-    clearInterval(loopMonitor);
-    loopMonitor = null;
+    }, 200);
   }
 }
 
-// Optional: link Pause button
-document.getElementById("pauseBtn").addEventListener("click", stopLoopPlayback);
-
-// Link segment buttons by ID
-window.addEventListener("DOMContentLoaded", () => {
-  for (let i = 1; i <= 5; i++) {
-    const btn = document.getElementById(`loopBtn${i}`);
-    if (btn) {
-      btn.addEventListener("click", () => playFromLoop(i - 1));
-    }
+// 🛠 DOM ready hook (safe addEventListener usage)
+document.addEventListener("DOMContentLoaded", () => {
+  const loopBar = document.getElementById("loopProgressContainer");
+  if (!loopBar) {
+    console.warn("⚠️ loopProgressContainer not found during DOMContentLoaded.");
   }
 });
