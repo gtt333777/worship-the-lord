@@ -1,45 +1,44 @@
-﻿// 🎵 songNamesLoader.js – Loads song names from lyrics/songs_names.txt
+﻿// songNamesLoader.js
 
 function populateSongDropdown() {
-    console.log("🎬 populateSongDropdown: Starting fetch of lyrics/songs_names.txt");
+  console.log("✅ populateSongDropdown: Starting fetch of lyrics/songs_names.txt");
 
-    fetch('lyrics/songs_names.txt')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            console.log("✅ Successfully fetched songs_names.txt");
-            const lines = text.split('\n').map(line => line.trim()).filter(line => line !== '');
-            console.log(`📄 Found ${lines.length} song name(s) in file.`);
+  fetch("lyrics/songs_names.txt")
+    .then((response) => {
+      if (!response.ok) throw new Error("Failed to fetch songs_names.txt");
+      return response.text();
+    })
+    .then((text) => {
+      const songDropdown = document.getElementById("songDropdown");
 
-            const dropdown = document.getElementById('songDropdown');
-            if (!dropdown) {
-                console.error("❌ songDropdown element not found in DOM.");
-                return;
-            }
+      if (!songDropdown) {
+        console.error("❌ songDropdown element not found in DOM.");
+        return;
+      }
 
-            dropdown.innerHTML = ''; // Clear existing
+      const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+      console.log(`🎵 Found ${lines.length} song name(s) in file.`);
 
-            lines.forEach((line, index) => {
-                const option = document.createElement('option');
-                option.value = line;
-                option.textContent = line;
-                dropdown.appendChild(option);
-                console.log(`🎶 Added song ${index + 1}: "${line}" to dropdown`);
-            });
-
-            console.log("🎉 Song dropdown populated successfully.");
-        })
-        .catch(error => {
-            console.error("🚨 Error loading songs_names.txt:", error);
-        });
+      lines.forEach((line) => {
+        const option = document.createElement("option");
+        option.value = line;
+        option.textContent = line;
+        songDropdown.appendChild(option);
+      });
+    })
+    .catch((err) => {
+      console.error("❌ Error loading songs_names.txt:", err);
+    });
 }
 
-// 🛠 Ensure DOM is ready before trying to access elements
+// Delay populate until DOM is ready and htmlLoader finishes injecting
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("📦 songNamesLoader.js: DOMContentLoaded event fired.");
-    populateSongDropdown();
+  const observer = new MutationObserver(() => {
+    if (document.getElementById("songDropdown")) {
+      populateSongDropdown();
+      observer.disconnect(); // ✅ Done, stop watching
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
 });
