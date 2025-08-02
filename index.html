@@ -10,27 +10,24 @@
   <link rel="icon" href="icon-192.png" type="image/png" />
   <meta name="theme-color" content="#2c3e50" />
 
-  <!-- ✅ External stylesheet now used -->
-<link rel="stylesheet" href="style.css" />
+  <!-- ✅ External stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
   <h1>🎵 Worship The Lord</h1>
 
-  
-
-  <br />
-
+  <!-- ✅ Controls (play/pause) -->
   <button id="playBtn">▶️ Play</button>
   <button id="pauseBtn">⏸️ Pause</button>
 
-  
-  <!-- ✅ PLACE TEXTAREA JUST BELOW CONTROLS -->
+  <!-- ✅ Loop Bar -->
   <div id="loop-bar"></div>
 
+  <!-- ✅ Lyrics Area -->
   <textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
 
-  <!-- 🔁 Modular Scripts -->
+  <!-- ✅ Modular JS Scripts -->
   <script src="WorshipApp_Modular/tokenLoader.js"></script>
   <script src="WorshipApp_Modular/songNamesLoader.js"></script>
   <script src="WorshipApp_Modular/lyricsLoader.js"></script>
@@ -40,8 +37,5 @@
   <script src="WorshipApp_Modular/bookmarkManager.js"></script>
   <script src="WorshipApp_Modular/pwaSetup.js"></script>
   <script src="WorshipApp_Modular/loopManager.js"></script>
-
-  
-
 </body>
 </html>
