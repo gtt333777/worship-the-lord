@@ -1,92 +1,79 @@
 ﻿// 🔁 LOOP CODE START
 
 let loopSegments = [];
-let currentLoopInterval = null;
-let totalDuration = 0; // this must be set by songLoader.js after audio loads
+let currentLoopIndex = null;
+let loopCheckInterval = null;
 
 function renderLoopButtons() {
   const container = document.getElementById("loopButtonsContainer");
   if (!container) {
-    console.warn("⚠️ loopButtonsContainer not found.");
+    console.warn("⚠️ loopButtonsContainer not found in DOM.");
     return;
   }
 
-  container.innerHTML = "";
+  container.innerHTML = ""; // Clear previous
 
-  loopSegments.forEach((_, index) => {
+  loopSegments.forEach((loop, index) => {
     const btn = document.createElement("button");
-    btn.textContent = index + 1;
-    btn.className = "loop-btn";
-    btn.onclick = () => playFromLoop(index);
+    btn.innerText = `Segment ${index + 1}`;
+    btn.className = "loopButton";
+    btn.addEventListener("click", () => {
+      playLoopSegment(index);
+    });
     container.appendChild(btn);
   });
 }
 
-function playFromLoop(loopIndex) {
-  const loop = loopSegments[loopIndex];
-  if (!loop || !vocalAudio || !accompAudio) return;
-
-  // 🔇 Stop any previous loop
-  if (currentLoopInterval !== null) {
-    clearInterval(currentLoopInterval);
-    currentLoopInterval = null;
-    vocalAudio.pause();
-    accompAudio.pause();
-  }
-
-  // 🎵 Set position and start playback
-  vocalAudio.currentTime = loop.start;
-  accompAudio.currentTime = loop.start;
-
-  vocalAudio.play();
-  accompAudio.play();
-
-  currentLoopInterval = setInterval(() => {
-    const currentTime = vocalAudio.currentTime;
-    if (currentTime >= loop.end) {
-      vocalAudio.pause();
-      accompAudio.pause();
-      clearInterval(currentLoopInterval);
-      currentLoopInterval = null;
-    }
-  }, 100);
-}
-
 function loadLoopsForSong(songPrefix) {
-  const url = `https://dl.dropboxusercontent.com/s/${songPrefix}_loops.json`;
-
-  fetch(url)
+  const dropboxUrl = `https://dl.dropboxusercontent.com/s/${songPrefix}_loops.json`;
+  fetch(dropboxUrl)
     .then((res) => res.json())
     .then((data) => {
-      if (!totalDuration || totalDuration === 0) {
-        console.warn("⏳ totalDuration not ready yet.");
-        return;
-      }
-
-      loopSegments = data.map((seg) => ({
-        ...seg,
-        startPercent: (seg.start / totalDuration) * 100,
-        widthPercent: ((seg.end - seg.start) / totalDuration) * 100,
-      }));
-
+      loopSegments = data;
       renderLoopButtons();
     })
     .catch((err) => {
-      console.warn("⚠️ No loop data found.");
+      console.warn("⚠️ No loop data found or error loading JSON.");
       loopSegments = [];
       renderLoopButtons();
     });
 }
 
-// ⛔ Prevent unwanted full song playback
-document.addEventListener("DOMContentLoaded", () => {
+function playLoopSegment(index) {
+  if (!loopSegments[index]) return;
+
+  const segment = loopSegments[index];
+
   if (vocalAudio && accompAudio) {
-    vocalAudio.addEventListener("play", () => {
-      if (currentLoopInterval === null) {
+    // Stop any previous loop
+    if (loopCheckInterval) clearInterval(loopCheckInterval);
+    vocalAudio.pause();
+    accompAudio.pause();
+
+    vocalAudio.currentTime = segment.start;
+    accompAudio.currentTime = segment.start;
+
+    vocalAudio.play();
+    accompAudio.play();
+
+    currentLoopIndex = index;
+
+    loopCheckInterval = setInterval(() => {
+      const now = vocalAudio.currentTime;
+      if (now >= segment.end) {
         vocalAudio.pause();
         accompAudio.pause();
-        console.warn("⛔ Full-song playback is blocked. Use loop buttons.");
+        clearInterval(loopCheckInterval);
       }
-    });
+    }, 100);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("loopButtonsContainer");
+  if (!container) {
+    console.warn("⚠️ loopButtonsContainer not found on DOMContentLoaded.");
   }
 });
+
+// 🔁 LOOP CODE END
