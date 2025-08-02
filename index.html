@@ -1,32 +1,41 @@
-﻿<!DOCTYPE html>
-<html lang="ta">
+﻿ 
+  <!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎵 Worship The Lord</title>
-
-  <!-- ✅ PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" type="image/png" />
-  <meta name="theme-color" content="#2c3e50" />
-
-  <!-- ✅ External stylesheet -->
-  <link rel="stylesheet" href="style.css" />
+  <title>Worship The Lord</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-  <h1>🎵 Worship The Lord</h1>
+  <h2>🎵 Worship The Lord</h2>
 
-  <!-- ✅ Controls (play/pause) with correct IDs -->
-  <button id="playButton">▶️ Play</button>
+  <!-- Buttons -->
+  <button id="playButton">⏯️ Play</button>
   <button id="pauseButton">⏸️ Pause</button>
 
-  <!-- ✅ Loop Bar -->
-  <div id="loop-bar"></div>
+  <!-- Lyrics Textarea (first, top) -->
+  <textarea id="lyricsDisplay" rows="10" cols="100" readonly></textarea>
 
-  <!-- ❌ Removed duplicate hardcoded lyrics area -->
+  <!-- ✅ Volume buttons fixed placeholder -->
+  <div id="audioControlPlaceholder"></div>
 
-  <!-- ✅ Modular JS Scripts (no import/export, globally scoped) -->
+  <!-- Song dropdown and bookmark section -->
+  <div>
+    <label for="songDropdown">Choose a song:</label>
+    <select id="songDropdown">
+      <option>Choose a song</option>
+    </select>
+    <button id="bookmarkButton">📑 Bookmarked Songs</button>
+    <button id="collapseFoldersBtn">➖ Collapse Folders</button>
+  </div>
+
+  <!-- Loop visual area -->
+  <div id="loopButtonsContainer"></div>
+
+  <!-- Lyrics bottom (used for loops if needed) -->
+  <textarea id="lyricsDisplayBottom" rows="10" cols="100" readonly></textarea>
+
+  <!-- Scripts -->
   <script src="WorshipApp_Modular/htmlLoader.js"></script>
   <script src="WorshipApp_Modular/songNamesLoader.js"></script>
   <script src="WorshipApp_Modular/lyricsLoader.js"></script>
