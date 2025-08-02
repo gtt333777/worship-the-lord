@@ -1,6 +1,8 @@
 ﻿// 🔁 LOOP CODE START
 
 let loopSegments = [];
+let currentLoopIndex = 0;
+let loopPlaybackInterval = null;
 
 function renderLoopProgressBar() {
   const container = document.getElementById("loopProgressContainer");
@@ -9,7 +11,7 @@ function renderLoopProgressBar() {
     return;
   }
 
-  container.innerHTML = ""; // Clear old
+  container.innerHTML = ""; // Clear previous segments
 
   loopSegments.forEach((loop, index) => {
     const segment = document.createElement("div");
@@ -32,17 +34,18 @@ function loadLoopsForSong(songPrefix) {
   fetch(url)
     .then((res) => res.json())
     .then((data) => {
-      loopSegments = data.map((seg, i) => ({
+      loopSegments = data.map((seg) => ({
         ...seg,
         startPercent: (seg.start / totalDuration) * 100,
         widthPercent: ((seg.end - seg.start) / totalDuration) * 100,
       }));
+      currentLoopIndex = 0;
       renderLoopProgressBar();
     })
     .catch((err) => {
       console.warn("No loop data found for this song.");
       loopSegments = [];
-      renderLoopProgressBar(); // Clear previous if any
+      renderLoopProgressBar(); // Clear bar if no data
     });
 }
 
@@ -57,19 +60,26 @@ function playFromLoop(loopIndex) {
     vocalAudio.play();
     accompAudio.play();
 
-    const stopTime = loop.end;
-    const interval = setInterval(() => {
+    currentLoopIndex = loopIndex;
+    if (loopPlaybackInterval) clearInterval(loopPlaybackInterval);
+
+    loopPlaybackInterval = setInterval(() => {
       const currentTime = vocalAudio.currentTime;
-      if (currentTime >= stopTime) {
-        vocalAudio.pause();
-        accompAudio.pause();
-        clearInterval(interval);
+      if (currentTime >= loop.end) {
+        const nextLoopIndex = currentLoopIndex + 1;
+        if (nextLoopIndex < loopSegments.length) {
+          playFromLoop(nextLoopIndex);
+        } else {
+          vocalAudio.pause();
+          accompAudio.pause();
+          clearInterval(loopPlaybackInterval);
+        }
       }
     }, 200);
   }
 }
 
-// 🛠 DOM ready hook (safe addEventListener usage)
+// ✅ On DOM load, check for loop container
 document.addEventListener("DOMContentLoaded", () => {
   const loopBar = document.getElementById("loopProgressContainer");
   if (!loopBar) {
