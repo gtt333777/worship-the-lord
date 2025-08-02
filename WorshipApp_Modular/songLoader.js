@@ -1,64 +1,45 @@
-﻿// WorshipApp_Modular/songLoader.js
+﻿// 📜 Song loading logic
+function loadSelectedSong() {
+    const songList = document.getElementById('songList');
+    const selectedIndex = songList.selectedIndex;
+    const selectedName = songList.options[selectedIndex].text;
 
-// Global audio elements
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
+    console.log(`🎼 Selected song: ${selectedName}`);
 
-// === Play/Pause ===
-document.getElementById("playBtn").addEventListener("click", () => {
-  console.log("▶️ Play button clicked");
+    // Load lyrics
+    fetch(`lyrics/${selectedName}.txt`)
+        .then(response => {
+            if (!response.ok) throw new Error("Lyrics file not found");
+            return response.text();
+        })
+        .then(lyrics => {
+            document.getElementById('lyricsDisplay').value = lyrics;
+            console.log("📖 Lyrics loaded successfully.");
+        })
+        .catch(error => {
+            console.error("❌ Error loading lyrics:", error);
+            document.getElementById('lyricsDisplay').value = "Lyrics not available.";
+        });
 
-  if (!ACCESS_TOKEN) {
-    console.error("❌ ACCESS_TOKEN not yet loaded.");
-    return;
-  }
+    // Load audio
+    const prefix = selectedName;
+    const vocalUrl = `https://content.dropboxapi.com/apitl/1/XXX/${prefix}_vocal.mp3`;
+    const accUrl = `https://content.dropboxapi.com/apitl/1/XXX/${prefix}_acc.mp3`;
 
-  const songName = document.getElementById("songSelect").value;
-  onSongSelectionChange(songName); // 🔁 Load loops
+    window.vocalAudio = new Audio(vocalUrl);
+    window.accompAudio = new Audio(accUrl);
 
-  if (!songName) {
-  console.warn("⚠️ No song selected.");
-  return;
- }
+    console.log("🎧 Audio sources prepared (not yet played).");
+}
 
-  const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
-  const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+// ✅ Setup event listener AFTER DOM is ready
+function initializeSongLoader() {
+    const songList = document.getElementById('songList');
 
-  console.log("🎧 Vocal URL built for:", songName + "_vocal.mp3");
-  console.log("🎧 Accompaniment URL built for:", songName + "_acc.mp3");
-
-  vocalAudio.src = vocalUrl;
-  accompAudio.src = accUrl;
-
-  // Sync playback
-  Promise.all([
-    vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
-    accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
-  ]).then(() => {
-    console.log("✅ Both audio tracks started.");
-  });
-});
-
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  console.log("⏸️ Pause button clicked");
-  vocalAudio.pause();
-  accompAudio.pause();
-});
-
-// === Load Loops on Song Change BEFORE Play ===
-document.getElementById("songSelect").addEventListener("change", () => {
-  const songName = document.getElementById("songSelect").value;
-  if (songName) {
-    console.log("🎵 Song changed. Preloading loops for:", songName);
-    onSongSelectionChange(songName); // ✅ Load loops early
-  }
-});
-
-
-
-
-// === Dropbox URL Builder ===
-function getDropboxFileURL(filename) {
-  const dropboxPath = "/WorshipSongs/" + filename;
-  return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg={"path":"${dropboxPath}"}`;
+    if (songList) {
+        songList.addEventListener('change', loadSelectedSong);
+        console.log("✅ Song loader initialized.");
+    } else {
+        console.warn("⚠️ songList element NOT found in DOM.");
+    }
 }
