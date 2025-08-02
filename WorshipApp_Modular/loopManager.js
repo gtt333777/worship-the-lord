@@ -1,97 +1,75 @@
-﻿// WorshipApp_Modular/loopManager.js
+﻿// 🔁 loopManager.js – Full Final Version
 
-let loopData = [];
+let loopSegments = [];
 let currentLoopIndex = -1;
-let isPlaying = false;
 let loopTimeout = null;
-let activeButton = null;
 
-function loadLoopsFromDropbox(loopJsonUrl) {
-    fetch(loopJsonUrl)
-        .then(res => res.json())
-        .then(data => {
-            loopData = data.loops || [];
-            renderLoopButtons(loopData);
-        })
-        .catch(err => console.error('Failed to load loop JSON:', err));
-}
+// Called after a song is selected, use prefix without _vocal/_acc
+function loadLoopData(prefix) {
+  const jsonUrl = getDropboxUrl(`${prefix}_loops.json`);
 
-function renderLoopButtons(loops) {
-    const container = document.getElementById("loopButtonsContainer");
-    if (!container) {
-        console.warn("⚠️ loopButtonsContainer not found during DOMContentLoaded.");
-        return;
-    }
-    container.innerHTML = "";
-    loops.forEach((loop, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = `Segment ${index + 1}`;
-        btn.className = "loop-btn";
-        btn.onclick = () => startLoopSegment(index);
-        container.appendChild(btn);
+  fetch(jsonUrl)
+    .then(res => res.json())
+    .then(data => {
+      loopSegments = data;
+      renderLoopButtons();
+      console.log(`✅ Loaded ${data.length} loop segments`);
+    })
+    .catch(err => {
+      console.warn("⚠️ No loop data found:", err);
+      loopSegments = [];
+      renderLoopButtons(); // Clear old buttons if any
     });
 }
 
-function startLoopSegment(index) {
-    if (!loopData[index]) return;
+function renderLoopButtons() {
+  const container = document.getElementById("loopButtonsContainer");
+  if (!container) {
+    console.warn("⚠️ loopButtonsContainer not found");
+    return;
+  }
 
-    stopCurrentPlayback();
+  container.innerHTML = ""; // Clear old
 
-    const { start, end } = loopData[index];
-    currentLoopIndex = index;
-
-    if (vocalAudio && accompAudio) {
-        vocalAudio.currentTime = start;
-        accompAudio.currentTime = start;
-
-        vocalAudio.play();
-        accompAudio.play();
-        isPlaying = true;
-
-        highlightActiveButton(index);
-
-        const duration = (end - start) * 1000;
-        loopTimeout = setTimeout(() => {
-            stopCurrentPlayback();
-        }, duration);
-    }
+  loopSegments.forEach((seg, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = `Segment ${i + 1}`;
+    btn.className = "loop-button";
+    btn.onclick = () => playSegment(i);
+    container.appendChild(btn);
+  });
 }
 
-function stopCurrentPlayback() {
-    if (isPlaying) {
-        vocalAudio.pause();
-        accompAudio.pause();
-        isPlaying = false;
-    }
-    if (loopTimeout) {
-        clearTimeout(loopTimeout);
-        loopTimeout = null;
-    }
-    currentLoopIndex = -1;
-    removeButtonHighlight();
+function playSegment(index) {
+  if (!loopSegments[index]) return;
+
+  // Stop previous playback
+  stopPlayback();
+
+  const loop = loopSegments[index];
+  currentLoopIndex = index;
+
+  console.log(`🎵 Playing segment ${index + 1}: ${loop.start}s to ${loop.end}s`);
+
+  vocalAudio.currentTime = loop.start;
+  accompAudio.currentTime = loop.start;
+  vocalAudio.play();
+  accompAudio.play();
+
+  const duration = loop.end - loop.start;
+
+  loopTimeout = setTimeout(() => {
+    vocalAudio.pause();
+    accompAudio.pause();
+    console.log(`🛑 Segment ${index + 1} ended`);
+  }, duration * 1000);
 }
 
-function highlightActiveButton(index) {
-    removeButtonHighlight();
-    const container = document.getElementById("loopButtonsContainer");
-    if (!container) return;
-    const buttons = container.getElementsByTagName("button");
-    if (buttons[index]) {
-        buttons[index].style.backgroundColor = "#ffd966";
-        activeButton = buttons[index];
-    }
+function stopPlayback() {
+  if (loopTimeout) {
+    clearTimeout(loopTimeout);
+    loopTimeout = null;
+  }
+  vocalAudio.pause();
+  accompAudio.pause();
 }
-
-function removeButtonHighlight() {
-    if (activeButton) {
-        activeButton.style.backgroundColor = "";
-        activeButton = null;
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("loopButtonsContainer");
-    if (!container) {
-        console.warn("⚠️ loopButtonsContainer not found during DOMContentLoaded.");
-    }
-});
