@@ -1,6 +1,4 @@
 
-
-  <!--
 /* 🔽 Main layout styles (originally from <style> in index.html) */
 body {
   font-family: Arial, sans-serif;
@@ -32,108 +30,6 @@ textarea {
 #bookmarkedContainer {
   margin-top: 20px;
 }
-
-  -->
-
-  <!--
-  <style>
-  -->
-  //[🔒 Original inline styles moved to style.css for safety – backup]
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eaf3fb;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #2c3e50;
-    }
-    select, button {
-      padding: 5px 10px;
-      margin: 5px;
-    }
-    .volume-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 10px;
-    }
-    .volume-control label {
-      margin-right: 5px;
-      width: 140px;
-      text-align: right;
-    }
-    .volume-control input[type="range"] {
-      width: 200px;
-    }
-    #lyricsBox {
-      width: 90%;
-      height: 300px;
-      margin-top: 20px;
-      font-size: 1.2rem;
-      white-space: pre-wrap;
-    }
-
-    #segments {
-      margin: 10px 0;
-    }
-
-    .segment-button {
-      margin: 3px;
-      padding: 4px 8px;
-      font-size: 0.9rem;
-    }
-
-    #installPrompt {
-      display: none;
-      background: #fff8dc;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px auto;
-      width: 90%;
-      font-size: 1rem;
-    }
-
-    .folder {
-      margin-top: 15px;
-      background: #ffffff;
-      padding: 10px;
-      border-radius: 6px;
-      width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-      text-align: left;
-    }
-
-    .folder h3 {
-      margin: 0 0 8px 10px;
-      font-size: 18px;
-    }
-
-    .song-entry {
-      padding: 5px 10px;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #f1f1f1;
-      margin: 4px 0;
-    }
-
-    .song-entry:hover {
-      background-color: #e0e0e0;
-    }
-
-    .delete-icon {
-      cursor: pointer;
-      padding: 4px;
-    }
-  
-  <!--
-    </style>
-  -->
-
 
 
 
