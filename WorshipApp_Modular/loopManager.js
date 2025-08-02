@@ -1,8 +1,9 @@
 ﻿// 🔁 LOOP CODE START
 
 let loopSegments = [];
-let currentLoopIndex = -1;
-let totalDuration = 0;
+let currentLoopIndex = 0;
+let isPlayingLoop = false;
+let loopPlaybackInterval;
 
 function renderLoopProgressBar() {
   const container = document.getElementById("loopProgressContainer");
@@ -11,7 +12,7 @@ function renderLoopProgressBar() {
     return;
   }
 
-  container.innerHTML = "";
+  container.innerHTML = ""; // Clear old loops
 
   loopSegments.forEach((loop, index) => {
     const segment = document.createElement("div");
@@ -22,90 +23,67 @@ function renderLoopProgressBar() {
     segment.innerText = index + 1;
 
     segment.addEventListener("click", () => {
-      playFromLoop(index);
+      currentLoopIndex = index;
+      playCurrentLoop();
     });
 
     container.appendChild(segment);
   });
 }
 
-function loadLoopsForSong(songPrefix) {
+function loadLoopsForSong(songPrefix, totalDuration) {
   const url = `https://dl.dropboxusercontent.com/s/${songPrefix}_loops.json`;
   fetch(url)
     .then((res) => res.json())
     .then((data) => {
-      loopSegments = data;
-      if (vocalAudio?.duration) {
-        totalDuration = vocalAudio.duration;
-      } else {
-        console.warn("⏳ Waiting for audio duration to become available...");
-        vocalAudio?.addEventListener("loadedmetadata", () => {
-          totalDuration = vocalAudio.duration;
-          prepareLoopSegments(data);
-        });
-        return;
-      }
-      prepareLoopSegments(data);
+      loopSegments = data.map((seg, i) => ({
+        ...seg,
+        startPercent: (seg.start / totalDuration) * 100,
+        widthPercent: ((seg.end - seg.start) / totalDuration) * 100,
+      }));
+      currentLoopIndex = 0;
+      renderLoopProgressBar();
     })
     .catch((err) => {
       console.warn("No loop data found for this song.");
       loopSegments = [];
-      renderLoopProgressBar();
+      renderLoopProgressBar(); // Clear previous if any
     });
 }
 
-function prepareLoopSegments(data) {
-  loopSegments = data.map((seg, i) => ({
-    ...seg,
-    startPercent: (seg.start / totalDuration) * 100,
-    widthPercent: ((seg.end - seg.start) / totalDuration) * 100,
-  }));
-  renderLoopProgressBar();
-}
-
-function playFromLoop(loopIndex) {
-  const loop = loopSegments[loopIndex];
+function playCurrentLoop() {
+  const loop = loopSegments[currentLoopIndex];
   if (!loop || !vocalAudio || !accompAudio) return;
 
-  currentLoopIndex = loopIndex;
-
+  isPlayingLoop = true;
   vocalAudio.currentTime = loop.start;
   accompAudio.currentTime = loop.start;
 
   vocalAudio.play();
   accompAudio.play();
 
-  monitorLoopPlayback();
-}
+  if (loopPlaybackInterval) clearInterval(loopPlaybackInterval);
 
-function monitorLoopPlayback() {
-  const interval = setInterval(() => {
+  loopPlaybackInterval = setInterval(() => {
     const currentTime = vocalAudio.currentTime;
-    const loop = loopSegments[currentLoopIndex];
-    if (!loop) {
-      clearInterval(interval);
-      return;
-    }
-
     if (currentTime >= loop.end) {
-      const nextIndex = currentLoopIndex + 1;
-      if (nextIndex < loopSegments.length) {
-        playFromLoop(nextIndex);
+      currentLoopIndex++;
+      if (currentLoopIndex < loopSegments.length) {
+        playCurrentLoop();
       } else {
         vocalAudio.pause();
         accompAudio.pause();
-        clearInterval(interval);
+        isPlayingLoop = false;
+        clearInterval(loopPlaybackInterval);
       }
     }
   }, 200);
 }
 
-// 🛠 Ensure loopProgressContainer presence on load
+// 🛠 DOM ready hook
 document.addEventListener("DOMContentLoaded", () => {
   const loopBar = document.getElementById("loopProgressContainer");
   if (!loopBar) {
     console.warn("⚠️ loopProgressContainer not found during DOMContentLoaded.");
   }
 });
-
-// 🔁 LOOP CODE END
