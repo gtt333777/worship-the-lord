@@ -1,96 +1,132 @@
-﻿// ✅ loopManager.js (FULL FILE, 94+ lines)
+﻿// ✅ loopManager.js — FULL WORKING VERSION (with suffix handling and foolproof load timing)
 
-let loopData = [];
+let currentLoops = [];
+let currentLoopIndex = 0;
+let loopData = {};
+let isLooping = false;
+let loopTimeout;
 let activeButton = null;
 
-function renderLoopButtons() {
-  const container = document.getElementById("loopButtonsContainer");
-  container.innerHTML = "";
-  if (!loopData || loopData.length === 0) return;
+function fetchLoopData(suffix) {
+  const dropboxBase = 'https://www.dropbox.com/scl/fi/';
+  const token = 'YOUR_DROPBOX_ACCESS_TOKEN'; // ⚠️ Replace with secure method if using refresh tokens
+  const filePath = `${suffix}_loops.json`;
+  const fullUrl = `/WorshipSongs/${filePath}?dl=1`;
 
-  loopData.forEach((loop, index) => {
-    const btn = document.createElement("button");
-    btn.textContent = `Segment ${index + 1}`;
-    btn.style.margin = "3px";
-    btn.style.padding = "4px 8px";
-    btn.setAttribute("data-loop-index", index);
-    btn.addEventListener("click", () => {
-      playFromLoop(index);
-      highlightButton(btn);
+  console.log('🎧 Fetching loop data for:', filePath);
+
+  return fetch(fullUrl)
+    .then(res => res.ok ? res.json() : Promise.reject('❌ Loop file not found'))
+    .then(data => {
+      loopData[suffix] = data;
+      return data;
     });
+}
+
+function renderLoopButtons(loops) {
+  const container = document.getElementById('loopButtonsContainer');
+  if (!container) {
+    console.warn('⚠️ loopButtonsContainer not found during renderLoopButtons.');
+    return;
+  }
+
+  container.innerHTML = ''; // Clear previous
+
+  loops.forEach((loop, index) => {
+    const btn = document.createElement('button');
+    btn.textContent = `Segment ${index + 1}`;
+    btn.style.margin = '2px';
+    btn.dataset.index = index;
+
+    btn.addEventListener('click', () => {
+      highlightButton(btn);
+      playLoopFromIndex(index);
+    });
+
     container.appendChild(btn);
   });
 }
 
 function highlightButton(button) {
-  removeButtonHighlight();
-  button.style.backgroundColor = "orange";
+  if (activeButton) activeButton.style.backgroundColor = '';
+  button.style.backgroundColor = '#ffd966';
   activeButton = button;
 }
 
 function removeButtonHighlight() {
   if (activeButton) {
-    activeButton.style.backgroundColor = "";
+    activeButton.style.backgroundColor = '';
     activeButton = null;
   }
 }
 
-function playFromLoop(index) {
-  if (!loopData || index >= loopData.length) return;
-  const start = loopData[index].start;
-  const end = loopData[index].end;
+function playLoopFromIndex(index) {
+  if (!currentLoops.length) return;
 
-  if (window.vocalAudio && window.accompAudio) {
-    vocalAudio.currentTime = start;
-    accompAudio.currentTime = start;
-    vocalAudio.play();
-    accompAudio.play();
+  const loop = currentLoops[index];
+  currentLoopIndex = index;
+  isLooping = true;
 
-    const stopPlayback = () => {
-      if (vocalAudio.currentTime >= end || accompAudio.currentTime >= end) {
+  const startTime = loop.start;
+  const endTime = loop.end;
+
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
+
+  vocalAudio.play();
+  accompAudio.play();
+
+  clearTimeout(loopTimeout);
+  loopTimeout = setInterval(() => {
+    const now = vocalAudio.currentTime;
+    if (now >= endTime) {
+      clearTimeout(loopTimeout);
+      if (currentLoopIndex + 1 < currentLoops.length) {
+        currentLoopIndex++;
+        playLoopFromIndex(currentLoopIndex);
+      } else {
         vocalAudio.pause();
         accompAudio.pause();
-        vocalAudio.removeEventListener("timeupdate", stopPlayback);
-        accompAudio.removeEventListener("timeupdate", stopPlayback);
+        isLooping = false;
         removeButtonHighlight();
       }
-    };
-
-    vocalAudio.addEventListener("timeupdate", stopPlayback);
-    accompAudio.addEventListener("timeupdate", stopPlayback);
-  }
+    }
+  }, 200);
 }
 
-function setupLoopSegmentPlayback() {
-  // Placeholder if needed for future listeners
-}
+function handleSongSelection(songName) {
+  const suffix = songName;
+  console.log('🎵 Selected song:', suffix);
 
-function loadLoopDataForSong(songName) {
-  const suffix = songName.split(".")[0];
-  const loopUrl = `https://dl.dropboxusercontent.com/s/your_path/${suffix}_loops.json`; // Update this
+  fetchLoopData(suffix)
+    .then(loops => {
+      currentLoops = loops;
+      renderLoopButtons(loops);
 
-  fetch(loopUrl)
-    .then((res) => res.json())
-    .then((data) => {
-      loopData = data;
-      renderLoopButtons();
+      if (loops.length) {
+        playLoopFromIndex(0); // Always start from first loop
+      }
     })
-    .catch((err) => {
-      console.warn("⚠️ Failed to load loop data:", err);
+    .catch(err => {
+      console.warn('⚠️ Could not load loop data:', err);
+      currentLoops = [];
+      const container = document.getElementById('loopButtonsContainer');
+      if (container) container.innerHTML = '';
     });
 }
 
-// ✅ DOM injection-safe initialization
-document.addEventListener("DOMContentLoaded", () => {
-  const checkExist = setInterval(() => {
-    const container = document.getElementById("loopButtonsContainer");
-    if (!container) {
-      console.warn("⏳ Waiting for loopButtonsContainer...");
-      return;
-    }
-    clearInterval(checkExist);
-    console.log("✅ loopButtonsContainer found");
-    renderLoopButtons();
-    setupLoopSegmentPlayback();
-  }, 100);
+// ✅ Hook AFTER loopManager.html is injected
+document.addEventListener("htmlLoaded:loopManager.html", () => {
+  console.log('✅ loopManager.html loaded — initializing loopManager...');
+  const songSelect = document.querySelector("select");
+  if (songSelect) {
+    songSelect.addEventListener("change", () => {
+      const selected = songSelect.value;
+      if (selected) handleSongSelection(selected);
+    });
+  }
+
+  // If a song is already selected
+  const selected = songSelect?.value;
+  if (selected) handleSongSelection(selected);
 });
