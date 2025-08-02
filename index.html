@@ -4,23 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
+
+  <!-- ✅ PWA -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-192.png" type="image/png" />
   <meta name="theme-color" content="#2c3e50" />
-  <link rel="stylesheet" href="style.css" />
+
+  <!-- ✅ External stylesheet now used -->
+<link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
   <h1>🎵 Worship The Lord</h1>
 
-  <!-- ✅ Dynamic Sections Loaded via htmlLoader.js -->
-  <div id="part1-head"><!-- Controls and UI Block --></div>
-  <div id="part2-controls"><!-- Play, Pause, Volume, Segments --></div>
-  <div id="part3-loop-script"><!-- Loop segment setup script --></div>
-  <div id="part4-service-worker"><!-- PWA and Install Prompt --></div>
-  <div id="part5-audio"><!-- Hidden audio players --></div>
+  
 
-  <!-- ✅ Modular Scripts (unchanged structure) -->
+  <br />
+
+  <button id="playBtn">▶️ Play</button>
+  <button id="pauseBtn">⏸️ Pause</button>
+
+  
+  <!-- ✅ PLACE TEXTAREA JUST BELOW CONTROLS -->
+  <div id="loop-bar"></div>
+
+  <textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
+
+  <!-- 🔁 Modular Scripts -->
   <script src="WorshipApp_Modular/tokenLoader.js"></script>
   <script src="WorshipApp_Modular/songNamesLoader.js"></script>
   <script src="WorshipApp_Modular/lyricsLoader.js"></script>
@@ -30,7 +40,8 @@
   <script src="WorshipApp_Modular/bookmarkManager.js"></script>
   <script src="WorshipApp_Modular/pwaSetup.js"></script>
   <script src="WorshipApp_Modular/loopManager.js"></script>
-  <script src="WorshipApp_Modular/htmlLoader.js"></script>
+
+  
 
 </body>
 </html>
