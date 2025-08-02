@@ -1,35 +1,36 @@
-// ✅ Robust htmlLoader.js for loading modular HTML parts dynamically
+// WorshipApp_Modular/htmlLoader.js
 
-window.addEventListener('DOMContentLoaded', () => {
-  console.log("📦 htmlLoader.js: DOM fully loaded, beginning HTML injection...");
+document.addEventListener("DOMContentLoaded", function () {
+  const htmlFiles = [
+    "audioControl",
+    "songNamesLoader",
+    "songLoader",
+    "lyricsLoader",
+    "bookmarkManager",
+    "loopManager"
+  ];
 
-  const scriptTags = document.querySelectorAll('script[src]');
-  scriptTags.forEach(script => {
-    const src = script.getAttribute('src');
+  htmlFiles.forEach((file) => {
+    fetch(`WorshipApp_Modular/${file}.html`)
+      .then((response) => response.text())
+      .then((html) => {
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = html;
 
-    // Only process scripts from WorshipApp_Modular
-    if (!src.includes('WorshipApp_Modular/')) return;
-
-    const baseName = src.split('/').pop().replace('.js', '');
-    const htmlFile = `WorshipApp_Modular/${baseName}.html`;
-
-    console.log(`🔄 Trying to load ${htmlFile} to match ${src}`);
-
-    fetch(htmlFile)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`❌ Failed to fetch ${htmlFile}: HTTP ${response.status}`);
+        if (file === "audioControl") {
+          const placeholder = document.getElementById("audioControlPlaceholder");
+          if (placeholder) {
+            placeholder.innerHTML = html;
+            console.log("✅ Injected audioControl.html into placeholder");
+          } else {
+            console.warn("⚠️ Placeholder not found for audioControl");
+            document.body.appendChild(tempDiv);
+          }
+        } else {
+          document.body.appendChild(tempDiv);
+          console.log(`✅ Injected ${file}.html`);
         }
-        return response.text();
       })
-      .then(htmlContent => {
-        const container = document.createElement('div');
-        container.innerHTML = htmlContent;
-        document.body.appendChild(container);
-        console.log(`✅ Successfully loaded and injected: ${htmlFile}`);
-      })
-      .catch(error => {
-        console.error(`⚠️ Error loading ${htmlFile}:`, error);
-      });
+      .catch((err) => console.error(`❌ Failed to load ${file}.html`, err));
   });
 });
