@@ -1,79 +1,79 @@
-﻿// 🔁 LOOP CODE START
+﻿let currentLoopIndex = null;
+let loopButtons = [];
+let loopsData = [];
 
-let loopSegments = [];
-let currentLoopIndex = null;
-let loopCheckInterval = null;
-
-function renderLoopButtons() {
-  const container = document.getElementById("loopButtonsContainer");
-  if (!container) {
-    console.warn("⚠️ loopButtonsContainer not found in DOM.");
+document.addEventListener("DOMContentLoaded", () => {
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+  if (!loopButtonsContainer) {
+    console.warn("⚠️ loopButtonsContainer not found during DOMContentLoaded.");
     return;
   }
 
-  container.innerHTML = ""; // Clear previous
+  window.displayLoopButtons = function (loops) {
+    loopButtonsContainer.innerHTML = "";
+    loopButtons = [];
+    loopsData = loops;
 
-  loopSegments.forEach((loop, index) => {
-    const btn = document.createElement("button");
-    btn.innerText = `Segment ${index + 1}`;
-    btn.className = "loopButton";
-    btn.addEventListener("click", () => {
-      playLoopSegment(index);
+    loops.forEach((loop, index) => {
+      const button = document.createElement("button");
+      button.textContent = `Segment ${index + 1}`;
+      button.className = "loop-segment-button";
+      button.style.margin = "2px";
+
+      button.onclick = () => {
+        playLoopSegment(index);
+      };
+
+      loopButtons.push(button);
+      loopButtonsContainer.appendChild(button);
     });
-    container.appendChild(btn);
-  });
-}
+  };
 
-function loadLoopsForSong(songPrefix) {
-  const dropboxUrl = `https://dl.dropboxusercontent.com/s/${songPrefix}_loops.json`;
-  fetch(dropboxUrl)
-    .then((res) => res.json())
-    .then((data) => {
-      loopSegments = data;
-      renderLoopButtons();
-    })
-    .catch((err) => {
-      console.warn("⚠️ No loop data found or error loading JSON.");
-      loopSegments = [];
-      renderLoopButtons();
-    });
-}
+  function playLoopSegment(index) {
+    if (!loopsData[index]) return;
 
-function playLoopSegment(index) {
-  if (!loopSegments[index]) return;
+    const loop = loopsData[index];
+    const { start, end } = loop;
 
-  const segment = loopSegments[index];
+    if (currentLoopIndex !== null && currentLoopIndex !== index) {
+      stopPlayback();
+    }
 
-  if (vocalAudio && accompAudio) {
-    // Stop any previous loop
-    if (loopCheckInterval) clearInterval(loopCheckInterval);
-    vocalAudio.pause();
-    accompAudio.pause();
+    currentLoopIndex = index;
 
-    vocalAudio.currentTime = segment.start;
-    accompAudio.currentTime = segment.start;
+    if (!window.vocalAudio || !window.accompAudio) {
+      console.error("❌ Audio elements not available.");
+      return;
+    }
+
+    // Cancel any existing handlers
+    vocalAudio.onended = null;
+    accompAudio.onended = null;
+
+    // Seek and play
+    vocalAudio.currentTime = start;
+    accompAudio.currentTime = start;
 
     vocalAudio.play();
     accompAudio.play();
 
-    currentLoopIndex = index;
-
-    loopCheckInterval = setInterval(() => {
-      const now = vocalAudio.currentTime;
-      if (now >= segment.end) {
-        vocalAudio.pause();
-        accompAudio.pause();
-        clearInterval(loopCheckInterval);
+    // Stop at segment end
+    const stopAt = () => {
+      if (vocalAudio.currentTime >= end || accompAudio.currentTime >= end) {
+        stopPlayback();
+      } else {
+        requestAnimationFrame(stopAt);
       }
-    }, 100);
+    };
+    requestAnimationFrame(stopAt);
   }
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("loopButtonsContainer");
-  if (!container) {
-    console.warn("⚠️ loopButtonsContainer not found on DOMContentLoaded.");
+  function stopPlayback() {
+    if (!window.vocalAudio || !window.accompAudio) return;
+    vocalAudio.pause();
+    accompAudio.pause();
+    currentLoopIndex = null;
   }
+
+  window.stopLoopPlayback = stopPlayback;
 });
-
-// 🔁 LOOP CODE END
