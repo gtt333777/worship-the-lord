@@ -17,9 +17,9 @@
 <body>
   <h1>🎵 Worship The Lord</h1>
 
-  <!-- ✅ Controls (play/pause) -->
-  <button id="playBtn">▶️ Play</button>
-  <button id="pauseBtn">⏸️ Pause</button>
+  <!-- ✅ Controls (play/pause) with correct IDs -->
+  <button id="playButton">▶️ Play</button>
+  <button id="pauseButton">⏸️ Pause</button>
 
   <!-- ✅ Loop Bar -->
   <div id="loop-bar"></div>
@@ -27,7 +27,7 @@
   <!-- ✅ Lyrics Area -->
   <textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
 
-  <!-- ✅ Modular JS Scripts -->
+  <!-- ✅ Modular JS Scripts (no import/export, globally scoped) -->
   <script src="WorshipApp_Modular/tokenLoader.js"></script>
   <script src="WorshipApp_Modular/songNamesLoader.js"></script>
   <script src="WorshipApp_Modular/lyricsLoader.js"></script>
@@ -37,5 +37,6 @@
   <script src="WorshipApp_Modular/bookmarkManager.js"></script>
   <script src="WorshipApp_Modular/pwaSetup.js"></script>
   <script src="WorshipApp_Modular/loopManager.js"></script>
+  <script src="WorshipApp_Modular/htmlLoader.js"></script>
 </body>
 </html>
