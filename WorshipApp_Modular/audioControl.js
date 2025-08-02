@@ -1,19 +1,35 @@
-// audioControl.js
+﻿window.addEventListener("DOMContentLoaded", () => {
+  const playBtn = document.getElementById("playButton");
+  const pauseBtn = document.getElementById("pauseButton");
 
-// Global audio elements
-if (!window.vocalAudio) window.vocalAudio = new Audio();
-if (!window.accompAudio) window.accompAudio = new Audio();
+  const vocalAudio = new Audio();
+  const accompAudio = new Audio();
+  vocalAudio.crossOrigin = "anonymous";
+  accompAudio.crossOrigin = "anonymous";
 
-["vocal", "accomp"].forEach(type => {
-  document.getElementById(`${type}Volume`).addEventListener("input", e => {
-    (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
-  });
+  function playBoth() {
+    vocalAudio.play();
+    accompAudio.play();
+  }
+
+  function pauseBoth() {
+    vocalAudio.pause();
+    accompAudio.pause();
+  }
+
+  if (playBtn) {
+    playBtn.addEventListener("click", playBoth);
+  } else {
+    console.warn("⚠️ playButton not found in audioControl");
+  }
+
+  if (pauseBtn) {
+    pauseBtn.addEventListener("click", pauseBoth);
+  } else {
+    console.warn("⚠️ pauseButton not found in audioControl");
+  }
+
+  // Attach audio objects to window for global access if needed
+  window.vocalAudio = vocalAudio;
+  window.accompAudio = accompAudio;
 });
-
-function adjustVolume(type, delta) {
-  const slider = document.getElementById(`${type}Volume`);
-  slider.value = Math.min(1, Math.max(0, parseFloat(slider.value) + delta)).toFixed(2);
-  slider.dispatchEvent(new Event("input"));
-}
-
-window.adjustVolume = adjustVolume;
