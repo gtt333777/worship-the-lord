@@ -1,5 +1,6 @@
 
 
+  <!--
 /* 🔽 Main layout styles (originally from <style> in index.html) */
 body {
   font-family: Arial, sans-serif;
@@ -32,11 +33,12 @@ textarea {
   margin-top: 20px;
 }
 
-
+  -->
 
   <!--
   <style>
-  [🔒 Original inline styles moved to style.css for safety – backup]
+  -->
+  //[🔒 Original inline styles moved to style.css for safety – backup]
     body {
       font-family: Arial, sans-serif;
       background-color: #eaf3fb;
@@ -127,7 +129,9 @@ textarea {
       cursor: pointer;
       padding: 4px;
     }
-  </style>
+  
+  <!--
+    </style>
   -->
 
 
