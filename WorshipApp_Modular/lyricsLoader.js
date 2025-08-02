@@ -1,63 +1,72 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   console.log("📖 lyricsLoader.js: DOM loaded");
-  const dropdown = document.getElementById('songDropdown');
-  if (dropdown) {
-    dropdown.addEventListener('change', handleSongChange);
-  } else {
-    console.warn("⚠️ lyricsLoader.js: songDropdown not found in DOM");
-  }
-});
 
-function handleSongChange() {
-  const dropdown = document.getElementById('songDropdown');
-  const selectedSong = dropdown.value.trim();
-  console.log("🎵 handleSongChange: Selected song:", selectedSong);
+  // Delay to ensure modular HTML injection is done
+  setTimeout(() => {
+    const dropdown = document.getElementById("songDropdown");
+    const lyricsDisplay = document.getElementById("lyricsDisplay");
 
-  if (!selectedSong) {
-    console.warn("⚠️ No song selected.");
-    return;
-  }
-
-  const lyricsFile = findLyricsFileFromSuffix(selectedSong);
-  console.log("📄 Matched lyrics file:", lyricsFile);
-  fetchLyricsAndDisplay(lyricsFile);
-}
-
-function findLyricsFileFromSuffix(selectedTamilName) {
-  const suffix = selectedTamilName.trim();
-  const files = window.availableLyricsFiles || [];
-  for (let file of files) {
-    if (file.endsWith('.txt') && file.includes(suffix)) {
-      return `lyrics/${file}`;
+    if (!dropdown) {
+      console.warn("⚠️ lyricsLoader.js: songDropdown not found in DOM.");
+      return;
     }
-  }
-  console.warn("❌ No matching .txt file found for:", suffix);
-  return null;
-}
+    if (!lyricsDisplay) {
+      console.warn("⚠️ lyricsLoader.js: lyricsDisplay textarea not found in DOM.");
+      return;
+    }
 
-function fetchLyricsAndDisplay(lyricsPath) {
-  const lyricsBox = document.getElementById('lyricsBox');
-  if (!lyricsBox) {
-    console.error("❌ lyricsBox not found in DOM.");
-    return;
-  }
+    dropdown.addEventListener("change", () => {
+      const selectedName = dropdown.value.trim();
+      console.log(`🎵 lyricsLoader.js: Selected song = "${selectedName}"`);
 
-  if (!lyricsPath) {
-    lyricsBox.value = "❌ No lyrics available for selected song.";
-    return;
-  }
+      if (!selectedName) {
+        lyricsDisplay.value = "";
+        return;
+      }
 
-  fetch(lyricsPath)
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      return response.text();
-    })
-    .then(text => {
-      console.log("✅ Lyrics loaded.");
-      lyricsBox.value = text;
-    })
-    .catch(error => {
-      console.error("❌ Error loading lyrics:", error);
-      lyricsBox.value = "❌ Error loading lyrics.";
+      // Try to find a matching .txt file from lyrics folder
+      fetch("lyrics/songs_names.txt")
+        .then((res) => {
+          if (!res.ok) throw new Error("❌ Failed to load songs_names.txt");
+          return res.text();
+        })
+        .then((txt) => {
+          const lines = txt.split("\n").map(line => line.trim()).filter(Boolean);
+          const match = lines.find(line => selectedName === line);
+
+          if (!match) {
+            console.warn(`⚠️ lyricsLoader.js: No match found for selected name "${selectedName}"`);
+            lyricsDisplay.value = "[Lyrics not found]";
+            return;
+          }
+
+          // Derive prefix from match (e.g., first word, or matched filename)
+          const prefix = match
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // strip accents if needed
+            .replace(/\s+/g, "_") // convert spaces to _
+            .replace(/[^\w]/g, ""); // strip non-word chars
+
+          const lyricsPath = `lyrics/${prefix}.txt`;
+          console.log(`📂 lyricsLoader.js: Attempting to load "${lyricsPath}"`);
+
+          fetch(lyricsPath)
+            .then((res) => {
+              if (!res.ok) throw new Error(`❌ Cannot load file: ${lyricsPath}`);
+              return res.text();
+            })
+            .then((lyrics) => {
+              console.log(`✅ lyricsLoader.js: Successfully loaded lyrics for "${selectedName}"`);
+              lyricsDisplay.value = lyrics;
+            })
+            .catch((err) => {
+              console.error("🚫 lyricsLoader.js:", err);
+              lyricsDisplay.value = "[Error loading lyrics]";
+            });
+        })
+        .catch((err) => {
+          console.error("🚫 lyricsLoader.js:", err);
+          lyricsDisplay.value = "[Error loading song list]";
+        });
     });
-}
+  }, 100); // delay to allow HTML injection
+});
