@@ -1,29 +1,17 @@
 ﻿// lyricsLoader.js
 
-console.log("lyricsLoader.js: Started");
+console.log("lyricsLoader.js: Waiting for lyricsLoader.html to finish loading...");
 
-let lyricsInitAttempts = 0;
-const maxAttempts = 100; // retry up to ~30 seconds
-const intervalMs = 300;
+document.addEventListener("lyricsLoaderLoaded", () => {
+  console.log("lyricsLoader.js: lyricsLoader.html loaded. Initializing...");
 
-const tryInitializeLyricsLoader = () => {
   const lyricsTextArea = document.getElementById("lyricsBox");
   const songSelect = document.getElementById("songSelect");
 
   if (!lyricsTextArea || !songSelect) {
-    lyricsInitAttempts++;
-    if (lyricsInitAttempts % 5 === 0) {
-      console.warn("lyricsLoader.js: Still waiting for textarea and song select...");
-    }
-    if (lyricsInitAttempts >= maxAttempts) {
-      console.error("lyricsLoader.js: Giving up after too many attempts.");
-      clearInterval(lyricsInitInterval);
-    }
+    console.error("lyricsLoader.js: Missing textarea or song selector.");
     return;
   }
-
-  clearInterval(lyricsInitInterval);
-  console.log("lyricsLoader.js: Elements found. Initializing lyrics system.");
 
   songSelect.addEventListener("change", () => {
     const selectedSong = songSelect.value;
@@ -48,7 +36,4 @@ const tryInitializeLyricsLoader = () => {
   });
 
   console.log("lyricsLoader.js: Setup complete.");
-};
-
-// Start checking periodically
-const lyricsInitInterval = setInterval(tryInitializeLyricsLoader, intervalMs);
+});
