@@ -6,34 +6,46 @@
   <title>Worship The Lord</title>
 </head>
 <body>
-  <div id="appContainer">
-    <!-- Dynamic HTML parts will be loaded here -->
-  </div>
 
-  <!-- Load HTML fragments first -->
+  <!-- Placeholders for each HTML fragment -->
+  <div id="audioControl"></div>
+  <div id="bookmarkManager"></div>
+  <div id="loopManager"></div>
+  <div id="lyricsLoader"></div>
+  <div id="songNamesLoader"></div>
+  <div id="skipControl"></div>
+  <div id="pwaSetup"></div>
+  <div id="tokenLoader"></div>
+  <div id="songLoader"></div>
+
+  <!-- First, load the loader -->
   <script src="htmlLoader.js"></script>
+
+  <!-- Then, load all HTML into their placeholders -->
   <script>
-    // Load all the modular HTML parts into appContainer
-    loadHTML("audioControl.html");
-    loadHTML("bookmarkManager.html");
-    loadHTML("loopManager.html");
-    loadHTML("lyricsLoader.html");  // ✅ Must be before songNamesLoader and lyricsLoader.js
-    loadHTML("songNamesLoader.html");
-    loadHTML("skipControl.html");
-    loadHTML("pwaSetup.html");
-    loadHTML("tokenLoader.html");
-    loadHTML("songLoader.html");
+    document.addEventListener("DOMContentLoaded", () => {
+      loadHTML("audioControl.html");
+      loadHTML("bookmarkManager.html");
+      loadHTML("loopManager.html");
+      loadHTML("lyricsLoader.html");
+      loadHTML("songNamesLoader.html");
+      loadHTML("skipControl.html");
+      loadHTML("pwaSetup.html");
+      loadHTML("tokenLoader.html");
+      loadHTML("songLoader.html");
+    });
   </script>
 
-  <!-- Then load corresponding JS files -->
+  <!-- Finally, load all JS logic scripts -->
   <script src="audioControl.js"></script>
   <script src="bookmarkManager.js"></script>
   <script src="loopManager.js"></script>
-  <script src="lyricsLoader.js"></script> <!-- ✅ Must come AFTER lyricsLoader.html -->
+  <script src="lyricsLoader.js"></script>
   <script src="songNamesLoader.js"></script>
   <script src="skipControl.js"></script>
   <script src="pwaSetup.js"></script>
   <script src="tokenLoader.js"></script>
   <script src="songLoader.js"></script>
+
 </body>
 </html>
