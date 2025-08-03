@@ -2,12 +2,20 @@
 
 console.log("lyricsLoader.js: Started");
 
+let attemptCount = 0;
 let lyricsInitInterval = setInterval(() => {
   const lyricsTextArea = document.getElementById("lyricsBox");
   const songSelect = document.getElementById("songSelect");
 
   if (!lyricsTextArea || !songSelect) {
-    console.warn("lyricsLoader.js: Waiting for textarea and song select...");
+    attemptCount++;
+    if (attemptCount % 5 === 0) {
+      console.warn("lyricsLoader.js: Still waiting for textarea and song select...");
+    }
+    if (attemptCount > 50) {
+      clearInterval(lyricsInitInterval);
+      console.error("lyricsLoader.js: Giving up after too many attempts.");
+    }
     return;
   }
 
