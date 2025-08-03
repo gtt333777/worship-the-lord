@@ -2,64 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Worship The Lord</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>🎵 Worship The Lord</h2>
+  <h1 style="text-align: center;">🎵 Worship The Lord</h1>
 
-  <!-- Volume Controls -->
+  <!-- 🔌 HTML placeholders -->
   <div id="audioControl"></div>
-
-  <!-- Bookmark and Folder Buttons -->
   <div id="bookmarkManager"></div>
-
-  <!-- Loop Placeholder -->
   <div id="loopManager"></div>
-
-  <!-- Song Dropdown -->
-  <div id="songLoader"></div>
-
-  <!-- Lyrics TextArea will appear *below* dropdown -->
   <div id="lyricsLoader"></div>
-
-  <!-- Controls -->
-  <div id="skipControl"></div>
-
-  <!-- PWA Install Button -->
   <div id="pwaSetup"></div>
-
-  <!-- Token -->
+  <div id="skipControl"></div>
+  <div id="songLoader"></div>
+  <div id="songNamesLoader"></div>
   <div id="tokenLoader"></div>
 
-  <!-- Hidden Fallbacks (optional) -->
-  <div id="songNamesLoader"></div>
-
-  <!-- Scripts -->
+  <!-- ⚙ JS Loaders -->
   <script src="htmlLoader.js"></script>
-
-  <!-- Load HTML parts dynamically -->
   <script>
     loadHTML("audioControl");
     loadHTML("bookmarkManager");
     loadHTML("loopManager");
-    loadHTML("songLoader");
-    loadHTML("lyricsLoader"); // must be below dropdown
-    loadHTML("skipControl");
+    loadHTML("lyricsLoader");
     loadHTML("pwaSetup");
-    loadHTML("tokenLoader");
+    loadHTML("skipControl");
+    loadHTML("songLoader");
     loadHTML("songNamesLoader");
+    loadHTML("tokenLoader");
   </script>
 
-  <!-- Your JS files (in plain modular style) -->
+  <!-- 🔧 Script Modules (non-ESM) -->
   <script src="audioControl.js"></script>
   <script src="bookmarkManager.js"></script>
   <script src="loopManager.js"></script>
-  <script src="songLoader.js"></script>
   <script src="lyricsLoader.js"></script>
-  <script src="skipControl.js"></script>
   <script src="pwaSetup.js"></script>
-  <script src="tokenLoader.js"></script>
+  <script src="skipControl.js"></script>
+  <script src="songLoader.js"></script>
   <script src="songNamesLoader.js"></script>
+  <script src="tokenLoader.js"></script>
 </body>
 </html>
