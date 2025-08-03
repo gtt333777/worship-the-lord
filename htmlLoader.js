@@ -1,40 +1,39 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const folder = "."; // ✅ Now points to root (not worshipapp_modular)
+// htmlLoader.js
+console.log("htmlLoader.js: Started");
 
-    const placeholders = {
-        "lyricsLoader": "lyrics-loader-placeholder",
-        "loopManager": "loop-manager-placeholder",
-        "audioControl": "audio-control-placeholder",
-        "songLoader": "song-loader-placeholder",
-        "songNamesLoader": "song-names-loader-placeholder",
-        "bookmarkManager": "bookmark-manager-placeholder",
-        "pwaSetup": "pwa-setup-placeholder"
-    };
+const folder = "."; // Load .html files from root
 
-    Object.keys(placeholders).forEach(fileKey => {
-        const placeholderId = placeholders[fileKey];
-        const placeholder = document.getElementById(placeholderId);
+const htmlSections = [
+  "audioControl",
+  "bookmarkManager",
+  "loopManager",
+  "lyricsLoader",
+  "pwaSetup",
+  "skipControl",
+  "songLoader",
+  "songNamesLoader",
+  "tokenLoader"
+];
 
-        if (!placeholder) {
-            console.warn(`⚠️ Placeholder not found for ${fileKey}`);
-            return;
-        }
+window.addEventListener("DOMContentLoaded", () => {
+  htmlSections.forEach(section => {
+    const container = document.getElementById(section);
+    if (!container) {
+      console.warn(`⚠️ Placeholder not found for ${section}`);
+      return;
+    }
 
-        const htmlPath = `${folder}/${fileKey}.html`;
-
-        fetch(htmlPath)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to load ${htmlPath}`);
-                }
-                return response.text();
-            })
-            .then(html => {
-                placeholder.innerHTML = html;
-                console.log(`✅ Injected ${fileKey}.html`);
-            })
-            .catch(error => {
-                console.error(`❌ Error loading ${htmlPath}:`, error);
-            });
-    });
+    fetch(`${folder}/${section}.html`)
+      .then(response => {
+        if (!response.ok) throw new Error(`Failed to load ${section}.html`);
+        return response.text();
+      })
+      .then(html => {
+        container.innerHTML = html;
+        console.log(`✅ Loaded: ${section}.html`);
+      })
+      .catch(error => {
+        console.error(`❌ Error loading ${section}.html:`, error);
+      });
+  });
 });
