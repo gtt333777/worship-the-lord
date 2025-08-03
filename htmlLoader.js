@@ -1,6 +1,7 @@
 // htmlLoader.js
-console.log("✅ htmlLoader.js: Started");
+console.log("htmlLoader.js: Started");
 
+const folder = ".";
 const htmlSections = [
   "audioControl",
   "bookmarkManager",
@@ -17,21 +18,24 @@ window.addEventListener("DOMContentLoaded", () => {
   htmlSections.forEach(section => {
     const container = document.getElementById(section);
     if (!container) {
-      console.warn(`⚠️ Container missing: ${section}`);
+      console.warn(`⚠️ Placeholder not found for ${section}`);
       return;
     }
 
-    fetch(`${section}.html`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Failed to load ${section}.html`);
-        return res.text();
+    fetch(`${folder}/${section}.html`)
+      .then(response => {
+        if (!response.ok) throw new Error(`Failed to load ${section}.html`);
+        return response.text();
       })
       .then(html => {
         container.innerHTML = html;
-        console.log(`✅ htmlLoader.js: Successfully loaded '${section}.html'`);
+        console.log(`✅ Loaded: ${section}.html`);
+
+        // Dispatch custom event so the corresponding JS knows it's safe to run
+        document.dispatchEvent(new Event(`${section}Loaded`));
       })
-      .catch(err => {
-        console.error(`❌ htmlLoader.js: Error loading ${section}.html`, err);
+      .catch(error => {
+        console.error(`❌ Error loading ${section}.html:`, error);
       });
   });
 });
