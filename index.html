@@ -2,36 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎵 Worship The Lord</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Worship The Lord</title>
 </head>
 <body>
-  <h2>🎵 Worship The Lord</h2>
+  <div id="appContainer">
+    <!-- Dynamic HTML parts will be loaded here -->
+  </div>
 
-  <!-- Modular HTML placeholders (IDs fixed to match htmlLoader.js expectations) -->
-  <div id="audioControl"></div>
-  <div id="bookmarkManager"></div>
-  <div id="loopManager"></div>
-  <div id="songNamesLoader"></div>     <!-- ✅ DROPDOWN should come BEFORE lyrics -->
-  <div id="lyricsLoader"></div>        <!-- ✅ Lyrics will appear BELOW the dropdown -->
-  <div id="pwaSetup"></div>
-  <div id="skipControl"></div>
-  <div id="songLoader"></div>
-  <div id="tokenLoader"></div>
-
-  <!-- JavaScript loaders (ORDER MATTERS!) -->
+  <!-- Load HTML fragments first -->
   <script src="htmlLoader.js"></script>
+  <script>
+    // Load all the modular HTML parts into appContainer
+    loadHTML("audioControl.html");
+    loadHTML("bookmarkManager.html");
+    loadHTML("loopManager.html");
+    loadHTML("lyricsLoader.html");  // ✅ Must be before songNamesLoader and lyricsLoader.js
+    loadHTML("songNamesLoader.html");
+    loadHTML("skipControl.html");
+    loadHTML("pwaSetup.html");
+    loadHTML("tokenLoader.html");
+    loadHTML("songLoader.html");
+  </script>
 
-  <!-- Load supporting JS files -->
-  <script src="tokenLoader.js"></script>
-  <script src="songNamesLoader.js"></script>
-  <script src="songLoader.js"></script>
-  <script src="lyricsLoader.js"></script>
+  <!-- Then load corresponding JS files -->
   <script src="audioControl.js"></script>
   <script src="bookmarkManager.js"></script>
   <script src="loopManager.js"></script>
+  <script src="lyricsLoader.js"></script> <!-- ✅ Must come AFTER lyricsLoader.html -->
+  <script src="songNamesLoader.js"></script>
   <script src="skipControl.js"></script>
   <script src="pwaSetup.js"></script>
+  <script src="tokenLoader.js"></script>
+  <script src="songLoader.js"></script>
 </body>
 </html>
