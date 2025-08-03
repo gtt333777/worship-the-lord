@@ -1,115 +1,135 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ DOMContentLoaded for loopManager.js");
-
-  setTimeout(() => {
-    const select = document.querySelector("#songSelect");
-    if (!select) {
-      console.error("⛔ #songSelect not found");
-      return;
+﻿document.addEventListener("DOMContentLoaded", async () => {
+    const songSelect = document.getElementById("songSelect");
+    if (!songSelect) {
+        console.warn("⚠️ songSelect not found");
+        return;
     }
 
-    const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-    if (!loopButtonsContainer) {
-      console.error("⛔ loopButtonsContainer not found");
-      return;
-    }
+    songSelect.addEventListener("change", handleSongSelection);
 
-    // Create 5 Segment buttons
-    for (let i = 0; i < 5; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = `Segment ${i + 1}`;
-      btn.style.margin = "4px";
-      btn.className = "segment-btn";
-      btn.onclick = () => handleSegmentClick(i);
-      loopButtonsContainer.appendChild(btn);
-    }
-
-    select.addEventListener("change", () => {
-      const selectedSong = select.value.trim();
-      console.log("🎵 New song selected:", selectedSong);
-      loadAndPlaySong(selectedSong);
+    const segmentButtons = document.querySelectorAll("button[id^='segment']");
+    segmentButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const segmentNumber = parseInt(button.id.replace("segment", ""));
+            console.log(`🎵 User clicked Segment ${segmentNumber}`);
+            playFromSegment(segmentNumber);
+        });
     });
-
-    // Load initial song if already selected
-    if (select.value.trim()) {
-      loadAndPlaySong(select.value.trim());
-    }
 
     console.log("✅ loopManager.js fully initialized.");
-  }, 500);
 });
 
-async function getDropboxUrl(path) {
-  try {
-    const res = await fetch("/.netlify/functions/getAccessToken");
-    if (!res.ok) throw new Error("Failed to get token");
-    const { access_token } = await res.json();
-    return `https://content.dropboxapi.com/2/files/download`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        "Dropbox-API-Arg": JSON.stringify({ path })
-      }
-    };
-  } catch (err) {
-    console.error("⛔ getDropboxUrl error:", err);
-    return null;
-  }
+let loopData = [];
+let currentSegmentIndex = 0;
+let vocalAudio = null;
+let accompAudio = null;
+
+async function handleSongSelection() {
+    const songName = document.getElementById("songSelect").value;
+    console.log("🎶 New song selected:", songName);
+
+    const prefix = getPrefixFromSongName(songName);
+    if (!prefix) {
+        console.error("❌ Could not derive prefix from song name");
+        return;
+    }
+
+    const vocalUrl = await getDropboxUrl(`/WorshipSongs/${prefix}_vocal.mp3`);
+    const accompUrl = await getDropboxUrl(`/WorshipSongs/${prefix}_acc.mp3`);
+    const loopsUrl = await getDropboxUrl(`/WorshipSongs/${prefix}_loops.json`);
+
+    console.log("🎤 Vocal URL:", vocalUrl);
+    console.log("🎼 Accompaniment URL:", accompUrl);
+    console.log("🔁 Loops JSON:", loopsUrl);
+
+    try {
+        vocalAudio = new Audio(vocalUrl);
+        accompAudio = new Audio(accompUrl);
+
+        vocalAudio.addEventListener("ended", stopPlayback);
+        accompAudio.addEventListener("ended", stopPlayback);
+
+        const response = await fetch(loopsUrl);
+        loopData = await response.json();
+        console.log("✅ Loaded loops:", loopData);
+    } catch (err) {
+        console.error("❌ Error loading audio files:", err);
+    }
 }
 
-async function loadAndPlaySong(songName) {
-  const vocalFile = `/WorshipSongs/${songName}_vocal.mp3`;
-  const accFile = `/WorshipSongs/${songName}_acc.mp3`;
-  const loopsFile = `/WorshipSongs/${songName}_loops.json`;
+function playFromSegment(segmentNumber) {
+    if (!loopData.length) {
+        console.warn("⚠️ No loop data loaded");
+        return;
+    }
 
-  console.log("🎵 Vocal URL:", vocalFile);
-  console.log("🎵 Accompaniment URL:", accFile);
-  console.log("🔁 Loops JSON:", loopsFile);
+    const segment = loopData[segmentNumber - 1];
+    if (!segment) {
+        console.warn(`⚠️ Segment ${segmentNumber} not found`);
+        return;
+    }
 
-  const audioContext = new AudioContext();
-  const [vocalAudio, accAudio] = [new Audio(), new Audio()];
-  vocalAudio.crossOrigin = "anonymous";
-  accAudio.crossOrigin = "anonymous";
+    currentSegmentIndex = segmentNumber - 1;
+    playSegment(currentSegmentIndex);
+}
 
-  // Load Loops
-  try {
-    const res = await fetch(`https://content.dropboxapi.com/2/files/download`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${(await fetch("/.netlify/functions/getAccessToken").then(r => r.json())).access_token}`,
-        "Dropbox-API-Arg": JSON.stringify({ path: loopsFile })
-      }
-    });
+function playSegment(index) {
+    const loop = loopData[index];
+    if (!loop) return;
 
-    if (!res.ok) throw new Error("Failed to fetch loops JSON");
-    const loopData = await res.json();
-    console.log("✅ Loop data loaded:", loopData);
-  } catch (err) {
-    console.error("⛔ Failed to load loop JSON:", err);
-  }
+    const start = loop.start;
+    const end = loop.end;
 
-  // Load and play audio tracks
-  try {
-    const token = await fetch("/.netlify/functions/getAccessToken").then(r => r.json()).then(j => j.access_token);
-
-    [vocalAudio.src, accAudio.src] = [
-      `https://dl.dropboxusercontent.com/2/files/download?arg={"path":"${vocalFile}"}`,
-      `https://dl.dropboxusercontent.com/2/files/download?arg={"path":"${accFile}"}`
-    ];
-
-    vocalAudio.load();
-    accAudio.load();
+    vocalAudio.currentTime = start;
+    accompAudio.currentTime = start;
 
     vocalAudio.play();
-    accAudio.play();
+    accompAudio.play();
 
-    console.log("▶️ Playing audio");
-  } catch (err) {
-    console.error("⛔ Error loading audio files:", err);
-  }
+    const interval = setInterval(() => {
+        if (vocalAudio.currentTime >= end || accompAudio.currentTime >= end) {
+            vocalAudio.pause();
+            accompAudio.pause();
+            clearInterval(interval);
+
+            if (index + 1 < loopData.length) {
+                playSegment(index + 1);
+            } else {
+                console.log("✅ Playback finished after last loop.");
+            }
+        }
+    }, 100);
 }
 
-function handleSegmentClick(index) {
-  console.log(`🔁 User clicked Segment ${index + 1}`);
-  // Future implementation: jump to selected loop segment
+function stopPlayback() {
+    vocalAudio.pause();
+    accompAudio.pause();
+    vocalAudio.currentTime = 0;
+    accompAudio.currentTime = 0;
+}
+
+function getPrefixFromSongName(songName) {
+    // Assume suffix-based matching
+    const suffixMap = {
+        "என் வாழ்க்கையெல்லாம் உம்": "En_vaalkaikayellam_Um",
+        "உம் நாமத்தையே தூதுவோம்": "Um_Namaththaiye_Thooduvoam",
+        // Add more as needed
+    };
+    for (const [key, val] of Object.entries(suffixMap)) {
+        if (songName.endsWith(key)) return val;
+    }
+    return null;
+}
+
+async function getDropboxUrl(path) {
+    try {
+        const response = await fetch("/.netlify/functions/getDropboxToken");  // ✅ FIXED URL
+        const data = await response.json();
+        const accessToken = data.access_token;
+
+        return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${accessToken}&arg={"path":"${path}"}`;
+    } catch (err) {
+        console.error("❌ getDropboxUrl error:", err);
+        throw err;
+    }
 }
