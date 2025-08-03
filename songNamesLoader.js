@@ -1,7 +1,7 @@
 ﻿// songNamesLoader.js
 console.log("🎵 songNamesLoader.js: Starting...");
 
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("songNamesLoaderLoaded", () => {
   const songSelect = document.getElementById("songSelect");
 
   if (!songSelect) {
@@ -21,17 +21,14 @@ window.addEventListener("DOMContentLoaded", () => {
       const songNames = text.split('\n').map(name => name.trim()).filter(Boolean);
       console.log(`🎶 Found ${songNames.length} song name(s):`, songNames);
 
-      // Clear existing options
       songSelect.innerHTML = "";
 
-      // Add default option
       const defaultOption = document.createElement("option");
       defaultOption.textContent = "Choose a song";
       defaultOption.disabled = true;
       defaultOption.selected = true;
       songSelect.appendChild(defaultOption);
 
-      // Add each song as option
       songNames.forEach(name => {
         const option = document.createElement("option");
         option.textContent = name;
