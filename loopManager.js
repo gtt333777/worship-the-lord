@@ -1,119 +1,136 @@
-﻿// WorshipApp_Modular/loopManager.js
-console.log("loopManager.js: Loaded");
+﻿// loopManager.js
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('✅ Loaded: loopManager.html');
 
-document.addEventListener("DOMContentLoaded", () => {
-  const interval = setInterval(() => {
-    const songSelect = document.getElementById("songSelect");
-    const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-    if (!songSelect || !loopButtonsContainer) {
-      console.log("loopManager.js: Waiting for DOM elements...");
-      return;
+  const loopButtonsContainer = document.getElementById('loopButtonsContainer');
+  let audioContext, vocalSource, accSource;
+  let vocalBuffer, accBuffer;
+  let segments = [];
+  let currentSegmentIndex = 0;
+  let isPlaying = false;
+
+  async function getAccessToken() {
+    try {
+      const response = await fetch('/functions/getAccessToken'); // ✅ Fixed path
+      if (!response.ok) throw new Error('Access token fetch failed');
+      const data = await response.json();
+      return data.access_token;
+    } catch (error) {
+      console.error('❌ getAccessToken error:', error);
+      throw error;
     }
-    clearInterval(interval);
-    console.log("loopManager.js: DOM ready");
-
-    songSelect.addEventListener("change", async () => {
-      const songName = songSelect.value.trim();
-      console.log("🎧 New song selected:", songName);
-
-      const vocalUrl = await getDropboxUrl(`${songName}_vocal.mp3`);
-      const accUrl = await getDropboxUrl(`${songName}_acc.mp3`);
-      const loopsUrl = `lyrics/${encodeURIComponent(songName)}_loops.json`;
-
-      console.log("🎵 Vocal URL:", vocalUrl);
-      console.log("🎵 Accompaniment URL:", accUrl);
-      console.log("📁 Loops JSON:", loopsUrl);
-
-      const vocalAudio = new Audio(vocalUrl);
-      const accAudio = new Audio(accUrl);
-      vocalAudio.crossOrigin = "anonymous";
-      accAudio.crossOrigin = "anonymous";
-
-      fetch(loopsUrl)
-        .then((res) => {
-          if (!res.ok) throw new Error("Loop JSON not found");
-          return res.json();
-        })
-        .then((segments) => {
-          renderSegmentButtons(segments, vocalAudio, accAudio);
-        })
-        .catch((err) => {
-          console.error("❌ Error loading loop JSON:", err);
-        });
-    });
-  }, 200);
-});
-
-async function getDropboxUrl(filename) {
-  try {
-    const res = await fetch("/.netlify/functions/getAccessToken");
-    if (!res.ok) throw new Error("Failed to get token");
-    const { access_token } = await res.json();
-
-    const path = `/WorshipSongs/${filename}`;
-    const url = `https://content.dropboxapi.com/2/files/download`;
-
-    const audioRes = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        "Dropbox-API-Arg": JSON.stringify({ path }),
-      },
-    });
-
-    if (!audioRes.ok) throw new Error("Audio fetch failed");
-
-    const blob = await audioRes.blob();
-    return URL.createObjectURL(blob);
-  } catch (e) {
-    console.error("❌ getDropboxUrl error:", e);
-    return "";
   }
-}
 
-function renderSegmentButtons(segments, vocalAudio, accAudio) {
-  const container = document.getElementById("loopButtonsContainer");
-  container.innerHTML = "";
-
-  let currentTimeout = null;
-
-  segments.forEach((seg, index) => {
-    const btn = document.createElement("button");
-    btn.textContent = `Segment ${index + 1}`;
-    btn.style.padding = "10px";
-    btn.style.borderRadius = "12px";
-    btn.style.background = "#89CFF0";
-    btn.style.fontWeight = "bold";
-    btn.style.cursor = "pointer";
-    btn.style.border = "1px solid #333";
-
-    btn.addEventListener("click", () => {
-      clearTimeout(currentTimeout);
-      vocalAudio.pause();
-      accAudio.pause();
-
-      vocalAudio.currentTime = seg.start;
-      accAudio.currentTime = seg.start;
-
-      vocalAudio.play();
-      accAudio.play();
-
-      console.log(`🔁 Playing Segment ${index + 1} (${seg.start}s to ${seg.end}s)`);
-
-      const duration = (seg.end - seg.start) * 1000;
-      currentTimeout = setTimeout(() => {
-        vocalAudio.pause();
-        accAudio.pause();
-
-        // Auto-play next segment if exists
-        if (index + 1 < segments.length) {
-          container.children[index + 1].click();
-        } else {
-          console.log("✅ Finished all segments.");
-        }
-      }, duration);
+  async function getDropboxAudioBuffer(filename, accessToken) {
+    const response = await fetch('https://content.dropboxapi.com/2/files/download', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({
+          path: `/WorshipSongs/${filename}`
+        })
+      }
     });
 
-    container.appendChild(btn);
-  });
-}
+    if (!response.ok) {
+      throw new Error(`❌ Failed to fetch ${filename}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return await audioContext.decodeAudioData(arrayBuffer);
+  }
+
+  async function loadAndPlaySegment(index) {
+    if (!segments[index]) return;
+    const { start, end } = segments[index];
+    currentSegmentIndex = index;
+
+    // Stop if already playing
+    if (isPlaying && vocalSource && accSource) {
+      vocalSource.stop();
+      accSource.stop();
+      console.log('⛔️ Stopped previous segment.');
+    }
+
+    isPlaying = true;
+    vocalSource = audioContext.createBufferSource();
+    accSource = audioContext.createBufferSource();
+    vocalSource.buffer = vocalBuffer;
+    accSource.buffer = accBuffer;
+
+    vocalSource.connect(audioContext.destination);
+    accSource.connect(audioContext.destination);
+
+    const duration = end - start;
+    console.log(`▶️ Playing Segment ${index + 1} (From ${start}s to ${end}s)`);
+
+    vocalSource.start(0, start, duration);
+    accSource.start(0, start, duration);
+
+    vocalSource.onended = () => {
+      const nextIndex = currentSegmentIndex + 1;
+      if (segments[nextIndex]) {
+        loadAndPlaySegment(nextIndex);
+      } else {
+        console.log('✅ Reached final segment.');
+        isPlaying = false;
+      }
+    };
+  }
+
+  async function loadSongResources(selectedName) {
+    try {
+      const accessToken = await getAccessToken();
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      const suffixSafeName = selectedName.trim();
+      const loopsPath = `lyrics/${suffixSafeName}_loops.json`;
+      const [vocal, acc, loops] = await Promise.all([
+        getDropboxAudioBuffer(`${suffixSafeName}_vocal.mp3`, accessToken),
+        getDropboxAudioBuffer(`${suffixSafeName}_acc.mp3`, accessToken),
+        fetch(loopsPath).then(res => res.json())
+      ]);
+
+      vocalBuffer = vocal;
+      accBuffer = acc;
+      segments = loops;
+      console.log(`✅ Loaded ${segments.length} segments from`, loopsPath);
+      renderSegmentButtons();
+
+    } catch (error) {
+      console.error('❌ Error loading song:', error);
+    }
+  }
+
+  function renderSegmentButtons() {
+    loopButtonsContainer.innerHTML = '';
+    segments.forEach((seg, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = `Segment ${i + 1}`;
+      btn.style.backgroundColor = '#f9a825';
+      btn.style.color = '#000';
+      btn.style.border = 'none';
+      btn.style.padding = '6px 10px';
+      btn.style.margin = '3px';
+      btn.style.borderRadius = '6px';
+      btn.style.cursor = 'pointer';
+      btn.addEventListener('click', () => {
+        console.log(`🎯 User Clicked Segment ${i + 1}`);
+        loadAndPlaySegment(i);
+      });
+      loopButtonsContainer.appendChild(btn);
+    });
+  }
+
+  // Watch for song selection
+  const songSelect = document.getElementById('songSelect');
+  if (songSelect) {
+    songSelect.addEventListener('change', () => {
+      const selectedName = songSelect.value.trim();
+      console.log('🎵 New song selected:', selectedName);
+      loadSongResources(selectedName);
+    });
+  } else {
+    console.warn('⚠️ songSelect not found');
+  }
+});
