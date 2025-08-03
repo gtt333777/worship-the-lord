@@ -1,18 +1,18 @@
-﻿<div id="lyricsContainer" style="margin: 0; padding: 0;">
+﻿<!-- lyricsLoader.html -->
+<div style="margin: 20px;">
+  <label for="songSelect" style="font-weight: bold; font-size: 1.1em;">
+    🎵 Choose a song:
+  </label>
+  <select id="songSelect">
+    <option>Loading songs...</option>
+  </select>
+
+  <br><br>
+
   <textarea
     id="lyricsTextArea"
+    rows="25"
     readonly
-    style="
-      width: 100%;
-      height: 90vh;
-      margin: 0;
-      padding: 10px;
-      font-size: 1.3em;
-      line-height: 1.6em;
-      font-family: inherit;
-      resize: none;
-      border: 1px solid #ccc;
-      background-color: #fdfdfd;
-    "
+    style="width: 100%; height: 70vh; resize: none; font-size: 1.2em; line-height: 1.6; overflow-y: scroll; border: 1px solid #999;"
   ></textarea>
 </div>
