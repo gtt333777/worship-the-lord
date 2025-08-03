@@ -1,10 +1,12 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
-  console.log("lyricsLoader.js: Loaded");
+﻿// lyricsLoader.js
 
-  const lyricsBox = document.getElementById("lyricsBox");
-  const songSelect = document.getElementById("songDropdown");
+console.log("lyricsLoader.js: Started");
 
-  if (!lyricsBox || !songSelect) {
+document.addEventListener("DOMContentLoaded", () => {
+  const lyricsTextArea = document.getElementById("lyricsBox");
+  const songSelect = document.getElementById("songSelect");
+
+  if (!lyricsTextArea || !songSelect) {
     console.error("lyricsLoader: Missing textarea or song select element");
     return;
   }
@@ -14,19 +16,24 @@
     if (!selectedSong) return;
 
     const suffix = selectedSong.trim();
-    const filePath = `lyrics/${suffix}.txt`;
+    const lyricsFilePath = `lyrics/${suffix}.txt`;
 
-    fetch(filePath)
+    fetch(lyricsFilePath)
       .then((response) => {
-        if (!response.ok) throw new Error("Lyrics file not found.");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch lyrics for ${suffix}`);
+        }
         return response.text();
       })
       .then((text) => {
-        lyricsBox.value = text;
+        lyricsTextArea.value = text;
+        console.log(`lyricsLoader: Loaded lyrics for ${suffix}`);
       })
       .catch((error) => {
-        console.error("lyricsLoader: Failed to load lyrics:", error);
-        lyricsBox.value = "Lyrics not available.";
+        console.error("lyricsLoader: Error loading lyrics:", error);
+        lyricsTextArea.value = "[Lyrics not found]";
       });
   });
+
+  console.log("lyricsLoader.js: Loaded");
 });
