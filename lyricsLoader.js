@@ -14,20 +14,19 @@ document.addEventListener("lyricsLoaderLoaded", () => {
   }
 
   songSelect.addEventListener("change", () => {
-    const selectedSong = songSelect.value;
-    if (!selectedSong) return;
+    const selectedSong = songSelect.value.trim();
 
-    const suffix = selectedSong.trim();
-    const lyricsFilePath = `lyrics/${suffix}.txt`;
+    // Important: Encode the song name to make it URL-safe
+    const lyricsFilePath = `lyrics/${encodeURIComponent(selectedSong)}.txt`;
 
     fetch(lyricsFilePath)
       .then((response) => {
-        if (!response.ok) throw new Error(`Lyrics not found for ${suffix}`);
+        if (!response.ok) throw new Error(`Lyrics not found for ${selectedSong}`);
         return response.text();
       })
       .then((text) => {
         lyricsTextArea.value = text;
-        console.log(`lyricsLoader.js: Loaded lyrics for ${suffix}`);
+        console.log(`lyricsLoader.js: Loaded lyrics for ${selectedSong}`);
       })
       .catch((error) => {
         console.error("lyricsLoader.js: Error fetching lyrics:", error);
