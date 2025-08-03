@@ -1,39 +1,38 @@
 ﻿// lyricsLoader.js
 console.log("lyricsLoader.js: Starting...");
 
-document.addEventListener("DOMContentLoaded", function () {
-  const dropdown = document.getElementById("songSelect");
-  const lyricsBox = document.getElementById("lyricsTextArea");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("lyricsLoader.js: DOMContentLoaded fired");
 
-  if (!dropdown) {
-    console.error("lyricsLoader.js: #songSelect not found");
-    return;
-  }
+  const waitForElements = setInterval(() => {
+    const songSelect = document.getElementById("songSelect");
+    const lyricsTextArea = document.getElementById("lyricsTextArea");
 
-  if (!lyricsBox) {
-    console.error("lyricsLoader.js: #lyricsTextArea not found");
-    return;
-  }
+    if (songSelect && lyricsTextArea) {
+      clearInterval(waitForElements);
+      console.log("lyricsLoader.js: Found dropdown and textarea");
 
-  dropdown.addEventListener("change", function () {
-    const songName = dropdown.value.trim();
-    if (!songName) return;
+      songSelect.addEventListener("change", () => {
+        const selectedSong = songSelect.value.trim();
+        const lyricsFilePath = `lyrics/${encodeURIComponent(selectedSong)}.txt`;
+        console.log(`lyricsLoader.js: Fetching lyrics for ${selectedSong}`);
 
-    const lyricsFile = `lyrics/${songName}.txt`;
-    console.log(`lyricsLoader.js: Fetching lyrics from ${lyricsFile}`);
-
-    fetch(lyricsFile)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.text();
-      })
-      .then((text) => {
-        lyricsBox.value = text;
-        console.log(`lyricsLoader.js: Loaded lyrics for "${songName}"`);
-      })
-      .catch((err) => {
-        lyricsBox.value = `❌ Failed to load lyrics: ${err}`;
-        console.error("lyricsLoader.js:", err);
+        fetch(lyricsFilePath)
+          .then((response) => {
+            if (!response.ok) throw new Error(`Lyrics not found for ${selectedSong}`);
+            return response.text();
+          })
+          .then((text) => {
+            lyricsTextArea.value = text;
+            console.log(`lyricsLoader.js: Loaded lyrics for ${selectedSong}`);
+          })
+          .catch((error) => {
+            console.error("lyricsLoader.js: Error fetching lyrics:", error);
+            lyricsTextArea.value = "[Lyrics not found]";
+          });
       });
-  });
+    } else {
+      console.log("lyricsLoader.js: Waiting for #songSelect and #lyricsTextArea...");
+    }
+  }, 100);
 });
