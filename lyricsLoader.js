@@ -2,14 +2,17 @@
 
 console.log("lyricsLoader.js: Started");
 
-document.addEventListener("DOMContentLoaded", () => {
+let lyricsInitInterval = setInterval(() => {
   const lyricsTextArea = document.getElementById("lyricsBox");
   const songSelect = document.getElementById("songSelect");
 
   if (!lyricsTextArea || !songSelect) {
-    console.error("lyricsLoader: Missing textarea or song select element");
+    console.warn("lyricsLoader.js: Waiting for textarea and song select...");
     return;
   }
+
+  clearInterval(lyricsInitInterval);
+  console.log("lyricsLoader.js: Elements found. Initializing event listener.");
 
   songSelect.addEventListener("change", () => {
     const selectedSong = songSelect.value;
@@ -27,13 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then((text) => {
         lyricsTextArea.value = text;
-        console.log(`lyricsLoader: Loaded lyrics for ${suffix}`);
+        console.log(`lyricsLoader.js: Loaded lyrics for ${suffix}`);
       })
       .catch((error) => {
-        console.error("lyricsLoader: Error loading lyrics:", error);
+        console.error("lyricsLoader.js: Error loading lyrics:", error);
         lyricsTextArea.value = "[Lyrics not found]";
       });
   });
 
   console.log("lyricsLoader.js: Loaded");
-});
+}, 300);
