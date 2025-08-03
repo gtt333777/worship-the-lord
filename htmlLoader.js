@@ -1,39 +1,24 @@
 // htmlLoader.js
 console.log("htmlLoader.js: Started");
 
-const folder = "."; // Load .html files from root
+// Define the function globally so it's accessible from index.html
+window.loadHTML = function (id) {
+  const placeholder = document.getElementById(id);
+  if (!placeholder) {
+    console.warn(`⚠️ htmlLoader.js: Placeholder div not found for '${id}'`);
+    return;
+  }
 
-const htmlSections = [
-  "audioControl",
-  "bookmarkManager",
-  "loopManager",
-  "lyricsLoader",
-  "pwaSetup",
-  "skipControl",
-  "songLoader",
-  "songNamesLoader",
-  "tokenLoader"
-];
-
-window.addEventListener("DOMContentLoaded", () => {
-  htmlSections.forEach(section => {
-    const container = document.getElementById(section);
-    if (!container) {
-      console.warn(`⚠️ Placeholder not found for ${section}`);
-      return;
-    }
-
-    fetch(`${folder}/${section}.html`)
-      .then(response => {
-        if (!response.ok) throw new Error(`Failed to load ${section}.html`);
-        return response.text();
-      })
-      .then(html => {
-        container.innerHTML = html;
-        console.log(`✅ Loaded: ${section}.html`);
-      })
-      .catch(error => {
-        console.error(`❌ Error loading ${section}.html:`, error);
-      });
-  });
-});
+  fetch(`${id}.html`)
+    .then((response) => {
+      if (!response.ok) throw new Error(`Failed to load '${id}.html'`);
+      return response.text();
+    })
+    .then((html) => {
+      placeholder.innerHTML = html;
+      console.log(`✅ htmlLoader.js: Successfully loaded '${id}.html'`);
+    })
+    .catch((err) => {
+      console.error(`❌ htmlLoader.js: Error loading '${id}.html':`, err);
+    });
+};
