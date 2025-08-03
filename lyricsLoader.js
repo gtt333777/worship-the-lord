@@ -1,23 +1,25 @@
 ﻿// lyricsLoader.js
 
-console.log("lyricsLoader.js: Waiting for lyricsLoader.html to finish loading...");
+document.addEventListener("DOMContentLoaded", () => {
+  const lyricsTextArea = document.getElementById("lyricsTextArea");
+  const songDropdown = document.getElementById("songDropdown");
 
-document.addEventListener("lyricsLoaderLoaded", () => {
-  console.log("lyricsLoader.js: lyricsLoader.html loaded. Initializing...");
-
-  const lyricsTextArea = document.getElementById("lyricsBox");
-  const songSelect = document.getElementById("songSelect");
-
-  if (!lyricsTextArea || !songSelect) {
-    console.error("lyricsLoader.js: Missing textarea or song selector.");
+  if (!lyricsTextArea || !songDropdown) {
+    console.error("lyricsLoader.js: Missing textarea or dropdown element");
     return;
   }
 
-  songSelect.addEventListener("change", () => {
-    const selectedSong = songSelect.value.trim();
+  console.log("lyricsLoader.js: Adding event listener to songDropdown");
 
-    // Important: Encode the song name to make it URL-safe
+  songDropdown.addEventListener("change", () => {
+    const selectedSong = songDropdown.value.trim();
+    if (!selectedSong) {
+      lyricsTextArea.value = "";
+      return;
+    }
+
     const lyricsFilePath = `lyrics/${encodeURIComponent(selectedSong)}.txt`;
+    console.log(`lyricsLoader.js: Trying to load lyrics from: ${lyricsFilePath}`);
 
     fetch(lyricsFilePath)
       .then((response) => {
@@ -26,13 +28,11 @@ document.addEventListener("lyricsLoaderLoaded", () => {
       })
       .then((text) => {
         lyricsTextArea.value = text;
-        console.log(`lyricsLoader.js: Loaded lyrics for ${selectedSong}`);
+        console.log(`lyricsLoader.js: ✅ Loaded lyrics for ${selectedSong}`);
       })
       .catch((error) => {
-        console.error("lyricsLoader.js: Error fetching lyrics:", error);
+        console.error("lyricsLoader.js: ❌ Error fetching lyrics:", error);
         lyricsTextArea.value = "[Lyrics not found]";
       });
   });
-
-  console.log("lyricsLoader.js: Setup complete.");
 });
