@@ -1,42 +1,48 @@
 ﻿// songNamesLoader.js
-console.log("songNamesLoader.js: Starting up");
+console.log("🎵 songNamesLoader.js: Starting...");
 
 window.addEventListener("DOMContentLoaded", () => {
-  const dropdown = document.getElementById("songSelect");
-  if (!dropdown) {
-    console.error("❌ songNamesLoader.js: #songSelect not found");
+  const songSelect = document.getElementById("songSelect");
+
+  if (!songSelect) {
+    console.error("❌ songNamesLoader.js: #songSelect not found in DOM");
     return;
   }
 
+  console.log("✅ songNamesLoader.js: #songSelect found");
+
   fetch("lyrics/songs_names.txt")
     .then(response => {
-      if (!response.ok) throw new Error("Failed to load songs_names.txt");
+      console.log(`📄 Fetching lyrics/songs_names.txt — Status: ${response.status}`);
+      if (!response.ok) throw new Error("Network response was not ok");
       return response.text();
     })
     .then(text => {
-      const lines = text
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
+      const songNames = text.split('\n').map(name => name.trim()).filter(Boolean);
+      console.log(`🎶 Found ${songNames.length} song name(s):`, songNames);
 
-      console.log(`🎵 Found ${lines.length} song(s) in file.`);
+      // Clear existing options
+      songSelect.innerHTML = "";
 
-      dropdown.innerHTML = ""; // Clear old options
+      // Add default option
       const defaultOption = document.createElement("option");
       defaultOption.textContent = "Choose a song";
       defaultOption.disabled = true;
       defaultOption.selected = true;
-      dropdown.appendChild(defaultOption);
+      songSelect.appendChild(defaultOption);
 
-      lines.forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        dropdown.appendChild(opt);
+      // Add each song as option
+      songNames.forEach(name => {
+        const option = document.createElement("option");
+        option.textContent = name;
+        option.value = name;
+        songSelect.appendChild(option);
       });
+
+      console.log("✅ songNamesLoader.js: Dropdown populated successfully");
     })
     .catch(error => {
-      console.error("❌ songNamesLoader.js: Error loading songs:", error);
-      dropdown.innerHTML = `<option>Error loading songs</option>`;
+      console.error("❌ songNamesLoader.js: Failed to load song names:", error);
+      songSelect.innerHTML = "<option>Error loading songs</option>";
     });
 });
