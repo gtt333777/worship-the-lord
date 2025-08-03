@@ -1,29 +1,54 @@
-console.log("lyricsLoader.js: Loaded");
+﻿console.log("lyricsLoader.js: Loaded");
 
-function loadLyricsForSong(songName) {
-  const lyricsPath = `lyrics/${songName}.txt`;
-  const lyricsTextArea = document.getElementById("lyricsTextArea");
+document.addEventListener("DOMContentLoaded", () => {
+  const lyricsArea = document.getElementById("lyricsTextArea");
+  const songSelect = document.getElementById("songSelect");
 
-  if (!lyricsTextArea) {
-    console.error("lyricsLoader.js: Could not find textarea with id 'lyricsTextArea'");
+  if (!lyricsArea || !songSelect) {
+    console.error("❌ lyricsLoader: Missing textarea or song select element");
     return;
   }
 
-  console.log(`lyricsLoader.js: Attempting to fetch lyrics from: ${lyricsPath}`);
+  songSelect.addEventListener("change", () => {
+    const tamilName = songSelect.value.trim();
+    console.log("📖 lyricsLoader: Song selected =", tamilName);
 
-  fetch(lyricsPath)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-      }
-      return response.text();
-    })
-    .then(text => {
-      lyricsTextArea.value = text;
-      console.log("lyricsLoader.js: Lyrics loaded successfully.");
-    })
-    .catch(error => {
-      lyricsTextArea.value = "";
-      console.warn(`lyricsLoader.js: Failed to load lyrics for "${songName}".`, error);
-    });
-}
+    fetch("lyrics/")
+      .then(response => {
+        if (!response.ok) throw new Error("❌ Failed to read lyrics folder");
+        return response.text();
+      })
+      .then(text => {
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, "text/html");
+        const links = [...htmlDoc.querySelectorAll("a")];
+        const lyricsFiles = links
+          .map(a => a.getAttribute("href"))
+          .filter(name => name && name.endsWith(".txt"));
+
+        const match = lyricsFiles.find(name =>
+          name.toLowerCase().endsWith(`${tamilName.toLowerCase()}.txt`)
+        );
+
+        if (!match) {
+          console.warn("⚠️ No matching lyrics file found.");
+          lyricsArea.value = "";
+          return;
+        }
+
+        fetch(`lyrics/${match}`)
+          .then(res => res.text())
+          .then(content => {
+            lyricsArea.value = content;
+            console.log("✅ Lyrics loaded:", match);
+          })
+          .catch(err => {
+            console.error("❌ Failed to load lyrics file:", err);
+            lyricsArea.value = "";
+          });
+      })
+      .catch(err => {
+        console.error("❌ Could not read lyrics folder:", err);
+      });
+  });
+});
