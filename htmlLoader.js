@@ -1,36 +1,31 @@
-// WorshipApp_Modular/htmlLoader.js
-
-document.addEventListener("DOMContentLoaded", function () {
-  const htmlFiles = [
+document.addEventListener("DOMContentLoaded", () => {
+  const folder = "."; // now pointing to root directory
+  const components = [
     "audioControl",
-    "songNamesLoader",
-    "songLoader",
-    "lyricsLoader",
     "bookmarkManager",
-    "loopManager"
+    "loopManager",
+    "lyricsLoader",
+    "songLoader",
+    "songNamesLoader",
+    "pwaSetup"
   ];
 
-  htmlFiles.forEach((file) => {
-    fetch(`WorshipApp_Modular/${file}.html`)
-      .then((response) => response.text())
-      .then((html) => {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = html;
-
-        if (file === "audioControl") {
-          const placeholder = document.getElementById("audioControlPlaceholder");
-          if (placeholder) {
-            placeholder.innerHTML = html;
-            console.log("✅ Injected audioControl.html into placeholder");
-          } else {
-            console.warn("⚠️ Placeholder not found for audioControl");
-            document.body.appendChild(tempDiv);
-          }
+  components.forEach(component => {
+    const htmlPath = `${folder}/${component}.html`;
+    fetch(htmlPath)
+      .then(response => {
+        if (!response.ok) throw new Error(`Failed to load ${htmlPath}`);
+        return response.text();
+      })
+      .then(html => {
+        const placeholder = document.getElementById(component);
+        if (placeholder) {
+          placeholder.innerHTML = html;
+          console.log(`✅ Injected ${component}.html`);
         } else {
-          document.body.appendChild(tempDiv);
-          console.log(`✅ Injected ${file}.html`);
+          console.warn(`⚠️ Placeholder not found for ${component}`);
         }
       })
-      .catch((err) => console.error(`❌ Failed to load ${file}.html`, err));
+      .catch(error => console.error(`❌ Error loading ${htmlPath}:`, error));
   });
 });
