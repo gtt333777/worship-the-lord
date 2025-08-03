@@ -2,50 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Worship The Lord</title>
+  <link rel="manifest" href="manifest.json" />
 </head>
 <body>
+  <h2>🎵 Worship The Lord</h2>
 
-  <!-- Placeholders for each HTML fragment -->
+  <!-- Volume Controls -->
   <div id="audioControl"></div>
+
+  <!-- Bookmark and Folder Buttons -->
   <div id="bookmarkManager"></div>
+
+  <!-- Loop Placeholder -->
   <div id="loopManager"></div>
-  <div id="lyricsLoader"></div>
-  <div id="songNamesLoader"></div>
-  <div id="skipControl"></div>
-  <div id="pwaSetup"></div>
-  <div id="tokenLoader"></div>
+
+  <!-- Song Dropdown -->
   <div id="songLoader"></div>
 
-  <!-- First, load the loader -->
+  <!-- Lyrics TextArea will appear *below* dropdown -->
+  <div id="lyricsLoader"></div>
+
+  <!-- Controls -->
+  <div id="skipControl"></div>
+
+  <!-- PWA Install Button -->
+  <div id="pwaSetup"></div>
+
+  <!-- Token -->
+  <div id="tokenLoader"></div>
+
+  <!-- Hidden Fallbacks (optional) -->
+  <div id="songNamesLoader"></div>
+
+  <!-- Scripts -->
   <script src="htmlLoader.js"></script>
 
-  <!-- Then, load all HTML into their placeholders -->
+  <!-- Load HTML parts dynamically -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      loadHTML("audioControl.html");
-      loadHTML("bookmarkManager.html");
-      loadHTML("loopManager.html");
-      loadHTML("lyricsLoader.html");
-      loadHTML("songNamesLoader.html");
-      loadHTML("skipControl.html");
-      loadHTML("pwaSetup.html");
-      loadHTML("tokenLoader.html");
-      loadHTML("songLoader.html");
-    });
+    loadHTML("audioControl");
+    loadHTML("bookmarkManager");
+    loadHTML("loopManager");
+    loadHTML("songLoader");
+    loadHTML("lyricsLoader"); // must be below dropdown
+    loadHTML("skipControl");
+    loadHTML("pwaSetup");
+    loadHTML("tokenLoader");
+    loadHTML("songNamesLoader");
   </script>
 
-  <!-- Finally, load all JS logic scripts -->
+  <!-- Your JS files (in plain modular style) -->
   <script src="audioControl.js"></script>
   <script src="bookmarkManager.js"></script>
   <script src="loopManager.js"></script>
+  <script src="songLoader.js"></script>
   <script src="lyricsLoader.js"></script>
-  <script src="songNamesLoader.js"></script>
   <script src="skipControl.js"></script>
   <script src="pwaSetup.js"></script>
   <script src="tokenLoader.js"></script>
-  <script src="songLoader.js"></script>
-
+  <script src="songNamesLoader.js"></script>
 </body>
 </html>
