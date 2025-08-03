@@ -1,37 +1,29 @@
-console.log("📖 lyricsLoader.js: Loaded");
+console.log("lyricsLoader.js: Loaded");
 
-function loadLyricsForSong(selectedSongName) {
-  console.log("📖 lyricsLoader.js: Selected song:", selectedSongName);
+function loadLyricsForSong(songName) {
+  const lyricsPath = `lyrics/${songName}.txt`;
+  const lyricsTextArea = document.getElementById("lyricsTextArea");
 
-  if (!selectedSongName || typeof selectedSongName !== "string") {
-    console.warn("📖 lyricsLoader.js: Invalid song name.");
+  if (!lyricsTextArea) {
+    console.error("lyricsLoader.js: Could not find textarea with id 'lyricsTextArea'");
     return;
   }
 
-  const lyricsFilePath = `lyrics/${selectedSongName}.txt`;
-  console.log("📖 lyricsLoader.js: Attempting to fetch lyrics from:", lyricsFilePath);
+  console.log(`lyricsLoader.js: Attempting to fetch lyrics from: ${lyricsPath}`);
 
-  fetch(lyricsFilePath)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+  fetch(lyricsPath)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
       }
-      return res.text();
+      return response.text();
     })
-    .then((lyrics) => {
-      const lyricsBox = document.getElementById("lyricsBox");
-      if (lyricsBox) {
-        lyricsBox.value = lyrics;
-        console.log("📖 lyricsLoader.js: Lyrics loaded successfully.");
-      } else {
-        console.error("📖 lyricsLoader.js: ❌ lyricsBox not found in DOM.");
-      }
+    .then(text => {
+      lyricsTextArea.value = text;
+      console.log("lyricsLoader.js: Lyrics loaded successfully.");
     })
-    .catch((err) => {
-      console.warn("📖 lyricsLoader.js: Could not load lyrics file:", err.message);
-      const lyricsBox = document.getElementById("lyricsBox");
-      if (lyricsBox) {
-        lyricsBox.value = "🎶 Lyrics not available for this song.";
-      }
+    .catch(error => {
+      lyricsTextArea.value = "";
+      console.warn(`lyricsLoader.js: Failed to load lyrics for "${songName}".`, error);
     });
 }
