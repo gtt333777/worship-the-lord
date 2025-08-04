@@ -1,51 +1,68 @@
 ﻿// audioControl.js
 
-document.addEventListener("DOMContentLoaded", () => {
-  const playButton = document.getElementById("playButton");
-  const vocalSlider = document.getElementById("vocalVolume");
-  const accompSlider = document.getElementById("accompVolume");
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
 
-  const vocalMinus = document.getElementById("vocalMinus");
-  const vocalPlus = document.getElementById("vocalPlus");
-  const accompMinus = document.getElementById("accompMinus");
-  const accompPlus = document.getElementById("accompPlus");
+let loopSegments = []; // 🔁 Must be globally accessible
+let currentLoopIndex = -1;
 
-  function playAudio() {
-    console.log("▶️ Play button clicked");
-    console.log("Vocal src:", window.vocalAudio.src);
-    console.log("Accomp src:", window.accompAudio.src);
+// ⏯️ Play from a specific loop segment
+function playFromLoopSegment(segmentIndex) {
+  console.log(`▶️ playFromLoopSegment: Segment ${segmentIndex + 1} clicked`);
 
-    if (!window.vocalAudio.src || !window.accompAudio.src) {
-      console.warn("⚠️ Audio sources not set yet.");
-      return;
+  if (!loopSegments || !loopSegments[segmentIndex]) {
+    console.warn("⚠️ No such loop segment found.");
+    return;
+  }
+
+  const segment = loopSegments[segmentIndex];
+  const startTime = segment.start;
+  const endTime = segment.end;
+
+  if (isNaN(startTime) || isNaN(endTime)) {
+    console.error("⛔ Invalid segment time values.");
+    return;
+  }
+
+  currentLoopIndex = segmentIndex;
+
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
+
+  vocalAudio.play();
+  accompAudio.play();
+
+  const stopPlayback = () => {
+    if (vocalAudio.currentTime >= endTime || accompAudio.currentTime >= endTime) {
+      vocalAudio.pause();
+      accompAudio.pause();
+      vocalAudio.removeEventListener("timeupdate", stopPlayback);
     }
+  };
 
-    // Reset and sync
-    window.vocalAudio.currentTime = 0;
-    window.accompAudio.currentTime = 0;
-    window.vocalAudio.play();
-    window.accompAudio.play();
+  vocalAudio.addEventListener("timeupdate", stopPlayback);
+}
+
+// 🔊 Volume Control
+function setVolume(type, value) {
+  if (type === "vocal") {
+    vocalAudio.volume = Math.max(0, Math.min(1, vocalAudio.volume + value));
+  } else if (type === "accompaniment") {
+    accompAudio.volume = Math.max(0, Math.min(1, accompAudio.volume + value));
   }
+}
 
-  function updateVolumes() {
-    window.vocalAudio.volume = parseFloat(vocalSlider.value);
-    window.accompAudio.volume = parseFloat(accompSlider.value);
-  }
+// 🎚️ Hook up UI Volume Buttons
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("vocalVolumeMinus").onclick = () => setVolume("vocal", -0.1);
+  document.getElementById("vocalVolumePlus").onclick = () => setVolume("vocal", 0.1);
+  document.getElementById("accompVolumeMinus").onclick = () => setVolume("accompaniment", -0.1);
+  document.getElementById("accompVolumePlus").onclick = () => setVolume("accompaniment", 0.1);
 
-  function changeVolume(slider, delta) {
-    let val = parseFloat(slider.value);
-    val = Math.min(1.0, Math.max(0.0, val + delta));
-    slider.value = val.toFixed(2);
-    updateVolumes();
-  }
-
-  playButton.addEventListener("click", playAudio);
-
-  vocalSlider.addEventListener("input", updateVolumes);
-  accompSlider.addEventListener("input", updateVolumes);
-
-  vocalMinus.addEventListener("click", () => changeVolume(vocalSlider, -0.01));
-  vocalPlus.addEventListener("click", () => changeVolume(vocalSlider, 0.01));
-  accompMinus.addEventListener("click", () => changeVolume(accompSlider, -0.01));
-  accompPlus.addEventListener("click", () => changeVolume(accompSlider, 0.01));
+  document.getElementById("playButton").onclick = () => {
+    vocalAudio.currentTime = 0;
+    accompAudio.currentTime = 0;
+    vocalAudio.play();
+    accompAudio.play();
+  };
 });
