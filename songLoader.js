@@ -64,13 +64,19 @@ document.addEventListener("DOMContentLoaded", () => {
             fetch("/.netlify/functions/getDropboxToken")
               .then(res => res.json())
               .then(({ access_token }) => {
-                const vocalUrl = buildDropboxUrl(vocalName, access_token);
-                const accUrl = buildDropboxUrl(accName, access_token);
+                const vocalUrl = "https://content.dropboxapi.com/2/files/download";
+                const accUrl = "https://content.dropboxapi.com/2/files/download";
 
                 console.log("🎧 Vocal URL:", vocalUrl);
                 console.log("🎹 Accompaniment URL:", accUrl);
 
-                window.currentAudioUrls = { vocalUrl, accUrl };
+                window.currentAudioUrls = {
+                 vocalUrl,
+                 accUrl,
+                 accessToken: access_token,
+                 vocalName,
+                 accName
+              };
 
                 if (typeof prepareAudioFromDropbox === "function") {
                   prepareAudioFromDropbox();
