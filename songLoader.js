@@ -66,3 +66,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 100);
 });
+
+function playFromLoopSegment(segmentIndex) {
+    if (!loopSegments || segmentIndex < 0 || segmentIndex >= loopSegments.length) {
+        console.warn("Invalid loop segment index:", segmentIndex);
+        return;
+    }
+
+    const loop = loopSegments[segmentIndex];
+    if (!loop) {
+        console.warn("Loop segment not found at index:", segmentIndex);
+        return;
+    }
+
+    console.log(`▶️ playFromLoopSegment: Playing from Segment ${segmentIndex + 1}`, loop);
+
+    // Stop current audio
+    vocalAudio.pause();
+    accompAudio.pause();
+
+    // Set start time
+    vocalAudio.currentTime = loop.start;
+    accompAudio.currentTime = loop.start;
+
+    // Start playing both in sync
+    vocalAudio.play();
+    accompAudio.play();
+
+    // Monitor to stop when end is reached
+    const stopAt = loop.end;
+    const checkAndStop = () => {
+        if (vocalAudio.currentTime >= stopAt || accompAudio.currentTime >= stopAt) {
+            vocalAudio.pause();
+            accompAudio.pause();
+            clearInterval(monitor);
+            console.log("⏹️ Segment playback stopped at", stopAt);
+        }
+    };
+    const monitor = setInterval(checkAndStop, 200);
+}
