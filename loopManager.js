@@ -1,149 +1,41 @@
 ﻿// loopManager.js
-console.log("🔁 loopManager.js: Starting");
+console.log("⚠️ loopManager.js: Starting");
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+function waitForLoopElementsAndInit(attempts = 0) {
   const songSelect = document.getElementById("songSelect");
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
 
-  if (!loopButtonsContainer || !songSelect) {
-    console.warn("⚠️ loopManager.js: Waiting for #songSelect and #loopButtonsContainer...");
-    return;
-  }
-
-  console.log("✅ loopManager.js: DOM elements found");
-
-  let currentLoops = [];
-  let currentSegmentIndex = 0;
-  let vocalAudio, accompAudio;
-
-  async function fetchDropboxAccessToken() {
-    try {
-      const response = await fetch("/.netlify/functions/getDropboxToken");
-      const data = await response.json();
-      return data.access_token;
-    } catch (error) {
-      console.error("❌ Failed to fetch Dropbox token", error);
-      return null;
+  if (songSelect && loopButtonsContainer) {
+    console.log("✅ loopManager.js: #songSelect and #loopButtonsContainer found");
+    initializeLoopManager(songSelect, loopButtonsContainer);
+  } else {
+    if (attempts > 20) {
+      console.error("❌ loopManager.js: Failed to find required elements after 20 attempts.");
+      return;
     }
+    console.warn("⏳ loopManager.js: Waiting for #songSelect and #loopButtonsContainer...");
+    setTimeout(() => waitForLoopElementsAndInit(attempts + 1), 300);
   }
+}
 
-  function getSongPrefix(songName) {
-    const suffix = songName.trim();
-    return suffix;
-  }
+function initializeLoopManager(songSelect, loopButtonsContainer) {
+  console.log("✅ loopManager.js: Initializing loop buttons");
 
-  function createAudioElement(id) {
-    const audio = new Audio();
-    audio.id = id;
-    audio.preload = "auto";
-    audio.crossOrigin = "anonymous";
-    return audio;
-  }
+  loopButtonsContainer.innerHTML = ""; // Clear if any
 
-  function loadAndPlaySegment(index) {
-    if (!currentLoops.length) return;
-    const loop = currentLoops[index];
-    if (!loop) return;
-
-    vocalAudio.currentTime = loop.start;
-    accompAudio.currentTime = loop.start;
-    vocalAudio.play();
-    accompAudio.play();
-
-    function stopAtEnd() {
-      if (vocalAudio.currentTime >= loop.end || accompAudio.currentTime >= loop.end) {
-        vocalAudio.pause();
-        accompAudio.pause();
-        vocalAudio.removeEventListener("timeupdate", stopAtEnd);
-        accompAudio.removeEventListener("timeupdate", stopAtEnd);
-      }
-    }
-
-    vocalAudio.addEventListener("timeupdate", stopAtEnd);
-    accompAudio.addEventListener("timeupdate", stopAtEnd);
-  }
-
-  function createSegmentButtons() {
-    loopButtonsContainer.innerHTML = "";
-    currentLoops.forEach((loop, i) => {
-      const btn = document.createElement("button");
-      btn.textContent = `Segment ${i + 1}`;
-      btn.style.marginRight = "5px";
-      btn.onclick = () => {
-        console.log(`▶️ User clicked Segment ${i + 1}`);
-        currentSegmentIndex = i;
-        loadAndPlaySegment(currentSegmentIndex);
-      };
-      loopButtonsContainer.appendChild(btn);
+  for (let i = 1; i <= 5; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = `Segment ${i}`;
+    btn.style.marginRight = "5px";
+    btn.addEventListener("click", () => {
+      console.log(`▶️ User clicked Segment ${i}`);
+      // Your loop playback logic here
     });
+    loopButtonsContainer.appendChild(btn);
   }
 
-  async function loadLoopJson(songPrefix, token) {
-    const loopsUrl = `https://content.dropboxapi.com/2/files/download`;
-    const dropboxPath = `/WorshipSongs/${songPrefix}_loops.json`;
+  console.log("✅ loopManager.js: Segment buttons added");
+}
 
-    const response = await fetch(loopsUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Dropbox-API-Arg": JSON.stringify({ path: dropboxPath }),
-      },
-    });
-
-    if (!response.ok) throw new Error("Failed to load loops JSON");
-
-    const text = await response.text();
-    return JSON.parse(text);
-  }
-
-  async function loadAudioFiles(songPrefix, token) {
-    const base = "https://content.dropboxapi.com/2/files/download";
-
-    const createSource = (type) => {
-      const audio = createAudioElement(`${type}Audio`);
-      audio.src = `${base}`;
-      audio.setAttribute("data-dropbox-path", `/WorshipSongs/${songPrefix}_${type}.mp3`);
-      return audio;
-    };
-
-    vocalAudio = createSource("vocal");
-    accompAudio = createSource("acc");
-
-    const applyDropboxHeaders = (audio, type) => {
-      fetch(base, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Dropbox-API-Arg": JSON.stringify({ path: audio.getAttribute("data-dropbox-path") }),
-        },
-      })
-        .then((res) => res.blob())
-        .then((blob) => {
-          audio.src = URL.createObjectURL(blob);
-          console.log(`🎵 ${type} loaded`);
-        })
-        .catch((err) => console.error(`❌ Error loading ${type}`, err));
-    };
-
-    applyDropboxHeaders(vocalAudio, "Vocal");
-    applyDropboxHeaders(accompAudio, "Accompaniment");
-  }
-
-  songSelect.addEventListener("change", async () => {
-    const songName = songSelect.value;
-    const songPrefix = getSongPrefix(songName);
-    const token = await fetchDropboxAccessToken();
-
-    if (!token) return;
-
-    try {
-      await loadAudioFiles(songPrefix, token);
-      const loops = await loadLoopJson(songPrefix, token);
-      currentLoops = loops;
-      createSegmentButtons();
-      console.log("✅ loopManager.js: Fully initialized with loops");
-    } catch (err) {
-      console.error("❌ loopManager.js: Error during init", err);
-    }
-  });
-});
+// Start waiting for required elements
+waitForLoopElementsAndInit();
