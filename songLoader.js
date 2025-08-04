@@ -1,115 +1,63 @@
-﻿let currentLoops = [];
-let selectedPrefix = "";
+﻿// ✅ songLoader.js — Finalized version inspired by Gold Standard
 
-// ✅ Add this to render segment buttons in loopManager.html
-function renderLoopButtons(loopsData) {
-    const container = document.getElementById("loopButtonsContainer");
-    container.innerHTML = "";
-
-    loopsData.forEach((loop, index) => {
-        const button = document.createElement("button");
-        button.innerText = `Segment ${index + 1}`;
-        button.className = "loop-button";
-        button.onclick = () => {
-            if (window.vocalAudio && window.accompAudio) {
-                vocalAudio.currentTime = loop.start;
-                accompAudio.currentTime = loop.start;
-
-                const endTime = loop.end;
-                vocalAudio.play();
-                accompAudio.play();
-
-                const stopPlayback = () => {
-                    if (vocalAudio.currentTime >= endTime || accompAudio.currentTime >= endTime) {
-                        vocalAudio.pause();
-                        accompAudio.pause();
-                        clearInterval(loopCheck);
-                    }
-                };
-                const loopCheck = setInterval(stopPlayback, 200);
-            }
-        };
-        container.appendChild(button);
-    });
-}
+console.log("🎼 songLoader.js: Started");
 
 document.addEventListener("DOMContentLoaded", () => {
-    const songSelect = document.getElementById("songSelect");
-    const lyricsTextArea = document.getElementById("lyricsTextArea");
+  const songSelect = document.getElementById("songSelect");
 
-    if (!songSelect || !lyricsTextArea) {
-        console.error("songLoader.js: #songSelect or #lyricsTextArea not found");
-        return;
-    }
+  if (!songSelect) {
+    console.error("❌ songSelect dropdown not found.");
+    return;
+  }
 
-    songSelect.addEventListener("change", async () => {
-        const selectedSongName = songSelect.value.trim();
-        if (!selectedSongName) return;
+  songSelect.addEventListener("change", () => {
+    const selectedSongName = songSelect.value.trim();
+    console.log(`🎵 songLoader.js: Selected song: ${selectedSongName}`);
 
-        console.log("songLoader.js: Song selected -", selectedSongName);
+    // 🔁 Load loop segments
+    const loopJsonPath = `lyrics/${selectedSongName}_loops.json`;
+    console.log(`📁 Fetching loop JSON: ${loopJsonPath}`);
 
-        const songLines = window.songNameLines || [];
-        const matchedIndex = songLines.findIndex(line => selectedSongName.includes(line.trim()));
-        if (matchedIndex === -1) {
-            console.warn("songLoader.js: Song name not found in songs_names.txt");
-            return;
+    fetch(loopJsonPath)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(loops => {
+        console.log(`✅ Loaded loops: ${loops.length} segment(s)`);
+
+        const loopContainer = document.getElementById("loopButtonsContainer");
+        if (!loopContainer) {
+          console.error("❌ loopButtonsContainer not found.");
+          return;
         }
 
-        selectedPrefix = `song${matchedIndex + 1}`;
+        loopContainer.innerHTML = ""; // Clear previous buttons
+        loops.forEach((loop, index) => {
+          const btn = document.createElement("button");
+          btn.textContent = `Segment ${index + 1}`;
+          btn.className = "segment-button";
+          btn.onclick = () => {
+            console.log(`▶️ Playing Segment ${index + 1}:`, loop);
+            // Playback logic can be added here if needed
+          };
+          loopContainer.appendChild(btn);
+        });
+      })
+      .catch(err => {
+        console.error("❌ Failed to load loop JSON:", err);
+        const loopContainer = document.getElementById("loopButtonsContainer");
+        if (loopContainer) loopContainer.innerHTML = ""; // Clear on failure
+      });
 
-        // 🔤 Load lyrics
-        fetch(`lyrics/${selectedPrefix}.txt`)
-            .then(response => response.text())
-            .then(text => {
-                lyricsTextArea.value = text;
-            })
-            .catch(err => {
-                lyricsTextArea.value = "Lyrics not found.";
-                console.error("songLoader.js: Failed to load lyrics file:", err);
-            });
+    // 🎧 Set audio URLs for vocal & accompaniment
+    const vocalUrl = `${selectedSongName}_vocal.mp3`;
+    const accUrl = `${selectedSongName}_acc.mp3`;
+    console.log(`🎧 Vocal URL: ${vocalUrl}`);
+    console.log(`🎼 Accompaniment URL: ${accUrl}`);
 
-        // 🔁 Load loops
-        const loopFile = `${selectedPrefix}_loops.json`;
-        const loopUrl = `https://www.dropbox.com/scl/fi/xxxxx/${loopFile}?rlkey=yyyyy&dl=1`; // Replace with your working loop folder
-        try {
-            const loopResp = await fetch(loopUrl);
-            if (!loopResp.ok) throw new Error("Loop JSON fetch failed");
-            const loopJson = await loopResp.json();
-            currentLoops = loopJson;
-            renderLoopButtons(currentLoops); // ✅ Show Segment buttons
-        } catch (err) {
-            currentLoops = [];
-            document.getElementById("loopButtonsContainer").innerHTML = "";
-            console.warn("songLoader.js: Could not load loop JSON file", err);
-        }
-
-        // 🎵 Load audio files
-        const tokenResp = await fetch("/.netlify/functions/token");
-        const { access_token } = await tokenResp.json();
-
-        const vocalPath = `/WorshipSongs/${selectedPrefix}_vocal.mp3`;
-        const accompPath = `/WorshipSongs/${selectedPrefix}_acc.mp3`;
-
-        const getLink = async (path) => {
-            const resp = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${access_token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ path })
-            });
-            const data = await resp.json();
-            return data.link;
-        };
-
-        try {
-            const vocalUrl = await getLink(vocalPath);
-            const accompUrl = await getLink(accompPath);
-            window.vocalAudio = new Audio(vocalUrl);
-            window.accompAudio = new Audio(accompUrl);
-        } catch (err) {
-            console.error("songLoader.js: Audio file loading failed", err);
-        }
-    });
+    // ✅ Assign audio URLs to global vars for use in audioControl
+    window.currentVocalUrl = vocalUrl;
+    window.currentAccUrl = accUrl;
+  });
 });
