@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
       songSelect.addEventListener("change", () => {
         const selectedSong = songSelect.value.trim();
         if (!selectedSong) return;
+        window.selectedSongName = selectedSong;
 
         // ✅ NEW BLOCK: Set folder ID and key from Dropbox link
         dropboxFileID = "4212erw3ouxgx3lmd2rsk";
