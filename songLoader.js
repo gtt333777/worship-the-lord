@@ -38,20 +38,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const vocalName = `${selectedSong}_vocal.mp3`;
             const accName = `${selectedSong}_acc.mp3`;
 
-            fetch("/.netlify/functions/getDropboxToken")
-              .then(res => res.json())
-              .then(({ access_token }) => {
-                window.currentAudioUrls = {
-                  vocalUrl: "https://content.dropboxapi.com/2/files/download",
-                  accUrl: "https://content.dropboxapi.com/2/files/download",
-                  accessToken: access_token,
-                  vocalName,
-                  accName
-                };
-                if (typeof prepareAudioFromDropbox === "function") {
-                  prepareAudioFromDropbox();
-                }
-              });
+            const proceedWithAudio = () => {
+              window.currentAudioUrls = {
+                vocalUrl: "https://content.dropboxapi.com/2/files/download",
+                accUrl: "https://content.dropboxapi.com/2/files/download",
+                accessToken: window.accessToken,
+                vocalName,
+                accName
+              };
+              if (typeof prepareAudioFromDropbox === "function") {
+                prepareAudioFromDropbox();
+              }
+            };
+
+            if (window.accessToken) {
+              console.log("🎯 Token already available. Proceeding with audio...");
+              proceedWithAudio();
+            } else {
+              console.warn("⏳ Token not ready. Deferring audio preparation...");
+              window.prepareSongAfterToken = () => {
+                console.log("▶️ Deferred audio preparation now running...");
+                proceedWithAudio();
+              };
+            }
           });
       });
     } else {
