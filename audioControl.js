@@ -1,99 +1,104 @@
 ﻿console.log("audioControl.js: Starting...");
 
+let vocalAudio, accAudio;
+let vocalVolumeSlider, accVolumeSlider;
+let playBtn;
+let vocalVolume = 1.0;
+let accVolume = 1.0;
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("audioControl.js: DOMContentLoaded fired");
-
-  const waitForControls = setInterval(() => {
-    const vocalSlider = document.getElementById("vocalVolume");
-    const accSlider = document.getElementById("accompanimentVolume");
-    const playBtn = document.getElementById("playButton");
-
-    if (vocalSlider && accSlider && playBtn) {
-      clearInterval(waitForControls);
-      console.log("audioControl.js: All volume controls found, initializing setup...");
-      setUpVolumeControls();
-    } else {
-      console.log("audioControl.js: Waiting for volume controls...");
-    }
-  }, 300);
+  setUpVolumeControls();
+  waitForPlayButton();
 });
 
-function setUpVolumeControls() {
-  const vocalSlider = document.getElementById("vocalVolume");
-  const accSlider = document.getElementById("accompanimentVolume");
-  const playBtn = document.getElementById("playButton");
-
-  let vocalAudio = null;
-  let accAudio = null;
-
-  window.prepareAudioFromDropbox = function () {
-    console.log("🎼 prepareAudioFromDropbox: called");
-
-    const {
-      accessToken,
-      vocalName,
-      accName
-    } = window.currentAudioUrls || {};
-
-    if (!accessToken || !vocalName || !accName) {
-      console.warn("❗ Token or filenames missing.");
-      return;
+function waitForPlayButton() {
+  const check = () => {
+    playBtn = document.querySelector("#playButton");
+    if (playBtn) {
+      console.log("audioControl.js: Play button found ✅");
+      playBtn.addEventListener("click", handlePlay);
+    } else {
+      console.log("audioControl.js: Waiting for play button...");
+      setTimeout(check, 300);
     }
-
-    console.log("🔐 Using access token for Dropbox streaming");
-
-    // Create headers
-    const baseHeaders = (filename) => ({
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${filename}` })
-      }
-    });
-
-    // Prepare Vocal Audio
-    fetch("https://content.dropboxapi.com/2/files/download", baseHeaders(vocalName))
-      .then(res => res.blob())
-      .then(blob => {
-        vocalAudio = new Audio(URL.createObjectURL(blob));
-        vocalAudio.volume = vocalSlider.value;
-        console.log("✅ Vocal audio ready");
-      })
-      .catch(err => {
-        console.error("❌ Vocal audio fetch error:", err);
-      });
-
-    // Prepare Accompaniment Audio
-    fetch("https://content.dropboxapi.com/2/files/download", baseHeaders(accName))
-      .then(res => res.blob())
-      .then(blob => {
-        accAudio = new Audio(URL.createObjectURL(blob));
-        accAudio.volume = accSlider.value;
-        console.log("✅ Accompaniment audio ready");
-      })
-      .catch(err => {
-        console.error("❌ Accompaniment audio fetch error:", err);
-      });
   };
+  check();
+}
 
-  // Volume Controls
-  vocalSlider.addEventListener("input", () => {
-    if (vocalAudio) vocalAudio.volume = vocalSlider.value;
-  });
+function handlePlay() {
+  console.log("▶️ Play button clicked");
 
-  accSlider.addEventListener("input", () => {
-    if (accAudio) accAudio.volume = accSlider.value;
-  });
+  if (!vocalAudio || !accAudio) {
+    console.warn("⚠️ Audio not ready yet. Please wait...");
+    return;
+  }
 
-  // Play Button
-  playBtn.addEventListener("click", () => {
-    if (!vocalAudio || !accAudio) {
-      console.warn("⚠️ Audio not ready yet.");
-      return;
-    }
+  try {
     vocalAudio.currentTime = 0;
     accAudio.currentTime = 0;
+
+    console.log("🎚️ Vocal volume:", vocalAudio.volume);
+    console.log("🎚️ Acc volume:", accAudio.volume);
+
     vocalAudio.play();
     accAudio.play();
+    console.log("🔊 Playback started");
+  } catch (err) {
+    console.error("❌ Error during playback:", err);
+  }
+}
+
+function setUpVolumeControls() {
+  vocalVolumeSlider = document.querySelector("#vocalVolume");
+  accVolumeSlider = document.querySelector("#accVolume");
+
+  if (!vocalVolumeSlider || !accVolumeSlider) {
+    console.log("audioControl.js: Waiting for volume controls...");
+    setTimeout(setUpVolumeControls, 300);
+    return;
+  }
+
+  console.log("✅ Volume sliders found");
+
+  vocalVolumeSlider.addEventListener("input", () => {
+    vocalVolume = parseFloat(vocalVolumeSlider.value);
+    if (vocalAudio) vocalAudio.volume = vocalVolume;
+  });
+
+  accVolumeSlider.addEventListener("input", () => {
+    accVolume = parseFloat(accVolumeSlider.value);
+    if (accAudio) accAudio.volume = accVolume;
   });
 }
+
+function prepareAudioFromDropbox(vocalBlob, accBlob) {
+  console.log("🎼 prepareAudioFromDropbox: called");
+
+  if (!vocalBlob || !accBlob) {
+    console.error("❌ Missing audio blobs");
+    return;
+  }
+
+  const vocalURL = URL.createObjectURL(vocalBlob);
+  const accURL = URL.createObjectURL(accBlob);
+
+  vocalAudio = new Audio();
+  accAudio = new Audio();
+
+  vocalAudio.src = vocalURL;
+  accAudio.src = accURL;
+
+  vocalAudio.volume = vocalVolume;
+  accAudio.volume = accVolume;
+
+  vocalAudio.oncanplaythrough = () => {
+    console.log("✅ Vocal audio ready");
+  };
+  accAudio.oncanplaythrough = () => {
+    console.log("✅ Accompaniment audio ready");
+  };
+}
+
+// Expose globally
+window.prepareAudioFromDropbox = prepareAudioFromDropbox;
