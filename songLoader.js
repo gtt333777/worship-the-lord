@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
       songSelect.addEventListener("change", () => {
         const selectedSong = songSelect.value.trim();
         if (!selectedSong) return;
-
+        dropboxFileID = "g2pay3hdqgkimrb5tt0rw";
+        dropboxRlKey = "sagx3mo3wl2h9oa2n4fbp4q13";
         // Load lyrics
         const lyricsPath = `lyrics/${selectedSong}.txt`;
         console.log(`lyricsLoader.js: Fetching lyrics for ${selectedSong}`);
