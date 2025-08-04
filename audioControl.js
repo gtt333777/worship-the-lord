@@ -1,74 +1,83 @@
 ﻿console.log("audioControl.js: Loaded");
 
-let vocalAudio = null;
-let accAudio = null;
+const vocalAudio = new Audio();
+const accompAudio = new Audio();
+
+let vocalVolumeSlider, accompVolumeSlider;
+let vocalPlus, vocalMinus, accompPlus, accompMinus;
+let playButton;
+
+// Ensure both tracks are synced before playing
+function playBothTracks() {
+  if (vocalAudio.src && accompAudio.src) {
+    vocalAudio.currentTime = 0;
+    accompAudio.currentTime = 0;
+
+    vocalAudio.play();
+    accompAudio.play();
+    console.log("▶️ Playing both vocal and accompaniment");
+  } else {
+    console.warn("⚠️ Audio sources not set yet.");
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-  const playButton = document.getElementById("playButton");
-  const vocalVolumeSlider = document.getElementById("vocalVolume");
-  const accVolumeSlider = document.getElementById("accVolume");
-  const vocalVolUp = document.getElementById("vocalVolUp");
-  const vocalVolDown = document.getElementById("vocalVolDown");
-  const accVolUp = document.getElementById("accVolUp");
-  const accVolDown = document.getElementById("accVolDown");
+  console.log("audioControl.js: DOMContentLoaded fired");
 
-  // Shared play function
-  playButton.addEventListener("click", () => {
-    if (vocalAudio && accAudio) {
-      vocalAudio.currentTime = 0;
-      accAudio.currentTime = 0;
-      vocalAudio.play();
-      accAudio.play();
-    } else {
-      console.warn("audioControl.js: Audio not ready.");
-    }
-  });
+  vocalVolumeSlider = document.getElementById("vocalVolume");
+  accompVolumeSlider = document.getElementById("accompVolume");
 
-  // Volume clamp function
-  function clamp(val) {
-    return Math.min(1, Math.max(0, val));
+  vocalPlus = document.getElementById("vocalPlus");
+  vocalMinus = document.getElementById("vocalMinus");
+  accompPlus = document.getElementById("accompPlus");
+  accompMinus = document.getElementById("accompMinus");
+
+  playButton = document.getElementById("playButton");
+
+  if (!vocalVolumeSlider || !accompVolumeSlider || !playButton) {
+    console.error("audioControl.js: Missing UI elements.");
+    return;
   }
 
-  // Volume slider listeners
+  // Set default volume
+  vocalAudio.volume = vocalVolumeSlider.value = 1.0;
+  accompAudio.volume = accompVolumeSlider.value = 1.0;
+
+  // Volume slider event listeners
   vocalVolumeSlider.addEventListener("input", () => {
-    if (vocalAudio) vocalAudio.volume = parseFloat(vocalVolumeSlider.value);
+    vocalAudio.volume = vocalVolumeSlider.value;
   });
 
-  accVolumeSlider.addEventListener("input", () => {
-    if (accAudio) accAudio.volume = parseFloat(accVolumeSlider.value);
+  accompVolumeSlider.addEventListener("input", () => {
+    accompAudio.volume = accompVolumeSlider.value;
   });
 
-  // 1% step control
-  const STEP = 0.01;
-
-  vocalVolUp.addEventListener("click", () => {
-    const newVal = clamp(parseFloat(vocalVolumeSlider.value) + STEP);
-    vocalVolumeSlider.value = newVal;
-    if (vocalAudio) vocalAudio.volume = newVal;
+  // Fine-tune buttons (1% steps)
+  vocalPlus.addEventListener("click", () => {
+    adjustVolume(vocalVolumeSlider, vocalAudio, 0.01);
+  });
+  vocalMinus.addEventListener("click", () => {
+    adjustVolume(vocalVolumeSlider, vocalAudio, -0.01);
+  });
+  accompPlus.addEventListener("click", () => {
+    adjustVolume(accompVolumeSlider, accompAudio, 0.01);
+  });
+  accompMinus.addEventListener("click", () => {
+    adjustVolume(accompVolumeSlider, accompAudio, -0.01);
   });
 
-  vocalVolDown.addEventListener("click", () => {
-    const newVal = clamp(parseFloat(vocalVolumeSlider.value) - STEP);
-    vocalVolumeSlider.value = newVal;
-    if (vocalAudio) vocalAudio.volume = newVal;
-  });
-
-  accVolUp.addEventListener("click", () => {
-    const newVal = clamp(parseFloat(accVolumeSlider.value) + STEP);
-    accVolumeSlider.value = newVal;
-    if (accAudio) accAudio.volume = newVal;
-  });
-
-  accVolDown.addEventListener("click", () => {
-    const newVal = clamp(parseFloat(accVolumeSlider.value) - STEP);
-    accVolumeSlider.value = newVal;
-    if (accAudio) accAudio.volume = newVal;
+  // Play button
+  playButton.addEventListener("click", () => {
+    console.log("▶️ Play button clicked");
+    console.log("Vocal src:", vocalAudio.src);
+    console.log("Accomp src:", accompAudio.src);
+    playBothTracks();
   });
 });
 
-// 🌟 Called from songLoader.js to set audio references
-function setAudioElements(vocalEl, accEl) {
-  vocalAudio = vocalEl;
-  accAudio = accEl;
-  console.log("audioControl.js: Audio elements set");
+function adjustVolume(slider, audio, delta) {
+  let newVal = parseFloat(slider.value) + delta;
+  newVal = Math.max(0, Math.min(1, newVal));
+  slider.value = newVal.toFixed(2);
+  audio.volume = newVal;
 }
