@@ -3,118 +3,88 @@
 let vocalAudio = null;
 let accompAudio = null;
 
-let segmentStart = 0;
-let segmentEnd = 0;
-let isSegmentPlay = false;
+let currentLoop = null;
+let isPlaying = false;
 
-let loopSegments = [];
-let currentLoopIndex = 0;
-let playFromLoop = null;
+function prepareAudioFromDropbox() {
+  console.log("audioControl.js: prepareAudioFromDropbox() called");
 
-// ✅ These will be set in songLoader.js
-let dropboxBaseLink = "https://www.dropbox.com/scl/fi";
-let dropboxFileID = ""; // e.g., g2pay3hdqgkimrb5tt0rw
-let dropboxRlKey = "";  // e.g., sagx3mo3wl2h9oa2n4fbp4q13
+  const songName = window.selectedSongName;
+  const vocalName = `${songName}_vocal.mp3`;
+  const accName = `${songName}_acc.mp3`;
 
-function prepareAudioFromDropbox(vocalFilename, accompFilename) {
-  const vocalUrl = `${dropboxBaseLink}/${vocalFilename}?rlkey=${dropboxRlKey}&raw=1`;
-  const accompUrl = `${dropboxBaseLink}/${accompFilename}?rlkey=${dropboxRlKey}&raw=1`;
+  const vocalUrl = `https://www.dropbox.com/scl/fi/${dropboxFileID}/${vocalName}?rlkey=${dropboxRlKey}&raw=1`;
+  const accUrl   = `https://www.dropbox.com/scl/fi/${dropboxFileID}/${accName}?rlkey=${dropboxRlKey}&raw=1`;
 
-  console.log("🎤 Vocal URL:", vocalUrl);
-  console.log("🎼 Accompaniment URL:", accompUrl);
+  console.log("🎧 Vocal URL:", vocalUrl);
+  console.log("🎹 Accompaniment URL:", accUrl);
 
-  vocalAudio = new Audio(vocalUrl);
-  accompAudio = new Audio(accompUrl);
+  if (!vocalAudio) {
+    vocalAudio = new Audio();
+    vocalAudio.crossOrigin = "anonymous";
+  }
 
-  vocalAudio.crossOrigin = "anonymous";
-  accompAudio.crossOrigin = "anonymous";
+  if (!accompAudio) {
+    accompAudio = new Audio();
+    accompAudio.crossOrigin = "anonymous";
+  }
 
-  vocalAudio.volume = document.getElementById("vocalVolumeSlider").value;
-  accompAudio.volume = document.getElementById("accompVolumeSlider").value;
+  vocalAudio.src = vocalUrl;
+  accompAudio.src = accUrl;
 
-  console.log("✅ Vocal audio prepared");
-  console.log("✅ Accompaniment audio prepared");
+  vocalAudio.oncanplaythrough = () => {
+    console.log("✅ Vocal audio prepared");
+  };
+  accompAudio.oncanplaythrough = () => {
+    console.log("✅ Accompaniment audio prepared");
+  };
+
+  vocalAudio.load();
+  accompAudio.load();
 }
 
-function playAudio() {
+function playBothFrom(startTime) {
   if (!vocalAudio || !accompAudio) {
-    alert("Please select a song first.");
+    console.warn("⚠️ Audio not ready");
     return;
   }
 
-  if (isSegmentPlay) {
-    vocalAudio.currentTime = segmentStart;
-    accompAudio.currentTime = segmentStart;
-    vocalAudio.play();
-    accompAudio.play();
-    monitorSegmentEnd();
-  } else if (playFromLoop !== null) {
-    currentLoopIndex = playFromLoop;
-    playLoopSegment(currentLoopIndex);
-  } else {
-    vocalAudio.currentTime = 0;
-    accompAudio.currentTime = 0;
-    vocalAudio.play();
-    accompAudio.play();
-  }
-}
-
-function monitorSegmentEnd() {
-  const interval = setInterval(() => {
-    if (vocalAudio.currentTime >= segmentEnd || accompAudio.currentTime >= segmentEnd) {
-      vocalAudio.pause();
-      accompAudio.pause();
-      clearInterval(interval);
-    }
-  }, 200);
-}
-
-function updateVolume(type, change) {
-  const slider = document.getElementById(type === "vocal" ? "vocalVolumeSlider" : "accompVolumeSlider");
-  let newValue = parseFloat(slider.value) + change;
-  newValue = Math.max(0, Math.min(1, newValue));
-  slider.value = newValue;
-  if (type === "vocal" && vocalAudio) vocalAudio.volume = newValue;
-  if (type === "accomp" && accompAudio) accompAudio.volume = newValue;
-}
-
-function setSegment(start, end) {
-  segmentStart = start;
-  segmentEnd = end;
-  isSegmentPlay = true;
-}
-
-function clearSegment() {
-  isSegmentPlay = false;
-}
-
-function loadLoopSegments(segments) {
-  loopSegments = segments;
-  console.log("✅ Loop segments loaded:", loopSegments);
-}
-
-function playLoopSegment(index) {
-  if (index >= loopSegments.length) {
-    vocalAudio.pause();
-    accompAudio.pause();
-    return;
-  }
-
-  const segment = loopSegments[index];
-  const start = segment.start;
-  const end = segment.end;
-
-  vocalAudio.currentTime = start;
-  accompAudio.currentTime = start;
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
 
   vocalAudio.play();
   accompAudio.play();
+  isPlaying = true;
+}
 
-  const interval = setInterval(() => {
+function stopBoth() {
+  if (vocalAudio) vocalAudio.pause();
+  if (accompAudio) accompAudio.pause();
+  isPlaying = false;
+}
+
+function setVocalVolume(vol) {
+  if (vocalAudio) vocalAudio.volume = vol;
+}
+
+function setAccompanimentVolume(vol) {
+  if (accompAudio) accompAudio.volume = vol;
+}
+
+function playLoopSegment(start, end) {
+  stopBoth();
+  playBothFrom(start);
+
+  currentLoop = setInterval(() => {
     if (vocalAudio.currentTime >= end || accompAudio.currentTime >= end) {
-      clearInterval(interval);
-      currentLoopIndex++;
-      playLoopSegment(currentLoopIndex);
+      stopBoth();
+      clearInterval(currentLoop);
     }
   }, 200);
 }
+
+// Expose functions globally
+window.prepareAudioFromDropbox = prepareAudioFromDropbox;
+window.playLoopSegment = playLoopSegment;
+window.setVocalVolume = setVocalVolume;
+window.setAccompanimentVolume = setAccompanimentVolume;
