@@ -1,80 +1,63 @@
 ﻿console.log("songLoader.js: Starting...");
 
 document.addEventListener("DOMContentLoaded", () => {
-  waitForSongSelectAndInit();
-});
+  console.log("songLoader.js: Elements found, setting up handler");
 
-function waitForSongSelectAndInit(retryCount = 0) {
-  const songSelect = document.getElementById("songSelect");
-
-  if (!songSelect) {
-    if (retryCount > 20) {
-      console.error("songLoader.js: ❌ #songSelect not found after 20 retries");
-      return;
-    }
-    console.log(`songLoader.js: ⏳ #songSelect not ready, retrying... (${retryCount})`);
-    setTimeout(() => waitForSongSelectAndInit(retryCount + 1), 300);
+  const songDropdown = document.getElementById("songSelect");
+  if (!songDropdown) {
+    console.warn("songLoader.js: #songSelect not found");
     return;
   }
 
-  console.log("songLoader.js: ✅ #songSelect found, setting up handler");
+  songDropdown.addEventListener("change", async () => {
+    const selectedSongName = songDropdown.value;
+    console.log("🎵 songLoader.js: Selected song", selectedSongName);
 
-  songSelect.addEventListener("change", async () => {
-    const selectedSong = songSelect.value;
-    console.log("songLoader.js: 🎵 Selected song:", selectedSong);
-    if (!selectedSong) return;
+    // Save song name globally
+    window.currentSongName = selectedSongName;
 
-    const option = [...songSelect.options].find(opt => opt.value === selectedSong);
-    const prefix = option ? option.dataset.prefix : null;
-    if (!prefix) {
-      console.error("songLoader.js: ❌ Prefix not found for selected song");
-      return;
-    }
+    // Load lyrics
+    loadLyricsForSong(selectedSongName);
 
-    console.log("songLoader.js: 🏷️ Using prefix:", prefix);
+    // Fetch loop data
+    const prefix = selectedSongName;
+    const loopsUrl = `https://content.dropboxapi.com/2/files/download`;
+    const loopsPath = `/WorshipSongs/${prefix}_loops.json`;
 
     try {
-      console.log("songLoader.js: 🔑 Requesting Dropbox access token...");
-      const response = await fetch("/.netlify/functions/get-dropbox-token");
-      if (!response.ok) throw new Error("Token fetch failed: " + response.status);
-      const data = await response.json();
-      const token = data.access_token;
-      console.log("songLoader.js: ✅ Received Dropbox token");
+      const token = await getDropboxToken();
+      console.log("songLoader.js: Received Dropbox token");
 
-      const vocalPath = `/WorshipSongs/${prefix}_vocal.mp3`;
-      const accPath = `/WorshipSongs/${prefix}_acc.mp3`;
-      console.log("songLoader.js: 🎼 Preparing audio now...");
+      const loopResponse = await fetch(loopsUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Dropbox-API-Arg": JSON.stringify({ path: loopsPath })
+        }
+      });
 
-      const vocalBlob = await fetchDropboxFile(vocalPath, token);
-      const accBlob = await fetchDropboxFile(accPath, token);
+      if (!loopResponse.ok) throw new Error("Loop fetch failed");
 
-      if (!vocalBlob || !accBlob) {
-        console.error("songLoader.js: ❌ Missing audio blobs");
-        return;
-      }
+      const loopJson = await loopResponse.json();
+      window.currentLoopData = loopJson;
+      console.log("🔁 songLoader.js: Loaded loops", loopJson);
 
-      console.log(`songLoader.js: 📦 vocalBlob: ${vocalBlob.size}, accBlob: ${accBlob.size}`);
-      prepareAudioFromDropbox(vocalBlob, accBlob);
+      renderLoopSegments(loopJson);
     } catch (err) {
-      console.error("songLoader.js: ❌ Error preparing audio:", err);
+      console.warn("songLoader.js: ❌ Failed to fetch loop JSON. Skipping loops.");
+      window.currentLoopData = [];
+      renderLoopSegments([]);
+    }
+
+    // Prepare audio
+    try {
+      const token = await getDropboxToken();
+      const vocalFile = `${selectedSongName}_vocal.mp3`;
+      const accFile = `${selectedSongName}_acc.mp3`;
+
+      prepareAudioFromDropbox(vocalFile, accFile, token);
+    } catch (e) {
+      console.error("songLoader.js: ❌ Audio token or load failed:", e);
     }
   });
-}
-
-async function fetchDropboxFile(path, token) {
-  const url = "https://content.dropboxapi.com/2/files/download";
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + token,
-      "Dropbox-API-Arg": JSON.stringify({ path })
-    }
-  });
-
-  if (!res.ok) {
-    console.error("songLoader.js: ❌ Dropbox fetch failed for", path, "Status:", res.status);
-    return null;
-  }
-
-  return await res.blob();
-}
+});
