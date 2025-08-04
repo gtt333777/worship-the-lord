@@ -13,8 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
       songSelect.addEventListener("change", () => {
         const selectedSong = songSelect.value.trim();
         if (!selectedSong) return;
+
+        // ✅ NEW BLOCK: Set folder ID and key from Dropbox link
         dropboxFileID = "g2pay3hdqgkimrb5tt0rw";
         dropboxRlKey = "sagx3mo3wl2h9oa2n4fbp4q13";
+
         // Load lyrics
         const lyricsPath = `lyrics/${selectedSong}.txt`;
         console.log(`lyricsLoader.js: Fetching lyrics for ${selectedSong}`);
@@ -53,39 +56,32 @@ document.addEventListener("DOMContentLoaded", () => {
               btn.style.margin = "5px";
               btn.addEventListener("click", () => {
                 console.log(`▶️ User clicked Segment ${index + 1}`);
-                // Placeholder: playback logic can go here
               });
               loopButtonsContainer.appendChild(btn);
             });
 
-            // ✅ 🔗 Dropbox block: build URLs and prepare audio
+            // ✅ REPLACEMENT BLOCK STARTS HERE
             const vocalName = `${selectedSong}_vocal.mp3`;
             const accName = `${selectedSong}_acc.mp3`;
 
-            fetch("/.netlify/functions/getDropboxToken")
-              .then(res => res.json())
-              .then(({ access_token }) => {
-                const vocalUrl = "https://content.dropboxapi.com/2/files/download";
-                const accUrl = "https://content.dropboxapi.com/2/files/download";
+            const encodedVocal = encodeURIComponent(vocalName);
+            const encodedAcc = encodeURIComponent(accName);
 
-                console.log("🎧 Vocal URL:", vocalUrl);
-                console.log("🎹 Accompaniment URL:", accUrl);
+            const vocalUrl = `https://www.dropbox.com/scl/fi/${dropboxFileID}/${encodedVocal}?rlkey=${dropboxRlKey}&raw=1`;
+            const accUrl = `https://www.dropbox.com/scl/fi/${dropboxFileID}/${encodedAcc}?rlkey=${dropboxRlKey}&raw=1`;
 
-                window.currentAudioUrls = {
-                 vocalUrl,
-                 accUrl,
-                 accessToken: access_token,
-                 vocalName,
-                 accName
-              };
+            console.log("🎧 Vocal URL:", vocalUrl);
+            console.log("🎹 Accompaniment URL:", accUrl);
 
-                if (typeof prepareAudioFromDropbox === "function") {
-                  prepareAudioFromDropbox();
-                }
-              })
-              .catch(err => {
-                console.error("❌ Failed to get Dropbox token:", err);
-              });
+            window.currentAudioUrls = {
+              vocalUrl,
+              accUrl
+            };
+
+            if (typeof prepareAudioFromDropbox === "function") {
+              prepareAudioFromDropbox();
+            }
+            // ✅ REPLACEMENT BLOCK ENDS HERE
           })
           .catch(err => {
             loopButtonsContainer.innerHTML = "";
@@ -97,8 +93,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 300);
 });
-
-// 🔽 Outside: Dropbox helper function
-function buildDropboxUrl(fileName, token) {
-  return `https://content.dropboxapi.com/2/files/download`;
-}
