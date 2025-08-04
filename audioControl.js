@@ -1,104 +1,67 @@
 ﻿console.log("audioControl.js: Starting...");
 
-let vocalAudio, accAudio;
-let vocalVolumeSlider, accVolumeSlider;
-let playBtn;
-let vocalVolume = 1.0;
-let accVolume = 1.0;
-
 document.addEventListener("DOMContentLoaded", () => {
   console.log("audioControl.js: DOMContentLoaded fired");
-  setUpVolumeControls();
-  waitForPlayButton();
+
+  setupVolumeControls();
 });
 
-function waitForPlayButton() {
-  const check = () => {
-    playBtn = document.querySelector("#playButton");
-    if (playBtn) {
-      console.log("audioControl.js: Play button found ✅");
-      playBtn.addEventListener("click", handlePlay);
-    } else {
-      console.log("audioControl.js: Waiting for play button...");
-      setTimeout(check, 300);
-    }
-  };
-  check();
-}
+function setupVolumeControls() {
+  const vocalSlider = document.getElementById("vocalVolume");
+  const accSlider = document.getElementById("accVolume");
 
-function handlePlay() {
-  console.log("▶️ Play button clicked");
-
-  if (!vocalAudio || !accAudio) {
-    console.warn("⚠️ Audio not ready yet. Please wait...");
-    return;
-  }
-
-  try {
-    vocalAudio.currentTime = 0;
-    accAudio.currentTime = 0;
-
-    console.log("🎚️ Vocal volume:", vocalAudio.volume);
-    console.log("🎚️ Acc volume:", accAudio.volume);
-
-    vocalAudio.play();
-    accAudio.play();
-    console.log("🔊 Playback started");
-  } catch (err) {
-    console.error("❌ Error during playback:", err);
-  }
-}
-
-function setUpVolumeControls() {
-  vocalVolumeSlider = document.querySelector("#vocalVolume");
-  accVolumeSlider = document.querySelector("#accVolume");
-
-  if (!vocalVolumeSlider || !accVolumeSlider) {
+  if (!vocalSlider || !accSlider) {
     console.log("audioControl.js: Waiting for volume controls...");
-    setTimeout(setUpVolumeControls, 300);
+    setTimeout(setupVolumeControls, 500);
     return;
   }
 
-  console.log("✅ Volume sliders found");
-
-  vocalVolumeSlider.addEventListener("input", () => {
-    vocalVolume = parseFloat(vocalVolumeSlider.value);
-    if (vocalAudio) vocalAudio.volume = vocalVolume;
+  vocalSlider.addEventListener("input", () => {
+    if (window.vocalAudio) vocalAudio.volume = vocalSlider.value;
   });
 
-  accVolumeSlider.addEventListener("input", () => {
-    accVolume = parseFloat(accVolumeSlider.value);
-    if (accAudio) accAudio.volume = accVolume;
+  accSlider.addEventListener("input", () => {
+    if (window.accompAudio) accompAudio.volume = accSlider.value;
   });
+
+  console.log("✅ Vocal and Accompaniment volume sliders initialized");
 }
 
+// 🔁 Playback
+document.addEventListener("click", (e) => {
+  if (e.target.id === "playBtn") {
+    if (window.vocalAudio && window.accompAudio) {
+      vocalAudio.currentTime = 0;
+      accompAudio.currentTime = 0;
+      vocalAudio.play();
+      accompAudio.play();
+    } else {
+      console.warn("⚠️ Audio not ready yet. Please wait...");
+    }
+  }
+});
+
+// 🎧 Prepare audio elements
 function prepareAudioFromDropbox(vocalBlob, accBlob) {
   console.log("🎼 prepareAudioFromDropbox: called");
 
   if (!vocalBlob || !accBlob) {
-    console.error("❌ Missing audio blobs");
+    console.error("❌ Missing audio blobs in prepareAudioFromDropbox");
     return;
   }
+
+  console.log("🎧 Vocal Blob:", vocalBlob);
+  console.log("🎧 Acc Blob:", accBlob);
 
   const vocalURL = URL.createObjectURL(vocalBlob);
   const accURL = URL.createObjectURL(accBlob);
 
-  vocalAudio = new Audio();
-  accAudio = new Audio();
+  window.vocalAudio = new Audio(vocalURL);
+  window.accompAudio = new Audio(accURL);
 
-  vocalAudio.src = vocalURL;
-  accAudio.src = accURL;
+  vocalAudio.volume = document.getElementById("vocalVolume").value;
+  accompAudio.volume = document.getElementById("accVolume").value;
 
-  vocalAudio.volume = vocalVolume;
-  accAudio.volume = accVolume;
-
-  vocalAudio.oncanplaythrough = () => {
-    console.log("✅ Vocal audio ready");
-  };
-  accAudio.oncanplaythrough = () => {
-    console.log("✅ Accompaniment audio ready");
-  };
+  console.log("✅ Vocal audio ready");
+  console.log("✅ Accompaniment audio ready");
 }
-
-// Expose globally
-window.prepareAudioFromDropbox = prepareAudioFromDropbox;
