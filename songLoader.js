@@ -1,63 +1,68 @@
-﻿// ✅ songLoader.js — Finalized version inspired by Gold Standard
-
-console.log("🎼 songLoader.js: Started");
+﻿console.log("🎵 songLoader.js: Starting...");
 
 document.addEventListener("DOMContentLoaded", () => {
-  const songSelect = document.getElementById("songSelect");
+  const checkElements = setInterval(() => {
+    const songSelect = document.getElementById("songSelect");
+    const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+    if (songSelect && loopButtonsContainer) {
+      clearInterval(checkElements);
+      console.log("🎵 songLoader.js: #songSelect, #lyricsTextArea, and #loopButtonsContainer found");
 
-  if (!songSelect) {
-    console.error("❌ songSelect dropdown not found.");
-    return;
-  }
+      songSelect.addEventListener("change", async () => {
+        const songName = songSelect.value;
+        console.log(`🎵 songLoader.js: Song selected: ${songName}`);
 
-  songSelect.addEventListener("change", () => {
-    const selectedSongName = songSelect.value.trim();
-    console.log(`🎵 songLoader.js: Selected song: ${selectedSongName}`);
+        // Prepare audio URLs
+        const vocalFile = `${songName}_vocal.mp3`;
+        const accFile = `${songName}_acc.mp3`;
+        const token = window.currentDropboxAccessToken;
 
-    // 🔁 Load loop segments
-    const loopJsonPath = `lyrics/${selectedSongName}_loops.json`;
-    console.log(`📁 Fetching loop JSON: ${loopJsonPath}`);
+        window.currentAudioUrls = {
+          vocal: `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${token}&arg=${encodeURIComponent(
+            JSON.stringify({ path: `/WorshipSongs/${vocalFile}` })
+          )}`,
+          acc: `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${token}&arg=${encodeURIComponent(
+            JSON.stringify({ path: `/WorshipSongs/${accFile}` })
+          )}`
+        };
 
-    fetch(loopJsonPath)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(loops => {
-        console.log(`✅ Loaded loops: ${loops.length} segment(s)`);
+        console.log("🎧 songLoader.js: Assigned Dropbox audio URLs:");
+        console.log("🎙️ Vocal:", window.currentAudioUrls.vocal);
+        console.log("🎹 Accompaniment:", window.currentAudioUrls.acc);
 
-        const loopContainer = document.getElementById("loopButtonsContainer");
-        if (!loopContainer) {
-          console.error("❌ loopButtonsContainer not found.");
-          return;
+        // Load loop file
+        const loopFilePath = `lyrics/${songName}_loops.json`;
+        try {
+          const response = await fetch(loopFilePath);
+          if (!response.ok) throw new Error(`Loop file not found: ${loopFilePath}`);
+          const loopData = await response.json();
+
+          console.log(`🔁 songLoader.js: Loaded ${loopData.length} loop segments`);
+
+          // Clear previous buttons
+          loopButtonsContainer.innerHTML = "";
+
+          // Create buttons for each loop
+          loopData.forEach((segment, index) => {
+            const button = document.createElement("button");
+            button.textContent = `Segment ${index + 1}`;
+            button.className = "segment-button";
+            button.addEventListener("click", () => {
+              window.currentLoopIndex = index;
+              console.log(`▶️ songLoader.js: Segment ${index + 1} clicked`);
+              if (typeof window.playFromLoopSegment === "function") {
+                window.playFromLoopSegment(index, loopData);
+              } else {
+                console.warn("⚠️ playFromLoopSegment function is not defined");
+              }
+            });
+            loopButtonsContainer.appendChild(button);
+          });
+        } catch (err) {
+          console.warn("⚠️ songLoader.js: No loop file found or failed to load:", err.message);
+          loopButtonsContainer.innerHTML = ""; // clear if nothing found
         }
-
-        loopContainer.innerHTML = ""; // Clear previous buttons
-        loops.forEach((loop, index) => {
-          const btn = document.createElement("button");
-          btn.textContent = `Segment ${index + 1}`;
-          btn.className = "segment-button";
-          btn.onclick = () => {
-            console.log(`▶️ Playing Segment ${index + 1}:`, loop);
-            // Playback logic can be added here if needed
-          };
-          loopContainer.appendChild(btn);
-        });
-      })
-      .catch(err => {
-        console.error("❌ Failed to load loop JSON:", err);
-        const loopContainer = document.getElementById("loopButtonsContainer");
-        if (loopContainer) loopContainer.innerHTML = ""; // Clear on failure
       });
-
-    // 🎧 Set audio URLs for vocal & accompaniment
-    const vocalUrl = `${selectedSongName}_vocal.mp3`;
-    const accUrl = `${selectedSongName}_acc.mp3`;
-    console.log(`🎧 Vocal URL: ${vocalUrl}`);
-    console.log(`🎼 Accompaniment URL: ${accUrl}`);
-
-    // ✅ Assign audio URLs to global vars for use in audioControl
-    window.currentVocalUrl = vocalUrl;
-    window.currentAccUrl = accUrl;
-  });
+    }
+  }, 100);
 });
