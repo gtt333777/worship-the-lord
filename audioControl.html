@@ -1,12 +1,16 @@
-﻿<!-- Vocal Volume -->
-<input type="range" id="vocalVolume" min="0" max="1" step="0.01">
-<button id="vocalMinus">-</button>
-<button id="vocalPlus">+</button>
-
-<!-- Accompaniment Volume -->
-<input type="range" id="accompVolume" min="0" max="1" step="0.01">
-<button id="accompMinus">-</button>
-<button id="accompPlus">+</button>
-
-<!-- Play Button -->
-<button id="playButton">Play</button>
+﻿<!-- Example structure inside audioControl.html -->
+<div>
+  <label>Vocal Volume:
+    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
+    <button id="vocalMinus">-</button>
+    <button id="vocalPlus">+</button>
+  </label>
+</div>
+<div>
+  <label>Accompaniment Volume:
+    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
+    <button id="accompMinus">-</button>
+    <button id="accompPlus">+</button>
+  </label>
+</div>
+<button id="playButton">▶️ Play</button>
