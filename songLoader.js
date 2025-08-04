@@ -1,74 +1,73 @@
-﻿// songLoader.js
-
-let loopSegments = []; // ✅ Globally declare this
-
-document.addEventListener("DOMContentLoaded", function () {
-  const songSelect = document.getElementById("songSelect");
-  const lyricsTextArea = document.getElementById("lyricsTextArea");
-  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+﻿document.addEventListener('DOMContentLoaded', () => {
+  const songSelect = document.querySelector('#songSelect');
+  const lyricsTextArea = document.querySelector('#lyricsTextArea');
+  const loopButtonsContainer = document.querySelector('#loopButtonsContainer');
 
   if (!songSelect || !lyricsTextArea || !loopButtonsContainer) {
-    console.error("songLoader.js: Required elements not found");
+    console.warn('songLoader.js: #songSelect, #lyricsTextArea, and #loopButtonsContainer not found');
     return;
   }
 
-  songSelect.addEventListener("change", function () {
-    const selectedTamilName = songSelect.value;
-    console.log("songLoader.js: Song selected:", selectedTamilName);
+  songSelect.addEventListener('change', async () => {
+    const tamilName = songSelect.value;
+    console.log('songLoader.js: Song selected:', tamilName);
 
-    const prefix = getPrefixForTamilName(selectedTamilName);
-    if (!prefix) {
-      console.error("songLoader.js: Could not find prefix for selected Tamil name:", selectedTamilName);
+    const selectedOption = [...songSelect.options].find(opt => opt.value === tamilName);
+    const suffix = selectedOption?.dataset?.suffix;
+    if (!suffix) {
+      console.error('songLoader.js: No suffix found for selected song');
       return;
     }
 
-    // 🔗 Assign audio URLs
-    const vocalUrl = `${DROPBOX_BASE_URL}/${encodeURIComponent("WorshipSongs/" + prefix + "_vocal.mp3")}?authorization=Bearer%20${DROPBOX_ACCESS_TOKEN}`;
-    const accompUrl = `${DROPBOX_BASE_URL}/${encodeURIComponent("WorshipSongs/" + prefix + "_acc.mp3")}?authorization=Bearer%20${DROPBOX_ACCESS_TOKEN}`;
+    // Assign Dropbox audio URLs
+    const vocalUrl = `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${DROPBOX_TOKEN}&arg={"path":"/WorshipSongs/${suffix}_vocal.mp3"}`;
+    const accUrl = `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${DROPBOX_TOKEN}&arg={"path":"/WorshipSongs/${suffix}_acc.mp3"}`;
 
-    vocalAudio.src = vocalUrl;
-    accompAudio.src = accompUrl;
-    console.log("songLoader.js: Assigned Dropbox audio URLs:");
-    console.log("🎤 Vocal:", vocalUrl);
-    console.log("🎶 Accompaniment:", accompUrl);
+    if (window.vocalAudio && window.accompAudio) {
+      window.vocalAudio.src = vocalUrl;
+      window.accompAudio.src = accUrl;
+    }
 
-    // 📜 Load lyrics
-    fetch(`lyrics/${prefix}.txt`)
-      .then((res) => res.text())
-      .then((text) => {
-        lyricsTextArea.value = text;
-        console.log("songLoader.js: Loaded lyrics for", selectedTamilName);
-      })
-      .catch((err) => {
-        console.error("songLoader.js: Failed to load lyrics for", prefix, err);
-      });
+    console.log('songLoader.js: Assigned Dropbox audio URLs:');
+    console.log('🎤 Vocal:', vocalUrl);
+    console.log('🎹 Accompaniment:', accUrl);
 
-    // 🔁 Load loops
-    fetch(`https://content.dropboxapi.com/2/files/download`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${DROPBOX_ACCESS_TOKEN}`,
-        "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${prefix}_loops.json` })
-      }
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        loopSegments = json.loops || []; // ✅ Store globally
-        console.log(`songLoader.js: Loaded ${loopSegments.length} loop segments`);
+    // Fetch and render loop segments
+    const loopUrl = `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${DROPBOX_TOKEN}&arg={"path":"/WorshipSongs/${suffix}_loops.json"}`;
 
-        // 🎛️ Create loop buttons
-        loopButtonsContainer.innerHTML = ""; // Clear previous
-        loopSegments.forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.textContent = `Segment ${index + 1}`;
-          btn.style.marginRight = "5px";
-          btn.onclick = () => playFromLoopSegment(index); // 🔗 Hook
-          loopButtonsContainer.appendChild(btn);
-        });
-      })
-      .catch((err) => {
-        console.error("songLoader.js: Failed to load loop segments for", prefix, err);
-        loopButtonsContainer.innerHTML = "<p style='color:red;'>⚠️ No loops found</p>";
-      });
+    try {
+      const response = await fetch(loopUrl);
+      const loopData = await response.json();
+
+      console.log(`songLoader.js: Loaded ${loopData.length} loop segments`);
+
+      renderLoopButtons(loopData);
+      window.currentLoops = loopData; // for playback logic
+    } catch (err) {
+      console.warn('songLoader.js: Failed to load loop JSON:', err);
+      loopButtonsContainer.innerHTML = '';
+    }
   });
+
+  function renderLoopButtons(loopData) {
+    loopButtonsContainer.innerHTML = '';
+    loopData.forEach((loop, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'segment-button';
+      btn.textContent = `Segment ${index + 1}`;
+      btn.addEventListener('click', () => playFromLoopSegment(index));
+      loopButtonsContainer.appendChild(btn);
+    });
+  }
+
+  function playFromLoopSegment(index) {
+    if (!window.currentLoops || !window.vocalAudio || !window.accompAudio) return;
+
+    const start = window.currentLoops[index].start;
+    vocalAudio.currentTime = start;
+    accompAudio.currentTime = start;
+
+    vocalAudio.play();
+    accompAudio.play();
+  }
 });
