@@ -1,135 +1,120 @@
-﻿document.addEventListener("DOMContentLoaded", async () => {
+﻿// loopManager.js
+console.log("🎬 loopManager.js: Starting");
+
+document.addEventListener("DOMContentLoaded", () => {
+  const interval = setInterval(() => {
     const songSelect = document.getElementById("songSelect");
-    if (!songSelect) {
-        console.warn("⚠️ songSelect not found");
-        return;
+    const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+
+    if (!songSelect || !loopButtonsContainer) {
+      console.warn("⏳ loopManager.js: Waiting for #songSelect and #loopButtonsContainer...");
+      return;
     }
 
-    songSelect.addEventListener("change", handleSongSelection);
+    clearInterval(interval);
+    console.log("✅ loopManager.js: Found required DOM elements");
 
-    const segmentButtons = document.querySelectorAll("button[id^='segment']");
-    segmentButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            const segmentNumber = parseInt(button.id.replace("segment", ""));
-            console.log(`🎵 User clicked Segment ${segmentNumber}`);
-            playFromSegment(segmentNumber);
-        });
+    let loopData = [];
+    let currentLoopIndex = -1;
+    let isPlayingSegment = false;
+
+    let vocalAudio, accompAudio;
+
+    function loadAudioRefs() {
+      vocalAudio = document.getElementById("vocalAudio");
+      accompAudio = document.getElementById("accompAudio");
+      if (!vocalAudio || !accompAudio) {
+        console.warn("⚠️ loopManager.js: Audio elements not found yet. Waiting...");
+        return false;
+      }
+      return true;
+    }
+
+    songSelect.addEventListener("change", async () => {
+      const songName = songSelect.value.trim();
+      const loopFile = `lyrics/${songName}_loops.json`;
+
+      loopButtonsContainer.innerHTML = "";
+      loopData = [];
+      currentLoopIndex = -1;
+      isPlayingSegment = false;
+
+      console.log(`📥 loopManager.js: Fetching ${loopFile}`);
+
+      try {
+        const response = await fetch(loopFile);
+        if (!response.ok) throw new Error("Loop file not found");
+
+        loopData = await response.json();
+        console.log(`✅ loopManager.js: Loaded ${loopData.length} loop segments`);
+
+        renderLoopButtons(songName);
+      } catch (error) {
+        console.error("❌ loopManager.js: Error loading loop file:", error);
+        loopButtonsContainer.innerHTML = "<div style='color: red;'>[No loop segments found]</div>";
+      }
     });
 
-    console.log("✅ loopManager.js fully initialized.");
-});
+    function renderLoopButtons(songName) {
+      loopButtonsContainer.innerHTML = "";
 
-let loopData = [];
-let currentSegmentIndex = 0;
-let vocalAudio = null;
-let accompAudio = null;
+      loopData.forEach((segment, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = `Segment ${index + 1}`;
+        btn.className = "loop-segment-btn";
+        btn.addEventListener("click", () => {
+          console.log(`🎯 Clicked segment ${index + 1}`);
+          playFromSegment(index);
+        });
+        loopButtonsContainer.appendChild(btn);
+      });
+    }
 
-async function handleSongSelection() {
-    const songName = document.getElementById("songSelect").value;
-    console.log("🎶 New song selected:", songName);
-
-    const prefix = getPrefixFromSongName(songName);
-    if (!prefix) {
-        console.error("❌ Could not derive prefix from song name");
+    function playFromSegment(startIndex) {
+      if (!loadAudioRefs()) {
+        console.error("❌ loopManager.js: Audio elements not ready.");
         return;
-    }
+      }
 
-    const vocalUrl = await getDropboxUrl(`/WorshipSongs/${prefix}_vocal.mp3`);
-    const accompUrl = await getDropboxUrl(`/WorshipSongs/${prefix}_acc.mp3`);
-    const loopsUrl = await getDropboxUrl(`/WorshipSongs/${prefix}_loops.json`);
-
-    console.log("🎤 Vocal URL:", vocalUrl);
-    console.log("🎼 Accompaniment URL:", accompUrl);
-    console.log("🔁 Loops JSON:", loopsUrl);
-
-    try {
-        vocalAudio = new Audio(vocalUrl);
-        accompAudio = new Audio(accompUrl);
-
-        vocalAudio.addEventListener("ended", stopPlayback);
-        accompAudio.addEventListener("ended", stopPlayback);
-
-        const response = await fetch(loopsUrl);
-        loopData = await response.json();
-        console.log("✅ Loaded loops:", loopData);
-    } catch (err) {
-        console.error("❌ Error loading audio files:", err);
-    }
-}
-
-function playFromSegment(segmentNumber) {
-    if (!loopData.length) {
-        console.warn("⚠️ No loop data loaded");
+      if (!loopData[startIndex]) {
+        console.error(`❌ loopManager.js: Invalid segment index ${startIndex}`);
         return;
-    }
+      }
 
-    const segment = loopData[segmentNumber - 1];
-    if (!segment) {
-        console.warn(`⚠️ Segment ${segmentNumber} not found`);
-        return;
-    }
+      isPlayingSegment = true;
+      currentLoopIndex = startIndex;
 
-    currentSegmentIndex = segmentNumber - 1;
-    playSegment(currentSegmentIndex);
-}
+      const playNextSegment = () => {
+        if (!isPlayingSegment || currentLoopIndex >= loopData.length) {
+          console.log("⏹️ loopManager.js: Reached end of segments or stopped");
+          isPlayingSegment = false;
+          return;
+        }
 
-function playSegment(index) {
-    const loop = loopData[index];
-    if (!loop) return;
+        const segment = loopData[currentLoopIndex];
+        const { start, end } = segment;
 
-    const start = loop.start;
-    const end = loop.end;
+        console.log(`▶️ Playing segment ${currentLoopIndex + 1}: ${start} → ${end}s`);
 
-    vocalAudio.currentTime = start;
-    accompAudio.currentTime = start;
+        vocalAudio.currentTime = start;
+        accompAudio.currentTime = start;
 
-    vocalAudio.play();
-    accompAudio.play();
+        vocalAudio.play().catch(err => console.warn("⚠️ vocal play error:", err));
+        accompAudio.play().catch(err => console.warn("⚠️ accomp play error:", err));
 
-    const interval = setInterval(() => {
-        if (vocalAudio.currentTime >= end || accompAudio.currentTime >= end) {
+        const checkEnd = setInterval(() => {
+          const t = Math.max(vocalAudio.currentTime, accompAudio.currentTime);
+          if (t >= end || !isPlayingSegment) {
             vocalAudio.pause();
             accompAudio.pause();
-            clearInterval(interval);
+            clearInterval(checkEnd);
+            currentLoopIndex++;
+            if (isPlayingSegment) playNextSegment();
+          }
+        }, 200);
+      };
 
-            if (index + 1 < loopData.length) {
-                playSegment(index + 1);
-            } else {
-                console.log("✅ Playback finished after last loop.");
-            }
-        }
-    }, 100);
-}
-
-function stopPlayback() {
-    vocalAudio.pause();
-    accompAudio.pause();
-    vocalAudio.currentTime = 0;
-    accompAudio.currentTime = 0;
-}
-
-function getPrefixFromSongName(songName) {
-    // Assume suffix-based matching
-    const suffixMap = {
-        "என் வாழ்க்கையெல்லாம் உம்": "En_vaalkaikayellam_Um",
-        "உம் நாமத்தையே தூதுவோம்": "Um_Namaththaiye_Thooduvoam",
-        // Add more as needed
-    };
-    for (const [key, val] of Object.entries(suffixMap)) {
-        if (songName.endsWith(key)) return val;
+      playNextSegment();
     }
-    return null;
-}
-
-async function getDropboxUrl(path) {
-    try {
-        const response = await fetch("/.netlify/functions/getDropboxToken");  // ✅ FIXED URL
-        const data = await response.json();
-        const accessToken = data.access_token;
-
-        return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${accessToken}&arg={"path":"${path}"}`;
-    } catch (err) {
-        console.error("❌ getDropboxUrl error:", err);
-        throw err;
-    }
-}
+  }, 100);
+});
