@@ -15,8 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!selectedSong) return;
 
         // ✅ NEW BLOCK: Set folder ID and key from Dropbox link
-        dropboxFileID = "g2pay3hdqgkimrb5tt0rw";
-        dropboxRlKey = "sagx3mo3wl2h9oa2n4fbp4q13";
+        dropboxFileID = "4212erw3ouxgx3lmd2rsk";
+        dropboxRlKey = "t8b5y04pe4lprncj188540ghj";
 
         // Load lyrics
         const lyricsPath = `lyrics/${selectedSong}.txt`;
