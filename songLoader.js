@@ -56,6 +56,29 @@ document.addEventListener("DOMContentLoaded", () => {
               });
               loopButtonsContainer.appendChild(btn);
             });
+
+            // ✅ 🔗 Dropbox block: build URLs and prepare audio
+            const vocalName = `${selectedSong}_vocal.mp3`;
+            const accName = `${selectedSong}_acc.mp3`;
+
+            fetch("/.netlify/functions/getDropboxToken")
+              .then(res => res.json())
+              .then(({ access_token }) => {
+                const vocalUrl = buildDropboxUrl(vocalName, access_token);
+                const accUrl = buildDropboxUrl(accName, access_token);
+
+                console.log("🎧 Vocal URL:", vocalUrl);
+                console.log("🎹 Accompaniment URL:", accUrl);
+
+                window.currentAudioUrls = { vocalUrl, accUrl };
+
+                if (typeof prepareAudioFromDropbox === "function") {
+                  prepareAudioFromDropbox();
+                }
+              })
+              .catch(err => {
+                console.error("❌ Failed to get Dropbox token:", err);
+              });
           })
           .catch(err => {
             loopButtonsContainer.innerHTML = "";
@@ -67,3 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 300);
 });
+
+// 🔽 Outside: Dropbox helper function
+function buildDropboxUrl(fileName, token) {
+  return `https://content.dropboxapi.com/2/files/download`;
+}
