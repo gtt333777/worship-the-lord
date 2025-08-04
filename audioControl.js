@@ -24,6 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
   setUpPlayButton();
 });
 
+
+
+
+
+
+
 function prepareAudioFromDropbox() {
   console.log("audioControl.js: prepareAudioFromDropbox() called");
 
@@ -68,6 +74,16 @@ function prepareAudioFromDropbox() {
     })
     .catch(err => console.error("❌ Failed to load accompaniment:", err));
 }
+
+
+
+
+
+
+
+
+
+
 
 // Called from songLoader.js after loading loops
 function setAudioElements(vocal, accomp) {
