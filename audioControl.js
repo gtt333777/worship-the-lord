@@ -3,21 +3,22 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("audioControl.js: DOMContentLoaded fired");
 
-  setTimeout(() => {
+  const checkInterval = setInterval(() => {
     const vocalSlider = document.getElementById("vocalVolume");
     const accSlider = document.getElementById("accVolume");
     const playBtn = document.getElementById("playButton");
 
-    if (!vocalSlider || !accSlider || !playBtn) {
-      console.warn("audioControl.js: One or more volume controls missing.");
-      return;
+    if (vocalSlider && accSlider && playBtn) {
+      clearInterval(checkInterval);
+      console.log("✅ audioControl.js: Volume controls found. Setting up...");
+      setUpVolumeControls(vocalSlider, accSlider, playBtn);
+    } else {
+      console.log("audioControl.js: Waiting for volume controls...");
     }
-
-    setUpVolumeControls(vocalSlider, accSlider);
-  }, 500);
+  }, 300);
 });
 
-function setUpVolumeControls(vocalSlider, accSlider) {
+function setUpVolumeControls(vocalSlider, accSlider, playBtn) {
   const vocalAudio = new Audio();
   const accAudio = new Audio();
 
@@ -32,7 +33,7 @@ function setUpVolumeControls(vocalSlider, accSlider) {
     accAudio.volume = accSlider.value;
   });
 
-  document.getElementById("playButton").addEventListener("click", () => {
+  playBtn.addEventListener("click", () => {
     if (vocalAudio && accAudio) {
       vocalAudio.currentTime = 0;
       accAudio.currentTime = 0;
