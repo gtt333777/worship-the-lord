@@ -1,107 +1,74 @@
-﻿console.log("🎵 songLoader.js: Starting...");
+﻿// songLoader.js
 
-document.addEventListener("DOMContentLoaded", () => {
-  const checkElements = setInterval(() => {
-    const songSelect = document.getElementById("songSelect");
-    const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-    if (songSelect && loopButtonsContainer) {
-      clearInterval(checkElements);
-      console.log("🎵 songLoader.js: #songSelect, #lyricsTextArea, and #loopButtonsContainer found");
+let loopSegments = []; // ✅ Globally declare this
 
-      songSelect.addEventListener("change", async () => {
-        const songName = songSelect.value;
-        console.log(`🎵 songLoader.js: Song selected: ${songName}`);
+document.addEventListener("DOMContentLoaded", function () {
+  const songSelect = document.getElementById("songSelect");
+  const lyricsTextArea = document.getElementById("lyricsTextArea");
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
 
-        // Prepare audio URLs
-        const vocalFile = `${songName}_vocal.mp3`;
-        const accFile = `${songName}_acc.mp3`;
-        const token = window.currentDropboxAccessToken;
+  if (!songSelect || !lyricsTextArea || !loopButtonsContainer) {
+    console.error("songLoader.js: Required elements not found");
+    return;
+  }
 
-        window.currentAudioUrls = {
-          vocal: `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${token}&arg=${encodeURIComponent(
-            JSON.stringify({ path: `/WorshipSongs/${vocalFile}` })
-          )}`,
-          acc: `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${token}&arg=${encodeURIComponent(
-            JSON.stringify({ path: `/WorshipSongs/${accFile}` })
-          )}`
-        };
+  songSelect.addEventListener("change", function () {
+    const selectedTamilName = songSelect.value;
+    console.log("songLoader.js: Song selected:", selectedTamilName);
 
-        console.log("🎧 songLoader.js: Assigned Dropbox audio URLs:");
-        console.log("🎙️ Vocal:", window.currentAudioUrls.vocal);
-        console.log("🎹 Accompaniment:", window.currentAudioUrls.acc);
+    const prefix = getPrefixForTamilName(selectedTamilName);
+    if (!prefix) {
+      console.error("songLoader.js: Could not find prefix for selected Tamil name:", selectedTamilName);
+      return;
+    }
 
-        // Load loop file
-        const loopFilePath = `lyrics/${songName}_loops.json`;
-        try {
-          const response = await fetch(loopFilePath);
-          if (!response.ok) throw new Error(`Loop file not found: ${loopFilePath}`);
-          const loopData = await response.json();
+    // 🔗 Assign audio URLs
+    const vocalUrl = `${DROPBOX_BASE_URL}/${encodeURIComponent("WorshipSongs/" + prefix + "_vocal.mp3")}?authorization=Bearer%20${DROPBOX_ACCESS_TOKEN}`;
+    const accompUrl = `${DROPBOX_BASE_URL}/${encodeURIComponent("WorshipSongs/" + prefix + "_acc.mp3")}?authorization=Bearer%20${DROPBOX_ACCESS_TOKEN}`;
 
-          console.log(`🔁 songLoader.js: Loaded ${loopData.length} loop segments`);
+    vocalAudio.src = vocalUrl;
+    accompAudio.src = accompUrl;
+    console.log("songLoader.js: Assigned Dropbox audio URLs:");
+    console.log("🎤 Vocal:", vocalUrl);
+    console.log("🎶 Accompaniment:", accompUrl);
 
-          // Clear previous buttons
-          loopButtonsContainer.innerHTML = "";
-
-          // Create buttons for each loop
-          loopData.forEach((segment, index) => {
-            const button = document.createElement("button");
-            button.textContent = `Segment ${index + 1}`;
-            button.className = "segment-button";
-            button.addEventListener("click", () => {
-              window.currentLoopIndex = index;
-              console.log(`▶️ songLoader.js: Segment ${index + 1} clicked`);
-              if (typeof window.playFromLoopSegment === "function") {
-                window.playFromLoopSegment(index, loopData);
-              } else {
-                console.warn("⚠️ playFromLoopSegment function is not defined");
-              }
-            });
-            loopButtonsContainer.appendChild(button);
-          });
-        } catch (err) {
-          console.warn("⚠️ songLoader.js: No loop file found or failed to load:", err.message);
-          loopButtonsContainer.innerHTML = ""; // clear if nothing found
-        }
+    // 📜 Load lyrics
+    fetch(`lyrics/${prefix}.txt`)
+      .then((res) => res.text())
+      .then((text) => {
+        lyricsTextArea.value = text;
+        console.log("songLoader.js: Loaded lyrics for", selectedTamilName);
+      })
+      .catch((err) => {
+        console.error("songLoader.js: Failed to load lyrics for", prefix, err);
       });
-    }
-  }, 100);
+
+    // 🔁 Load loops
+    fetch(`https://content.dropboxapi.com/2/files/download`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+        "Dropbox-API-Arg": JSON.stringify({ path: `/WorshipSongs/${prefix}_loops.json` })
+      }
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        loopSegments = json.loops || []; // ✅ Store globally
+        console.log(`songLoader.js: Loaded ${loopSegments.length} loop segments`);
+
+        // 🎛️ Create loop buttons
+        loopButtonsContainer.innerHTML = ""; // Clear previous
+        loopSegments.forEach((segment, index) => {
+          const btn = document.createElement("button");
+          btn.textContent = `Segment ${index + 1}`;
+          btn.style.marginRight = "5px";
+          btn.onclick = () => playFromLoopSegment(index); // 🔗 Hook
+          loopButtonsContainer.appendChild(btn);
+        });
+      })
+      .catch((err) => {
+        console.error("songLoader.js: Failed to load loop segments for", prefix, err);
+        loopButtonsContainer.innerHTML = "<p style='color:red;'>⚠️ No loops found</p>";
+      });
+  });
 });
-
-function playFromLoopSegment(segmentIndex) {
-    if (!loopSegments || segmentIndex < 0 || segmentIndex >= loopSegments.length) {
-        console.warn("Invalid loop segment index:", segmentIndex);
-        return;
-    }
-
-    const loop = loopSegments[segmentIndex];
-    if (!loop) {
-        console.warn("Loop segment not found at index:", segmentIndex);
-        return;
-    }
-
-    console.log(`▶️ playFromLoopSegment: Playing from Segment ${segmentIndex + 1}`, loop);
-
-    // Stop current audio
-    vocalAudio.pause();
-    accompAudio.pause();
-
-    // Set start time
-    vocalAudio.currentTime = loop.start;
-    accompAudio.currentTime = loop.start;
-
-    // Start playing both in sync
-    vocalAudio.play();
-    accompAudio.play();
-
-    // Monitor to stop when end is reached
-    const stopAt = loop.end;
-    const checkAndStop = () => {
-        if (vocalAudio.currentTime >= stopAt || accompAudio.currentTime >= stopAt) {
-            vocalAudio.pause();
-            accompAudio.pause();
-            clearInterval(monitor);
-            console.log("⏹️ Segment playback stopped at", stopAt);
-        }
-    };
-    const monitor = setInterval(checkAndStop, 200);
-}
