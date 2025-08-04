@@ -40,19 +40,14 @@ function prepareAudioFromDropbox() {
 
   const { vocalUrl, accUrl, accessToken, vocalName, accName } = window.currentAudioUrls;
 
-  const encodeHeaderValue = (name) => {
-    const pathObj = { path: `/WorshipSongs/${name}` };
-    return encodeURIComponent(JSON.stringify(pathObj));
-  };
-
-  const vocalArg = encodeHeaderValue(vocalName);
-  const accArg = encodeHeaderValue(accName);
-
+  // 🎧 Load vocal.mp3
   fetch(vocalUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": decodeURIComponent(vocalArg)
+      "Dropbox-API-Arg": JSON.stringify({
+        path: `/WorshipSongs/${vocalName}`
+      }).replace(/[\u007f-\uffff]/g, "")  // ⚠️ filter out Tamil characters just in case
     }
   })
     .then(res => res.blob())
@@ -62,11 +57,14 @@ function prepareAudioFromDropbox() {
     })
     .catch(err => console.error("❌ Failed to load vocal:", err));
 
+  // 🎹 Load accompaniment.mp3
   fetch(accUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": decodeURIComponent(accArg)
+      "Dropbox-API-Arg": JSON.stringify({
+        path: `/WorshipSongs/${accName}`
+      }).replace(/[\u007f-\uffff]/g, "")  // ⚠️ filter out Tamil characters just in case
     }
   })
     .then(res => res.blob())
@@ -76,7 +74,6 @@ function prepareAudioFromDropbox() {
     })
     .catch(err => console.error("❌ Failed to load accompaniment:", err));
 }
-
 
 
 
