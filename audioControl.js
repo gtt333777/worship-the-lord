@@ -24,63 +24,34 @@ document.addEventListener("DOMContentLoaded", () => {
   setUpPlayButton();
 });
 
+// ✅ Final version of prepareAudioFromDropbox()
 function prepareAudioFromDropbox() {
   console.log("audioControl.js: prepareAudioFromDropbox() called");
 
-  const songName = window.selectedSongName;
-  const accessToken = window.latestDropboxAccessToken;
-
-  if (!songName || !accessToken) {
-    console.warn("⛔ Missing songName or Dropbox token");
+  if (!window.selectedSongName || !window.dropboxFileID || !window.dropboxRlKey) {
+    console.warn("Missing song name or Dropbox IDs");
     return;
   }
 
-  const vocalName = `${songName}_vocal.mp3`;
-  const accName = `${songName}_acc.mp3`;
+  const vocalName = `${window.selectedSongName}_vocal.mp3`;
+  const accName = `${window.selectedSongName}_acc.mp3`;
 
-  const vocalUrl = "https://content.dropboxapi.com/2/files/download";
-  const accUrl = "https://content.dropboxapi.com/2/files/download";
+  const buildUrl = (fileName) =>
+    `https://www.dropbox.com/scl/fi/${window.dropboxFileID}/${encodeURIComponent(fileName)}?rlkey=${window.dropboxRlKey}&raw=1`;
 
-  // Vocal fetch
-  fetch(vocalUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({
-        path: `/WorshipSongs/${vocalName}`
-      })
-    }
-  })
-    .then(res => res.blob())
-    .then(blob => {
-      vocalAudio.src = URL.createObjectURL(blob);
-      console.log("🎧 Vocal audio ready");
-    })
-    .catch(err => {
-      console.error("❌ Error loading vocal:", err);
-    });
+  const vocalUrl = buildUrl(vocalName);
+  const accUrl = buildUrl(accName);
 
-  // Accompaniment fetch
-  fetch(accUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({
-        path: `/WorshipSongs/${accName}`
-      })
-    }
-  })
-    .then(res => res.blob())
-    .then(blob => {
-      accompAudio.src = URL.createObjectURL(blob);
-      console.log("🎹 Accompaniment audio ready");
-    })
-    .catch(err => {
-      console.error("❌ Error loading accompaniment:", err);
-    });
+  console.log("🎧 Vocal URL:", vocalUrl);
+  console.log("🎹 Accompaniment URL:", accUrl);
+
+  vocalAudio.src = vocalUrl;
+  accompAudio.src = accUrl;
 
   vocalAudio.crossOrigin = "anonymous";
   accompAudio.crossOrigin = "anonymous";
+
+  setAudioElements(vocalAudio, accompAudio);
 
   vocalAudio.onended = accompAudio.onended = () => {
     console.log("🔚 Playback ended");
@@ -88,11 +59,16 @@ function prepareAudioFromDropbox() {
   };
 }
 
-// Segment logic
+function setAudioElements(vocal, accomp) {
+  vocalAudio = vocal;
+  accompAudio = accomp;
+}
+
 function setLoops(newLoops) {
   loops = newLoops;
 }
 
+// ✅ Segment loop playback
 function playSegmentFrom(index) {
   if (!loops.length || !vocalAudio.src || !accompAudio.src) {
     console.warn("Cannot play: Loops or audio not ready");
@@ -117,7 +93,7 @@ function playSegmentFrom(index) {
     vocalAudio.pause();
     accompAudio.pause();
     isPlayingSegment = false;
-    console.log("🛑 Playback stopped after last segment");
+    console.log("🛑 Stopped after final segment");
   };
 
   const checkNext = () => {
