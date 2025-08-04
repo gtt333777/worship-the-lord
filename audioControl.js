@@ -1,5 +1,9 @@
 ﻿console.log("audioControl.js: Starting...");
 
+// 🔊 Define audio elements at the top level so they're accessible everywhere
+window.vocalAudio = new Audio();
+window.accompAudio = new Audio();
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("audioControl.js: DOMContentLoaded fired");
 
@@ -21,9 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function setUpVolumeControls(vocalSlider, accSlider) {
   console.log("audioControl.js: setUpVolumeControls() initialized");
-
-  window.vocalAudio = new Audio();
-  window.accompAudio = new Audio();
 
   vocalSlider.addEventListener("input", () => {
     vocalAudio.volume = vocalSlider.value;
@@ -87,7 +88,6 @@ function fetchAudioBlob(fileName, accessToken) {
     path: `/WorshipSongs/${fileName}`
   });
 
-  // Force ASCII-safe header for Dropbox
   const asciiSafeArg = dropboxArg.replace(/[\u007f-\uffff]/g, (c) =>
     "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4)
   );
