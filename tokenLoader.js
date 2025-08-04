@@ -1,17 +1,23 @@
-﻿// WorshipApp_Modular/tokenLoader.js
+﻿console.log("tokenLoader.js: Starting...");
 
-let ACCESS_TOKEN = "";
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("tokenLoader.js: DOMContentLoaded fired");
 
-async function loadDropboxToken() {
   try {
-    const res = await fetch("/.netlify/functions/getDropboxToken");
-    const data = await res.json();
-    ACCESS_TOKEN = data.access_token;
+    const res = await fetch("/.netlify/functions/get-dropbox-token");
+    if (!res.ok) throw new Error(`Token fetch failed: ${res.status}`);
     
-  } catch (err) {
-    console.error("❌ Failed to fetch Dropbox token:", err);
-  }
-}
+    const data = await res.json();
+    window.accessToken = data.access_token;
 
-// Call immediately on page load
-loadDropboxToken();
+    console.log("🔑 accessToken received and stored");
+
+    // Now that token is ready, call song loader logic if needed
+    if (window.prepareSongAfterToken) {
+      console.log("⏩ Running deferred song load after token...");
+      window.prepareSongAfterToken();
+    }
+  } catch (err) {
+    console.error("❌ Error fetching token:", err);
+  }
+});
