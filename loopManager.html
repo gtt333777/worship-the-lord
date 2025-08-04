@@ -1,58 +1,25 @@
-﻿<!-- loopManager.html 
-<div id="loopSection" style="margin-top: 20px;">
-  <h3 style="margin-bottom: 10px; font-family: Arial, sans-serif;">🔁 Select a Segment to Play</h3>
-  <div id="loopButtonsContainer"
-       style="
-         display: flex;
-         flex-wrap: wrap;
-         gap: 10px;
-         padding: 10px;
-         background-color: #f9f9f9;
-         border: 1px solid #ddd;
-         border-radius: 10px;
-       ">
-  </div>
+﻿<div id="loopSection" style="margin-top: 20px;">
+  <h3 style="margin-bottom: 10px;">🔁 Select a Segment to Play</h3>
+  <div id="loopButtonsContainer" style="
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  "></div>
 </div>
 
 <style>
-  #loopButtonsContainer button {
-    padding: 10px 16px;
-    background-color: #cce5ff;
-    color: #003366;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-family: 'Segoe UI', sans-serif;
+  .loop-button {
+    padding: 8px 16px;
+    font-size: 14px;
+    background-color: #e0f7fa;
+    border: 1px solid #b2ebf2;
+    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.3s ease;
   }
 
-  #loopButtonsContainer button:hover {
-    background-color: #b3d7ff;
-    transform: scale(1.05);
-  }
-
-  #loopButtonsContainer button:active {
-    background-color: #99ccff;
-    transform: scale(0.98);
+  .loop-button:hover {
+    background-color: #b2ebf2;
   }
 </style>
-
--->
-
-<div id="loopSection" style="margin-top: 20px;">
-  <h3 style="margin-bottom: 10px;">🔁 Select a Segment to Play</h3>
-  <div id="loopButtonsContainer" style="display: flex; flex-wrap: wrap;"></div>
-</div>
-
-
-.loop-button {
-  margin: 5px;
-  padding: 8px 16px;
-  background-color: #e0f7fa;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
