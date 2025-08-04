@@ -1,69 +1,75 @@
-﻿console.log("songLoader.js: Starting...");
+﻿document.addEventListener("DOMContentLoaded", function () {
+  const songSelect = document.getElementById("songSelect");
+  const lyricsTextArea = document.getElementById("lyricsTextArea");
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
 
-document.addEventListener("DOMContentLoaded", () => {
-  const checkInterval = setInterval(() => {
-    const songSelect = document.getElementById("songSelect");
-    const lyricsTextArea = document.getElementById("lyricsTextArea");
-    const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+  if (!songSelect || !lyricsTextArea || !loopButtonsContainer) {
+    console.warn("songLoader.js: Waiting for #songSelect, #lyricsTextArea, and #loopButtonsContainer...");
+    return;
+  }
 
-    if (songSelect && lyricsTextArea && loopButtonsContainer) {
-      clearInterval(checkInterval);
-      console.log("songLoader.js: #songSelect, #lyricsTextArea, and #loopButtonsContainer found");
+  songSelect.addEventListener("change", async function () {
+    const selectedSong = songSelect.value.trim();
+    if (!selectedSong) return;
 
-      songSelect.addEventListener("change", () => {
-        const selectedSong = songSelect.value.trim();
-        if (!selectedSong) return;
+    const suffix = selectedSong;
+    console.log(`🎵 songLoader.js: Selected song suffix: ${suffix}`);
 
-        // Load lyrics
-        const lyricsPath = `lyrics/${selectedSong}.txt`;
-        console.log(`lyricsLoader.js: Fetching lyrics for ${selectedSong}`);
-        fetch(lyricsPath)
-          .then(response => {
-            if (!response.ok) throw new Error("Lyrics file not found");
-            return response.text();
-          })
-          .then(text => {
-            lyricsTextArea.value = text;
-            console.log(`lyricsLoader.js: Loaded lyrics for ${selectedSong}`);
-          })
-          .catch(err => {
-            lyricsTextArea.value = "⚠️ Lyrics not found.";
-            console.warn(`lyricsLoader.js: Could not load lyrics for ${selectedSong}`);
-          });
-
-        // Load loops
-        const loopsPath = `lyrics/${selectedSong}_loops.json`;
-        console.log(`🔁 Fetching loops from ${loopsPath}`);
-        fetch(loopsPath)
-          .then(response => {
-            if (!response.ok) throw new Error("Loop file not found");
-            return response.json();
-          })
-          .then(loops => {
-            console.log(`🔁 Loaded ${loops.length} segment(s)`);
-
-            // Clear old buttons
-            loopButtonsContainer.innerHTML = "";
-
-            // Create new buttons
-            loops.forEach((loop, index) => {
-              const btn = document.createElement("button");
-              btn.textContent = `Segment ${index + 1}`;
-              btn.style.margin = "5px";
-              btn.addEventListener("click", () => {
-                console.log(`▶️ User clicked Segment ${index + 1}`);
-                // Placeholder: playback logic can go here
-              });
-              loopButtonsContainer.appendChild(btn);
-            });
-          })
-          .catch(err => {
-            loopButtonsContainer.innerHTML = "";
-            console.warn("⚠️ songLoader.js: Could not load loops: Loop file not found");
-          });
-      });
-    } else {
-      console.log("songLoader.js: Waiting for #songSelect and #lyricsTextArea and #loopButtonsContainer...");
+    // 🔁 Load loops
+    const loopsUrl = `lyrics/${suffix}_loops.json`;
+    console.log(`🔁 songLoader.js: Fetching loops from ${loopsUrl}`);
+    try {
+      const loopsResponse = await fetch(loopsUrl);
+      if (!loopsResponse.ok) throw new Error("Loop file not found");
+      const loops = await loopsResponse.json();
+      renderLoopSegments(loops); // global function
+      console.log("✅ songLoader.js: Loops loaded successfully.");
+    } catch (error) {
+      console.warn("⚠️ songLoader.js: Failed to load loop file", error);
+      loopButtonsContainer.innerHTML = ""; // Clear if not found
     }
-  }, 300);
+
+    // 📖 Load lyrics
+    const lyricsUrl = `lyrics/${suffix}.txt`;
+    console.log(`📖 songLoader.js: Fetching lyrics from ${lyricsUrl}`);
+    try {
+      const lyricsResponse = await fetch(lyricsUrl);
+      if (!lyricsResponse.ok) throw new Error("Lyrics file not found");
+      const lyrics = await lyricsResponse.text();
+      lyricsTextArea.value = lyrics;
+      console.log("✅ songLoader.js: Lyrics loaded successfully.");
+    } catch (error) {
+      console.warn("⚠️ songLoader.js: Failed to load lyrics file", error);
+      lyricsTextArea.value = "Lyrics not found.";
+    }
+
+    // 🔊 Set up audio URLs using suffix
+    const vocalUrl = await getTemporaryDropboxLink(`${suffix}_vocal.mp3`);
+    const accompUrl = await getTemporaryDropboxLink(`${suffix}_acc.mp3`);
+    if (vocalUrl && accompUrl) {
+      vocalAudio.src = vocalUrl;
+      accompAudio.src = accompUrl;
+      console.log("🔊 songLoader.js: Assigned audio URLs:");
+      console.log("   🎤 vocalAudio.src =", vocalUrl);
+      console.log("   🎶 accompAudio.src =", accompUrl);
+    } else {
+      console.error("❌ songLoader.js: Failed to assign audio URLs.");
+    }
+  });
 });
+
+// ✅ Dropbox short-lived URL fetcher
+async function getTemporaryDropboxLink(fileName) {
+  const dropboxPath = `/WorshipSongs/${fileName}`;
+  const encodedPath = encodeURIComponent(dropboxPath);
+  const endpoint = `/.netlify/functions/getDropboxLink?path=${encodedPath}`;
+  try {
+    const response = await fetch(endpoint);
+    if (!response.ok) throw new Error("Failed to fetch from Netlify");
+    const { url } = await response.json();
+    return url;
+  } catch (err) {
+    console.error("❌ getTemporaryDropboxLink failed for", fileName, err);
+    return null;
+  }
+}
