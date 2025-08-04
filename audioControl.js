@@ -32,20 +32,41 @@ function prepareAudioFromDropbox() {
     return;
   }
 
-  const { vocalUrl, accUrl } = window.currentAudioUrls;
+  const { vocalUrl, accUrl, accessToken, vocalName, accName } = window.currentAudioUrls;
 
-  vocalAudio.src = vocalUrl;
-  accompAudio.src = accUrl;
+  // Fetch vocal MP3
+  fetch(vocalUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Dropbox-API-Arg": JSON.stringify({
+        path: `/WorshipSongs/${vocalName}`
+      })
+    }
+  })
+    .then(res => res.blob())
+    .then(blob => {
+      vocalAudio.src = URL.createObjectURL(blob);
+      console.log("🎧 Vocal audio prepared");
+    })
+    .catch(err => console.error("❌ Failed to load vocal:", err));
 
-  vocalAudio.crossOrigin = "anonymous";
-  accompAudio.crossOrigin = "anonymous";
-
-  setAudioElements(vocalAudio, accompAudio);
-
-  vocalAudio.onended = accompAudio.onended = () => {
-    console.log("🔚 Playback ended");
-    isPlayingSegment = false;
-  };
+  // Fetch accompaniment MP3
+  fetch(accUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Dropbox-API-Arg": JSON.stringify({
+        path: `/WorshipSongs/${accName}`
+      })
+    }
+  })
+    .then(res => res.blob())
+    .then(blob => {
+      accompAudio.src = URL.createObjectURL(blob);
+      console.log("🎹 Accompaniment audio prepared");
+    })
+    .catch(err => console.error("❌ Failed to load accompaniment:", err));
 }
 
 // Called from songLoader.js after loading loops
