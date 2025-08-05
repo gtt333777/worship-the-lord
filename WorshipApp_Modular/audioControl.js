@@ -1,59 +1,80 @@
-﻿// 🎚️ audioControl.js: Handles volume sliders and ensures audio globals
+﻿console.log("audioControl.js: Starting...");
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("audioControl.js: DOMContentLoaded fired");
 
-  const vocalAudio = document.getElementById("vocalAudio");
-  const accompAudio = document.getElementById("accompAudio");
+  // Retry setup until all elements are found
+  const tryInitialize = (retries = 10) => {
+    const playButton = document.getElementById("playButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const vocalSlider = document.getElementById("vocalVolumeSlider");
+    const vocalMinus = document.getElementById("vocalMinus");
+    const vocalPlus = document.getElementById("vocalPlus");
+    const accSlider = document.getElementById("accompanimentVolumeSlider");
+    const accMinus = document.getElementById("accompanimentMinus");
+    const accPlus = document.getElementById("accompanimentPlus");
 
-  // ✅ Make them available globally for loopPlayer.js
-  window.vocalAudio = vocalAudio;
-  window.accompAudio = accompAudio;
+    const vocalAudio = window.vocalAudio;
+    const accompAudio = window.accompAudio;
 
-  const vocalSlider = document.getElementById("vocalVolumeSlider");
-  const accompSlider = document.getElementById("accompanimentVolumeSlider");
+    if (
+      playButton &&
+      pauseButton &&
+      vocalSlider &&
+      vocalMinus &&
+      vocalPlus &&
+      accSlider &&
+      accMinus &&
+      accPlus &&
+      vocalAudio &&
+      accompAudio
+    ) {
+      console.log("audioControl.js: All elements found — initializing...");
 
-  function setVolume() {
-    if (vocalAudio && vocalSlider) {
-      vocalAudio.volume = vocalSlider.value;
-    }
-    if (accompAudio && accompSlider) {
-      accompAudio.volume = accompSlider.value;
-    }
-  }
+      playButton.onclick = () => {
+        vocalAudio.play();
+        accompAudio.play();
+      };
 
-  if (vocalSlider) {
-    vocalSlider.addEventListener("input", setVolume);
-  }
+      pauseButton.onclick = () => {
+        vocalAudio.pause();
+        accompAudio.pause();
+      };
 
-  if (accompSlider) {
-    accompSlider.addEventListener("input", setVolume);
-  }
+      // Vocal Volume Control
+      vocalSlider.oninput = () => {
+        vocalAudio.volume = vocalSlider.value;
+      };
+      vocalMinus.onclick = () => {
+        vocalSlider.value = Math.max(0, parseFloat(vocalSlider.value) - 0.05).toFixed(2);
+        vocalSlider.dispatchEvent(new Event("input"));
+      };
+      vocalPlus.onclick = () => {
+        vocalSlider.value = Math.min(1, parseFloat(vocalSlider.value) + 0.05).toFixed(2);
+        vocalSlider.dispatchEvent(new Event("input"));
+      };
 
-  // Fine adjust buttons
-  document.getElementById("vocalVolumePlus").onclick = () => {
-    vocalSlider.stepUp();
-    setVolume();
-  };
-  document.getElementById("vocalVolumeMinus").onclick = () => {
-    vocalSlider.stepDown();
-    setVolume();
-  };
-  document.getElementById("accompanimentVolumePlus").onclick = () => {
-    accompSlider.stepUp();
-    setVolume();
-  };
-  document.getElementById("accompanimentVolumeMinus").onclick = () => {
-    accompSlider.stepDown();
-    setVolume();
-  };
-
-  // Wait for audio buttons to be ready
-  const interval = setInterval(() => {
-    if (!vocalAudio || !accompAudio) {
-      console.warn("audioControl.js: Waiting for audio buttons to appear...");
+      // Accompaniment Volume Control
+      accSlider.oninput = () => {
+        accompAudio.volume = accSlider.value;
+      };
+      accMinus.onclick = () => {
+        accSlider.value = Math.max(0, parseFloat(accSlider.value) - 0.05).toFixed(2);
+        accSlider.dispatchEvent(new Event("input"));
+      };
+      accPlus.onclick = () => {
+        accSlider.value = Math.min(1, parseFloat(accSlider.value) + 0.05).toFixed(2);
+        accSlider.dispatchEvent(new Event("input"));
+      };
     } else {
-      console.log("✅ audioControl.js: Audio elements ready.");
-      clearInterval(interval);
+      if (retries > 0) {
+        console.warn("audioControl.js: Waiting for audio buttons to appear...");
+        setTimeout(() => tryInitialize(retries - 1), 500);
+      } else {
+        console.error("audioControl.js: Failed to initialize after retries.");
+      }
     }
-  }, 500);
+  };
+
+  tryInitialize();
 });
