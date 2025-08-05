@@ -5,20 +5,22 @@ let currentLoopIndex = 0;
 let loopPlaybackActive = false;
 let loopPlaybackStarted = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-  // ✅ Use JS-created global audio objects if available, fallback to <audio> tags
-  const vocalAudio = window.vocalAudio || document.querySelectorAll('audio')[0];
-  const accompAudio = window.accompAudio || document.querySelectorAll('audio')[1];
-
-  console.log("🔁 DOMContentLoaded");
-  console.log("🎵 vocalAudio:", vocalAudio);
-  console.log("🎵 accompAudio:", accompAudio);
-
-  if (!vocalAudio || !accompAudio) {
-    console.error("❌ loopPlayer.js: Audio elements not found.");
-    return;
+function waitForAudioElements() {
+  if (window.vocalAudio && window.accompAudio) {
+    console.log("🎵 loopPlayer.js: Found global vocalAudio and accompAudio.");
+    setupLoopPlayback(window.vocalAudio, window.accompAudio);
+  } else {
+    console.log("⏳ loopPlayer.js: Waiting for audio elements...");
+    setTimeout(waitForAudioElements, 500); // Retry after 0.5 sec
   }
+}
 
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("📦 DOMContentLoaded — waiting for audio to be initialized.");
+  waitForAudioElements();
+});
+
+function setupLoopPlayback(vocalAudio, accompAudio) {
   vocalAudio.addEventListener('play', () => {
     if (!loopPlaybackStarted) {
       loopPlaybackStarted = true;
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cancelLoopPlayback();
     }
   });
-});
+}
 
 function loadLoopsJsonAndStart(vocalAudio, accompAudio) {
   const songName = window.selectedSongName;
