@@ -28,6 +28,14 @@ document.getElementById("playBtn").addEventListener("click", () => {
   vocalAudio.src = vocalUrl;
   accompAudio.src = accUrl;
 
+
+  // ✅ REQUIRED for loopPlayer.js to work
+  window.currentSongName = prefix;
+
+
+
+
+
   // Sync playback
   Promise.all([
     vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
