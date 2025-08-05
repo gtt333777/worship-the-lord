@@ -14,16 +14,18 @@ document.getElementById("playBtn").addEventListener("click", () => {
   }
 
   const songName = document.getElementById("songSelect").value;
+  onSongSelectionChange(songName); // 🔁 Load loops
+
   if (!songName) {
-    console.warn("⚠️ No song selected.");
-    return;
-  }
+  console.warn("⚠️ No song selected.");
+  return;
+ }
 
   const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
   const accUrl = getDropboxFileURL(songName + "_acc.mp3");
 
-  console.log("🎧 Streaming vocal from:", vocalUrl);
-  console.log("🎧 Streaming accompaniment from:", accUrl);
+  console.log("🎧 Vocal URL built for:", songName + "_vocal.mp3");
+  console.log("🎧 Accompaniment URL built for:", songName + "_acc.mp3");
 
   vocalAudio.src = vocalUrl;
   accompAudio.src = accUrl;
@@ -42,6 +44,18 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   vocalAudio.pause();
   accompAudio.pause();
 });
+
+// === Load Loops on Song Change BEFORE Play ===
+document.getElementById("songSelect").addEventListener("change", () => {
+  const songName = document.getElementById("songSelect").value;
+  if (songName) {
+    console.log("🎵 Song changed. Preloading loops for:", songName);
+    onSongSelectionChange(songName); // ✅ Load loops early
+  }
+});
+
+
+
 
 // === Dropbox URL Builder ===
 function getDropboxFileURL(filename) {

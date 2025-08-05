@@ -1,37 +1,31 @@
-﻿// WorshipApp_Modular/lyricsLoader.js
+function loadLyricsForSelectedSong(selectElement) {
+  const selected = selectElement.value;
+  console.log("🎵 Selected Tamil song name from dropdown:", selected);
 
-async function loadLyricsForSelectedSong(selectElement) {
-  if (!selectElement) {
-    console.error("❌ No select element provided.");
-    return;
-  }
+  const lyricsFile = `lyrics/${selected}.txt`;
+  console.log("📄 Constructed lyrics file path:", lyricsFile);
 
-  const tamilName = selectElement.value;
-  if (!tamilName) {
-    console.warn("⚠️ No song selected.");
-    return;
-  }
+  fetch(lyricsFile)
+    .then((response) => {
+      console.log("📡 Fetch response status:", response.status);
+      if (!response.ok) {
+        throw new Error(`❌ Failed to fetch lyrics. Status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then((text) => {
+      document.getElementById("lyricsArea").value = text;
+      console.log("✅ Lyrics loaded and displayed in textarea.");
+    })
+    .catch((err) => {
+      console.error("🚨 Error loading lyrics file:", err);
+      document.getElementById("lyricsArea").value =
+        "⚠️ Lyrics file not found: " + lyricsFile + "\n\n" + err;
+    });
 
-  const filename = `lyrics/${tamilName}.txt`;
-
-  console.log(`🎵 Selected Tamil name: ${tamilName}`);
-  console.log(`📄 Attempting to load lyrics from: ${filename}`);
-
-  const lyricsBox = document.getElementById("lyricsArea");
-  if (!lyricsBox) {
-    console.error("❌ 'lyricsArea' textarea not found in HTML.");
-    return;
-  }
-
-  try {
-    const response = await fetch(filename);
-    if (!response.ok) throw new Error(`Lyrics file not found: ${filename}`);
-
-    const text = await response.text();
-    lyricsBox.value = text;
-    console.log("✅ Lyrics loaded successfully.");
-  } catch (err) {
-    console.error("❌ Error loading lyrics:", err.message);
-    lyricsBox.value = "Lyrics not found.";
+  // Attach listener only once
+  if (!selectElement._lyricsListenerAttached) {
+    selectElement.addEventListener("change", () => loadLyricsForSelectedSong(selectElement));
+    selectElement._lyricsListenerAttached = true;
   }
 }

@@ -1,61 +1,98 @@
-// === Loop Manager ===
-let loops = [];
-let activeLoopIndex = 0;
-const loopCanvas = document.getElementById("loopCanvas");
-const ctx = loopCanvas.getContext("2d");
+﻿// WorshipApp_Modular/loopManager.js
 
-function drawLoops(duration) {
-  ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
-  if (!loops.length || !duration) return;
-  const width = loopCanvas.width;
-  const height = loopCanvas.height;
-  const pxPerSec = width / duration;
-  loops.forEach((loop, i) => {
-    const xStart = loop.start * pxPerSec;
-    const xEnd = loop.end * pxPerSec;
-    ctx.fillStyle = "#e0b0ff";
-    ctx.fillRect(xStart, 0, xEnd - xStart, height);
-    ctx.fillStyle = "#333";
-    ctx.fillText(i + 1, xStart + 3, 15);
-  });
-  ctx.strokeStyle = "#000";
-  ctx.beginPath();
-  ctx.moveTo(vocalAudio.currentTime * pxPerSec, 0);
-  ctx.lineTo(vocalAudio.currentTime * pxPerSec, height);
-  ctx.stroke();
+let loops = [];
+let currentLoopIndex = 0;
+let loopMonitor = null;
+
+// Called on song change — loads loop JSON and displays buttons
+function onSongSelectionChange(songName) {
+  const loopsPath = `lyrics/${songName}_loops.json`;
+
+  fetch(loopsPath)
+    .then((res) => res.json())
+    .then((data) => {
+      loops = data;
+      currentLoopIndex = 0;
+      console.log("✅ Loaded loops:", loops);
+    })
+    .catch((err) => {
+      loops = [];
+      console.warn("⚠️ No loop file found for this song.");
+    });
 }
 
-loopCanvas.addEventListener("click", e => {
-  if (!vocalAudio.duration || !loops.length) return;
-  const rect = loopCanvas.getBoundingClientRect();
-  const seconds = (e.clientX - rect.left) * vocalAudio.duration / loopCanvas.width;
-  const clickedIndex = loops.findIndex(loop => seconds >= loop.start && seconds <= loop.end);
-  if (clickedIndex >= 0) {
-    activeLoopIndex = clickedIndex;
-    vocalAudio.currentTime = loops[activeLoopIndex].start;
-    accompAudio.currentTime = loops[activeLoopIndex].start;
-    vocalAudio.play();
-    accompAudio.play();
-  }
-});
+// Called when segment button is pressed
+function playFromLoop(index) {
+  if (!loops[index]) return;
 
-vocalAudio.addEventListener("timeupdate", () => {
-  drawLoops(vocalAudio.duration);
-  if (activeLoopIndex >= 0 && loops.length) {
-    const loop = loops[activeLoopIndex];
-    if (vocalAudio.currentTime < loop.start) {
-      vocalAudio.currentTime = loop.start;
-      accompAudio.currentTime = loop.start;
-    } else if (vocalAudio.currentTime >= loop.end) {
-      activeLoopIndex++;
-      if (activeLoopIndex < loops.length) {
-        vocalAudio.currentTime = loops[activeLoopIndex].start;
-        accompAudio.currentTime = loops[activeLoopIndex].start;
+  stopLoopPlayback(); // cancel any old loop logic
+
+  currentLoopIndex = index;
+
+  const vocal = document.getElementById("vocalAudio");
+  const accomp = document.getElementById("accompAudio");
+
+  if (!vocal || !accomp || !vocal.src || !accomp.src) {
+    console.warn("⚠️ Audio sources not ready.");
+    return;
+  }
+
+  const { start } = loops[currentLoopIndex];
+  vocal.currentTime = start;
+  accomp.currentTime = start;
+
+  vocal.play();
+  accomp.play();
+
+  console.log(`▶️ Playing from loop ${index + 1}: Start at ${start}s`);
+  monitorLoopPlayback();
+}
+
+function monitorLoopPlayback() {
+  stopLoopPlayback(); // clear any existing monitoring
+
+  const vocal = document.getElementById("vocalAudio");
+  const accomp = document.getElementById("accompAudio");
+
+  loopMonitor = setInterval(() => {
+    if (!vocal || !accomp || !loops[currentLoopIndex]) return;
+
+    const { end } = loops[currentLoopIndex];
+    if (vocal.currentTime >= end || accomp.currentTime >= end) {
+      currentLoopIndex++;
+      if (loops[currentLoopIndex]) {
+        const nextStart = loops[currentLoopIndex].start;
+        console.log(`⏭️ Moving to loop ${currentLoopIndex + 1}: ${nextStart}s`);
+        vocal.currentTime = nextStart;
+        accomp.currentTime = nextStart;
+        vocal.play();
+        accomp.play();
       } else {
-        vocalAudio.pause();
-        accompAudio.pause();
-        activeLoopIndex = -1;
+        console.log("⏹️ All loops complete. Stopping.");
+        vocal.pause();
+        accomp.pause();
+        stopLoopPlayback();
       }
+    }
+  }, 150);
+}
+
+function stopLoopPlayback() {
+  if (loopMonitor) {
+    clearInterval(loopMonitor);
+    loopMonitor = null;
+  }
+}
+
+// Optional: link Pause button
+document.getElementById("pauseBtn").addEventListener("click", stopLoopPlayback);
+
+// Link segment buttons by ID
+window.addEventListener("DOMContentLoaded", () => {
+  for (let i = 1; i <= 5; i++) {
+    const btn = document.getElementById(`loopBtn${i}`);
+    if (btn) {
+      btn.addEventListener("click", () => playFromLoop(i - 1));
     }
   }
 });
