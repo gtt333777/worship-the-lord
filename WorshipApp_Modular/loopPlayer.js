@@ -15,109 +15,69 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(" - window.currentSongName:", currentSongName);
 
     if (!vocalAudio || !accompAudio || !currentSongName) {
-      console.warn("loopPlayer.js: Waiting for vocalAudio, accompAudio or currentSongName... (attempt " + (checkGlobalsReady.attempts + 1) + ")");
+      console.warn(`loopPlayer.js: Waiting for vocalAudio, accompAudio or currentSongName... (attempt ${checkGlobalsReady.attempts + 1})`);
       checkGlobalsReady.attempts++;
       if (checkGlobalsReady.attempts < 15) {
-        setTimeout(checkGlobalsReady, 400); // Retry after delay
+        setTimeout(checkGlobalsReady, 400); // Retry
       } else {
         console.error("loopPlayer.js: ❌ Failed to find required global variables.");
       }
       return;
     }
 
-    console.log("✅ loopPlayer.js: All globals ready.");
+    console.log("✅ loopPlayer.js: All globals ready!");
 
-    const prefix = getPrefixForTamilName(currentSongName);
-    if (!prefix) {
-      console.warn("loopPlayer.js: ⚠️ Could not derive prefix for song:", currentSongName);
-      return;
-    }
+    // STEP 1: Build filename
+    const loopFile = `lyrics/${currentSongName}_loops.json`;
 
-    const loopFilePath = `lyrics/${prefix}_loops.json`;
-    console.log(`📁 Looking for loops file: ${loopFilePath}`);
-
-    fetch(loopFilePath)
-      .then(res => {
-        if (!res.ok) throw new Error("File not found");
-        return res.json();
+    // STEP 2: Fetch the JSON
+    fetch(loopFile)
+      .then(response => {
+        if (!response.ok) throw new Error("File not found");
+        return response.json();
       })
-      .then(loopData => {
-        console.log("✅ Parsed Loop Data:", loopData);
-
-        if (!Array.isArray(loopData) || loopData.length === 0) {
-          console.warn("loopPlayer.js: ❌ Invalid or empty loopData.");
-          return;
-        }
+      .then(data => {
+        console.log("✅ Parsed loops:", data);
 
         const container = document.getElementById("loopButtonsContainer");
         if (!container) {
-          console.warn("loopPlayer.js: ❌ loopButtonsContainer not found in DOM.");
+          console.warn("❗ loopButtonsContainer not found in DOM.");
           return;
         }
 
-        container.innerHTML = ''; // Clear existing buttons
+        container.innerHTML = ''; // Clear old buttons
 
-        loopData.forEach((segment, index) => {
-          const btn = document.createElement('button');
+        data.forEach((segment, index) => {
+          const btn = document.createElement("button");
           btn.textContent = `Segment ${index + 1}`;
-          btn.style.marginRight = "8px";
-          btn.addEventListener("click", () => {
-            console.log(`▶️ Playing Segment ${index + 1}: ${segment.start}s to ${segment.end}s`);
-            playSegmentFrom(vocalAudio, accompAudio, loopData, index);
-          });
+          btn.style.margin = "5px";
+          btn.onclick = () => {
+            console.log(`▶️ Playing segment ${index + 1}: ${segment.start} → ${segment.end}`);
+            vocalAudio.currentTime = segment.start;
+            accompAudio.currentTime = segment.start;
+            vocalAudio.play();
+            accompAudio.play();
+
+            const stopAt = segment.end;
+            const checkStop = () => {
+              if (vocalAudio.currentTime >= stopAt || accompAudio.currentTime >= stopAt) {
+                vocalAudio.pause();
+                accompAudio.pause();
+              } else {
+                requestAnimationFrame(checkStop);
+              }
+            };
+            requestAnimationFrame(checkStop);
+          };
+
           container.appendChild(btn);
         });
-
-        console.log("✅ Segment buttons created.");
-
       })
       .catch(err => {
-        console.error("loopPlayer.js: ❌ Error loading loops JSON:", err.message);
+        console.warn(`⚠️ No loop file found for ${currentSongName}`);
       });
   };
 
   checkGlobalsReady.attempts = 0;
   checkGlobalsReady();
 });
-
-function getPrefixForTamilName(songName) {
-  const tamilToPrefix = {
-    "என் வாழ்க்கையெல்லாம் உம்": "envaazhkaiyellaamum",
-    "ஐயா உம் திரு நாமம்": "aiyaaumthirunaamam",
-    "இயேசு ரத்தமே ரத்தமே ரத்தமே": "iyesuraththame"
-    // Add more mappings here as needed
-  };
-
-  return tamilToPrefix[songName] || null;
-}
-
-function playSegmentFrom(vocalAudio, accompAudio, loopData, startIndex) {
-  let currentIndex = startIndex;
-
-  function playNextSegment() {
-    if (currentIndex >= loopData.length) {
-      console.log("✅ Finished all segments.");
-      vocalAudio.pause();
-      accompAudio.pause();
-      return;
-    }
-
-    const segment = loopData[currentIndex];
-    vocalAudio.currentTime = segment.start;
-    accompAudio.currentTime = segment.start;
-
-    vocalAudio.play();
-    accompAudio.play();
-
-    const segmentEndTime = segment.end;
-    const checkInterval = setInterval(() => {
-      if (vocalAudio.currentTime >= segmentEndTime || accompAudio.currentTime >= segmentEndTime) {
-        clearInterval(checkInterval);
-        currentIndex++;
-        playNextSegment(); // Play next segment
-      }
-    }, 200);
-  }
-
-  playNextSegment();
-}
