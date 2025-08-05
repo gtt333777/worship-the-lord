@@ -1,94 +1,105 @@
 ﻿console.log("🔁 loopPlayer.js: Starting...");
 
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("🔁 loopPlayer.js: DOMContentLoaded – waiting for audio to be initialized.");
+let loops = [];
+let currentLoopIndex = 0;
+let loopPlaybackActive = false;
 
-  function waitForAudioAndSong() {
-    const vocal = window.vocalAudio;
-    const accomp = window.accompAudio;
-    const currentSong = window.currentSongName;
-
-    if (!vocal || !accomp || !currentSong) {
-      console.warn("⏳ loopPlayer.js: Waiting for vocalAudio, accompAudio or currentSongName...");
-      setTimeout(waitForAudioAndSong, 300);
-      return;
+// Wait until vocalAudio, accompAudio, and currentSongName are defined
+function waitForGlobals() {
+    if (!window.vocalAudio || !window.accompAudio || !window.currentSongName) {
+        console.warn("🔁 loopPlayer.js: Waiting for vocalAudio, accompAudio or currentSongName...");
+        setTimeout(waitForGlobals, 300); // wait again
+        return;
     }
 
-    console.log("✅ loopPlayer.js: Found global vocalAudio and accompAudio.");
-    console.log("🎵 Current song:", currentSong);
+    console.log("🔁 loopPlayer.js: Globals are ready. Setting up loop player.");
+    fetchLoopData(window.currentSongName);
+}
 
-    fetchLoopJsonAndPlay(currentSong, vocal, accomp);
-  }
+function fetchLoopData(songName) {
+    const slug = songName.trim(); // same name used for MP3
+    const loopsUrl = `https://content.dropboxapi.com/2/files/download`;
+    const accessToken = window.dropboxAccessToken;
 
-  waitForAudioAndSong();
-});
+    const dropboxPath = `/WorshipSongs/${slug}_loops.json`;
 
-function fetchLoopJsonAndPlay(songName, vocalAudio, accompAudio) {
-  const prefix = songName.trim(); // exact match with spaces
-  const loopUrl = `https://content.dropboxapi.com/2/files/download`;
-
-  fetch("/.netlify/functions/getDropboxToken")
-    .then((res) => res.json())
-    .then((data) => {
-      const token = data.access_token;
-      const path = `/WorshipSongs/${prefix}_loops.json`;
-
-      console.log("📥 loopPlayer.js: Attempting to fetch:", path);
-
-      return fetch(loopUrl, {
+    fetch(loopsUrl, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + token,
-          "Dropbox-API-Arg": JSON.stringify({ path }),
-        },
-      });
+            "Authorization": `Bearer ${accessToken}`,
+            "Dropbox-API-Arg": JSON.stringify({ path: dropboxPath })
+        }
     })
-    .then((res) => {
-      if (!res.ok) throw new Error(`❌ Failed to load loops JSON`);
-      return res.json();
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch loops JSON");
+        return res.json();
     })
-    .then((loopData) => {
-      console.log("✅ loopPlayer.js: Fetched loops:", loopData);
-      startLoopSequence(vocalAudio, accompAudio, loopData);
+    .then(data => {
+        loops = data;
+        if (loops.length > 0) {
+            console.log(`🔁 loopPlayer.js: Loaded ${loops.length} loops.`);
+            createLoopButtons();
+        } else {
+            console.warn("🔁 No loops found.");
+        }
     })
-    .catch((err) => {
-      console.error("🔥 loopPlayer.js Error:", err.message);
+    .catch(err => {
+        console.error("❌ loopPlayer.js: Error fetching loops JSON:", err);
     });
 }
 
-function startLoopSequence(vocal, accomp, loops) {
-  if (!Array.isArray(loops)) {
-    console.error("❌ startLoopSequence: Invalid loop data.");
-    return;
-  }
+function createLoopButtons() {
+    const container = document.createElement("div");
+    container.id = "loopButtonsContainer";
+    container.style.margin = "10px";
+    document.body.appendChild(container);
 
-  let current = 0;
-  console.log("🎯 Loop Playback Started: Playing segments in order...");
+    loops.forEach((loop, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = `🔁 ${index + 1}`;
+        btn.style.margin = "3px";
+        btn.onclick = () => startLoopSequence(index);
+        container.appendChild(btn);
+    });
 
-  function playSegment(index) {
-    if (index >= loops.length) {
-      console.log("✅ Finished all loops.");
-      return;
-    }
-
-    const { start, end } = loops[index];
-    console.log(`🎼 Playing Segment ${index + 1}: ${start}s → ${end}s`);
-
-    vocal.currentTime = start;
-    accomp.currentTime = start;
-    vocal.play();
-    accomp.play();
-
-    const duration = (end - start) * 1000;
-    setTimeout(() => {
-      vocal.pause();
-      accomp.pause();
-      playSegment(index + 1);
-    }, duration);
-  }
-
-  playSegment(current);
+    console.log("🔁 Loop buttons created.");
 }
 
-// Allow Play button to retrigger loop mode
-window.startLoopSequence = startLoopSequence;
+function startLoopSequence(startIndex) {
+    if (!loops[startIndex]) return;
+
+    currentLoopIndex = startIndex;
+    loopPlaybackActive = true;
+
+    playNextLoopSegment();
+}
+
+function playNextLoopSegment() {
+    if (!loopPlaybackActive || currentLoopIndex >= loops.length) {
+        console.log("🔁 Loop playback finished.");
+        loopPlaybackActive = false;
+        return;
+    }
+
+    const loop = loops[currentLoopIndex];
+    const { start, end } = loop;
+
+    window.vocalAudio.currentTime = start;
+    window.accompAudio.currentTime = start;
+
+    window.vocalAudio.play();
+    window.accompAudio.play();
+
+    const duration = (end - start) * 1000;
+
+    setTimeout(() => {
+        currentLoopIndex++;
+        playNextLoopSegment();
+    }, duration);
+}
+
+// Start once DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("🔁 loopPlayer.js: DOMContentLoaded – waiting for audio to be initialized.");
+    waitForGlobals();
+});
