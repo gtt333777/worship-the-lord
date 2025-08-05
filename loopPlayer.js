@@ -6,8 +6,9 @@ let loopPlaybackActive = false;
 let loopPlaybackStarted = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const vocalAudio = window.vocalAudio;
-  const accompAudio = window.accompAudio;
+  // ✅ Use JS-created global audio objects if available, fallback to <audio> tags
+  const vocalAudio = window.vocalAudio || document.querySelectorAll('audio')[0];
+  const accompAudio = window.accompAudio || document.querySelectorAll('audio')[1];
 
   console.log("🔁 DOMContentLoaded");
   console.log("🎵 vocalAudio:", vocalAudio);
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!loopPlaybackStarted) {
       loopPlaybackStarted = true;
       console.log("▶️ Play event detected — preparing to load loops...");
-      loadLoopsJsonAndStart();
+      loadLoopsJsonAndStart(vocalAudio, accompAudio);
     }
   });
 
@@ -34,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function loadLoopsJsonAndStart() {
+function loadLoopsJsonAndStart(vocalAudio, accompAudio) {
   const songName = window.selectedSongName;
   if (!songName) {
     console.error("❌ loopPlayer.js: selectedSongName is not defined.");
@@ -77,17 +78,14 @@ function loadLoopsJsonAndStart() {
       }
       loopSegments = json.segments;
       console.log(`✅ Loaded ${loopSegments.length} loop segments.`);
-      startLoopSequence();
+      startLoopSequence(vocalAudio, accompAudio);
     })
     .catch(err => {
       console.error("🚨 loopPlayer.js: Error during loop loading", err);
     });
 }
 
-function startLoopSequence() {
-  const vocal = window.vocalAudio;
-  const accomp = window.accompAudio;
-
+function startLoopSequence(vocal, accomp) {
   if (!vocal || !accomp || loopSegments.length === 0) {
     console.error("❌ Cannot start loops — missing data or audio elements.");
     return;
