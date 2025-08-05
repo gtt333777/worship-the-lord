@@ -11,7 +11,7 @@ function waitForAudioElements() {
     setupLoopPlayback(window.vocalAudio, window.accompAudio);
   } else {
     console.log("⏳ loopPlayer.js: Waiting for audio elements...");
-    setTimeout(waitForAudioElements, 500); // Retry after 0.5 sec
+    setTimeout(waitForAudioElements, 500); // Retry every 0.5 sec
   }
 }
 
@@ -21,14 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupLoopPlayback(vocalAudio, accompAudio) {
-  vocalAudio.addEventListener('play', () => {
+  function tryStartLoopPlayback() {
     if (!loopPlaybackStarted) {
       loopPlaybackStarted = true;
-      console.log("▶️ Play event detected — preparing to load loops...");
+      console.log("▶️ LoopPlayer: Playback started — loading _loops.json...");
       loadLoopsJsonAndStart(vocalAudio, accompAudio);
     }
-  });
+  }
 
+  // Detect Play after DOM load
+  vocalAudio.addEventListener('play', tryStartLoopPlayback);
+
+  // ✅ Detect if user already pressed Play BEFORE listener was added
+  if (!vocalAudio.paused) {
+    console.log("⏯️ LoopPlayer: Audio already playing — triggering immediately.");
+    tryStartLoopPlayback();
+  }
+
+  // Optional: cancel if paused
   vocalAudio.addEventListener('pause', () => {
     if (loopPlaybackActive) {
       console.log("⏸️ Playback paused manually — stopping loop sequence.");
