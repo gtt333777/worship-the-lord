@@ -1,94 +1,59 @@
-﻿// WorshipApp_Modular/loopPlayer.js
-console.log("loopPlayer.js: Starting...");
+﻿console.log("loopPlayer.js: Starting...");
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("loopPlayer.js: DOMContentLoaded – checking for global readiness...");
+  console.log("loopPlayer.js: DOMContentLoaded – using hardcoded song name for test");
 
-  const checkGlobalsReady = () => {
-    console.log("🔍 Global Check:");
-    console.log(" - window.vocalAudio:", window.vocalAudio);
-    console.log(" - window.accompAudio:", window.accompAudio);
-    console.log(" - window.currentSongName:", window.currentSongName);
+  // STEP 1: HARDCODED TAMIL SONG NAME
+  const testTamilName = "என் வாழ்க்கையெல்லாம் உம்";
+  const loopJsonPath = `lyrics/${testTamilName}_loops.json`;
 
-    if (!window.vocalAudio || !window.accompAudio || !window.currentSongName) {
-      console.warn(`loopPlayer.js: Waiting for vocalAudio, accompAudio or currentSongName... (attempt ${checkGlobalsReady.attempts + 1})`);
-      checkGlobalsReady.attempts++;
-      if (checkGlobalsReady.attempts < 20) {
-        setTimeout(checkGlobalsReady, 500);
-      } else {
-        console.error("loopPlayer.js: ❌ Failed to find required global variables");
-      }
-      return;
-    }
+  console.log("📄 Trying to fetch loop file:", loopJsonPath);
 
-    console.log("✅ loopPlayer.js: All globals ready!");
-    loadLoopData(window.currentSongName);
-  };
-
-  checkGlobalsReady.attempts = 0;
-  checkGlobalsReady();
-});
-
-function loadLoopData(songName) {
-  const jsonFile = `lyrics/${songName}_loops.json`;
-  console.log(`📄 Fetching loop data from: ${jsonFile}`);
-
-  fetch(jsonFile)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`loopPlayer.js: ❌ JSON not found: ${jsonFile}`);
-      }
-      return res.json();
+  fetch(loopJsonPath)
+    .then(response => {
+      if (!response.ok) throw new Error("Loop JSON not found");
+      return response.json();
     })
-    .then((data) => {
-      console.log("✅ Loop JSON loaded:", data);
-      renderSegmentButtons(data);
+    .then(loopData => {
+      console.log("✅ Loop data loaded:", loopData);
+
+      const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+      if (!loopButtonsContainer) {
+        console.error("❌ loopButtonsContainer not found in DOM");
+        return;
+      }
+
+      // Clear any previous buttons
+      loopButtonsContainer.innerHTML = "";
+
+      loopData.forEach((segment, index) => {
+        const button = document.createElement("button");
+        button.textContent = `Segment ${index + 1}`;
+        button.addEventListener("click", () => {
+          const start = segment.start;
+          const end = segment.end;
+
+          console.log(`▶️ Playing Segment ${index + 1}: ${start}s to ${end}s`);
+
+          window.vocalAudio.currentTime = start;
+          window.accompAudio.currentTime = start;
+
+          window.vocalAudio.play();
+          window.accompAudio.play();
+
+          const duration = end - start;
+
+          setTimeout(() => {
+            window.vocalAudio.pause();
+            window.accompAudio.pause();
+            console.log(`⏸️ Segment ${index + 1} ended after ${duration}s`);
+          }, duration * 1000);
+        });
+
+        loopButtonsContainer.appendChild(button);
+      });
     })
-    .catch((err) => {
-      console.warn("⚠️ loopPlayer.js:", err.message);
+    .catch(err => {
+      console.warn("⚠️ Loop file not found or error reading:", err.message);
     });
-}
-
-function renderSegmentButtons(segments) {
-  const container = document.getElementById("loopButtonsContainer");
-  container.innerHTML = ""; // Clear old buttons
-
-  if (!Array.isArray(segments) || segments.length === 0) {
-    console.warn("loopPlayer.js: No segments found.");
-    return;
-  }
-
-  segments.forEach((seg, index) => {
-    const btn = document.createElement("button");
-    btn.textContent = `🔁 Segment ${index + 1}`;
-    btn.style.margin = "5px";
-    btn.onclick = () => {
-      playSegment(seg.start, seg.end);
-    };
-    container.appendChild(btn);
-  });
-
-  console.log(`✅ Rendered ${segments.length} segment buttons.`);
-}
-
-function playSegment(startTime, endTime) {
-  console.log(`🎧 Playing segment: ${startTime}s to ${endTime}s`);
-  const v = window.vocalAudio;
-  const a = window.accompAudio;
-
-  v.currentTime = a.currentTime = startTime;
-  v.play();
-  a.play();
-
-  const stopAt = () => {
-    if (v.currentTime >= endTime || a.currentTime >= endTime) {
-      v.pause();
-      a.pause();
-      console.log("⏹️ Segment playback stopped.");
-    } else {
-      requestAnimationFrame(stopAt);
-    }
-  };
-
-  stopAt();
-}
+});
