@@ -29,12 +29,6 @@ document.getElementById("playBtn").addEventListener("click", () => {
   accompAudio.src = accUrl;
 
 
-  // ✅ REQUIRED for loopPlayer.js to work
-  window.currentSongName = prefix;
-
-
-
-
 
   // Sync playback
   Promise.all([
