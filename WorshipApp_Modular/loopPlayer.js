@@ -1,86 +1,123 @@
-﻿// WorshipApp_Modular/loopPlayer.js
-console.log("🔁 loopPlayer.js: Starting...");
+﻿// loopPlayer.js
+console.log("loopPlayer.js: Starting...");
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("🔁 loopPlayer.js: DOMContentLoaded");
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("loopPlayer.js: DOMContentLoaded – checking for global readiness...");
 
-  const checkReady = () => {
+  const checkGlobalsReady = () => {
     const vocalAudio = window.vocalAudio;
     const accompAudio = window.accompAudio;
     const currentSongName = window.currentSongName;
 
+    console.log("🔍 Global Check:");
+    console.log(" - window.vocalAudio:", vocalAudio);
+    console.log(" - window.accompAudio:", accompAudio);
+    console.log(" - window.currentSongName:", currentSongName);
+
     if (!vocalAudio || !accompAudio || !currentSongName) {
-      console.log("🔁 loopPlayer.js: Waiting for vocalAudio, accompAudio, currentSongName...");
-      setTimeout(checkReady, 300);
+      console.warn("loopPlayer.js: Waiting for vocalAudio, accompAudio or currentSongName... (attempt " + (checkGlobalsReady.attempts + 1) + ")");
+      checkGlobalsReady.attempts++;
+      if (checkGlobalsReady.attempts < 15) {
+        setTimeout(checkGlobalsReady, 400); // Retry after delay
+      } else {
+        console.error("loopPlayer.js: ❌ Failed to find required global variables.");
+      }
       return;
     }
 
-    const prefix = currentSongName.trim(); // Already the prefix, like "panipola"
-    const loopJsonUrl = `lyrics/${prefix}_loops.json`;
+    console.log("✅ loopPlayer.js: All globals ready.");
 
-    console.log(`🔁 loopPlayer.js: Trying to fetch ${loopJsonUrl}...`);
+    const prefix = getPrefixForTamilName(currentSongName);
+    if (!prefix) {
+      console.warn("loopPlayer.js: ⚠️ Could not derive prefix for song:", currentSongName);
+      return;
+    }
 
-    fetch(loopJsonUrl)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const loopFilePath = `lyrics/${prefix}_loops.json`;
+    console.log(`📁 Looking for loops file: ${loopFilePath}`);
+
+    fetch(loopFilePath)
+      .then(res => {
+        if (!res.ok) throw new Error("File not found");
         return res.json();
       })
-      .then((data) => {
-        console.log("🔁 loopPlayer.js: Loaded loops JSON ✅", data);
-        setupSegmentButtons(data, vocalAudio, accompAudio);
+      .then(loopData => {
+        console.log("✅ Parsed Loop Data:", loopData);
+
+        if (!Array.isArray(loopData) || loopData.length === 0) {
+          console.warn("loopPlayer.js: ❌ Invalid or empty loopData.");
+          return;
+        }
+
+        const container = document.getElementById("loopButtonsContainer");
+        if (!container) {
+          console.warn("loopPlayer.js: ❌ loopButtonsContainer not found in DOM.");
+          return;
+        }
+
+        container.innerHTML = ''; // Clear existing buttons
+
+        loopData.forEach((segment, index) => {
+          const btn = document.createElement('button');
+          btn.textContent = `Segment ${index + 1}`;
+          btn.style.marginRight = "8px";
+          btn.addEventListener("click", () => {
+            console.log(`▶️ Playing Segment ${index + 1}: ${segment.start}s to ${segment.end}s`);
+            playSegmentFrom(vocalAudio, accompAudio, loopData, index);
+          });
+          container.appendChild(btn);
+        });
+
+        console.log("✅ Segment buttons created.");
+
       })
-      .catch((err) => {
-        console.warn("🔁 loopPlayer.js: No loop file found or error loading:", err.message);
+      .catch(err => {
+        console.error("loopPlayer.js: ❌ Error loading loops JSON:", err.message);
       });
   };
 
-  function setupSegmentButtons(segments, vocalAudio, accompAudio) {
-    const container = document.getElementById("loopButtonsContainer");
-    if (!container) return;
+  checkGlobalsReady.attempts = 0;
+  checkGlobalsReady();
+});
 
-    container.innerHTML = ""; // Clear any previous buttons
+function getPrefixForTamilName(songName) {
+  const tamilToPrefix = {
+    "என் வாழ்க்கையெல்லாம் உம்": "envaazhkaiyellaamum",
+    "ஐயா உம் திரு நாமம்": "aiyaaumthirunaamam",
+    "இயேசு ரத்தமே ரத்தமே ரத்தமே": "iyesuraththame"
+    // Add more mappings here as needed
+  };
 
-    segments.forEach((segment, index) => {
-      const btn = document.createElement("button");
-      btn.textContent = `Segment ${index + 1}`;
-      btn.style.margin = "5px";
-      btn.onclick = () => playSegments(segments, index, vocalAudio, accompAudio);
-      container.appendChild(btn);
-    });
+  return tamilToPrefix[songName] || null;
+}
 
-    console.log("🔁 loopPlayer.js: Segment buttons added.");
-  }
+function playSegmentFrom(vocalAudio, accompAudio, loopData, startIndex) {
+  let currentIndex = startIndex;
 
-  function playSegments(segments, startIndex, vocalAudio, accompAudio) {
-    let currentIndex = startIndex;
-
-    function playNext() {
-      if (currentIndex >= segments.length) {
-        vocalAudio.pause();
-        accompAudio.pause();
-        console.log("🔁 loopPlayer.js: All segments finished.");
-        return;
-      }
-
-      const segment = segments[currentIndex];
-      console.log(`🔁 Playing Segment ${currentIndex + 1}: ${segment.start}s to ${segment.end}s`);
-
-      vocalAudio.currentTime = segment.start;
-      accompAudio.currentTime = segment.start;
-
-      vocalAudio.play();
-      accompAudio.play();
-
-      const duration = (segment.end - segment.start) * 1000;
-
-      setTimeout(() => {
-        currentIndex++;
-        playNext();
-      }, duration);
+  function playNextSegment() {
+    if (currentIndex >= loopData.length) {
+      console.log("✅ Finished all segments.");
+      vocalAudio.pause();
+      accompAudio.pause();
+      return;
     }
 
-    playNext();
+    const segment = loopData[currentIndex];
+    vocalAudio.currentTime = segment.start;
+    accompAudio.currentTime = segment.start;
+
+    vocalAudio.play();
+    accompAudio.play();
+
+    const segmentEndTime = segment.end;
+    const checkInterval = setInterval(() => {
+      if (vocalAudio.currentTime >= segmentEndTime || accompAudio.currentTime >= segmentEndTime) {
+        clearInterval(checkInterval);
+        currentIndex++;
+        playNextSegment(); // Play next segment
+      }
+    }, 200);
   }
 
-  checkReady();
-});
+  playNextSegment();
+}
