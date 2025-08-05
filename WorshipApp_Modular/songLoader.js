@@ -1,50 +1,62 @@
-﻿// WorshipApp_Modular/songLoader.js
+﻿// 🎵 songLoader.js: Handles song selection and updates global song name
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("songLoader.js: Elements found, setting up handler");
 
-// Global audio elements
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
+  const songSelect = document.getElementById("songSelect");
 
-// === Play/Pause ===
-document.getElementById("playBtn").addEventListener("click", () => {
-  console.log("▶️ Play button clicked");
-
-  if (!ACCESS_TOKEN) {
-    console.error("❌ ACCESS_TOKEN not yet loaded.");
+  if (!songSelect) {
+    console.error("songLoader.js: #songSelect not found");
     return;
   }
 
-  const songName = document.getElementById("songSelect").value;
-  if (!songName) {
-    console.warn("⚠️ No song selected.");
-    return;
-  }
+  songSelect.addEventListener("change", async () => {
+    const selectedTamilName = songSelect.value.trim();
+    window.currentSongName = selectedTamilName; // ✅ Needed for loopPlayer.js
+    console.log("🎵 Selected Tamil name:", selectedTamilName);
 
-  const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
-  const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+    const prefix = getPrefixForTamilName(selectedTamilName);
+    if (!prefix) {
+      console.warn("No prefix found for:", selectedTamilName);
+      return;
+    }
 
-  console.log("🎧 Streaming vocal from:", vocalUrl);
-  console.log("🎧 Streaming accompaniment from:", accUrl);
+    const vocalURL = await buildDropboxUrl(`${prefix}_vocal.mp3`);
+    const accompURL = await buildDropboxUrl(`${prefix}_acc.mp3`);
+    const lyricsURL = `lyrics/${prefix}.txt`;
 
-  vocalAudio.src = vocalUrl;
-  accompAudio.src = accUrl;
+    const vocalAudio = document.getElementById("vocalAudio");
+    const accompAudio = document.getElementById("accompAudio");
 
-  // Sync playback
-  Promise.all([
-    vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
-    accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
-  ]).then(() => {
-    console.log("✅ Both audio tracks started.");
+    if (vocalAudio && accompAudio) {
+      vocalAudio.src = vocalURL;
+      accompAudio.src = accompURL;
+      console.log("🎧 Updated audio sources");
+    } else {
+      console.warn("Audio elements not found.");
+    }
+
+    // ✅ Load lyrics
+    fetch(lyricsURL)
+      .then(response => response.text())
+      .then(text => {
+        const lyricsBox = document.getElementById("lyricsTextArea");
+        if (lyricsBox) lyricsBox.value = text;
+        console.log("📜 Lyrics loaded successfully.");
+      })
+      .catch(err => {
+        console.error("⚠️ Failed to load lyrics:", err);
+      });
   });
 });
 
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  console.log("⏸️ Pause button clicked");
-  vocalAudio.pause();
-  accompAudio.pause();
-});
-
-// === Dropbox URL Builder ===
-function getDropboxFileURL(filename) {
-  const dropboxPath = "/WorshipSongs/" + filename;
-  return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg={"path":"${dropboxPath}"}`;
+// Helper to get prefix from selected Tamil name
+function getPrefixForTamilName(tamilName) {
+  const lines = window.songNameMappings || [];
+  for (let line of lines) {
+    const parts = line.split("|");
+    if (parts.length === 2 && parts[0].trim() === tamilName.trim()) {
+      return parts[1].trim();
+    }
+  }
+  return null;
 }
