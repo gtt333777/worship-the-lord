@@ -172,12 +172,7 @@
 <script src="WorshipApp_Modular/segmentProgressVisualizer.js"></script>
 
 
-<!-- ✅ Call loadSongNames() after all scripts are loaded -->
-<script>
-  window.onload = () => {
-    loadSongNames(); // Load Tamil names into dropdown
-  };
-</script>
+
 
 <!-- ✅ Service Worker -->
 <script>
@@ -203,12 +198,15 @@
 
   <!-- Your other <script src="..."> tags go here -->
 
+
+
+
 <!-- ✅ Add this before closing </body> -->
 <script>
   window.onload = async () => {
-    await loadSongNames(); // ✅ Load songs and set window.availableTxtFiles
+    await loadSongNames();
     const select = document.getElementById("songSelect");
-    loadLyricsForSelectedSong(select); // ✅ Load lyrics for first selected song
+    loadLyricsForSelectedSong(select);
     select.addEventListener("change", () => loadLyricsForSelectedSong(select));
   };
 </script>
