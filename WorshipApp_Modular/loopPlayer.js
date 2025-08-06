@@ -1,121 +1,145 @@
-﻿// ✅ GOLD STANDARD BASE + VERTICAL PROGRESS BAR FOR CURRENT SEGMENT
-
-console.log("loopPlayer.js: Starting...");
-
-document.addEventListener("DOMContentLoaded", () => {
-    checkReady(0);
-});
-
-function checkReady(attempts) {
-    const songSelect = document.getElementById("songSelect");
-    const vocalAudio = window.vocalAudio;
-    const accompAudio = window.accompAudio;
-
-    if (!songSelect || !vocalAudio || !accompAudio) {
-        if (attempts < 20) {
-            console.log(`loopPlayer.js: Waiting for vocalAudio, accompAudio or songSelect... (attempt ${attempts})`);
-            setTimeout(() => checkReady(attempts + 1), 300);
-        } else {
-            console.error("loopPlayer.js: ❌ Required global variables not found");
-        }
-        return;
-    }
-
-    const selectedTamilName = songSelect.value;
-    const loopsFilename = `lyrics/${selectedTamilName}_loops.json`;
-    console.log("🎯 loopPlayer.js: Using selected song name for test", selectedTamilName);
-    console.log("📂 Trying to fetch loop file:", loopsFilename);
-
-    fetch(loopsFilename)
-        .then(response => {
-            if (!response.ok) throw new Error("Loop file fetch failed");
-            return response.json();
-        })
-        .then(loopData => {
-            console.log("✅ Loop data loaded:", loopData);
-            createSegmentButtons(loopData);
-        })
-        .catch(err => {
-            console.warn("⚠️ No loop file found for this song.", err);
-        });
-}
+﻿console.log("loopPlayer.js: Starting...");
 
 let segmentTimeout;
 let currentlyPlaying = false;
+let progressBarInterval;
 
-function createSegmentButtons(loopData) {
-    const container = document.getElementById("loopButtonsContainer");
-    container.innerHTML = "";
+document.addEventListener("DOMContentLoaded", checkReady);
 
-    loopData.forEach((seg, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = `Segment ${index + 1}`;
-        btn.classList.add("segment-button");
+function checkReady(tries = 0) {
+  const songSelect = document.getElementById("songSelect");
+  if (songSelect && songSelect.value) {
+    console.log("loopPlayer.js: Using selected song name for test");
 
-        const progressBar = document.createElement("div");
-        progressBar.classList.add("segment-progress");
-        progressBar.style.width = "0%";
-        progressBar.style.height = "4px";
-        progressBar.style.backgroundColor = "green";
-        progressBar.style.marginTop = "2px";
-        progressBar.style.transition = "width 0.1s linear";
-        progressBar.style.display = "none";
+    const songName = songSelect.value.trim();
+    const loopFile = `lyrics/${songName}_loops.json`;
+    console.log("Trying to fetch loop file:", loopFile);
 
-        btn.appendChild(progressBar);
+    fetch(loopFile)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Loop file not found");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid loop data");
+        }
+        createSegmentButtons(data);
+      })
+      .catch((err) => {
+        console.warn("⚠️ No loop file found for this song. Error:", err.message);
+      });
+  } else {
+    if (tries < 20) {
+      setTimeout(() => checkReady(tries + 1), 300);
+    } else {
+      console.warn("loopPlayer.js: Failed to find songSelect after 20 tries.");
+    }
+  }
+}
 
-        btn.addEventListener("click", () => {
-            if (!window.vocalAudio || !window.accompAudio) return;
+function createSegmentButtons(segments) {
+  const container = document.getElementById("loopButtonsContainer");
+  container.innerHTML = "";
+  segments.forEach((segment, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = `Segment ${index + 1}`;
+    btn.style.marginRight = "10px";
+    btn.dataset.start = segment.start;
+    btn.dataset.end = segment.end;
 
-            // Stop existing
-            clearTimeout(segmentTimeout);
-            window.vocalAudio.pause();
-            window.accompAudio.pause();
-            currentlyPlaying = false;
+    btn.addEventListener("click", () => {
+      console.log(`▶️ Segment ${index + 1}: ${segment.start} ➡ ${segment.end}`);
+      playSegment(segment.start, segment.end, btn);
+    });
 
-            window.vocalAudio.currentTime = seg.start;
-            window.accompAudio.currentTime = seg.start;
+    container.appendChild(btn);
+  });
+}
 
-            // Reset all other progress bars
-            const allProgress = document.querySelectorAll(".segment-progress");
-            allProgress.forEach(bar => {
-                bar.style.width = "0%";
-                bar.style.display = "none";
-            });
+function playSegment(startTime, endTime, activeBtn) {
+  const vocalAudio = document.getElementById("vocalAudio");
+  const accompAudio = document.getElementById("accompAudio");
 
-            // Show only current progress bar
-            progressBar.style.display = "block";
+  if (!vocalAudio || !accompAudio) {
+    console.warn("Audio elements not ready.");
+    return;
+  }
 
-            window.vocalAudio.play();
-            window.accompAudio.play();
-            currentlyPlaying = true;
+  // 🔁 Stop any existing segment
+  clearTimeout(segmentTimeout);
+  if (progressBarInterval) clearInterval(progressBarInterval);
+  removeProgressBars();
 
-            const duration = seg.end - seg.start;
+  currentlyPlaying = true;
 
-            segmentTimeout = setTimeout(() => {
-                window.vocalAudio.pause();
-                window.accompAudio.pause();
-                currentlyPlaying = false;
-                progressBar.style.display = "none";
-            }, duration * 1000);
+  vocalAudio.pause();
+  accompAudio.pause();
 
-            // Visual progress bar update
-            let lastUpdateTime = Date.now();
-            const interval = setInterval(() => {
-                if (!currentlyPlaying) return clearInterval(interval);
-                const elapsed = window.vocalAudio.currentTime - seg.start;
-                const progressPercent = (elapsed / duration) * 100;
-                progressBar.style.width = `${Math.min(progressPercent, 100)}%`;
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
 
-                // Stop interval once done
-                if (elapsed >= duration) {
-                    clearInterval(interval);
-                    progressBar.style.display = "none";
-                }
-            }, 100);
+  Promise.all([vocalAudio.play(), accompAudio.play()])
+    .then(() => {
+      const duration = endTime - startTime;
+      segmentTimeout = setTimeout(() => {
+        vocalAudio.pause();
+        accompAudio.pause();
+        currentlyPlaying = false;
+        removeProgressBars();
+        console.log("⏹️ Segment ended");
+      }, duration * 1000);
 
-            console.log(`▶️ Segment ${index + 1}: ${seg.start} ▶ ${seg.end} (${duration.toFixed(2)}s)`);
-        });
-
-        container.appendChild(btn);
+      showProgressBar(activeBtn, duration);
+    })
+    .catch((err) => {
+      console.error("🎵 Playback error:", err);
     });
 }
+
+function removeProgressBars() {
+  document.querySelectorAll(".progress-bar").forEach((bar) => bar.remove());
+}
+
+function showProgressBar(button, duration) {
+  const bar = document.createElement("div");
+  bar.className = "progress-bar";
+  bar.style.position = "absolute";
+  bar.style.bottom = "5px";
+  bar.style.left = "50%";
+  bar.style.transform = "translateX(-50%)";
+  bar.style.width = "4px";
+  bar.style.height = "0%";
+  bar.style.backgroundColor = "#007BFF";
+  bar.style.transition = "height linear";
+  button.style.position = "relative";
+  button.appendChild(bar);
+
+  let startTime = Date.now();
+  progressBarInterval = setInterval(() => {
+    const elapsed = (Date.now() - startTime) / 1000;
+    const percent = Math.min((elapsed / duration) * 100, 100);
+    bar.style.height = `${percent}%`;
+
+    if (percent >= 100) {
+      clearInterval(progressBarInterval);
+    }
+  }, 50);
+}
+
+// Optional: pause playback if global pause button is used
+document.getElementById("pauseBtn")?.addEventListener("click", () => {
+  const vocalAudio = document.getElementById("vocalAudio");
+  const accompAudio = document.getElementById("accompAudio");
+  if (vocalAudio && accompAudio) {
+    vocalAudio.pause();
+    accompAudio.pause();
+    currentlyPlaying = false;
+    clearTimeout(segmentTimeout);
+    removeProgressBars();
+    if (progressBarInterval) clearInterval(progressBarInterval);
+    console.log("⏸️ Pause button clicked");
+  }
+});
