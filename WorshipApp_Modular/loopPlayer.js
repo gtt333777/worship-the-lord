@@ -61,7 +61,7 @@ function fetchAndRenderLoopButtons(selectedSongName) {
        // ✅ Notify segmentProgressVisualizer.js
   if (typeof startSegmentProgressVisualizer === "function") {
   const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-  startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
+  startSegmentProgressVisualizer(loopData, vocalAudio, loopButtonsContainer); // ✅ fixed!
 }
 
 
