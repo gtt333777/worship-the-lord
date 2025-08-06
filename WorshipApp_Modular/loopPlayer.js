@@ -1,126 +1,117 @@
-﻿console.log("🎵 loopPlayer.js: Starting...");
+﻿// 🔁 loopPlayer.js: Ready...
 
-let segments = [];
-let currentlyPlaying = false;
+let activeSegmentTimeouts = []; // 🧠 Track all segment timers
 
-function playSegment(startTime, endTime, index = 0) {
-  if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
-    checkReadyAndPlay(startTime, endTime, index);
-    return;
-  }
-
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
-
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-  vocalAudio.play();
-  accompAudio.play();
-  currentlyPlaying = true;
-
-  const duration = (endTime - startTime) * 1000;
-
-  setTimeout(() => {
-    console.log("🔚 Segment ended.");
-    vocalAudio.pause();
-    accompAudio.pause();
-    currentlyPlaying = false;
-
-    // 🔁 Auto-play next segment
-    if (index < segments.length - 1) {
-      const nextSegment = segments[index + 1];
-      playSegment(nextSegment.start, nextSegment.end, index + 1);
-    }
-
-  }, duration);
+function clearAllSegmentTimers() {
+  activeSegmentTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+  activeSegmentTimeouts = [];
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const loopButtonsDiv = document.getElementById("loopButtonsContainer");
-  if (!loopButtonsDiv) {
-    console.warn("loopPlayer.js: #loopButtonsContainer not found");
-    return;
-  }
+document.addEventListener("DOMContentLoaded", function () {
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+  const songDropdown = document.getElementById("songSelect");
+  const pauseButton = document.getElementById("pauseButton");
 
-  const songNameDropdown = document.getElementById("songSelect");
-  if (!songNameDropdown) {
-    console.warn("loopPlayer.js: #songSelect not found");
-    return;
-  }
+  const vocalAudio = document.getElementById("vocalAudio");
+  const accompAudio = document.getElementById("accompAudio");
 
-  songNameDropdown.addEventListener("change", () => {
-    const selectedTamilName = songNameDropdown.value;
-    console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
-    const loopFile = `lyrics/${selectedTamilName}_loops.json`;
+  let segments = [];
 
-    console.log("📁 Trying to fetch loop file:", loopFile);
+  pauseButton.addEventListener("click", function () {
+    vocalAudio.pause();
+    accompAudio.pause();
+    clearAllSegmentTimers(); // 🧼 Cancel any queued next segment
+  });
 
-    fetch(loopFile)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
-        return response.json();
-      })
-      .then((loopData) => {
-        console.log("✅ Loop data loaded:", loopData);
-        segments = loopData;
+  songDropdown.addEventListener("change", function () {
+    const selectedSong = songDropdown.value;
+    console.log("🎵 loopPlayer.js: Song selected →", selectedSong);
 
-        // Clear existing buttons
-        loopButtonsDiv.innerHTML = "";
+    const loopFileName = `lyrics/${selectedSong}_loops.json`;
+    console.log("📂 Trying to fetch loop file:", loopFileName);
 
-        // Create segment buttons
-        loopData.forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.className = "segment-button";
-          btn.textContent = `Segment ${index + 1}`;
-          btn.addEventListener("click", () => {
-            playSegment(segment.start, segment.end, index);
-          });
-          loopButtonsDiv.appendChild(btn);
-        });
-
-        // ✅ Notify segmentProgressVisualizer.js
-        if (typeof startSegmentProgressVisualizer === "function") {
-          const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-          startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
-        }
-
+    fetch(loopFileName)
+      .then((response) => response.json())
+      .then((data) => {
+        segments = data;
+        console.log("✅ Loop data loaded:", segments);
+        renderSegmentButtons();
       })
       .catch((error) => {
-        console.warn("❌ loopPlayer.js: Error loading loop file:", error);
+        console.error("❌ Error loading loop file:", error);
+        segments = [];
+        loopButtonsContainer.innerHTML = "<p>No segments found for this song.</p>";
       });
   });
-});
 
-// ✅ Auto-retry playback if audio not ready
-function checkReadyAndPlay(startTime, endTime, index = 0) {
-  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
+  function renderSegmentButtons() {
+    loopButtonsContainer.innerHTML = ""; // Clear previous buttons
 
-  if (!isReady) {
-    console.warn("⏳ loopPlayer.js: Audio not ready yet...");
-    setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
-    return;
+    segments.forEach((segment, index) => {
+      const btn = document.createElement("button");
+      btn.className = "segment-button";
+      btn.textContent = `${index + 1}`;
+      btn.style.padding = "10px";
+      btn.style.border = "1px solid #999";
+      btn.style.borderRadius = "6px";
+      btn.style.cursor = "pointer";
+      btn.style.position = "relative";
+
+      // Create vertical progress bar inside button
+      const progressBar = document.createElement("div");
+      progressBar.className = "progress-bar";
+      progressBar.style.left = "0";
+      btn.appendChild(progressBar);
+
+      btn.addEventListener("click", () => {
+        playSegment(segment.start, segment.end, index);
+      });
+
+      loopButtonsContainer.appendChild(btn);
+    });
+
+    // ✅ Notify segmentProgressVisualizer.js
+    if (typeof startSegmentProgressVisualizer === "function") {
+      startSegmentProgressVisualizer(segments, vocalAudio);
+    }
   }
 
-  console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-
-  vocalAudio.play();
-  accompAudio.play();
-  currentlyPlaying = true;
-
-  const duration = (endTime - startTime) * 1000;
-  setTimeout(() => {
-    console.log("🔚 Segment ended.");
+  function playSegment(start, end, index) {
+    clearAllSegmentTimers(); // ✅ Stop old transitions
     vocalAudio.pause();
     accompAudio.pause();
-    currentlyPlaying = false;
 
-    // 🔁 Auto-play next segment
-    if (index < segments.length - 1) {
-      const nextSegment = segments[index + 1];
-      playSegment(nextSegment.start, nextSegment.end, index + 1);
+    vocalAudio.currentTime = start;
+    accompAudio.currentTime = start;
+
+    const timeoutId = setTimeout(() => {
+      checkReadyAndPlay();
+    }, 100);
+    activeSegmentTimeouts.push(timeoutId);
+
+    function checkReadyAndPlay() {
+      if (vocalAudio.readyState >= 2 && accompAudio.readyState >= 2) {
+        vocalAudio.play();
+        accompAudio.play();
+
+        console.log(`🎯 Segment: ${start} ▶️ ${end} (${(end - start).toFixed(2)}s)`);
+
+        const segmentDuration = (end - start) * 1000;
+        const endTimeout = setTimeout(() => {
+          vocalAudio.pause();
+          accompAudio.pause();
+          if (index < segments.length - 1) {
+            const nextSegment = segments[index + 1];
+            playSegment(nextSegment.start, nextSegment.end, index + 1);
+          }
+        }, segmentDuration);
+        activeSegmentTimeouts.push(endTimeout);
+      } else {
+        const retryId = setTimeout(() => {
+          checkReadyAndPlay();
+        }, 100);
+        activeSegmentTimeouts.push(retryId);
+      }
     }
-
-  }, duration);
-}
+  }
+});
