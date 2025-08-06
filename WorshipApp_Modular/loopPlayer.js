@@ -1,119 +1,120 @@
-﻿// loopPlayer.js
-console.log("loopPlayer.js: Starting...");
+﻿console.log("🔁 loopPlayer.js: Ready...");
+
+let activeSegmentTimeout = null;
+let currentlyPlaying = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const MAX_ATTEMPTS = 20;
-  let checkCount = 0;
-  let segmentTimeout = null;
-  let currentlyPlaying = false;
-  let progressInterval = null;
-
-  function getSongPrefixFromDropdown() {
-    const dropdown = document.getElementById("songSelect");
-    if (!dropdown) return null;
-    const selectedTamilName = dropdown.value.trim();
-    const files = window.availableLyricsFiles || [];
-    for (const filename of files) {
-      if (filename.endsWith(".txt") && selectedTamilName && filename.includes(selectedTamilName)) {
-        return filename.replace(".txt", "");
-      }
-    }
-    return null;
+  const songSelect = document.getElementById("songSelect");
+  if (!songSelect) {
+    console.warn("loopPlayer.js: #songSelect not found in DOM.");
+    return;
   }
 
-  function checkReadyAndLoadSegments() {
-    const vocalAudio = window.vocalAudio;
-    const accompAudio = window.accompAudio;
+  // Run on initial page load
+  const initialSong = songSelect.value;
+  if (initialSong) {
+    console.log("📦 Initial song detected:", initialSong);
+    fetchAndRenderLoopButtons(initialSong);
+  }
 
-    if (!vocalAudio || !accompAudio) {
-      checkCount++;
-      if (checkCount < MAX_ATTEMPTS) {
-        console.warn("loopPlayer.js: Waiting for audio elements... Attempt", checkCount);
-        return setTimeout(checkReadyAndLoadSegments, 500);
-      } else {
-        console.error("loopPlayer.js: ❌ Failed to find audio elements.");
-        return;
-      }
-    }
-
-    const prefix = getSongPrefixFromDropdown();
-    if (!prefix) {
-      console.warn("loopPlayer.js: ❌ Could not determine song prefix.");
+  // Watch for song selection changes
+  songSelect.addEventListener("change", () => {
+    const selectedSongName = songSelect.value;
+    if (!selectedSongName) {
+      console.warn("loopPlayer.js: No song selected in dropdown.");
       return;
     }
 
-    const loopJsonPath = `lyrics/${prefix}_loops.json`;
-    console.log("loopPlayer.js: 🎯 Fetching", loopJsonPath);
-
-    fetch(loopJsonPath)
-      .then((res) => res.json())
-      .then((segments) => {
-        console.log("loopPlayer.js: ✅ Loops loaded:", segments);
-        renderSegmentButtons(segments, vocalAudio, accompAudio);
-      })
-      .catch((err) => console.error("loopPlayer.js: ❌ Failed to load _loops.json", err));
-  }
-
-  function renderSegmentButtons(segments, vocalAudio, accompAudio) {
-    const container = document.getElementById("loopButtonsContainer");
-    if (!container) return console.error("loopPlayer.js: ❌ loopButtonsContainer not found.");
-
-    container.innerHTML = ""; // clear previous
-
-    segments.forEach((seg, index) => {
-      const btn = document.createElement("button");
-      btn.textContent = `Segment ${index + 1}`;
-      btn.style.marginRight = "10px";
-      btn.style.position = "relative";
-      btn.classList.add("segment-button");
-
-      const bar = document.createElement("div");
-      bar.className = "progress-bar";
-      bar.style.position = "absolute";
-      bar.style.left = "0";
-      bar.style.top = "0";
-      bar.style.bottom = "0";
-      bar.style.width = "2px";
-      bar.style.background = "lime";
-      bar.style.display = "none";
-
-      btn.appendChild(bar);
-
-      btn.addEventListener("click", () => {
-        if (segmentTimeout) clearTimeout(segmentTimeout);
-        if (progressInterval) clearInterval(progressInterval);
-
-        const { start, end } = seg;
-        vocalAudio.currentTime = start;
-        accompAudio.currentTime = start;
-        vocalAudio.play();
-        accompAudio.play();
-        currentlyPlaying = true;
-
-        document.querySelectorAll(".progress-bar").forEach(p => p.style.display = "none");
-        bar.style.display = "block";
-
-        const duration = end - start;
-        const buttonWidth = btn.offsetWidth;
-
-        progressInterval = setInterval(() => {
-          const elapsed = vocalAudio.currentTime - start;
-          const percent = Math.min(elapsed / duration, 1);
-          bar.style.left = `${percent * buttonWidth}px`;
-        }, 100);
-
-        segmentTimeout = setTimeout(() => {
-          vocalAudio.pause();
-          accompAudio.pause();
-          currentlyPlaying = false;
-          clearInterval(progressInterval);
-          bar.style.display = "none";
-        }, (end - start) * 1000);
-      });
-
-      container.appendChild(btn);
-    });
-  }
-
-  checkReadyAndLoadSegments();
+    console.log("🎵 loopPlayer.js: Song selected →", selectedSongName);
+    fetchAndRenderLoopButtons(selectedSongName);
+  });
 });
+
+function fetchAndRenderLoopButtons(selectedSongName) {
+  const loopButtonsDiv = document.getElementById("loopButtonsContainer");
+  if (!loopButtonsDiv) {
+    console.warn("loopPlayer.js: loopButtonsContainer not found.");
+    return;
+  }
+
+  loopButtonsDiv.innerHTML = ""; // Clear old buttons
+
+  const loopFile = `lyrics/${selectedSongName}_loops.json`;
+  console.log("📂 Trying to fetch loop file:", loopFile);
+
+  fetch(loopFile)
+    .then((response) => {
+      if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
+      return response.json();
+    })
+    .then((loopData) => {
+      console.log("✅ Loop data loaded:", loopData);
+      loopData.forEach((segment, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = `Segment ${index + 1}`;
+        btn.addEventListener("click", () =>
+          playSegment(segment.start, segment.end)
+        );
+        loopButtonsDiv.appendChild(btn);
+      });
+    })
+    .catch((error) => {
+      console.warn("❌ loopPlayer.js: Error loading loop file:", error);
+    });
+}
+
+function playSegment(startTime, endTime) {
+  console.log(`🎯 Segment: ${startTime} ▶️ ${endTime} (${(endTime - startTime).toFixed(2)}s)`);
+
+  if (!window.vocalAudio || !window.accompAudio) {
+    console.warn("❗ loopPlayer.js: Audio tracks not ready, retrying...");
+    checkReadyAndPlay(startTime, endTime, 0);
+    return;
+  }
+
+  startSegmentPlayback(startTime, endTime);
+}
+
+function startSegmentPlayback(start, end) {
+  clearTimeout(activeSegmentTimeout);
+  currentlyPlaying = true;
+
+  vocalAudio.pause();
+  accompAudio.pause();
+
+  vocalAudio.currentTime = start;
+  accompAudio.currentTime = start;
+
+  Promise.all([vocalAudio.play(), accompAudio.play()])
+    .then(() => {
+      console.log("▶️ Both audio tracks started.");
+    })
+    .catch((err) => {
+      console.warn("⚠️ Playback error:", err);
+    });
+
+  const duration = (end - start) * 1000;
+  activeSegmentTimeout = setTimeout(() => {
+    console.log("⏹️ Segment ended.");
+    vocalAudio.pause();
+    accompAudio.pause();
+    currentlyPlaying = false;
+  }, duration);
+}
+
+function checkReadyAndPlay(start, end, attempt) {
+  if (attempt >= 20) {
+    console.warn("🚫 checkReady: Gave up after 20 tries.");
+    return;
+  }
+
+  if (window.vocalAudio && window.accompAudio) {
+    console.log("✅ Audios ready after retry:", attempt);
+    startSegmentPlayback(start, end);
+    return;
+  }
+
+  setTimeout(() => {
+    checkReadyAndPlay(start, end, attempt + 1);
+  }, 300);
+}
