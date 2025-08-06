@@ -1,115 +1,97 @@
-﻿console.log("🔁 loopPlayer.js: Ready...");
+﻿console.log("🎵 loopPlayer.js: Starting...");
 
-let activeSegmentTimeout = null;
+let segments = [];
 let currentlyPlaying = false;
 
-document.addEventListener("DOMContentLoaded", () => {
-  const songSelect = document.getElementById("songSelect");
-  if (!songSelect) {
-    console.warn("loopPlayer.js: #songSelect not found in DOM.");
-    return;
-  }
-
-  // Run on initial page load
-  const initialSong = songSelect.value;
-  if (initialSong) {
-    console.log("📦 Initial song detected:", initialSong);
-    fetchAndRenderLoopButtons(initialSong);
-  }
-
-  // Watch for song selection changes
-  songSelect.addEventListener("change", () => {
-    const selectedSongName = songSelect.value;
-    if (!selectedSongName) {
-      console.warn("loopPlayer.js: No song selected in dropdown.");
-      return;
-    }
-
-    console.log("🎵 loopPlayer.js: Song selected →", selectedSongName);
-    fetchAndRenderLoopButtons(selectedSongName);
-  });
-});
-
-function fetchAndRenderLoopButtons(selectedSongName) {
-  const loopButtonsDiv = document.getElementById("loopButtonsContainer");
-  if (!loopButtonsDiv) {
-    console.warn("loopPlayer.js: loopButtonsContainer not found.");
-    return;
-  }
-
-  loopButtonsDiv.innerHTML = ""; // Clear old buttons
-
-  const loopFile = `lyrics/${selectedSongName}_loops.json`;
-  console.log("📂 Trying to fetch loop file:", loopFile);
-
-  fetch(loopFile)
-    .then((response) => {
-      if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
-      return response.json();
-    })
-    .then((loopData) => {
-      console.log("✅ Loop data loaded:", loopData);
-      loopData.forEach((segment, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = `Segment ${index + 1}`;
-        btn.addEventListener("click", () =>
-          playSegment(segment.start, segment.end, index)
-        );
-        loopButtonsDiv.appendChild(btn);
-      });
-
-       // ✅ Notify segmentProgressVisualizer.js
-  if (typeof startSegmentProgressVisualizer === "function") {
-  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-  startSegmentProgressVisualizer(loopData, vocalAudio, loopButtonsContainer); // ✅ fixed!
-}
-
-
-    })
-    .catch((error) => {
-      console.warn("❌ loopPlayer.js: Error loading loop file:", error);
-    });
-}
-
 function playSegment(startTime, endTime, index = 0) {
-  console.log(`🎯 Segment: ${startTime} ▶️ ${endTime} (${(endTime - startTime).toFixed(2)}s)`);
-
   if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❗ loopPlayer.js: Audio tracks not ready, retrying...");
-    checkReadyAndPlay(startTime, endTime, 0);
+    console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
+    checkReadyAndPlay(startTime, endTime, index);
     return;
   }
 
-  startSegmentPlayback(startTime, endTime);
-}
+  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-function startSegmentPlayback(start, end) {
-  clearTimeout(activeSegmentTimeout);
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
+  vocalAudio.play();
+  accompAudio.play();
   currentlyPlaying = true;
 
-  vocalAudio.pause();
-  accompAudio.pause();
+  const duration = (endTime - startTime) * 1000;
 
-  vocalAudio.currentTime = start;
-  accompAudio.currentTime = start;
-
-  Promise.all([vocalAudio.play(), accompAudio.play()])
-    .then(() => {
-      console.log("▶️ Both audio tracks started.");
-    })
-    .catch((err) => {
-      console.warn("⚠️ Playback error:", err);
-    });
-
-  const duration = (end - start) * 1000;
-  activeSegmentTimeout = setTimeout(() => {
-    console.log("⏹️ Segment ended.");
+  setTimeout(() => {
+    console.log("🔚 Segment ended.");
     vocalAudio.pause();
     accompAudio.pause();
     currentlyPlaying = false;
+
+    // 🔁 Auto-play next segment
+    if (index < segments.length - 1) {
+      const nextSegment = segments[index + 1];
+      playSegment(nextSegment.start, nextSegment.end, index + 1);
+    }
+
   }, duration);
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const loopButtonsDiv = document.getElementById("loopButtonsContainer");
+  if (!loopButtonsDiv) {
+    console.warn("loopPlayer.js: #loopButtonsContainer not found");
+    return;
+  }
+
+  const songNameDropdown = document.getElementById("songSelect");
+  if (!songNameDropdown) {
+    console.warn("loopPlayer.js: #songSelect not found");
+    return;
+  }
+
+  songNameDropdown.addEventListener("change", () => {
+    const selectedTamilName = songNameDropdown.value;
+    console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
+    const loopFile = `lyrics/${selectedTamilName}_loops.json`;
+
+    console.log("📁 Trying to fetch loop file:", loopFile);
+
+    fetch(loopFile)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
+        return response.json();
+      })
+      .then((loopData) => {
+        console.log("✅ Loop data loaded:", loopData);
+        segments = loopData;
+
+        // Clear existing buttons
+        loopButtonsDiv.innerHTML = "";
+
+        // Create segment buttons
+        loopData.forEach((segment, index) => {
+          const btn = document.createElement("button");
+          btn.className = "segment-button";
+          btn.textContent = `Segment ${index + 1}`;
+          btn.addEventListener("click", () => {
+            playSegment(segment.start, segment.end, index);
+          });
+          loopButtonsDiv.appendChild(btn);
+        });
+
+        // ✅ Notify segmentProgressVisualizer.js
+        if (typeof startSegmentProgressVisualizer === "function") {
+          const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+          startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
+        }
+
+      })
+      .catch((error) => {
+        console.warn("❌ loopPlayer.js: Error loading loop file:", error);
+      });
+  });
+});
+
+// ✅ Auto-retry playback if audio not ready
 function checkReadyAndPlay(startTime, endTime, index = 0) {
   const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
 
