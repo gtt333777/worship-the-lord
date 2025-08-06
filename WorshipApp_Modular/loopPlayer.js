@@ -1,126 +1,66 @@
-﻿console.log("🎵 loopPlayer.js: Starting...");
-
-let segments = [];
-let currentlyPlaying = false;
-
-function playSegment(startTime, endTime, index = 0) {
-  if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
-    checkReadyAndPlay(startTime, endTime, index);
-    return;
-  }
-
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
-
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-  vocalAudio.play();
-  accompAudio.play();
-  currentlyPlaying = true;
-
-  const duration = (endTime - startTime) * 1000;
-
-  setTimeout(() => {
-    console.log("🔚 Segment ended.");
-    vocalAudio.pause();
-    accompAudio.pause();
-    currentlyPlaying = false;
-
-    // 🔁 Auto-play next segment
-    if (index < segments.length - 1) {
-      const nextSegment = segments[index + 1];
-      playSegment(nextSegment.start, nextSegment.end, index + 1);
-    }
-
-  }, duration);
-}
+﻿console.log("🔁 loopPlayer.js: Ready...");
 
 document.addEventListener("DOMContentLoaded", () => {
-  const loopButtonsDiv = document.getElementById("loopButtonsContainer");
-  if (!loopButtonsDiv) {
-    console.warn("loopPlayer.js: #loopButtonsContainer not found");
-    return;
-  }
+  const songDropdown = document.getElementById("songSelect");
+  const vocalAudio = document.getElementById("vocalAudio");
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
 
-  const songNameDropdown = document.getElementById("songSelect");
-  if (!songNameDropdown) {
-    console.warn("loopPlayer.js: #songSelect not found");
-    return;
-  }
+  let segments = [];
+  let currentTimeout = null; // 🎯 Timeout Fix Start
 
-  songNameDropdown.addEventListener("change", () => {
-    const selectedTamilName = songNameDropdown.value;
-    console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
-    const loopFile = `lyrics/${selectedTamilName}_loops.json`;
+  songDropdown.addEventListener("change", async () => {
+    const tamilName = songDropdown.value;
+    console.log("🎵 loopPlayer.js: Song selected →", tamilName);
 
-    console.log("📁 Trying to fetch loop file:", loopFile);
+    const loopFileName = `lyrics/${tamilName}_loops.json`;
+    console.log("📂 Trying to fetch loop file:", loopFileName);
 
-    fetch(loopFile)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
-        return response.json();
-      })
-      .then((loopData) => {
-        console.log("✅ Loop data loaded:", loopData);
-        segments = loopData;
+    try {
+      const response = await fetch(loopFileName);
+      if (!response.ok) throw new Error("Loop file not found");
 
-        // Clear existing buttons
-        loopButtonsDiv.innerHTML = "";
+      segments = await response.json();
+      console.log("✅ Loop data loaded:", segments);
 
-        // Create segment buttons
-        loopData.forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.className = "segment-button";
-          btn.textContent = `Segment ${index + 1}`;
-          btn.addEventListener("click", () => {
-            playSegment(segment.start, segment.end, index);
-          });
-          loopButtonsDiv.appendChild(btn);
+      loopButtonsContainer.innerHTML = "";
+      segments.forEach((segment, index) => {
+        const btn = document.createElement("button");
+        btn.className = "segment-button";
+        btn.innerHTML = `Segment ${index + 1}`;
+
+        btn.addEventListener("click", () => {
+          clearTimeout(currentTimeout); // 🎯 Timeout Fix
+          playSegment(segment.start, segment.end, index);
         });
 
-        // ✅ Notify segmentProgressVisualizer.js
-        if (typeof startSegmentProgressVisualizer === "function") {
-          const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-          startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
-        }
-
-      })
-      .catch((error) => {
-        console.warn("❌ loopPlayer.js: Error loading loop file:", error);
+        loopButtonsContainer.appendChild(btn);
       });
-  });
-});
 
-// ✅ Auto-retry playback if audio not ready
-function checkReadyAndPlay(startTime, endTime, index = 0) {
-  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
-
-  if (!isReady) {
-    console.warn("⏳ loopPlayer.js: Audio not ready yet...");
-    setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
-    return;
-  }
-
-  console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-
-  vocalAudio.play();
-  accompAudio.play();
-  currentlyPlaying = true;
-
-  const duration = (endTime - startTime) * 1000;
-  setTimeout(() => {
-    console.log("🔚 Segment ended.");
-    vocalAudio.pause();
-    accompAudio.pause();
-    currentlyPlaying = false;
-
-    // 🔁 Auto-play next segment
-    if (index < segments.length - 1) {
-      const nextSegment = segments[index + 1];
-      playSegment(nextSegment.start, nextSegment.end, index + 1);
+      // ✅ Notify progress visualizer plugin
+      if (typeof startSegmentProgressVisualizer === "function") {
+        startSegmentProgressVisualizer(segments, vocalAudio);
+      }
+    } catch (err) {
+      console.warn("⚠️ No loop data found or failed to parse.");
+      loopButtonsContainer.innerHTML = "";
     }
+  });
 
-  }, duration);
-}
+  function playSegment(start, end, index) {
+    vocalAudio.currentTime = start;
+    vocalAudio.play();
+
+    console.log(`🎯 Segment: ${start} ▶️ ${end} (${(end - start).toFixed(2)}s)`);
+
+    clearTimeout(currentTimeout); // 🎯 Timeout Fix
+    currentTimeout = setTimeout(() => {
+      vocalAudio.pause();
+
+      // ✅ Auto-play next segment if any
+      if (index < segments.length - 1) {
+        const nextSegment = segments[index + 1];
+        playSegment(nextSegment.start, nextSegment.end, index + 1);
+      }
+    }, (end - start) * 1000);
+  }
+});
