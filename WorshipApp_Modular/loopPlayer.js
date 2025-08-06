@@ -53,7 +53,7 @@ function fetchAndRenderLoopButtons(selectedSongName) {
         const btn = document.createElement("button");
         btn.textContent = `Segment ${index + 1}`;
         btn.addEventListener("click", () =>
-          playSegment(segment.start, segment.end)
+          playSegment(segment.start, segment.end, index)
         );
         loopButtonsDiv.appendChild(btn);
       });
@@ -71,7 +71,7 @@ function fetchAndRenderLoopButtons(selectedSongName) {
     });
 }
 
-function playSegment(startTime, endTime) {
+function playSegment(startTime, endTime, index = 0) {
   console.log(`🎯 Segment: ${startTime} ▶️ ${endTime} (${(endTime - startTime).toFixed(2)}s)`);
 
   if (!window.vocalAudio || !window.accompAudio) {
