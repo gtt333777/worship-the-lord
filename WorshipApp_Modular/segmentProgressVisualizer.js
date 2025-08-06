@@ -1,62 +1,61 @@
-﻿// ✅ segmentProgressVisualizer.js
+﻿// segmentProgressVisualizer.js
 console.log("segmentProgressVisualizer.js: Starting...");
 
-function startSegmentProgressVisualizer(segmentData, vocalAudio) {
-    console.log("segmentProgressVisualizer.js: DOMContentLoaded...");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("segmentProgressVisualizer.js: DOMContentLoaded...");
+});
 
-    document.addEventListener("DOMContentLoaded", () => {
-        console.log("segmentProgressVisualizer.js: Waiting for vocalAudio or segments...");
+let animationFrameId = null;
 
-        const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-        if (!loopButtonsContainer) {
-            console.warn("segmentProgressVisualizer.js: No segment buttons container found.");
-            return;
-        }
+function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer) {
+  console.log("segmentProgressVisualizer.js: startSegmentProgressVisualizer() called");
 
-        const segmentButtons = loopButtonsContainer.querySelectorAll(".segment-button");
-        if (!segmentButtons.length) {
-            console.warn("segmentProgressVisualizer.js: No segment buttons found.");
-            return;
-        }
+  if (!segments || !vocalAudio || !loopButtonsContainer) {
+    console.warn("❌ Missing inputs to startSegmentProgressVisualizer");
+    return;
+  }
 
-        // Remove existing progress bars
-        document.querySelectorAll(".progress-bar").forEach(bar => bar.remove());
+  // Remove any existing progress bars (if reloaded)
+  const existingBars = loopButtonsContainer.querySelectorAll(".progress-bar");
+  existingBars.forEach(bar => bar.remove());
 
-        segmentButtons.forEach((button, index) => {
-            const bar = document.createElement("div");
-            bar.className = "progress-bar";
-            bar.style.left = "0px";
-            button.appendChild(bar);
-        });
+  // Add progress bars to each segment button
+  const segmentButtons = loopButtonsContainer.querySelectorAll(".segment-button");
+  segmentButtons.forEach((button, i) => {
+    const bar = document.createElement("div");
+    bar.className = "progress-bar";
+    bar.style.left = "0%";
+    bar.style.display = "none"; // Initially hidden
+    button.appendChild(bar);
+  });
 
-        let animationFrameId;
+  // Function to update progress bar inside the current segment
+  function updateProgress() {
+    const currentTime = vocalAudio.currentTime;
 
-        function updateProgressBar() {
-            const currentTime = vocalAudio.currentTime;
+    segments.forEach((segment, i) => {
+      const button = segmentButtons[i];
+      const bar = button.querySelector(".progress-bar");
 
-            segmentData.forEach((segment, index) => {
-                const { start, end } = segment;
-                const duration = end - start;
-                const elapsed = currentTime - start;
-                const progressPercent = (elapsed / duration) * 100;
+      const start = segment.start;
+      const end = segment.end;
 
-                const button = segmentButtons[index];
-                const bar = button?.querySelector(".progress-bar");
-
-                if (bar) {
-                    if (elapsed >= 0 && elapsed <= duration) {
-                        bar.style.left = `${progressPercent}%`;
-                        bar.style.display = "block";
-                    } else {
-                        bar.style.left = "0%";
-                        bar.style.display = "none";
-                    }
-                }
-            });
-
-            animationFrameId = requestAnimationFrame(updateProgressBar);
-        }
-
-        updateProgressBar();
+      if (currentTime >= start && currentTime <= end) {
+        const progressPercent = ((currentTime - start) / (end - start)) * 100;
+        bar.style.left = `${progressPercent}%`;
+        bar.style.display = "block";
+      } else {
+        bar.style.display = "none";
+      }
     });
+
+    animationFrameId = requestAnimationFrame(updateProgress);
+  }
+
+  // Start animation
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  updateProgress();
 }
+
+// Make it globally callable
+window.startSegmentProgressVisualizer = startSegmentProgressVisualizer;
