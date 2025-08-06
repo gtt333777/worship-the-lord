@@ -101,13 +101,26 @@ function startSegmentPlayback(start, end) {
       console.warn("⚠️ Playback error:", err);
     });
 
+
   const duration = (end - start) * 1000;
   activeSegmentTimeout = setTimeout(() => {
     console.log("⏹️ Segment ended.");
     vocalAudio.pause();
     accompAudio.pause();
     currentlyPlaying = false;
+
+     // ✅ Auto-play next segment logic
+  if (!isPaused && token === playbackToken) {
+    if (currentSegmentIndex < segments.length - 1) {
+      const nextSegment = segments[currentSegmentIndex + 1];
+      currentSegmentIndex++;
+      playSegment(nextSegment.start, nextSegment.end, token);
+    }
+  }
+
+
   }, duration);
+
 }
 
 function checkReadyAndPlay(start, end, attempt) {
