@@ -1,54 +1,61 @@
-﻿console.log("segmentProgressVisualizer.js: Starting...");
+﻿// segmentProgressVisualizer.js
+console.log("segmentProgressVisualizer.js: Starting...");
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("segmentProgressVisualizer.js: DOMContentLoaded...");
+});
 
 function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer) {
-  console.log("startSegmentProgressVisualizer() called");
+  console.log("segmentProgressVisualizer.js: startSegmentProgressVisualizer() called");
 
-  if (!segments || !Array.isArray(segments)) {
-    console.error("❌ segmentProgressVisualizer.js: segments is not an array!", segments);
+  if (!segments || !vocalAudio || !loopButtonsContainer) {
+    console.warn("⚠️ segmentProgressVisualizer.js: Missing segments, vocalAudio, or loopButtonsContainer.");
     return;
   }
 
-  if (!loopButtonsContainer || !vocalAudio) {
-    console.error("❌ segmentProgressVisualizer.js: Missing required parameters.");
-    return;
-  }
-
-  // Add class and inject .progress-bar into each segment button
   const progressBars = [];
 
   segments.forEach((segment, i) => {
     const btn = loopButtonsContainer.children[i];
-    if (!btn) return;
+    if (!btn) {
+      console.warn(`⚠️ segmentProgressVisualizer.js: No button found for segment ${i}`);
+      return;
+    }
 
-    btn.classList.add("segment-button");
+    try {
+      btn.classList.add("segment-button");
 
-    // Remove old progress bar if already present
-    const existingBar = btn.querySelector(".progress-bar");
-    if (existingBar) existingBar.remove();
+      // Remove old progress bar if already present
+      const existingBar = btn.querySelector(".progress-bar");
+      if (existingBar) existingBar.remove();
 
-    // Create and append new progress bar
-    const progressBar = document.createElement("div");
-    progressBar.classList.add("progress-bar");
-    btn.appendChild(progressBar);
+      // Create and append new progress bar
+      const progressBar = document.createElement("div");
+      progressBar.classList.add("progress-bar");
+      btn.appendChild(progressBar);
 
-    progressBars.push({
-      bar: progressBar,
-      start: segment.start,
-      end: segment.end
-    });
+      progressBars.push({
+        bar: progressBar,
+        start: segment.start,
+        end: segment.end
+      });
+    } catch (e) {
+      console.error(`❌ segmentProgressVisualizer.js: Error processing segment ${i}`, e);
+    }
   });
 
-  // Animation loop
   function updateProgress() {
     const currentTime = vocalAudio.currentTime;
 
-    progressBars.forEach(({ bar, start, end }) => {
-      if (currentTime >= start && currentTime <= end) {
-        const percent = (currentTime - start) / (end - start);
-        bar.style.left = `${percent * 100}%`;
-      } else {
-        bar.style.left = `-5%`; // Hide outside loop
+    progressBars.forEach(pb => {
+      const { bar, start, end } = pb;
+      if (currentTime < start || currentTime > end) {
+        bar.style.left = "-5px";
+        return;
       }
+
+      const percent = ((currentTime - start) / (end - start)) * 100;
+      bar.style.left = `${percent}%`;
     });
 
     requestAnimationFrame(updateProgress);
