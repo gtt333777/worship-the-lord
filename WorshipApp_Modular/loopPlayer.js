@@ -57,6 +57,13 @@ function fetchAndRenderLoopButtons(selectedSongName) {
         );
         loopButtonsDiv.appendChild(btn);
       });
+
+       // ✅ Notify segmentProgressVisualizer.js
+  if (typeof startSegmentProgressVisualizer === "function") {
+    startSegmentProgressVisualizer(segments, vocalAudio);
+  }
+
+
     })
     .catch((error) => {
       console.warn("❌ loopPlayer.js: Error loading loop file:", error);
