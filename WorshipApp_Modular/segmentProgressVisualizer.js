@@ -1,61 +1,58 @@
-﻿// segmentProgressVisualizer.js
-console.log("segmentProgressVisualizer.js: Starting...");
-
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("segmentProgressVisualizer.js: DOMContentLoaded...");
-});
-
-let animationFrameId = null;
+﻿console.log("segmentProgressVisualizer.js: Starting...");
 
 function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer) {
-  console.log("segmentProgressVisualizer.js: startSegmentProgressVisualizer() called");
+  console.log("startSegmentProgressVisualizer() called");
 
-  if (!segments || !vocalAudio || !loopButtonsContainer) {
-    console.warn("❌ Missing inputs to startSegmentProgressVisualizer");
+  if (!segments || !Array.isArray(segments)) {
+    console.error("❌ segmentProgressVisualizer.js: segments is not an array!", segments);
     return;
   }
 
-  // Remove any existing progress bars (if reloaded)
-  const existingBars = loopButtonsContainer.querySelectorAll(".progress-bar");
-  existingBars.forEach(bar => bar.remove());
+  if (!loopButtonsContainer || !vocalAudio) {
+    console.error("❌ segmentProgressVisualizer.js: Missing required parameters.");
+    return;
+  }
 
-  // Add progress bars to each segment button
-  const segmentButtons = loopButtonsContainer.querySelectorAll(".segment-button");
-  segmentButtons.forEach((button, i) => {
-    const bar = document.createElement("div");
-    bar.className = "progress-bar";
-    bar.style.left = "0%";
-    bar.style.display = "none"; // Initially hidden
-    button.appendChild(bar);
+  // Add class and inject .progress-bar into each segment button
+  const progressBars = [];
+
+  segments.forEach((segment, i) => {
+    const btn = loopButtonsContainer.children[i];
+    if (!btn) return;
+
+    btn.classList.add("segment-button");
+
+    // Remove old progress bar if already present
+    const existingBar = btn.querySelector(".progress-bar");
+    if (existingBar) existingBar.remove();
+
+    // Create and append new progress bar
+    const progressBar = document.createElement("div");
+    progressBar.classList.add("progress-bar");
+    btn.appendChild(progressBar);
+
+    progressBars.push({
+      bar: progressBar,
+      start: segment.start,
+      end: segment.end
+    });
   });
 
-  // Function to update progress bar inside the current segment
+  // Animation loop
   function updateProgress() {
     const currentTime = vocalAudio.currentTime;
 
-    segments.forEach((segment, i) => {
-      const button = segmentButtons[i];
-      const bar = button.querySelector(".progress-bar");
-
-      const start = segment.start;
-      const end = segment.end;
-
+    progressBars.forEach(({ bar, start, end }) => {
       if (currentTime >= start && currentTime <= end) {
-        const progressPercent = ((currentTime - start) / (end - start)) * 100;
-        bar.style.left = `${progressPercent}%`;
-        bar.style.display = "block";
+        const percent = (currentTime - start) / (end - start);
+        bar.style.left = `${percent * 100}%`;
       } else {
-        bar.style.display = "none";
+        bar.style.left = `-5%`; // Hide outside loop
       }
     });
 
-    animationFrameId = requestAnimationFrame(updateProgress);
+    requestAnimationFrame(updateProgress);
   }
 
-  // Start animation
-  if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  updateProgress();
+  requestAnimationFrame(updateProgress);
 }
-
-// Make it globally callable
-window.startSegmentProgressVisualizer = startSegmentProgressVisualizer;
