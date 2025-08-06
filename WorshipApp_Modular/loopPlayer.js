@@ -60,8 +60,9 @@ function fetchAndRenderLoopButtons(selectedSongName) {
 
        // ✅ Notify segmentProgressVisualizer.js
   if (typeof startSegmentProgressVisualizer === "function") {
-    startSegmentProgressVisualizer(segments, vocalAudio);
-  }
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+  startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
+}
 
 
     })
