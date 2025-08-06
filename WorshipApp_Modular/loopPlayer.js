@@ -1,7 +1,7 @@
-﻿
-console.log("🔁 loopPlayer.js: Ready...");
+﻿console.log("🔁 loopPlayer.js: Ready...");
 
 let activeSegmentTimeout = null;
+let currentlyPlaying = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   const songSelect = document.getElementById("songSelect");
@@ -10,14 +10,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Run on initial page load using selected song
+  // Run on initial page load
   const initialSong = songSelect.value;
   if (initialSong) {
     console.log("📦 Initial song detected:", initialSong);
     fetchAndRenderLoopButtons(initialSong);
   }
 
-  // Also run on song change
+  // Watch for song selection changes
   songSelect.addEventListener("change", () => {
     const selectedSongName = songSelect.value;
     if (!selectedSongName) {
@@ -33,74 +33,88 @@ document.addEventListener("DOMContentLoaded", () => {
 function fetchAndRenderLoopButtons(selectedSongName) {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
   if (!loopButtonsDiv) {
-    console.warn("loopPlayer.js: #loopButtonsContainer not found in DOM.");
+    console.warn("loopPlayer.js: loopButtonsContainer not found.");
     return;
   }
 
-  const loopFilePath = `lyrics/${selectedSongName}_loops.json`;
-  console.log("📂 Fetching:", loopFilePath);
+  loopButtonsDiv.innerHTML = ""; // Clear old buttons
 
-  fetch(loopFilePath)
-    .then(response => {
-      if (!response.ok) throw new Error("Loop JSON not found");
+  const loopFile = `lyrics/${selectedSongName}_loops.json`;
+  console.log("📂 Trying to fetch loop file:", loopFile);
+
+  fetch(loopFile)
+    .then((response) => {
+      if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
       return response.json();
     })
-    .then(data => {
-      console.log(`✅ Loaded (${data.length}) segments:`, data);
-      loopButtonsDiv.innerHTML = "";
-      data.forEach((segment, index) => {
+    .then((loopData) => {
+      console.log("✅ Loop data loaded:", loopData);
+      loopData.forEach((segment, index) => {
         const btn = document.createElement("button");
         btn.textContent = `Segment ${index + 1}`;
-        btn.onclick = () => playLoopFromIndex(data, index);
+        btn.addEventListener("click", () =>
+          playSegment(segment.start, segment.end)
+        );
         loopButtonsDiv.appendChild(btn);
       });
     })
-    .catch(error => {
-      console.error("❌ Failed to load loop JSON:", error.message);
-      loopButtonsDiv.innerHTML = "";
+    .catch((error) => {
+      console.warn("❌ loopPlayer.js: Error loading loop file:", error);
     });
 }
 
-function playLoopFromIndex(data, startIndex) {
-  const vocalAudio = window.vocalAudio;
-  const accompAudio = window.accompAudio;
+function playSegment(startTime, endTime) {
+  console.log(`🎯 Segment: ${startTime} ▶️ ${endTime} (${(endTime - startTime).toFixed(2)}s)`);
 
-  if (!vocalAudio || !accompAudio) {
-    console.error("🔇 Audio elements not ready");
+  if (!window.vocalAudio || !window.accompAudio) {
+    console.warn("❗ loopPlayer.js: Audio tracks not ready, retrying...");
+    checkReadyAndPlay(startTime, endTime, 0);
     return;
   }
 
-  if (activeSegmentTimeout) {
-    clearTimeout(activeSegmentTimeout);
-    console.log("⏹️ Cleared previous loop timeout");
-  }
+  startSegmentPlayback(startTime, endTime);
+}
+
+function startSegmentPlayback(start, end) {
+  clearTimeout(activeSegmentTimeout);
+  currentlyPlaying = true;
 
   vocalAudio.pause();
   accompAudio.pause();
 
-  const playSegment = (i) => {
-    if (i >= data.length) {
-      console.log("✅ All segments played.");
-      return;
-    }
+  vocalAudio.currentTime = start;
+  accompAudio.currentTime = start;
 
-    const segment = data[i];
-    const { start, end } = segment;
-    const duration = end - start;
+  Promise.all([vocalAudio.play(), accompAudio.play()])
+    .then(() => {
+      console.log("▶️ Both audio tracks started.");
+    })
+    .catch((err) => {
+      console.warn("⚠️ Playback error:", err);
+    });
 
-    console.log(`▶️ Segment ${i + 1}: ${start} ➡️ ${end} (${duration.toFixed(2)}s)`);
+  const duration = (end - start) * 1000;
+  activeSegmentTimeout = setTimeout(() => {
+    console.log("⏹️ Segment ended.");
+    vocalAudio.pause();
+    accompAudio.pause();
+    currentlyPlaying = false;
+  }, duration);
+}
 
-    vocalAudio.currentTime = start;
-    accompAudio.currentTime = start;
+function checkReadyAndPlay(start, end, attempt) {
+  if (attempt >= 20) {
+    console.warn("🚫 checkReady: Gave up after 20 tries.");
+    return;
+  }
 
-    Promise.all([vocalAudio.play(), accompAudio.play()]).catch(err =>
-      console.error("❌ Playback error:", err)
-    );
+  if (window.vocalAudio && window.accompAudio) {
+    console.log("✅ Audios ready after retry:", attempt);
+    startSegmentPlayback(start, end);
+    return;
+  }
 
-    activeSegmentTimeout = setTimeout(() => {
-      playSegment(i + 1);
-    }, duration * 1000);
-  };
-
-  playSegment(startIndex);
+  setTimeout(() => {
+    checkReadyAndPlay(start, end, attempt + 1);
+  }, 300);
 }
