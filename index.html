@@ -119,11 +119,9 @@
 
 
 
+
+
  <!-- 🔁 Segment Buttons Plugin -->
- <div id="loopButtonsContainer" style="margin-top: 15px;"></div>
-
-
-<!-- 🔁 Segment Buttons Plugin 
 <div id="loopButtonsContainer" style="margin-top: 15px;
     display: flex;
     flex-wrap: wrap;
@@ -132,38 +130,22 @@
     justify-content: center;
 "></div>
 
-<!-- 🔁 Segment Progress Bar Styling (Optional - can go in <style> or style.css) -->
+<!-- 🔁 Segment Progress Bar Styling -->
 <style>
-  .segmentButton {
+  .segment-button {
     position: relative;
-    padding: 5px 10px;
-    font-size: 14px;
-    cursor: pointer;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    transition: background-color 0.2s ease-in-out;
+    overflow: hidden;
   }
 
-  .segmentButton:hover {
-    background-color: #e0e0e0;
-  }
-
-  .progressBar {
+  .progress-bar {
     position: absolute;
-    bottom: -4px;
-    left: 0;
-    height: 3px;
-    background-color: #00aa00;
-    border-radius: 2px;
-    transition: width 0.1s linear;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: #4caf50; /* Green vertical bar */
+    transition: left 0.05s ease-out;
   }
 </style>
-
-
--->
-
-
 
 
 
@@ -187,6 +169,7 @@
 <script src="WorshipApp_Modular/bookmarkManager.js"></script>
 <script src="WorshipApp_Modular/pwaSetup.js"></script>
 <script src="WorshipApp_Modular/loopPlayer.js"></script>
+<script src="WorshipApp_Modular/segmentProgressVisualizer.js"></script>
 
 
 <!-- ✅ Call loadSongNames() after all scripts are loaded -->
