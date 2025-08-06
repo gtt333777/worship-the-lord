@@ -110,19 +110,35 @@ function startSegmentPlayback(start, end) {
   }, duration);
 }
 
-function checkReadyAndPlay(start, end, attempt) {
-  if (attempt >= 20) {
-    console.warn("🚫 checkReady: Gave up after 20 tries.");
+function checkReadyAndPlay(startTime, endTime, index = 0) {
+  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
+
+  if (!isReady) {
+    console.warn("⏳ loopPlayer.js: Audio not ready yet...");
+    setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
     return;
   }
 
-  if (window.vocalAudio && window.accompAudio) {
-    console.log("✅ Audios ready after retry:", attempt);
-    startSegmentPlayback(start, end);
-    return;
-  }
+  console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
 
+  vocalAudio.play();
+  accompAudio.play();
+  currentlyPlaying = true;
+
+  const duration = (endTime - startTime) * 1000;
   setTimeout(() => {
-    checkReadyAndPlay(start, end, attempt + 1);
-  }, 300);
+    console.log("🔚 Segment ended.");
+    vocalAudio.pause();
+    accompAudio.pause();
+    currentlyPlaying = false;
+
+    // 🔁 Auto-play next segment
+    if (index < segments.length - 1) {
+      const nextSegment = segments[index + 1];
+      playSegment(nextSegment.start, nextSegment.end, index + 1);
+    }
+
+  }, duration);
 }
