@@ -5,7 +5,7 @@ if (!window.vocalAudio) window.vocalAudio = new Audio();
 if (!window.accompAudio) window.accompAudio = new Audio();
 
 ["vocal", "accomp"].forEach(type => {
-  document.getElementById(`${type}Volume`).addEventListener("input", e => {
+  document.getElementById(`${type}Volume`).addEventListener("change", e => {
     (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
   });
 });
@@ -17,3 +17,7 @@ function adjustVolume(type, delta) {
 }
 
 window.adjustVolume = adjustVolume;
+
+
+
+
