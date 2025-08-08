@@ -2,30 +2,6 @@
 
 let segments = [];
 let currentlyPlaying = false;
-let activeSegmentTimeout = null;
-let currentPlayingSegmentIndex = null;
-
-// Volume setter function
-function setVolume(type, volume) {
-  volume = Math.min(1, Math.max(0, volume)); // clamp between 0 and 1
-  if (type === "vocal") {
-    vocalAudio.volume = volume;
-  } else if (type === "accomp") {
-    accompAudio.volume = volume;
-  }
-}
-
-// Attach volume slider event listeners here (inside loopPlayer.js)
-["vocal", "accomp"].forEach(type => {
-  const slider = document.getElementById(`${type}Volume`);
-  if (!slider) {
-    console.warn(`Volume slider for '${type}' not found`);
-    return;
-  }
-  slider.addEventListener("input", e => {
-    setVolume(type, parseFloat(e.target.value));
-  });
-});
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
@@ -36,14 +12,19 @@ function playSegment(startTime, endTime, index = 0) {
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  if (activeSegmentTimeout) {
+  // Cancel any previous segment playback
+if (activeSegmentTimeout) {
     clearTimeout(activeSegmentTimeout);
     activeSegmentTimeout = null;
-  }
-  vocalAudio.pause();
-  accompAudio.pause();
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
+}
+vocalAudio.pause();
+accompAudio.pause();
+vocalAudio.currentTime = startTime;
+accompAudio.currentTime = startTime;
+
+
+
+
 
   vocalAudio.play();
   accompAudio.play();
@@ -57,6 +38,7 @@ function playSegment(startTime, endTime, index = 0) {
     accompAudio.pause();
     currentlyPlaying = false;
 
+    // 🔁 Auto-play next segment
     if (index < segments.length - 1) {
       const nextSegment = segments[index + 1];
       playSegment(nextSegment.start, nextSegment.end, index + 1);
@@ -64,6 +46,10 @@ function playSegment(startTime, endTime, index = 0) {
 
   }, duration);
 }
+
+
+let activeSegmentTimeout = null;
+let currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
@@ -94,8 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("✅ Loop data loaded:", loopData);
         segments = loopData;
 
+        // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
 
+        // Create segment buttons
         loopData.forEach((segment, index) => {
           const btn = document.createElement("button");
           btn.className = "segment-button";
@@ -106,10 +94,12 @@ document.addEventListener("DOMContentLoaded", () => {
           loopButtonsDiv.appendChild(btn);
         });
 
+        // ✅ Notify segmentProgressVisualizer.js
         if (typeof startSegmentProgressVisualizer === "function") {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
           startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
         }
+
       })
       .catch((error) => {
         console.warn("❌ loopPlayer.js: Error loading loop file:", error);
@@ -117,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Auto-retry playback if audio not ready
+// ✅ Auto-retry playback if audio not ready
 function checkReadyAndPlay(startTime, endTime, index = 0) {
   const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
 
@@ -142,6 +132,7 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
     accompAudio.pause();
     currentlyPlaying = false;
 
+    // 🔁 Auto-play next segment
     if (index < segments.length - 1) {
       const nextSegment = segments[index + 1];
       playSegment(nextSegment.start, nextSegment.end, index + 1);
