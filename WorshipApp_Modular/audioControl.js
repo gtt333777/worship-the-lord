@@ -4,23 +4,28 @@
 if (!window.vocalAudio) window.vocalAudio = new Audio();
 if (!window.accompAudio) window.accompAudio = new Audio();
 
-// Small helper to keep tracks in sync
-function syncTracks() {
-  try {
-    if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.03) {
-      accompAudio.currentTime = vocalAudio.currentTime;
-      console.log("🎯 Sync corrected after volume change");
-    }
-  } catch (err) {
-    console.warn("⚠️ syncTracks error:", err);
-  }
-}
-
+// Add volume listeners with drift correction
 ["vocal", "accomp"].forEach(type => {
   document.getElementById(`${type}Volume`).addEventListener("input", e => {
-    (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
-    // ✅ Correct sync immediately after volume change
-    syncTracks();
+    const audioEl = (type === "vocal" ? vocalAudio : accompAudio);
+    audioEl.volume = parseFloat(e.target.value);
+
+    // --- Drift correction after volume change ---
+    try {
+      if (!vocalAudio.paused && !accompAudio.paused) {
+        const drift = Math.abs(vocalAudio.currentTime - accompAudio.currentTime);
+        if (drift > 0.03) { // only correct if > 30ms
+          if (type === "vocal") {
+            accompAudio.currentTime = vocalAudio.currentTime;
+          } else {
+            vocalAudio.currentTime = accompAudio.currentTime;
+          }
+          console.log(`🔄 Drift corrected after ${type} volume change. Drift was: ${drift.toFixed(3)}s`);
+        }
+      }
+    } catch (err) {
+      console.warn("⚠️ Drift correction skipped:", err);
+    }
   });
 });
 
