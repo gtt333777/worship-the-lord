@@ -2,8 +2,6 @@
 
 let segments = [];
 let currentlyPlaying = false;
-let activeSegmentTimeout = null;
-let currentPlayingSegmentIndex = null;
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
@@ -14,36 +12,36 @@ function playSegment(startTime, endTime, index = 0) {
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // 🔹 Stop any previous segment completely
-  if (activeSegmentTimeout) {
+  // Cancel any previous segment playback
+if (activeSegmentTimeout) {
     clearTimeout(activeSegmentTimeout);
     activeSegmentTimeout = null;
+}
+vocalAudio.pause();
+accompAudio.pause();
+vocalAudio.currentTime = startTime;
+accompAudio.currentTime = startTime;
+
+
+
+// Extra drift correction before play
+try {
+  if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.02) {
+    accompAudio.currentTime = vocalAudio.currentTime;
   }
-  vocalAudio.pause();
-  accompAudio.pause();
-  currentlyPlaying = false;
-  currentPlayingSegmentIndex = index;
+} catch (e) {
+  console.warn("Sync check skipped:", e);
+}
 
-  // Jump to start time
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
 
-  // Extra drift correction before play
-  try {
-    if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.02) {
-      accompAudio.currentTime = vocalAudio.currentTime;
-    }
-  } catch (e) {
-    console.warn("Sync check skipped:", e);
-  }
 
-  // Start playing
+
   vocalAudio.play();
   accompAudio.play();
   currentlyPlaying = true;
 
-  // Schedule end of segment
   const duration = (endTime - startTime) * 1000;
+
   activeSegmentTimeout = setTimeout(() => {
     console.log("🔚 Segment ended.");
     vocalAudio.pause();
@@ -55,8 +53,13 @@ function playSegment(startTime, endTime, index = 0) {
       const nextSegment = segments[index + 1];
       playSegment(nextSegment.start, nextSegment.end, index + 1);
     }
+
   }, duration);
 }
+
+
+let activeSegmentTimeout = null;
+let currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
@@ -106,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
           startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
         }
+
       })
       .catch((error) => {
         console.warn("❌ loopPlayer.js: Error loading loop file:", error);
@@ -115,17 +119,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ✅ Auto-retry playback if audio not ready
 function checkReadyAndPlay(startTime, endTime, index = 0) {
-  // 🔹 Stop any previous segment completely
-  if (activeSegmentTimeout) {
-    clearTimeout(activeSegmentTimeout);
-    activeSegmentTimeout = null;
-  }
-  vocalAudio.pause();
-  accompAudio.pause();
-  currentlyPlaying = false;
-  currentPlayingSegmentIndex = index;
-
   const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
+
   if (!isReady) {
     console.warn("⏳ loopPlayer.js: Audio not ready yet...");
     setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
@@ -136,17 +131,12 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
   vocalAudio.currentTime = startTime;
   accompAudio.currentTime = startTime;
 
-  // Drift correction
-  if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.02) {
-    accompAudio.currentTime = vocalAudio.currentTime;
-  }
-
   vocalAudio.play();
   accompAudio.play();
   currentlyPlaying = true;
 
   const duration = (endTime - startTime) * 1000;
-  activeSegmentTimeout = setTimeout(() => {
+  setTimeout(() => {
     console.log("🔚 Segment ended.");
     vocalAudio.pause();
     accompAudio.pause();
@@ -157,5 +147,6 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
       const nextSegment = segments[index + 1];
       playSegment(nextSegment.start, nextSegment.end, index + 1);
     }
+
   }, duration);
 }
