@@ -1,8 +1,7 @@
 ﻿// WorshipApp_Modular/songLoader.js
 
-// Global audio elements
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
+// ✅ Use the existing global audio elements from audioControl.js
+// (Do NOT create new Audio objects here)
 
 // === Play/Pause ===
 document.getElementById("playBtn").addEventListener("click", () => {
@@ -25,6 +24,7 @@ document.getElementById("playBtn").addEventListener("click", () => {
   console.log("🎧 Streaming vocal from:", vocalUrl);
   console.log("🎧 Streaming accompaniment from:", accUrl);
 
+  // ✅ Use the existing global objects here
   vocalAudio.src = vocalUrl;
   accompAudio.src = accUrl;
 
@@ -34,7 +34,6 @@ document.getElementById("playBtn").addEventListener("click", () => {
     accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
   ]).then(() => {
     console.log("✅ Both audio tracks started.");
-    correctDriftNow(); // ✅ Ensure they are aligned immediately
   });
 });
 
