@@ -43,6 +43,22 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
   vocalAudio.pause();
   accompAudio.pause();
+
+  
+  // Reset position
+  vocalAudio.currentTime = 0;
+  accompAudio.currentTime = 0;
+
+  // Clear any loop segment timeout
+  if (typeof activeSegmentTimeout !== "undefined" && activeSegmentTimeout) {
+    clearTimeout(activeSegmentTimeout);
+    activeSegmentTimeout = null;
+  }
+
+  currentlyPlaying = false;
+
+
+
 });
 
 // === Dropbox URL Builder ===
