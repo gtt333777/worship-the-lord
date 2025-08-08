@@ -12,27 +12,15 @@ function playSegment(startTime, endTime, index = 0) {
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Cancel any previous segment playback
-if (activeSegmentTimeout) {
-    clearTimeout(activeSegmentTimeout);
-    activeSegmentTimeout = null;
-}
-vocalAudio.pause();
-accompAudio.pause();
-vocalAudio.currentTime = startTime;
-accompAudio.currentTime = startTime;
-
-
-
-
-
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
   vocalAudio.play();
   accompAudio.play();
   currentlyPlaying = true;
 
   const duration = (endTime - startTime) * 1000;
 
-  activeSegmentTimeout = setTimeout(() => {
+  setTimeout(() => {
     console.log("🔚 Segment ended.");
     vocalAudio.pause();
     accompAudio.pause();
@@ -46,10 +34,6 @@ accompAudio.currentTime = startTime;
 
   }, duration);
 }
-
-
-let activeSegmentTimeout = null;
-let currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
