@@ -1,48 +1,19 @@
-﻿// audioControl.js
+// audioControl.js
 
-class AudioControl {
-  constructor(audioElement) {
-    this.audio = audioElement;
-  }
+// Global audio elements
+if (!window.vocalAudio) window.vocalAudio = new Audio();
+if (!window.accompAudio) window.accompAudio = new Audio();
 
-  // Set the audio volume (0.0 to 1.0)
-  setVolume(volume) {
-    if (volume < 0) volume = 0;
-    if (volume > 1) volume = 1;
-    this.audio.volume = volume;
-  }
+["vocal", "accomp"].forEach(type => {
+  document.getElementById(`${type}Volume`).addEventListener("input", e => {
+    (type === "vocal" ? vocalAudio : accompAudio).volume = parseFloat(e.target.value);
+  });
+});
 
-  // Get the current volume
-  getVolume() {
-    return this.audio.volume;
-  }
-
-  // Play the audio
-  play() {
-    this.audio.play();
-  }
-
-  // Pause the audio
-  pause() {
-    this.audio.pause();
-  }
-
-  // Stop the audio and reset to start
-  stop() {
-    this.audio.pause();
-    this.audio.currentTime = 0;
-  }
-
-  // Load new audio source
-  loadSource(src) {
-    this.audio.src = src;
-    this.audio.load();
-  }
-
-  // Check if audio is playing
-  isPlaying() {
-    return !this.audio.paused && !this.audio.ended;
-  }
+function adjustVolume(type, delta) {
+  const slider = document.getElementById(`${type}Volume`);
+  slider.value = Math.min(1, Math.max(0, parseFloat(slider.value) + delta)).toFixed(2);
+  slider.dispatchEvent(new Event("input"));
 }
 
-export default AudioControl;
+window.adjustVolume = adjustVolume;
