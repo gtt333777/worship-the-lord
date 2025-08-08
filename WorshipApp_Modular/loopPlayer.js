@@ -24,16 +24,6 @@ accompAudio.currentTime = startTime;
 
 
 
-// Extra drift correction before play
-try {
-  if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.02) {
-    accompAudio.currentTime = vocalAudio.currentTime;
-  }
-} catch (e) {
-  console.warn("Sync check skipped:", e);
-}
-
-
 
 
   vocalAudio.play();
