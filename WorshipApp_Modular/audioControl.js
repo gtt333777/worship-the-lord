@@ -1,14 +1,15 @@
-// audioControl.js � Using Web Audio API GainNodes to prevent sync drift
+﻿// audioControl.js — Drift-free, working volume control with AudioContext + GainNode
 
-// Create the AudioContext once
+// 1️⃣ Create AudioContext only once, global scope
 if (!window.audioCtx) {
   window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
-// Create global audio elements and gain nodes
+// 2️⃣ Create global Audio elements & GainNodes (only once)
 if (!window.vocalAudio) {
   window.vocalAudio = new Audio();
   window.vocalAudio.crossOrigin = "anonymous";
+
   const vocalSource = window.audioCtx.createMediaElementSource(window.vocalAudio);
   window.vocalGain = window.audioCtx.createGain();
   vocalSource.connect(window.vocalGain).connect(window.audioCtx.destination);
@@ -17,23 +18,26 @@ if (!window.vocalAudio) {
 if (!window.accompAudio) {
   window.accompAudio = new Audio();
   window.accompAudio.crossOrigin = "anonymous";
+
   const accompSource = window.audioCtx.createMediaElementSource(window.accompAudio);
   window.accompGain = window.audioCtx.createGain();
   accompSource.connect(window.accompGain).connect(window.audioCtx.destination);
 }
 
-// Hook sliders to gain nodes instead of element.volume
-["vocal", "accomp"].forEach(type => {
-  const slider = document.getElementById(`${type}Volume`);
-  if (slider) {
-    slider.addEventListener("input", e => {
-      const gainNode = (type === "vocal") ? window.vocalGain : window.accompGain;
-      gainNode.gain.value = parseFloat(e.target.value);
-    });
-  }
+// 3️⃣ Wait for DOM so sliders exist before attaching events
+document.addEventListener("DOMContentLoaded", function () {
+  ["vocal", "accomp"].forEach(type => {
+    const slider = document.getElementById(`${type}Volume`);
+    if (slider) {
+      slider.addEventListener("input", e => {
+        const gainNode = (type === "vocal") ? window.vocalGain : window.accompGain;
+        gainNode.gain.value = parseFloat(e.target.value);
+      });
+    }
+  });
 });
 
-// Adjust volume with +/- buttons
+// 4️⃣ Adjust volume via +/- buttons without breaking sync
 function adjustVolume(type, delta) {
   const slider = document.getElementById(`${type}Volume`);
   if (slider) {
@@ -44,9 +48,14 @@ function adjustVolume(type, delta) {
 }
 window.adjustVolume = adjustVolume;
 
-// Optional: ensure AudioContext is resumed on user interaction (browser policy)
+// 5️⃣ Resume AudioContext on first click/touch (required by browsers)
 document.addEventListener("click", () => {
-  if (window.audioCtx.state === "suspended") {
+  if (window.audioCtx && window.audioCtx.state === "suspended") {
+    window.audioCtx.resume();
+  }
+});
+document.addEventListener("touchstart", () => {
+  if (window.audioCtx && window.audioCtx.state === "suspended") {
     window.audioCtx.resume();
   }
 });
