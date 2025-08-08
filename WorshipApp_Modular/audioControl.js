@@ -1,54 +1,48 @@
 ﻿// audioControl.js
 
-// Global audio elements
-if (!window.vocalAudio) window.vocalAudio = new Audio();
-if (!window.accompAudio) window.accompAudio = new Audio();
+class AudioControl {
+  constructor(audioElement) {
+    this.audio = audioElement;
+  }
 
-// Delay timer for smooth drift correction
-let driftCorrectionTimer = null;
+  // Set the audio volume (0.0 to 1.0)
+  setVolume(volume) {
+    if (volume < 0) volume = 0;
+    if (volume > 1) volume = 1;
+    this.audio.volume = volume;
+  }
 
-["vocal", "accomp"].forEach(type => {
-  const slider = document.getElementById(`${type}Volume`);
+  // Get the current volume
+  getVolume() {
+    return this.audio.volume;
+  }
 
-  slider.addEventListener("input", e => {
-    const audioEl = (type === "vocal" ? vocalAudio : accompAudio);
-    audioEl.volume = parseFloat(e.target.value);
+  // Play the audio
+  play() {
+    this.audio.play();
+  }
 
-    // Clear previous drift correction request
-    if (driftCorrectionTimer) clearTimeout(driftCorrectionTimer);
+  // Pause the audio
+  pause() {
+    this.audio.pause();
+  }
 
-    // Schedule drift correction shortly after volume change stops
-    driftCorrectionTimer = setTimeout(() => {
-      correctDrift();
-    }, 50); // wait 50ms to avoid sluggishness
-  });
-});
+  // Stop the audio and reset to start
+  stop() {
+    this.audio.pause();
+    this.audio.currentTime = 0;
+  }
 
-function adjustVolume(type, delta) {
-  const slider = document.getElementById(`${type}Volume`);
-  slider.value = Math.min(1, Math.max(0, parseFloat(slider.value) + delta)).toFixed(2);
-  slider.dispatchEvent(new Event("input"));
-}
+  // Load new audio source
+  loadSource(src) {
+    this.audio.src = src;
+    this.audio.load();
+  }
 
-window.adjustVolume = adjustVolume;
-
-// Smooth drift correction function
-function correctDrift() {
-  if (!vocalAudio || !accompAudio) return;
-
-  // Only correct if both are ready & playing
-  if (vocalAudio.readyState < 2 || accompAudio.readyState < 2) return;
-  if (vocalAudio.paused || accompAudio.paused) return;
-
-  const drift = vocalAudio.currentTime - accompAudio.currentTime;
-
-  // Ignore tiny drifts below 0.03s
-  if (Math.abs(drift) > 0.03) {
-    if (drift > 0) {
-      accompAudio.currentTime = vocalAudio.currentTime;
-    } else {
-      vocalAudio.currentTime = accompAudio.currentTime;
-    }
-    console.log(`🔄 Drift corrected after volume change. Drift was: ${drift.toFixed(3)}s`);
+  // Check if audio is playing
+  isPlaying() {
+    return !this.audio.paused && !this.audio.ended;
   }
 }
+
+export default AudioControl;
