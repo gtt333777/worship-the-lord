@@ -1,7 +1,10 @@
-﻿console.log("🎵 loopPlayer.js: Starting...");
+﻿// WorshipApp_Modular/loopPlayer.js
+console.log("🎵 loopPlayer.js: Starting...");
 
 let segments = [];
 let currentlyPlaying = false;
+let activeSegmentTimeout = null;
+let currentPlayingSegmentIndex = null;
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
@@ -13,18 +16,17 @@ function playSegment(startTime, endTime, index = 0) {
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
   // Cancel any previous segment playback
-if (activeSegmentTimeout) {
+  if (activeSegmentTimeout) {
     clearTimeout(activeSegmentTimeout);
     activeSegmentTimeout = null;
-}
-vocalAudio.pause();
-accompAudio.pause();
-vocalAudio.currentTime = startTime;
-accompAudio.currentTime = startTime;
+  }
 
+  vocalAudio.pause();
+  accompAudio.pause();
+  vocalAudio.currentTime = startTime;
+  accompAudio.currentTime = startTime;
 
-
-
+  correctDriftNow(); // ✅ Keep alignment before starting
 
   vocalAudio.play();
   accompAudio.play();
@@ -43,13 +45,8 @@ accompAudio.currentTime = startTime;
       const nextSegment = segments[index + 1];
       playSegment(nextSegment.start, nextSegment.end, index + 1);
     }
-
   }, duration);
 }
-
-
-let activeSegmentTimeout = null;
-let currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
@@ -99,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
           startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
         }
-
       })
       .catch((error) => {
         console.warn("❌ loopPlayer.js: Error loading loop file:", error);
@@ -121,6 +117,8 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
   vocalAudio.currentTime = startTime;
   accompAudio.currentTime = startTime;
 
+  correctDriftNow(); // ✅ Keep alignment
+
   vocalAudio.play();
   accompAudio.play();
   currentlyPlaying = true;
@@ -137,6 +135,5 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
       const nextSegment = segments[index + 1];
       playSegment(nextSegment.start, nextSegment.end, index + 1);
     }
-
   }, duration);
 }
