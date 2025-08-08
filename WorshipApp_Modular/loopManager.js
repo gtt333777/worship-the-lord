@@ -1,8 +1,8 @@
-const loopCanvas = document.getElementById("loopCanvas");
-const ctx = loopCanvas.getContext("2d");
-
+// === Loop Manager ===
 let loops = [];
 let activeLoopIndex = 0;
+const loopCanvas = document.getElementById("loopCanvas");
+const ctx = loopCanvas.getContext("2d");
 
 function drawLoops(duration) {
   ctx.clearRect(0, 0, loopCanvas.width, loopCanvas.height);
@@ -41,15 +41,12 @@ loopCanvas.addEventListener("click", e => {
 
 vocalAudio.addEventListener("timeupdate", () => {
   drawLoops(vocalAudio.duration);
-
   if (activeLoopIndex >= 0 && loops.length) {
     const loop = loops[activeLoopIndex];
-    const driftThreshold = 0.1; // seconds (100 ms)
-
-    if (vocalAudio.currentTime < loop.start - driftThreshold) {
+    if (vocalAudio.currentTime < loop.start) {
       vocalAudio.currentTime = loop.start;
       accompAudio.currentTime = loop.start;
-    } else if (vocalAudio.currentTime > loop.end + driftThreshold) {
+    } else if (vocalAudio.currentTime >= loop.end) {
       activeLoopIndex++;
       if (activeLoopIndex < loops.length) {
         vocalAudio.currentTime = loops[activeLoopIndex].start;
