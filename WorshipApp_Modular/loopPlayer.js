@@ -1,5 +1,4 @@
-﻿// WorshipApp_Modular/loopPlayer.js
-console.log("🎵 loopPlayer.js: Starting...");
+﻿console.log("🎵 loopPlayer.js: Starting...");
 
 let segments = [];
 let currentlyPlaying = false;
@@ -15,25 +14,36 @@ function playSegment(startTime, endTime, index = 0) {
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Cancel any previous segment playback
+  // 🔹 Stop any previous segment completely
   if (activeSegmentTimeout) {
     clearTimeout(activeSegmentTimeout);
     activeSegmentTimeout = null;
   }
-
   vocalAudio.pause();
   accompAudio.pause();
+  currentlyPlaying = false;
+  currentPlayingSegmentIndex = index;
+
+  // Jump to start time
   vocalAudio.currentTime = startTime;
   accompAudio.currentTime = startTime;
 
-  correctDriftNow(); // ✅ Keep alignment before starting
+  // Extra drift correction before play
+  try {
+    if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.02) {
+      accompAudio.currentTime = vocalAudio.currentTime;
+    }
+  } catch (e) {
+    console.warn("Sync check skipped:", e);
+  }
 
+  // Start playing
   vocalAudio.play();
   accompAudio.play();
   currentlyPlaying = true;
 
+  // Schedule end of segment
   const duration = (endTime - startTime) * 1000;
-
   activeSegmentTimeout = setTimeout(() => {
     console.log("🔚 Segment ended.");
     vocalAudio.pause();
@@ -105,8 +115,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ✅ Auto-retry playback if audio not ready
 function checkReadyAndPlay(startTime, endTime, index = 0) {
-  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
+  // 🔹 Stop any previous segment completely
+  if (activeSegmentTimeout) {
+    clearTimeout(activeSegmentTimeout);
+    activeSegmentTimeout = null;
+  }
+  vocalAudio.pause();
+  accompAudio.pause();
+  currentlyPlaying = false;
+  currentPlayingSegmentIndex = index;
 
+  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
   if (!isReady) {
     console.warn("⏳ loopPlayer.js: Audio not ready yet...");
     setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
@@ -117,14 +136,17 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
   vocalAudio.currentTime = startTime;
   accompAudio.currentTime = startTime;
 
-  correctDriftNow(); // ✅ Keep alignment
+  // Drift correction
+  if (Math.abs(vocalAudio.currentTime - accompAudio.currentTime) > 0.02) {
+    accompAudio.currentTime = vocalAudio.currentTime;
+  }
 
   vocalAudio.play();
   accompAudio.play();
   currentlyPlaying = true;
 
   const duration = (endTime - startTime) * 1000;
-  setTimeout(() => {
+  activeSegmentTimeout = setTimeout(() => {
     console.log("🔚 Segment ended.");
     vocalAudio.pause();
     accompAudio.pause();
