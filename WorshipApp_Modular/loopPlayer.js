@@ -2,8 +2,8 @@
 
 let segments = [];
 let currentlyPlaying = false;
-let activeSegmentTimeout = null;
 let currentPlayingSegmentIndex = null;
+let stopCheckInterval = null;
 
 /**
  * Wait until an audio element is ready to play.
@@ -24,6 +24,22 @@ function waitForAudioReady(audio) {
   });
 }
 
+/**
+ * Stop playback cleanly
+ */
+function stopPlayback() {
+  if (stopCheckInterval) {
+    clearInterval(stopCheckInterval);
+    stopCheckInterval = null;
+  }
+  vocalAudio.pause();
+  accompAudio.pause();
+  currentlyPlaying = false;
+}
+
+/**
+ * Play a segment from startTime to endTime
+ */
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
@@ -31,48 +47,59 @@ function playSegment(startTime, endTime, index = 0) {
     return;
   }
 
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${(endTime - startTime).toFixed(2)} sec)`);
 
-  // Cancel any previous segment playback
-  if (activeSegmentTimeout) {
-    clearTimeout(activeSegmentTimeout);
-    activeSegmentTimeout = null;
-  }
-  vocalAudio.pause();
-  accompAudio.pause();
+  // Stop any currently playing segment
+  stopPlayback();
 
   // ✅ Ensure both audios are ready before starting
   Promise.all([
     waitForAudioReady(vocalAudio),
     waitForAudioReady(accompAudio)
   ]).then(() => {
+    // Sync start position
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
 
-    // ✅ Ensure both play exactly together
-    Promise.all([
-      vocalAudio.play(),
-      accompAudio.play()
-    ]).then(() => {
-      currentlyPlaying = true;
+    // Play together
+    vocalAudio.play();
+    accompAudio.play();
+    currentlyPlaying = true;
+    currentPlayingSegmentIndex = index;
 
-      const duration = (endTime - startTime) * 1000;
+    // Check every 50ms whether we reached endTime
+    stopCheckInterval = setInterval(() => {
+      const vocalDone = vocalAudio.currentTime >= endTime;
+      const accompDone = accompAudio.currentTime >= endTime;
 
-      activeSegmentTimeout = setTimeout(() => {
+      if (vocalDone || accompDone) {
         console.log("🔚 Segment ended.");
-        vocalAudio.pause();
-        accompAudio.pause();
-        currentlyPlaying = false;
+        stopPlayback();
 
-        // 🔁 Auto-play next segment
+        // 🔁 Auto-play next segment, but only when both are ready
         if (index < segments.length - 1) {
           const nextSegment = segments[index + 1];
-          playSegment(nextSegment.start, nextSegment.end, index + 1);
+          Promise.all([
+            waitForAudioReady(vocalAudio),
+            waitForAudioReady(accompAudio)
+          ]).then(() => {
+            playSegment(nextSegment.start, nextSegment.end, index + 1);
+          });
         }
-      }, duration);
-    }).catch(err => {
-      console.warn("⚠️ Audio play error:", err);
-    });
+      }
+    }, 50);
+  });
+}
+
+/**
+ * Auto-retry playback if audio not ready
+ */
+function checkReadyAndPlay(startTime, endTime, index = 0) {
+  Promise.all([
+    waitForAudioReady(vocalAudio),
+    waitForAudioReady(accompAudio)
+  ]).then(() => {
+    playSegment(startTime, endTime, index);
   });
 }
 
@@ -130,39 +157,3 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 });
-
-// ✅ Auto-retry playback if audio not ready
-function checkReadyAndPlay(startTime, endTime, index = 0) {
-  Promise.all([
-    waitForAudioReady(vocalAudio),
-    waitForAudioReady(accompAudio)
-  ]).then(() => {
-    console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
-    vocalAudio.currentTime = startTime;
-    accompAudio.currentTime = startTime;
-
-    // ✅ Ensure both play exactly together
-    Promise.all([
-      vocalAudio.play(),
-      accompAudio.play()
-    ]).then(() => {
-      currentlyPlaying = true;
-
-      const duration = (endTime - startTime) * 1000;
-      setTimeout(() => {
-        console.log("🔚 Segment ended.");
-        vocalAudio.pause();
-        accompAudio.pause();
-        currentlyPlaying = false;
-
-        // 🔁 Auto-play next segment
-        if (index < segments.length - 1) {
-          const nextSegment = segments[index + 1];
-          playSegment(nextSegment.start, nextSegment.end, index + 1);
-        }
-      }, duration);
-    }).catch(err => {
-      console.warn("⚠️ Audio play error:", err);
-    });
-  });
-}
