@@ -2,44 +2,48 @@
 
 let segments = [];
 let currentlyPlaying = false;
+let activeSegmentTimeout = null;
+let syncInterval = null; // 🔄 For per-segment re-sync
 let currentPlayingSegmentIndex = null;
-let stopCheckInterval = null;
 
 /**
- * Wait until an audio element is ready to play.
+ * Wait until an audio element is ready to play (safe, never stuck)
  */
 function waitForAudioReady(audio) {
   return new Promise((resolve) => {
     if (audio.readyState >= 2) {
       resolve();
     } else {
-      const check = () => {
+      const onReady = () => {
+        audio.removeEventListener("canplay", onReady);
+        resolve();
+      };
+      audio.addEventListener("canplay", onReady);
+      // Safety fallback
+      setTimeout(() => {
         if (audio.readyState >= 2) {
-          audio.removeEventListener("canplay", check);
+          audio.removeEventListener("canplay", onReady);
           resolve();
         }
-      };
-      audio.addEventListener("canplay", check);
+      }, 500); // 0.5s
     }
   });
 }
 
 /**
- * Stop playback cleanly
+ * Keeps the two audio tracks in perfect sync
  */
-function stopPlayback() {
-  if (stopCheckInterval) {
-    clearInterval(stopCheckInterval);
-    stopCheckInterval = null;
+function ensureSync() {
+  if (!vocalAudio || !accompAudio) return;
+  const diff = Math.abs(vocalAudio.currentTime - accompAudio.currentTime);
+  if (diff > 0.05) { // small tolerance (50ms)
+    const avgTime = (vocalAudio.currentTime + accompAudio.currentTime) / 2;
+    vocalAudio.currentTime = avgTime;
+    accompAudio.currentTime = avgTime;
+    console.log(`⚡ Sync corrected: diff=${diff.toFixed(3)}s`);
   }
-  vocalAudio.pause();
-  accompAudio.pause();
-  currentlyPlaying = false;
 }
 
-/**
- * Play a segment from startTime to endTime
- */
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
@@ -47,59 +51,53 @@ function playSegment(startTime, endTime, index = 0) {
     return;
   }
 
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${(endTime - startTime).toFixed(2)} sec)`);
+  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Stop any currently playing segment
-  stopPlayback();
+  // Cancel previous segment
+  if (activeSegmentTimeout) {
+    clearTimeout(activeSegmentTimeout);
+    activeSegmentTimeout = null;
+  }
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+  }
 
-  // ✅ Ensure both audios are ready before starting
+  vocalAudio.pause();
+  accompAudio.pause();
+
   Promise.all([
     waitForAudioReady(vocalAudio),
     waitForAudioReady(accompAudio)
   ]).then(() => {
-    // Sync start position
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
 
-    // Play together
     vocalAudio.play();
     accompAudio.play();
     currentlyPlaying = true;
-    currentPlayingSegmentIndex = index;
 
-    // Check every 50ms whether we reached endTime
-    stopCheckInterval = setInterval(() => {
-      const vocalDone = vocalAudio.currentTime >= endTime;
-      const accompDone = accompAudio.currentTime >= endTime;
+    // 🔄 Start sync checker every 200ms
+    syncInterval = setInterval(ensureSync, 200);
 
-      if (vocalDone || accompDone) {
-        console.log("🔚 Segment ended.");
-        stopPlayback();
+    const duration = (endTime - startTime) * 1000;
+    activeSegmentTimeout = setTimeout(() => {
+      console.log("🔚 Segment ended.");
+      vocalAudio.pause();
+      accompAudio.pause();
+      currentlyPlaying = false;
 
-        // 🔁 Auto-play next segment, but only when both are ready
-        if (index < segments.length - 1) {
-          const nextSegment = segments[index + 1];
-          Promise.all([
-            waitForAudioReady(vocalAudio),
-            waitForAudioReady(accompAudio)
-          ]).then(() => {
-            playSegment(nextSegment.start, nextSegment.end, index + 1);
-          });
-        }
+      if (syncInterval) {
+        clearInterval(syncInterval);
+        syncInterval = null;
       }
-    }, 50);
-  });
-}
 
-/**
- * Auto-retry playback if audio not ready
- */
-function checkReadyAndPlay(startTime, endTime, index = 0) {
-  Promise.all([
-    waitForAudioReady(vocalAudio),
-    waitForAudioReady(accompAudio)
-  ]).then(() => {
-    playSegment(startTime, endTime, index);
+      // 🔁 Auto next segment
+      if (index < segments.length - 1) {
+        const nextSegment = segments[index + 1];
+        playSegment(nextSegment.start, nextSegment.end, index + 1);
+      }
+    }, duration);
   });
 }
 
@@ -132,10 +130,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("✅ Loop data loaded:", loopData);
         segments = loopData;
 
-        // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
 
-        // Create segment buttons
         loopData.forEach((segment, index) => {
           const btn = document.createElement("button");
           btn.className = "segment-button";
@@ -146,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
           loopButtonsDiv.appendChild(btn);
         });
 
-        // ✅ Notify segmentProgressVisualizer.js
         if (typeof startSegmentProgressVisualizer === "function") {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
           startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
@@ -157,3 +152,42 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 });
+
+/**
+ * Retry playback if audio not ready
+ */
+function checkReadyAndPlay(startTime, endTime, index = 0) {
+  Promise.all([
+    waitForAudioReady(vocalAudio),
+    waitForAudioReady(accompAudio)
+  ]).then(() => {
+    console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
+    vocalAudio.currentTime = startTime;
+    accompAudio.currentTime = startTime;
+
+    vocalAudio.play();
+    accompAudio.play();
+    currentlyPlaying = true;
+
+    // Start sync check
+    syncInterval = setInterval(ensureSync, 200);
+
+    const duration = (endTime - startTime) * 1000;
+    setTimeout(() => {
+      console.log("🔚 Segment ended.");
+      vocalAudio.pause();
+      accompAudio.pause();
+      currentlyPlaying = false;
+
+      if (syncInterval) {
+        clearInterval(syncInterval);
+        syncInterval = null;
+      }
+
+      if (index < segments.length - 1) {
+        const nextSegment = segments[index + 1];
+        playSegment(nextSegment.start, nextSegment.end, index + 1);
+      }
+    }, duration);
+  });
+}
