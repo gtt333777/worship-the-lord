@@ -6,33 +6,34 @@ let activeSegmentTimeout = null;
 let currentPlayingSegmentIndex = null;
 
 /**
- * Ensures both vocal and accomp audio are ready before playing
+ * Wait until an audio element is ready to play.
  */
 function waitForAudioReady(audio) {
   return new Promise((resolve) => {
     if (audio.readyState >= 2) {
       resolve();
     } else {
-      const onReady = () => {
-        audio.removeEventListener("canplaythrough", onReady);
-        audio.removeEventListener("loadeddata", onReady);
-        resolve();
+      const check = () => {
+        if (audio.readyState >= 2) {
+          audio.removeEventListener("canplay", check);
+          resolve();
+        }
       };
-      audio.addEventListener("canplaythrough", onReady);
-      audio.addEventListener("loadeddata", onReady);
+      audio.addEventListener("canplay", check);
     }
   });
 }
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❌ loopPlayer.js: Audio tracks not ready.");
+    console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
+    checkReadyAndPlay(startTime, endTime, index);
     return;
   }
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Stop any current segment
+  // Cancel any previous segment playback
   if (activeSegmentTimeout) {
     clearTimeout(activeSegmentTimeout);
     activeSegmentTimeout = null;
@@ -40,11 +41,7 @@ function playSegment(startTime, endTime, index = 0) {
   vocalAudio.pause();
   accompAudio.pause();
 
-  // Jump both tracks to start position
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-
-  // ✅ Wait until both are ready before playing
+  // ✅ Ensure both audios are ready before starting
   Promise.all([
     waitForAudioReady(vocalAudio),
     waitForAudioReady(accompAudio)
@@ -55,7 +52,6 @@ function playSegment(startTime, endTime, index = 0) {
     vocalAudio.play();
     accompAudio.play();
     currentlyPlaying = true;
-    currentPlayingSegmentIndex = index;
 
     const duration = (endTime - startTime) * 1000;
 
@@ -71,8 +67,6 @@ function playSegment(startTime, endTime, index = 0) {
         playSegment(nextSegment.start, nextSegment.end, index + 1);
       }
     }, duration);
-  }).catch((err) => {
-    console.error("❌ loopPlayer.js: Error during Promise.all:", err);
   });
 }
 
@@ -130,3 +124,33 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 });
+
+// ✅ Auto-retry playback if audio not ready
+function checkReadyAndPlay(startTime, endTime, index = 0) {
+  Promise.all([
+    waitForAudioReady(vocalAudio),
+    waitForAudioReady(accompAudio)
+  ]).then(() => {
+    console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
+    vocalAudio.currentTime = startTime;
+    accompAudio.currentTime = startTime;
+
+    vocalAudio.play();
+    accompAudio.play();
+    currentlyPlaying = true;
+
+    const duration = (endTime - startTime) * 1000;
+    setTimeout(() => {
+      console.log("🔚 Segment ended.");
+      vocalAudio.pause();
+      accompAudio.pause();
+      currentlyPlaying = false;
+
+      // 🔁 Auto-play next segment
+      if (index < segments.length - 1) {
+        const nextSegment = segments[index + 1];
+        playSegment(nextSegment.start, nextSegment.end, index + 1);
+      }
+    }, duration);
+  });
+}
