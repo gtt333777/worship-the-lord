@@ -49,24 +49,30 @@ function playSegment(startTime, endTime, index = 0) {
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
 
-    vocalAudio.play();
-    accompAudio.play();
-    currentlyPlaying = true;
+    // ✅ Ensure both play exactly together
+    Promise.all([
+      vocalAudio.play(),
+      accompAudio.play()
+    ]).then(() => {
+      currentlyPlaying = true;
 
-    const duration = (endTime - startTime) * 1000;
+      const duration = (endTime - startTime) * 1000;
 
-    activeSegmentTimeout = setTimeout(() => {
-      console.log("🔚 Segment ended.");
-      vocalAudio.pause();
-      accompAudio.pause();
-      currentlyPlaying = false;
+      activeSegmentTimeout = setTimeout(() => {
+        console.log("🔚 Segment ended.");
+        vocalAudio.pause();
+        accompAudio.pause();
+        currentlyPlaying = false;
 
-      // 🔁 Auto-play next segment
-      if (index < segments.length - 1) {
-        const nextSegment = segments[index + 1];
-        playSegment(nextSegment.start, nextSegment.end, index + 1);
-      }
-    }, duration);
+        // 🔁 Auto-play next segment
+        if (index < segments.length - 1) {
+          const nextSegment = segments[index + 1];
+          playSegment(nextSegment.start, nextSegment.end, index + 1);
+        }
+      }, duration);
+    }).catch(err => {
+      console.warn("⚠️ Audio play error:", err);
+    });
   });
 }
 
@@ -135,22 +141,28 @@ function checkReadyAndPlay(startTime, endTime, index = 0) {
     vocalAudio.currentTime = startTime;
     accompAudio.currentTime = startTime;
 
-    vocalAudio.play();
-    accompAudio.play();
-    currentlyPlaying = true;
+    // ✅ Ensure both play exactly together
+    Promise.all([
+      vocalAudio.play(),
+      accompAudio.play()
+    ]).then(() => {
+      currentlyPlaying = true;
 
-    const duration = (endTime - startTime) * 1000;
-    setTimeout(() => {
-      console.log("🔚 Segment ended.");
-      vocalAudio.pause();
-      accompAudio.pause();
-      currentlyPlaying = false;
+      const duration = (endTime - startTime) * 1000;
+      setTimeout(() => {
+        console.log("🔚 Segment ended.");
+        vocalAudio.pause();
+        accompAudio.pause();
+        currentlyPlaying = false;
 
-      // 🔁 Auto-play next segment
-      if (index < segments.length - 1) {
-        const nextSegment = segments[index + 1];
-        playSegment(nextSegment.start, nextSegment.end, index + 1);
-      }
-    }, duration);
+        // 🔁 Auto-play next segment
+        if (index < segments.length - 1) {
+          const nextSegment = segments[index + 1];
+          playSegment(nextSegment.start, nextSegment.end, index + 1);
+        }
+      }, duration);
+    }).catch(err => {
+      console.warn("⚠️ Audio play error:", err);
+    });
   });
 }
