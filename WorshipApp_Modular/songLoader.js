@@ -28,7 +28,9 @@ document.getElementById("playBtn").addEventListener("click", () => {
   vocalAudio.src = vocalUrl;
   accompAudio.src = accUrl;
 
-
+  // Only load when play is pressed
+  vocalAudio.preload = "auto";
+  accompAudio.preload = "auto";
 
   // Sync playback
   Promise.all([
@@ -41,13 +43,7 @@ document.getElementById("playBtn").addEventListener("click", () => {
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
-  vocalAudio.pause();
-  accompAudio.pause();
-
-  
-  // Reset position
-  vocalAudio.currentTime = 0;
-  accompAudio.currentTime = 0;
+  stopAndUnloadAudio();
 
   // Clear any loop segment timeout
   if (typeof activeSegmentTimeout !== "undefined" && activeSegmentTimeout) {
@@ -56,10 +52,28 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   }
 
   currentlyPlaying = false;
-
-
-
 });
+
+// === Stop & Unload Function ===
+function stopAndUnloadAudio() {
+  // Pause both
+  vocalAudio.pause();
+  accompAudio.pause();
+
+  // Reset position
+  vocalAudio.currentTime = 0;
+  accompAudio.currentTime = 0;
+
+  // Remove src to free memory & stop buffering
+  vocalAudio.removeAttribute("src");
+  accompAudio.removeAttribute("src");
+
+  // Force unload
+  vocalAudio.load();
+  accompAudio.load();
+
+  console.log("🛑 Audio stopped and unloaded from memory.");
+}
 
 // === Dropbox URL Builder ===
 function getDropboxFileURL(filename) {
