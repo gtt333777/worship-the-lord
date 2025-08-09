@@ -2,49 +2,60 @@
 
 let segments = [];
 let currentlyPlaying = false;
+let activeSegmentTimeout = null;
+let currentPlayingSegmentIndex = null;
+
+/**
+ * Ensures both vocal and accomp audio are ready before playing
+ */
+function waitForAudioReady(audio) {
+  return new Promise((resolve) => {
+    if (audio.readyState >= 2) {
+      resolve();
+    } else {
+      const onReady = () => {
+        audio.removeEventListener("canplaythrough", onReady);
+        audio.removeEventListener("loadeddata", onReady);
+        resolve();
+      };
+      audio.addEventListener("canplaythrough", onReady);
+      audio.addEventListener("loadeddata", onReady);
+    }
+  });
+}
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
-    checkReadyAndPlay(startTime, endTime, index);
+    console.warn("❌ loopPlayer.js: Audio tracks not ready.");
     return;
   }
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Cancel any previous segment playback
+  // Stop any current segment
   if (activeSegmentTimeout) {
     clearTimeout(activeSegmentTimeout);
     activeSegmentTimeout = null;
   }
-
-  // Ensure both audios are paused and positioned at the segment start
   vocalAudio.pause();
   accompAudio.pause();
+
+  // Jump both tracks to start position
   vocalAudio.currentTime = startTime;
   accompAudio.currentTime = startTime;
 
-  // ✅ Ensure both tracks start together and then micro-sync them
+  // ✅ Wait until both are ready before playing
   Promise.all([
-    vocalAudio.play().catch(err => console.error("❌ Vocal segment play error:", err)),
-    accompAudio.play().catch(err => console.error("❌ Accomp segment play error:", err))
+    waitForAudioReady(vocalAudio),
+    waitForAudioReady(accompAudio)
   ]).then(() => {
-    // Micro-sync: if there's a small drift after both started, nudge one to match the other.
-    // This improves phase alignment while keeping changes minimal.
-    try {
-      const driftThreshold = 0.05; // seconds (50 ms)
-      const drift = Math.abs(vocalAudio.currentTime - accompAudio.currentTime);
-      if (drift > driftThreshold) {
-        // Align accompaniment to vocal (keeps vocal as source of truth).
-        // This is a tiny seek; doing it immediately after play reduces long-term drift.
-        console.log(`🔧 micro-sync: correcting drift ${drift.toFixed(3)}s -> aligning accomp to vocal`);
-        accompAudio.currentTime = vocalAudio.currentTime;
-      }
-    } catch (err) {
-      console.warn("⚠️ loopPlayer.js: micro-sync error:", err);
-    }
+    vocalAudio.currentTime = startTime;
+    accompAudio.currentTime = startTime;
 
+    vocalAudio.play();
+    accompAudio.play();
     currentlyPlaying = true;
+    currentPlayingSegmentIndex = index;
 
     const duration = (endTime - startTime) * 1000;
 
@@ -59,14 +70,11 @@ function playSegment(startTime, endTime, index = 0) {
         const nextSegment = segments[index + 1];
         playSegment(nextSegment.start, nextSegment.end, index + 1);
       }
-
     }, duration);
+  }).catch((err) => {
+    console.error("❌ loopPlayer.js: Error during Promise.all:", err);
   });
 }
-
-
-let activeSegmentTimeout = null;
-let currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
@@ -116,60 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
           startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
         }
-
       })
       .catch((error) => {
         console.warn("❌ loopPlayer.js: Error loading loop file:", error);
       });
   });
 });
-
-// ✅ Auto-retry playback if audio not ready
-function checkReadyAndPlay(startTime, endTime, index = 0) {
-  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
-
-  if (!isReady) {
-    console.warn("⏳ loopPlayer.js: Audio not ready yet...");
-    setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
-    return;
-  }
-
-  console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-
-  // ✅ Sync playback like playSegment(), with micro-sync after both start
-  Promise.all([
-    vocalAudio.play().catch(err => console.error("❌ Vocal segment play error:", err)),
-    accompAudio.play().catch(err => console.error("❌ Accomp segment play error:", err))
-  ]).then(() => {
-    // Micro-sync: small nudge if needed
-    try {
-      const driftThreshold = 0.05; // seconds (50 ms)
-      const drift = Math.abs(vocalAudio.currentTime - accompAudio.currentTime);
-      if (drift > driftThreshold) {
-        console.log(`🔧 micro-sync (checkReadyAndPlay): correcting drift ${drift.toFixed(3)}s`);
-        accompAudio.currentTime = vocalAudio.currentTime;
-      }
-    } catch (err) {
-      console.warn("⚠️ loopPlayer.js: micro-sync error:", err);
-    }
-
-    currentlyPlaying = true;
-
-    const duration = (endTime - startTime) * 1000;
-    setTimeout(() => {
-      console.log("🔚 Segment ended.");
-      vocalAudio.pause();
-      accompAudio.pause();
-      currentlyPlaying = false;
-
-      // 🔁 Auto-play next segment
-      if (index < segments.length - 1) {
-        const nextSegment = segments[index + 1];
-        playSegment(nextSegment.start, nextSegment.end, index + 1);
-      }
-
-    }, duration);
-  });
-}
