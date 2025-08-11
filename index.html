@@ -1,257 +1,58 @@
 ﻿<!DOCTYPE html>
-<html lang="ta">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎵 Worship The Lord</title>
-
-  <!-- ✅ PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" type="image/png" />
-  <meta name="theme-color" content="#2c3e50" />
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eaf3fb;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #2c3e50;
-    }
-    select, button {
-      padding: 5px 10px;
-      margin: 5px;
-    }
-    .volume-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 10px;
-    }
-    .volume-control label {
-      margin-right: 5px;
-      width: 140px;
-      text-align: right;
-    }
-    .volume-control input[type="range"] {
-      width: 200px;
-    }
-    #lyricsBox {
-      width: 90%;
-      height: 300px;
-      margin-top: 20px;
-      font-size: 1.2rem;
-      white-space: pre-wrap;
-    }
-
-    #segments {
-      margin: 10px 0;
-    }
-
-    .segment-button {
-      margin: 3px;
-      padding: 4px 8px;
-      font-size: 0.9rem;
-    }
-
-    #installPrompt {
-      display: none;
-      background: #fff8dc;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px auto;
-      width: 90%;
-      font-size: 1rem;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Worship App</title>
+<style>
+  .segment-button {
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: #4caf50;
+    transition: left 0.05s ease-out;
+  }
+  #bookmarkBtn {
+    font-size: 1.3rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
-  <h1>🎵 Worship The Lord</h1>
 
-  <!-- ✅ PWA Install Prompt -->
-  <div id="installPrompt">
-    📲 You can install this app on your device.
-    <button id="installButton">Install</button>
-  </div>
+<!-- Install Prompt -->
+<div id="installPrompt" style="display:none;">
+  <button id="installBtn">📥 Install App</button>
+</div>
 
-  <div>
-    <label for="songSelect"><strong>Choose a song:</strong></label>
-    <select id="songSelect"></select>
+<!-- Song Selection + Bookmark -->
+<div style="margin-bottom: 10px;">
+  <label for="songSelect">Select Song:</label>
+  <select id="songSelect"></select>
+</div>
 
-    
-
-    <!-- ⭐️ Bookmark Toggle 
-    <button id="bookmarkBtn" style="font-size: 1.3rem;">☆</button> -->
-
-    <!-- Bookmarked Songs Dropdown -->
-
-    <!--
-
-    <select id="bookmarkDropdown">
-      <option value="">🎯 Bookmarked Songs</option>
-    </select>
-  </div>
-
-    -->
-
-    <!-- ⭐️ Bookmark + Dropdown in same line (persistent & synced) -->
-<div style="display:inline-flex; align-items:center; gap:6px;">
-  <button id="bookmarkBtn" aria-label="Toggle bookmark" title="Toggle bookmark"
-          style="font-size:1.2rem; border:none; background:none; cursor:pointer;">☆</button>
-  <select id="bookmarkDropdown" aria-label="Bookmarked songs">
+<!-- Bookmark Star + Dropdown -->
+<div style="display: inline-flex; align-items: center; gap: 5px; margin-bottom: 10px;">
+  <button id="bookmarkBtn">☆</button>
+  <select id="bookmarkDropdown">
     <option value="">🎯 Bookmarked Songs</option>
   </select>
 </div>
 
-<script>
-(function() {
-  const bookmarkBtn = document.getElementById('bookmarkBtn');
-  const bookmarkDropdown = document.getElementById('bookmarkDropdown');
-
-  // Load bookmarks from localStorage (array of song identifiers)
-  let bookmarkedSongs = JSON.parse(localStorage.getItem('bookmarkedSongs') || '[]');
-
-  // Helper: find the song identifier for the currently selected song.
-  // Uses option.value when present, otherwise the option text.
-  function getCurrentSongId() {
-    const songSelect = document.getElementById('songSelect');
-    if (!songSelect) return '';
-    const selIndex = songSelect.selectedIndex;
-    if (selIndex < 0) return '';
-    const opt = songSelect.options[selIndex];
-    return (opt && (opt.value && opt.value.trim() !== '')) ? opt.value : (opt ? opt.text : '');
-  }
-
-  function saveBookmarks() {
-    localStorage.setItem('bookmarkedSongs', JSON.stringify(bookmarkedSongs));
-  }
-
-  // Re-populate the bookmark dropdown from bookmarkedSongs
-  function refreshBookmarkDropdown() {
-    bookmarkDropdown.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-    // optional: keep order stable and unique
-    const unique = Array.from(new Set(bookmarkedSongs));
-    unique.forEach(songId => {
-      const opt = document.createElement('option');
-      opt.value = songId;
-      opt.textContent = songId;
-      bookmarkDropdown.appendChild(opt);
-    });
-  }
-
-  // Update the star appearance for the currently selected song
-  function updateStarDisplay() {
-    const current = getCurrentSongId();
-    if (!current) {
-      bookmarkBtn.textContent = '☆';
-      bookmarkBtn.style.color = '';
-      bookmarkBtn.disabled = true; // nothing to bookmark
-      bookmarkBtn.title = 'Select a song to bookmark';
-      return;
-    }
-    bookmarkBtn.disabled = false;
-    const isBookmarked = bookmarkedSongs.includes(current);
-    bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
-    bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
-    bookmarkBtn.title = isBookmarked ? 'Remove bookmark' : 'Add bookmark';
-  }
-
-  // Toggle bookmark for current song
-  bookmarkBtn.addEventListener('click', () => {
-    const current = getCurrentSongId();
-    if (!current) return;
-    const idx = bookmarkedSongs.indexOf(current);
-    if (idx > -1) {
-      bookmarkedSongs.splice(idx, 1);
-    } else {
-      bookmarkedSongs.push(current);
-    }
-    saveBookmarks();
-    refreshBookmarkDropdown();
-    updateStarDisplay();
-  });
-
-  // When user selects a bookmarked song from the small dropdown,
-  // set the main songSelect and trigger its change event (so existing handlers run).
-  bookmarkDropdown.addEventListener('change', () => {
-    const val = bookmarkDropdown.value;
-    if (!val) return;
-    const songSelect = document.getElementById('songSelect');
-    if (!songSelect) return;
-    // Try to match by value first, then by option text
-    for (let i = 0; i < songSelect.options.length; i++) {
-      const opt = songSelect.options[i];
-      if (opt.value === val || opt.text === val) {
-        songSelect.selectedIndex = i;
-        songSelect.dispatchEvent(new Event('change'));
-        break;
-      }
-    }
-  });
-
-  // Wait until songSelect is in DOM and (optionally) populated, then wire change listener.
-  function waitForSongSelectAndInit() {
-    const songSelect = document.getElementById('songSelect');
-    if (!songSelect) {
-      setTimeout(waitForSongSelectAndInit, 150);
-      return;
-    }
-    // If your loadSongNames populates options asynchronously, wait until there is at least one option.
-    if (songSelect.options.length === 0) {
-      setTimeout(waitForSongSelectAndInit, 150);
-      return;
-    }
-
-    // When main song changes, update star immediately
-    songSelect.addEventListener('change', updateStarDisplay);
-
-    // Initial UI fill
-    refreshBookmarkDropdown();
-    updateStarDisplay();
-  }
-
-  // start
-  waitForSongSelectAndInit();
-
-})();
-</script>
-
-
-
-
-
-
-
-
-
-  <br />
-
+<!-- Playback Controls -->
+<div style="margin-bottom: 10px;">
   <button id="playBtn">▶️ Play</button>
   <button id="pauseBtn">⏸️ Pause</button>
-   
-  <!--
+</div>
 
-  <div class="volume-control">
-    <label for="vocalVolume">🎤 Vocal Volume:</label>
-    <button onclick="adjustVolume('vocal', -0.1)">-</button>
-    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('vocal', 0.1)">+</button>
-  </div>
-
-  <div class="volume-control">
-    <label for="accompVolume">🏛️ Accompaniment Volume:</label>
-    <button onclick="adjustVolume('accomp', -0.1)">-</button>
-    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
-    <button onclick="adjustVolume('accomp', 0.1)">+</button>
-  </div>
-
-  -->
-
- <!-- Simply remove the <button> elements for + and –, leaving only the labels and sliders: -->
-
-  <div class="volume-control">
+<!-- Volume Controls -->
+<div class="volume-control">
   <label for="vocalVolume">🎤 Vocal Volume:</label>
   <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
 </div>
@@ -261,108 +62,66 @@
   <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
 </div>
 
-
-
-
- <!-- 🔁 Segment Buttons Plugin -->
-<div id="loopButtonsContainer" style="margin-top: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-"></div>
-
-<!-- 🔁 Segment Progress Bar Styling -->
-<style>
-  .segment-button {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background-color: #4caf50; /* Green vertical bar */
-    transition: left 0.05s ease-out;
-  }
-</style>
-
-
-
-
-
-
-
-
-
-
-<!-- ✅ PLACE TEXTAREA JUST BELOW CONTROLS -->
+<!-- Lyrics Area -->
 <textarea id="lyricsArea" readonly style="width: 90%; height: 300px; margin-top: 20px;"></textarea>
 
-  <!-- 🔁 Modular Scripts -->
+<!-- Scripts -->
 <script src="WorshipApp_Modular/tokenLoader.js"></script>
-<script src="WorshipApp_Modular/songNamesLoader.js"></script>
-<script src="WorshipApp_Modular/lyricsLoader.js"></script>
-<script src="WorshipApp_Modular/audioControl.js"></script>
-<script src="WorshipApp_Modular/skipControl.js"></script>
 <script src="WorshipApp_Modular/songLoader.js"></script>
-<script src="WorshipApp_Modular/bookmarkManager.js"></script>
-<script src="WorshipApp_Modular/pwaSetup.js"></script>
-<script src="WorshipApp_Modular/loopPlayer.js"></script>
-<script src="WorshipApp_Modular/segmentProgressVisualizer.js"></script>
+<script src="WorshipApp_Modular/audioControl.js"></script>
+<script src="WorshipApp_Modular/lyricsHandler.js"></script>
+<script src="WorshipApp_Modular/bookmarkHandler.js"></script>
+<script src="WorshipApp_Modular/installPrompt.js"></script>
 
-
-
-
-<!-- ✅ Service Worker -->
+<!-- Bookmark Logic -->
 <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').catch(console.error);
-    }
+  const bookmarkBtn = document.getElementById('bookmarkBtn');
+  const bookmarkDropdown = document.getElementById('bookmarkDropdown');
+  const songSelect = document.getElementById('songSelect');
 
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBar = document.getElementById('installPrompt');
-      if (installBar) installBar.style.display = 'block';
+  let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
 
-      document.getElementById('installButton').onclick = async () => {
-        installBar.style.display = 'none';
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      };
+  function updateStar() {
+    const currentSong = songSelect.value;
+    const isBookmarked = bookmarks.includes(currentSong);
+    bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
+    bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
+  }
+
+  function updateBookmarkDropdown() {
+    bookmarkDropdown.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
+    bookmarks.forEach(song => {
+      const opt = document.createElement('option');
+      opt.value = song;
+      opt.textContent = song;
+      bookmarkDropdown.appendChild(opt);
     });
-  </script>
+  }
 
-  <!-- Your other <script src="..."> tags go here -->
+  bookmarkBtn.addEventListener('click', () => {
+    const currentSong = songSelect.value;
+    if (!currentSong) return;
+    const idx = bookmarks.indexOf(currentSong);
+    if (idx === -1) bookmarks.push(currentSong);
+    else bookmarks.splice(idx, 1);
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+    updateStar();
+    updateBookmarkDropdown();
+  });
 
+  songSelect.addEventListener('change', updateStar);
 
+  bookmarkDropdown.addEventListener('change', () => {
+    if (bookmarkDropdown.value) {
+      songSelect.value = bookmarkDropdown.value;
+      songSelect.dispatchEvent(new Event('change'));
+    }
+  });
 
-
-<!-- ✅ Add this before closing </body> -->
-<script>
-  window.onload = async () => {
-    await loadSongNames();
-    const select = document.getElementById("songSelect");
-    loadLyricsForSelectedSong(select);
-    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
-  };
+  // Initialize
+  updateBookmarkDropdown();
+  updateStar();
 </script>
-
-
-
-
-
 
 </body>
 </html>
-
-
-
-<!-- loopPlayer.html -->
-<div id="loopButtonsContainer" style="margin-top: 15px;"></div>
