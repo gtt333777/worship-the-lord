@@ -80,14 +80,50 @@
     <label for="songSelect"><strong>Choose a song:</strong></label>
     <select id="songSelect"></select>
 
-    <!-- ⭐️ Bookmark Toggle -->
-    <button id="bookmarkBtn" style="font-size: 1.3rem;">☆</button>
+    
+
+    <!-- ⭐️ Bookmark Toggle 
+    <button id="bookmarkBtn" style="font-size: 1.3rem;">☆</button> -->
 
     <!-- Bookmarked Songs Dropdown -->
+
+    <!--
+
     <select id="bookmarkDropdown">
       <option value="">🎯 Bookmarked Songs</option>
     </select>
   </div>
+
+    -->
+
+
+    <!-- ⭐️ Bookmark + Dropdown in same line -->
+<div style="display: inline-flex; align-items: center; gap: 5px;">
+  <button id="bookmarkBtn" style="font-size: 1.3rem; border: none; background: none; cursor: pointer;">☆</button>
+  <select id="bookmarkDropdown">
+    <option value="">🎯 Bookmarked Songs</option>
+  </select>
+</div>
+
+<script>
+  // Toggle star color and fill
+  const bookmarkBtn = document.getElementById('bookmarkBtn');
+  let isBookmarked = false;
+
+  bookmarkBtn.addEventListener('click', () => {
+    isBookmarked = !isBookmarked;
+    bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
+    bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
+  });
+</script>
+
+
+
+
+
+
+
+
 
   <br />
 
