@@ -96,76 +96,128 @@
 
     -->
 
-
-    <!-- ⭐️ Bookmark + Dropdown in same line -->
-<div style="display: inline-flex; align-items: center; gap: 5px;">
-  <button id="bookmarkBtn" style="font-size: 1.3rem; border: none; background: none; cursor: pointer;">☆</button>
-  <select id="bookmarkDropdown">
+    <!-- ⭐️ Bookmark + Dropdown in same line (persistent & synced) -->
+<div style="display:inline-flex; align-items:center; gap:6px;">
+  <button id="bookmarkBtn" aria-label="Toggle bookmark" title="Toggle bookmark"
+          style="font-size:1.2rem; border:none; background:none; cursor:pointer;">☆</button>
+  <select id="bookmarkDropdown" aria-label="Bookmarked songs">
     <option value="">🎯 Bookmarked Songs</option>
   </select>
 </div>
 
 <script>
+(function() {
   const bookmarkBtn = document.getElementById('bookmarkBtn');
   const bookmarkDropdown = document.getElementById('bookmarkDropdown');
-  const songSelect = document.getElementById('songSelect'); // your main song list
 
-  // Store bookmarked songs
+  // Load bookmarks from localStorage (array of song identifiers)
   let bookmarkedSongs = JSON.parse(localStorage.getItem('bookmarkedSongs') || '[]');
 
-  // Update star display based on whether current song is bookmarked
-  function updateStarDisplay() {
-    const currentSong = songSelect.value;
-    const isBookmarked = bookmarkedSongs.includes(currentSong);
-    bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
-    bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
+  // Helper: find the song identifier for the currently selected song.
+  // Uses option.value when present, otherwise the option text.
+  function getCurrentSongId() {
+    const songSelect = document.getElementById('songSelect');
+    if (!songSelect) return '';
+    const selIndex = songSelect.selectedIndex;
+    if (selIndex < 0) return '';
+    const opt = songSelect.options[selIndex];
+    return (opt && (opt.value && opt.value.trim() !== '')) ? opt.value : (opt ? opt.text : '');
   }
 
-  // Toggle bookmark
-  bookmarkBtn.addEventListener('click', () => {
-    const currentSong = songSelect.value;
-    const index = bookmarkedSongs.indexOf(currentSong);
-
-    if (index === -1 && currentSong) {
-      bookmarkedSongs.push(currentSong);
-    } else if (index > -1) {
-      bookmarkedSongs.splice(index, 1);
-    }
-
-    // Save updated list
+  function saveBookmarks() {
     localStorage.setItem('bookmarkedSongs', JSON.stringify(bookmarkedSongs));
+  }
 
-    // Refresh dropdown & star
-    refreshBookmarkDropdown();
-    updateStarDisplay();
-  });
-
-  // Refresh bookmark dropdown list
+  // Re-populate the bookmark dropdown from bookmarkedSongs
   function refreshBookmarkDropdown() {
     bookmarkDropdown.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
-    bookmarkedSongs.forEach(song => {
+    // optional: keep order stable and unique
+    const unique = Array.from(new Set(bookmarkedSongs));
+    unique.forEach(songId => {
       const opt = document.createElement('option');
-      opt.value = song;
-      opt.textContent = song;
+      opt.value = songId;
+      opt.textContent = songId;
       bookmarkDropdown.appendChild(opt);
     });
   }
 
-  // Event: when song changes in main select
-  songSelect.addEventListener('change', updateStarDisplay);
+  // Update the star appearance for the currently selected song
+  function updateStarDisplay() {
+    const current = getCurrentSongId();
+    if (!current) {
+      bookmarkBtn.textContent = '☆';
+      bookmarkBtn.style.color = '';
+      bookmarkBtn.disabled = true; // nothing to bookmark
+      bookmarkBtn.title = 'Select a song to bookmark';
+      return;
+    }
+    bookmarkBtn.disabled = false;
+    const isBookmarked = bookmarkedSongs.includes(current);
+    bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
+    bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
+    bookmarkBtn.title = isBookmarked ? 'Remove bookmark' : 'Add bookmark';
+  }
 
-  // Event: when user picks a bookmarked song from dropdown
+  // Toggle bookmark for current song
+  bookmarkBtn.addEventListener('click', () => {
+    const current = getCurrentSongId();
+    if (!current) return;
+    const idx = bookmarkedSongs.indexOf(current);
+    if (idx > -1) {
+      bookmarkedSongs.splice(idx, 1);
+    } else {
+      bookmarkedSongs.push(current);
+    }
+    saveBookmarks();
+    refreshBookmarkDropdown();
+    updateStarDisplay();
+  });
+
+  // When user selects a bookmarked song from the small dropdown,
+  // set the main songSelect and trigger its change event (so existing handlers run).
   bookmarkDropdown.addEventListener('change', () => {
-    if (bookmarkDropdown.value) {
-      songSelect.value = bookmarkDropdown.value;
-      songSelect.dispatchEvent(new Event('change'));
+    const val = bookmarkDropdown.value;
+    if (!val) return;
+    const songSelect = document.getElementById('songSelect');
+    if (!songSelect) return;
+    // Try to match by value first, then by option text
+    for (let i = 0; i < songSelect.options.length; i++) {
+      const opt = songSelect.options[i];
+      if (opt.value === val || opt.text === val) {
+        songSelect.selectedIndex = i;
+        songSelect.dispatchEvent(new Event('change'));
+        break;
+      }
     }
   });
 
-  // Init
-  refreshBookmarkDropdown();
-  updateStarDisplay();
+  // Wait until songSelect is in DOM and (optionally) populated, then wire change listener.
+  function waitForSongSelectAndInit() {
+    const songSelect = document.getElementById('songSelect');
+    if (!songSelect) {
+      setTimeout(waitForSongSelectAndInit, 150);
+      return;
+    }
+    // If your loadSongNames populates options asynchronously, wait until there is at least one option.
+    if (songSelect.options.length === 0) {
+      setTimeout(waitForSongSelectAndInit, 150);
+      return;
+    }
+
+    // When main song changes, update star immediately
+    songSelect.addEventListener('change', updateStarDisplay);
+
+    // Initial UI fill
+    refreshBookmarkDropdown();
+    updateStarDisplay();
+  }
+
+  // start
+  waitForSongSelectAndInit();
+
+})();
 </script>
+
 
 
 
