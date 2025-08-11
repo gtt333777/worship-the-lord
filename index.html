@@ -97,6 +97,7 @@
     -->
 
 
+
     <!-- ⭐️ Bookmark + Dropdown in same line -->
 <div style="display: inline-flex; align-items: center; gap: 5px;">
   <button id="bookmarkBtn" style="font-size: 1.3rem; border: none; background: none; cursor: pointer;">☆</button>
@@ -106,17 +107,67 @@
 </div>
 
 <script>
-  // Toggle star color and fill
   const bookmarkBtn = document.getElementById('bookmarkBtn');
-  let isBookmarked = false;
+  const bookmarkDropdown = document.getElementById('bookmarkDropdown');
 
-  bookmarkBtn.addEventListener('click', () => {
-    isBookmarked = !isBookmarked;
+  // Load bookmarks from localStorage (or empty array if none)
+  let bookmarkedSongs = JSON.parse(localStorage.getItem('bookmarkedSongs')) || [];
+
+  function getCurrentSong() {
+    const songSelect = document.getElementById('songSelect');
+    return songSelect ? songSelect.value : '';
+  }
+
+  function updateBookmarkStar() {
+    const currentSong = getCurrentSong();
+    const isBookmarked = bookmarkedSongs.includes(currentSong);
     bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
     bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
-  });
-</script>
+  }
 
+  function saveBookmarks() {
+    localStorage.setItem('bookmarkedSongs', JSON.stringify(bookmarkedSongs));
+  }
+
+  bookmarkBtn.addEventListener('click', () => {
+    const currentSong = getCurrentSong();
+    if (!currentSong) return;
+
+    const index = bookmarkedSongs.indexOf(currentSong);
+    if (index > -1) {
+      bookmarkedSongs.splice(index, 1);
+    } else {
+      bookmarkedSongs.push(currentSong);
+    }
+    saveBookmarks();
+    updateBookmarkDropdown();
+    updateBookmarkStar();
+  });
+
+  function updateBookmarkDropdown() {
+    bookmarkDropdown.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
+    bookmarkedSongs.forEach(song => {
+      const option = document.createElement('option');
+      option.value = song;
+      option.textContent = song;
+      bookmarkDropdown.appendChild(option);
+    });
+  }
+
+  bookmarkDropdown.addEventListener('change', () => {
+    const songSelect = document.getElementById('songSelect');
+    if (songSelect && bookmarkDropdown.value) {
+      songSelect.value = bookmarkDropdown.value;
+      songSelect.dispatchEvent(new Event('change'));
+    }
+  });
+
+  document.getElementById('songSelect')?.addEventListener('change', updateBookmarkStar);
+
+  // Initial load
+  updateBookmarkDropdown();
+  updateBookmarkStar();
+</script>
 
 
 
