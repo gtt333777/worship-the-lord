@@ -106,8 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.addEventListener("click", () => {
         // Simulate 3 quick taps to remove vocal sluggishness
           playSegment(segment.start, segment.end, index);
+          setTimeout(() => playSegment(segment.start, segment.end, index), 70);
           setTimeout(() => playSegment(segment.start, segment.end, index), 100);
-        //  setTimeout(() => playSegment(segment.start, segment.end, index), 200);
          });
 
          loopButtonsDiv.appendChild(btn);
