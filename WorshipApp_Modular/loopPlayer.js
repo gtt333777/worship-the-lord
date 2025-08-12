@@ -140,9 +140,9 @@ document.addEventListener("DOMContentLoaded", () => {
              playSegment(segment.start, segment.end, index);
              }, 300);
           
-
-          }
          */
+          }
+         
           
 
          });
