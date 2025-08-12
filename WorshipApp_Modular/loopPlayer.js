@@ -62,32 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-
-
-  /*
-  function getDropboxFileURL(filename) {
-  // Replace with your actual Dropbox public link format
-  // Example: https://www.dl.dropboxusercontent.com/s/XXXXX/filename
-  return `https://www.dl.dropboxusercontent.com/s/your_unique_code/${filename}`;
-}
-*/
-
   songNameDropdown.addEventListener("change", () => {
-
-
-    // 🔹 Stop & clear old audio before loading new song
-  if (window.vocalAudio) {
-    vocalAudio.pause();
-    vocalAudio.src = "";
-  }
-  if (window.accompAudio) {
-    accompAudio.pause();
-    accompAudio.src = "";
-  }
-
     const selectedTamilName = songNameDropdown.value;
     console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
-
     const loopFile = `lyrics/${selectedTamilName}_loops.json`;
 
     console.log("📁 Trying to fetch loop file:", loopFile);
@@ -100,47 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((loopData) => {
         console.log("✅ Loop data loaded:", loopData);
         segments = loopData;
-
-         renderSegments();
-
-
-
-    // 🔹 NEW: Preload MP3s immediately
-    if (selectedTamilName) {
-        const vocalUrl = getDropboxFileURL(selectedTamilName + "_vocal.mp3");
-        const accUrl = getDropboxFileURL(selectedTamilName + "_acc.mp3");
-
-        vocalAudio.src = vocalUrl;
-        accompAudio.src = accUrl;
-
-        vocalAudio.preload = "auto";
-        accompAudio.preload = "auto";
-
-        Promise.all([
-            vocalAudio.play().catch(() => {}),
-            accompAudio.play().catch(() => {})
-        ]).then(() => {
-            vocalAudio.pause();
-            accompAudio.pause();
-            vocalAudio.currentTime = 0;
-            accompAudio.currentTime = 0;
-            console.log("✅ Preloaded new song audio:", selectedTamilName);
-        });
-    }
-})
-.catch(err => console.error("❌ Error loading loop file:", err));
-
-
-
-
-
-
-
-
-
-
-
-
 
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
@@ -162,32 +98,16 @@ document.addEventListener("DOMContentLoaded", () => {
         
 
         // Create segment buttons
-          /*loopData.forEach((segment, index) => {
+          loopData.forEach((segment, index) => {
           const btn = document.createElement("button");
           btn.className = "segment-button";
           btn.textContent = `Segment ${index + 1}`;
 
-          
           btn.addEventListener("click", () => {
-        // Simulate 3 quick taps to remove vocal sluggishness
-          playSegment(segment.start, segment.end, index);
-          setTimeout(() => playSegment(segment.start, segment.end, index), 500);
-          //setTimeout(() => playSegment(segment.start, segment.end, index), 140);
-          //setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-         });
-
-         loopButtonsDiv.appendChild(btn);
-         });
-         */
 
 
-         //This is the version I recommend. It waits for each audio to reach a usable state (canplay / readyState >= 2) before calling playSegment (so playSegment can set currentTime first). Paste this in place of the old handler:
-         loopData.forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.className = "segment-button";
-          btn.textContent = `Segment ${index + 1}`;
 
-         btn.addEventListener("click", () => {
+           // If audio not yet loaded, load from Dropbox first
   if (!vocalAudio.src || !accompAudio.src) {
     const songName = document.getElementById("songSelect").value;
     if (!songName) {
@@ -195,61 +115,47 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Prevent duplicate loads if user clicks multiple times quickly
-    if (window._worship_audio_loading) {
-      console.log("⏳ Audio load already in progress...");
-      return;
-    }
-    window._worship_audio_loading = true;
-
     const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
     const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+
+    console.log("🎧 Loading segment from:", vocalUrl, accUrl);
 
     vocalAudio.src = vocalUrl;
     accompAudio.src = accUrl;
     vocalAudio.preload = "auto";
     accompAudio.preload = "auto";
 
-    // Wait for both audio elements to be able to play (canplay)
-    const waitVocal = new Promise(resolve => {
-      if (vocalAudio.readyState >= 2) return resolve();
-      const onCan = () => { vocalAudio.removeEventListener("canplay", onCan); resolve(); };
-      vocalAudio.addEventListener("canplay", onCan);
-    });
-
-    const waitAcc = new Promise(resolve => {
-      if (accompAudio.readyState >= 2) return resolve();
-      const onCan = () => { accompAudio.removeEventListener("canplay", onCan); resolve(); };
-      accompAudio.addEventListener("canplay", onCan);
-    });
-
-    Promise.all([waitVocal, waitAcc]).then(() => {
-      // Now both have metadata/canplay — call your normal routine, which will set currentTime then play
+    // Start both audios, then jump to the segment
+    Promise.all([
+      vocalAudio.play().catch(() => {}),
+      accompAudio.play().catch(() => {})
+    ]).finally(() => {
       playSegment(segment.start, segment.end, index);
-      // optional duplicate call (sluggishness workaround)
-      setTimeout(() => playSegment(segment.start, segment.end, index), 500);
-    }).catch(err => {
-      console.warn("⚠️ Error waiting audio readiness:", err);
-    }).finally(() => {
-      window._worship_audio_loading = false;
     });
 
   } else {
-    // already loaded
+    // If already loaded, just play the segment
     playSegment(segment.start, segment.end, index);
-    setTimeout(() => playSegment(segment.start, segment.end, index), 500);
   }
 });
 
-  // ✅ This is the line that makes it visible
-  loopButtonsDiv.appendChild(btn);
-});
 
 
 
 
 
+        // Simulate 3 quick taps to remove vocal sluggishness
+          playSegment(segment.start, segment.end, index);
+          setTimeout(() => playSegment(segment.start, segment.end, index), 500);
+          //setTimeout(() => playSegment(segment.start, segment.end, index), 140);
+          //setTimeout(() => playSegment(segment.start, segment.end, index), 210);
+         });
 
+
+
+
+         loopButtonsDiv.appendChild(btn);
+         });
 
 
 
