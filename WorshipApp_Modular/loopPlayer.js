@@ -3,6 +3,7 @@
 let segments = [];
 let currentlyPlaying = false;
 
+/*
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
@@ -11,6 +12,7 @@ function playSegment(startTime, endTime, index = 0) {
   }
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+  */
 
   // Cancel any previous segment playback
   if (activeSegmentTimeout) {
