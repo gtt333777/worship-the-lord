@@ -63,8 +63,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   songNameDropdown.addEventListener("change", () => {
+
+
+    // 🔹 Stop & clear old audio before loading new song
+  if (window.vocalAudio) {
+    vocalAudio.pause();
+    vocalAudio.src = "";
+  }
+  if (window.accompAudio) {
+    accompAudio.pause();
+    accompAudio.src = "";
+  }
+
     const selectedTamilName = songNameDropdown.value;
     console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
+
     const loopFile = `lyrics/${selectedTamilName}_loops.json`;
 
     console.log("📁 Trying to fetch loop file:", loopFile);
@@ -77,6 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((loopData) => {
         console.log("✅ Loop data loaded:", loopData);
         segments = loopData;
+
+
 
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
