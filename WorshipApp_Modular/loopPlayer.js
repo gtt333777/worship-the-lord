@@ -104,6 +104,17 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.textContent = `Segment ${index + 1}`;
 
           btn.addEventListener("click", () => {
+
+
+          const isReady = vocalAudio?.readyState >= 2 && accompAudio?.readyState >= 2;
+  if (!isReady) {
+    console.warn("⏳ Audio not ready yet, retrying with checkReadyAndPlay...");
+    checkReadyAndPlay(segment.start, segment.end, index);
+  } else {
+
+
+
+
         // Simulate 3 quick taps to remove vocal sluggishness
           playSegment(segment.start, segment.end, index);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 100);
