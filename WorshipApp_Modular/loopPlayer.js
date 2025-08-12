@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
          
          
-
+         /*
          // After buttons are created, simulate a delayed manual tap on first segment
          setTimeout(() => {
          if (loopData.length > 0) {
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
          }
        }, 450); // delay can be tuned: 500ms, 1000ms, etc.
 
-       
+       */
 
 
         // ✅ Notify segmentProgressVisualizer.js
