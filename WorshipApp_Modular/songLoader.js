@@ -5,7 +5,7 @@ let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
 // === Play/Pause ===
-  /*document.getElementById("playBtn").addEventListener("click", () => {
+  document.getElementById("playBtn").addEventListener("click", () => {
   console.log("▶️ Play button clicked");
 
   if (!ACCESS_TOKEN) {
@@ -40,8 +40,6 @@ let accompAudio = new Audio();
     console.log("✅ Both audio tracks started.");
   });
 });
-*/
-
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
