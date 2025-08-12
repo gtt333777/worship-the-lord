@@ -62,6 +62,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+
+
+  /*
+  function getDropboxFileURL(filename) {
+  // Replace with your actual Dropbox public link format
+  // Example: https://www.dl.dropboxusercontent.com/s/XXXXX/filename
+  return `https://www.dl.dropboxusercontent.com/s/your_unique_code/${filename}`;
+}
+*/
+
   songNameDropdown.addEventListener("change", () => {
 
 
@@ -90,6 +100,45 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((loopData) => {
         console.log("✅ Loop data loaded:", loopData);
         segments = loopData;
+
+         renderSegments();
+
+
+
+    // 🔹 NEW: Preload MP3s immediately
+    if (selectedTamilName) {
+        const vocalUrl = getDropboxFileURL(selectedTamilName + "_vocal.mp3");
+        const accUrl = getDropboxFileURL(selectedTamilName + "_acc.mp3");
+
+        vocalAudio.src = vocalUrl;
+        accompAudio.src = accUrl;
+
+        vocalAudio.preload = "auto";
+        accompAudio.preload = "auto";
+
+        Promise.all([
+            vocalAudio.play().catch(() => {}),
+            accompAudio.play().catch(() => {})
+        ]).then(() => {
+            vocalAudio.pause();
+            accompAudio.pause();
+            vocalAudio.currentTime = 0;
+            accompAudio.currentTime = 0;
+            console.log("✅ Preloaded new song audio:", selectedTamilName);
+        });
+    }
+})
+.catch(err => console.error("❌ Error loading loop file:", err));
+
+
+
+
+
+
+
+
+
+
 
 
 
