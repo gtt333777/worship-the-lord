@@ -1,64 +1,59 @@
 ﻿// WorshipApp_Modular/songLoader.js
 
-// Make sure these are global (plain globals are fine for your setup)
-window.vocalAudio = window.vocalAudio || new Audio();
-window.accompAudio = window.accompAudio || new Audio();
+// Global audio elements
+let vocalAudio = new Audio();
+let accompAudio = new Audio();
 
-// === Pause toggle button (keeps Pause button but acts as toggle) ===
-let currentlyPlaying = false;
-let isPaused = false;
-let pausedAt = 0; // keep track for resume
+// === Play/Pause ===
+  /*document.getElementById("playBtn").addEventListener("click", () => {
+  console.log("▶️ Play button clicked");
+
+  if (!ACCESS_TOKEN) {
+    console.error("❌ ACCESS_TOKEN not yet loaded.");
+    return;
+  }
+
+  const songName = document.getElementById("songSelect").value;
+  if (!songName) {
+    console.warn("⚠️ No song selected.");
+    return;
+  }
+
+  const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
+  const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+
+  console.log("🎧 Streaming vocal from:", vocalUrl);
+  console.log("🎧 Streaming accompaniment from:", accUrl);
+
+  vocalAudio.src = vocalUrl;
+  accompAudio.src = accUrl;
+
+  // Only load when play is pressed
+  vocalAudio.preload = "auto";
+  accompAudio.preload = "auto";
+
+  // Sync playback
+  Promise.all([
+    vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
+    accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
+  ]).then(() => {
+    console.log("✅ Both audio tracks started.");
+  });
+});
+*/
+
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
-  console.log("⏸️ Pause button clicked (toggle)");
+  console.log("⏸️ Pause button clicked");
+  stopAndUnloadAudio();
 
-  // If nothing is playing, do nothing
-  if (!currentlyPlaying && !isPaused) {
-    console.log("⏸️ Nothing playing right now.");
-    return;
+  // Clear any loop segment timeout
+  if (typeof activeSegmentTimeout !== "undefined" && activeSegmentTimeout) {
+    clearTimeout(activeSegmentTimeout);
+    activeSegmentTimeout = null;
   }
 
-  // If currently playing -> pause and record current time
-  if (currentlyPlaying) {
-    vocalAudio.pause();
-    accompAudio.pause();
-    // Save time to resume
-    pausedAt = Math.max(vocalAudio.currentTime || 0, accompAudio.currentTime || 0);
-    currentlyPlaying = false;
-    isPaused = true;
-
-    // Clear any segment timeout so it doesn't expire while paused
-    if (typeof activeSegmentTimeout !== "undefined" && activeSegmentTimeout) {
-      clearTimeout(activeSegmentTimeout);
-      activeSegmentTimeout = null;
-    }
-
-    console.log("⏸️ Playback paused at", pausedAt);
-    return;
-  }
-
-  // If paused -> resume from pausedAt
-  if (isPaused) {
-    // Resume both at the same position
-    try {
-      vocalAudio.currentTime = pausedAt;
-      accompAudio.currentTime = pausedAt;
-    } catch (err) {
-      console.warn("⚠️ Could not set currentTime on resume:", err);
-    }
-
-    Promise.all([
-      vocalAudio.play().catch(err => console.warn("❌ Vocal resume error:", err)),
-      accompAudio.play().catch(err => console.warn("❌ Accompaniment resume error:", err))
-    ]).then(() => {
-      currentlyPlaying = true;
-      isPaused = false;
-      console.log("▶️ Resumed playback from", pausedAt);
-      // Note: segment timeout handling must be re-established by the caller (loopPlayer.js manages this)
-    });
-
-    return;
-  }
+  currentlyPlaying = false;
 });
 
 // === Stop & Unload Function ===
@@ -68,12 +63,8 @@ function stopAndUnloadAudio() {
   accompAudio.pause();
 
   // Reset position
-  try {
-    vocalAudio.currentTime = 0;
-    accompAudio.currentTime = 0;
-  } catch (err) {
-    console.warn("⚠️ Could not set currentTime to 0:", err);
-  }
+  vocalAudio.currentTime = 0;
+  accompAudio.currentTime = 0;
 
   // Remove src to free memory & stop buffering
   vocalAudio.removeAttribute("src");
@@ -82,11 +73,6 @@ function stopAndUnloadAudio() {
   // Force unload
   vocalAudio.load();
   accompAudio.load();
-
-  // reset flags
-  currentlyPlaying = false;
-  isPaused = false;
-  pausedAt = 0;
 
   console.log("🛑 Audio stopped and unloaded from memory.");
 }
