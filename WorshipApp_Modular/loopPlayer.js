@@ -106,12 +106,12 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.addEventListener("click", () => {
         // Simulate 3 quick taps to remove vocal sluggishness
           playSegment(segment.start, segment.end, index);
-          //setTimeout(() => playSegment(segment.start, segment.end, index), 100);
+          setTimeout(() => playSegment(segment.start, segment.end, index), 100);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 140);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 210);
          
           // Extra: If this is Segment 1 and first time tapped, simulate a second tap
-         
+         /*
           if (index === 0 && !window.segment1TappedOnce) {
            window.segment1TappedOnce = true; // mark first tap happened
            // First simulated tap after 300ms
@@ -121,17 +121,17 @@ document.addEventListener("DOMContentLoaded", () => {
            }, 150); // adjustable delay (300ms)
 
           
-           /*            
+                    
                       
           // Second simulated tap after 600ms (300ms after the previous one)
              setTimeout(() => {
              console.log("🎯 Simulating third tap on Segment 1 for perfect sync");
              playSegment(segment.start, segment.end, index);
              }, 300);
-          */
+          
 
           }
-         
+         */
           
 
          });
