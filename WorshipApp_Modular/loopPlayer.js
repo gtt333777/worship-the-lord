@@ -104,55 +104,12 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.textContent = `Segment ${index + 1}`;
 
           btn.addEventListener("click", () => {
-
-
-
-           // If audio not yet loaded, load from Dropbox first
-  if (!vocalAudio.src || !accompAudio.src) {
-    const songName = document.getElementById("songSelect").value;
-    if (!songName) {
-      console.warn("⚠️ No song selected.");
-      return;
-    }
-
-    const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
-    const accUrl = getDropboxFileURL(songName + "_acc.mp3");
-
-    console.log("🎧 Loading segment from:", vocalUrl, accUrl);
-
-    vocalAudio.src = vocalUrl;
-    accompAudio.src = accUrl;
-    vocalAudio.preload = "auto";
-    accompAudio.preload = "auto";
-
-    // Start both audios, then jump to the segment
-    Promise.all([
-      vocalAudio.play().catch(() => {}),
-      accompAudio.play().catch(() => {})
-    ]).finally(() => {
-      playSegment(segment.start, segment.end, index);
-    });
-
-  } else {
-    // If already loaded, just play the segment
-    playSegment(segment.start, segment.end, index);
-  }
-});
-
-
-
-
-
-
         // Simulate 3 quick taps to remove vocal sluggishness
           playSegment(segment.start, segment.end, index);
           setTimeout(() => playSegment(segment.start, segment.end, index), 500);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 140);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 210);
          });
-
-
-
 
          loopButtonsDiv.appendChild(btn);
          });
