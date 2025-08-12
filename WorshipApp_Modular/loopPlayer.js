@@ -82,7 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
         loopButtonsDiv.innerHTML = "";
 
         // Create segment buttons
-        loopData.forEach((segment, index) => {
+        
+        /*
+          loopData.forEach((segment, index) => {
           const btn = document.createElement("button");
           btn.className = "segment-button";
           btn.textContent = `Segment ${index + 1}`;
@@ -91,6 +93,28 @@ document.addEventListener("DOMContentLoaded", () => {
           });
           loopButtonsDiv.appendChild(btn);
         });
+
+        */
+        
+
+        // Create segment buttons
+          loopData.forEach((segment, index) => {
+          const btn = document.createElement("button");
+          btn.className = "segment-button";
+          btn.textContent = `Segment ${index + 1}`;
+
+          btn.addEventListener("click", () => {
+        // Simulate 3 quick taps to remove vocal sluggishness
+          playSegment(segment.start, segment.end, index);
+          setTimeout(() => playSegment(segment.start, segment.end, index), 100);
+          setTimeout(() => playSegment(segment.start, segment.end, index), 200);
+         });
+
+         loopButtonsDiv.appendChild(btn);
+         });
+
+
+
 
         // ✅ Notify segmentProgressVisualizer.js
         if (typeof startSegmentProgressVisualizer === "function") {
