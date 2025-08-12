@@ -109,13 +109,33 @@ document.addEventListener("DOMContentLoaded", () => {
           //setTimeout(() => playSegment(segment.start, segment.end, index), 100);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 140);
           //setTimeout(() => playSegment(segment.start, segment.end, index), 210);
+         
+          // Extra: If this is Segment 1 and first time tapped, simulate a second tap
+         if (index === 0 && !window.segment1TappedOnce) {
+           window.segment1TappedOnce = true; // mark first tap happened
+           setTimeout(() => {
+             console.log("🎯 Simulating second tap on Segment 1 for sync");
+             playSegment(segment.start, segment.end, index);
+           }, 300); // adjustable delay (300ms)
+          }
+          
          });
 
          loopButtonsDiv.appendChild(btn);
-            setTimeout(() => playSegment(segment.start, segment.end, index), 100);
+            
          });
 
+         /*
+         
+         // After buttons are created, simulate a delayed manual tap on first segment
+         setTimeout(() => {
+         if (loopData.length > 0) {
+         console.log("🎯 Simulating manual tap on Segment 1");
+         playSegment(loopData[0].start, loopData[0].end, 0);
+         }
+       }, 1000); // delay can be tuned: 500ms, 1000ms, etc.
 
+       */
 
 
         // ✅ Notify segmentProgressVisualizer.js
