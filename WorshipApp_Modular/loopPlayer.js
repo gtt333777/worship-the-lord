@@ -128,10 +128,11 @@ document.addEventListener("DOMContentLoaded", () => {
              console.log("🎯 Simulating third tap on Segment 1 for perfect sync");
              playSegment(segment.start, segment.end, index);
              }, 300);
-          
+          */
+
           }
          
-          */
+          
 
          });
 
