@@ -4,6 +4,44 @@
 let vocalAudio = new Audio();
 let accompAudio = new Audio();
 
+
+
+
+// === Utility: Wait until both tracks are ready, then play together ===
+function checkReadyAndPlay() {
+  return new Promise((resolve) => {
+    let vocalReady = false;
+    let accompReady = false;
+
+    const tryPlay = () => {
+      if (vocalReady && accompReady) {
+        Promise.all([
+          vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
+          accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
+        ]).then(() => {
+          console.log("✅ Both audio tracks started in sync.");
+          resolve();
+        });
+      }
+    };
+
+    vocalAudio.addEventListener("canplaythrough", () => {
+      vocalReady = true;
+      tryPlay();
+    }, { once: true });
+
+    accompAudio.addEventListener("canplaythrough", () => {
+      accompReady = true;
+      tryPlay();
+    }, { once: true });
+  });
+}
+
+
+
+
+
+
 // === Play/Pause ===
   document.getElementById("playBtn").addEventListener("click", () => {
   console.log("▶️ Play button clicked");
@@ -32,6 +70,13 @@ let accompAudio = new Audio();
   vocalAudio.preload = "auto";
   accompAudio.preload = "auto";
 
+// ✅ Ensure both are ready before starting
+checkReadyAndPlay().then(() => {
+  console.log("🎯 Playback started after both tracks were ready.");
+});
+
+  
+  /*
   // Sync playback
   Promise.all([
     vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
@@ -39,7 +84,9 @@ let accompAudio = new Audio();
   ]).then(() => {
     console.log("✅ Both audio tracks started.");
   });
+  */
 });
+
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
