@@ -98,12 +98,12 @@ document.addEventListener("DOMContentLoaded", () => {
         
 
         // Create segment buttons
-          loopData.forEach((segment, index) => {
+          /*loopData.forEach((segment, index) => {
           const btn = document.createElement("button");
           btn.className = "segment-button";
           btn.textContent = `Segment ${index + 1}`;
 
-          /*
+          
           btn.addEventListener("click", () => {
         // Simulate 3 quick taps to remove vocal sluggishness
           playSegment(segment.start, segment.end, index);
@@ -118,6 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
          //This is the version I recommend. It waits for each audio to reach a usable state (canplay / readyState >= 2) before calling playSegment (so playSegment can set currentTime first). Paste this in place of the old handler:
+         loopData.forEach((segment, index) => {
+          const btn = document.createElement("button");
+          btn.className = "segment-button";
+          btn.textContent = `Segment ${index + 1}`;
 
          btn.addEventListener("click", () => {
   if (!vocalAudio.src || !accompAudio.src) {
@@ -173,6 +177,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+  // ✅ This is the line that makes it visible
+  loopButtonsDiv.appendChild(btn);
+});
 
 
 
