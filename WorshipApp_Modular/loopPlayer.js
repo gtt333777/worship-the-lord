@@ -119,15 +119,14 @@ document.addEventListener("DOMContentLoaded", () => {
              playSegment(segment.start, segment.end, index);
            }, 150); // adjustable delay (300ms)
 
-
-           /*
+                      
                       
           // Second simulated tap after 600ms (300ms after the previous one)
              setTimeout(() => {
              console.log("🎯 Simulating third tap on Segment 1 for perfect sync");
              playSegment(segment.start, segment.end, index);
              }, 300);
-          */
+          
 
           }
           
