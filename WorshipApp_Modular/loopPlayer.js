@@ -113,10 +113,18 @@ document.addEventListener("DOMContentLoaded", () => {
           // Extra: If this is Segment 1 and first time tapped, simulate a second tap
          if (index === 0 && !window.segment1TappedOnce) {
            window.segment1TappedOnce = true; // mark first tap happened
+           // First simulated tap after 300ms
            setTimeout(() => {
              console.log("🎯 Simulating second tap on Segment 1 for sync");
              playSegment(segment.start, segment.end, index);
            }, 300); // adjustable delay (300ms)
+                      
+          // Second simulated tap after 600ms (300ms after the previous one)
+             setTimeout(() => {
+             console.log("🎯 Simulating third tap on Segment 1 for perfect sync");
+             playSegment(segment.start, segment.end, index);
+             }, 600);
+
           }
           
          });
