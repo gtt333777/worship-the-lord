@@ -117,13 +117,13 @@ document.addEventListener("DOMContentLoaded", () => {
            setTimeout(() => {
              console.log("🎯 Simulating second tap on Segment 1 for sync");
              playSegment(segment.start, segment.end, index);
-           }, 300); // adjustable delay (300ms)
+           }, 150); // adjustable delay (300ms)
                       
           // Second simulated tap after 600ms (300ms after the previous one)
              setTimeout(() => {
              console.log("🎯 Simulating third tap on Segment 1 for perfect sync");
              playSegment(segment.start, segment.end, index);
-             }, 600);
+             }, 300);
 
           }
           
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
          });
 
-         /*
+         
          
          // After buttons are created, simulate a delayed manual tap on first segment
          setTimeout(() => {
@@ -141,9 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
          console.log("🎯 Simulating manual tap on Segment 1");
          playSegment(loopData[0].start, loopData[0].end, 0);
          }
-       }, 1000); // delay can be tuned: 500ms, 1000ms, etc.
+       }, 450); // delay can be tuned: 500ms, 1000ms, etc.
 
-       */
+       
 
 
         // ✅ Notify segmentProgressVisualizer.js
