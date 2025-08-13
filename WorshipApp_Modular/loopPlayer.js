@@ -80,6 +80,33 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("✅ Loop data loaded:", loopData);
         segments = loopData;
 
+
+
+
+
+        // Auto-play Segment 1 after audio is ready
+const tryStartSegment1 = () => {
+  if (vocalAudio.readyState >= 2 && accompAudio.readyState >= 2) {
+    console.log("🎯 Auto-starting Segment 1");
+    const seg = segments[0];
+    playSegment(seg.start, seg.end, 0);
+  } else {
+    console.log("⏳ Audio not ready yet, retrying Segment 1 auto-play...");
+    setTimeout(tryStartSegment1, 100);
+  }
+};
+
+// Start auto-play
+tryStartSegment1();
+
+
+
+
+
+
+
+
+
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
 
