@@ -4,12 +4,8 @@ console.log("🎵 loopPlayer.js: Starting...");
 window.segments = [];
 window.currentlyPlaying = false;
 window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play)
-window.activeSegmentInterval = null;  // watchdog interval
-window.playRunId = 0;                 // cancels older overlapping plays
-
-// Soft-start settings (tune if needed)
-window.SOFT_START_MS = 180;   // length of fade-in in milliseconds
-window.FADE_TICK_MS  = 15;    // fade step interval
+window.activeSegmentInterval = null;  // watchdog interval (new)
+window.playRunId = 0;                 // cancels older overlapping plays (new)
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
@@ -26,27 +22,16 @@ function playSegment(startTime, endTime, index = 0) {
     clearInterval(window.activeSegmentInterval);
     window.activeSegmentInterval = null;
   }
-  if (window._fadeInterval) {
-    clearInterval(window._fadeInterval);
-    window._fadeInterval = null;
-  }
 
   // Bump run id to invalidate older plays that might still resolve
   const myRun = ++window.playRunId;
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Preserve user's volumes and mute for soft start
-  const vocalTargetVol  = (typeof window.vocalAudio.volume  === "number") ? window.vocalAudio.volume  : 1;
-  const accompTargetVol = (typeof window.accompAudio.volume === "number") ? window.accompAudio.volume : 1;
-
+  // Pause and seek both players to start (seek must finish before play)
   window.vocalAudio.pause();
   window.accompAudio.pause();
-
-  window.vocalAudio.volume  = 0;
-  window.accompAudio.volume = 0;
-
-  window.vocalAudio.currentTime  = startTime;
+  window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
   // Wait until both have actually finished seeking before playing
@@ -62,43 +47,25 @@ function playSegment(startTime, endTime, index = 0) {
 
     window.currentlyPlaying = true;
 
-    // ---- Fade-in to hide any attack crackle/screech ----
-    const steps = Math.max(1, Math.ceil(window.SOFT_START_MS / window.FADE_TICK_MS));
-    let step = 0;
-    window._fadeInterval = setInterval(() => {
-      if (myRun !== window.playRunId) {
-        clearInterval(window._fadeInterval);
-        window._fadeInterval = null;
-        return;
-      }
-      step++;
-      const t = Math.min(1, step / steps);
-      const k = t * t; // ease-in (quadratic)
-      window.vocalAudio.volume  = vocalTargetVol  * k;
-      window.accompAudio.volume = accompTargetVol * k;
-
-      if (t >= 1) {
-        clearInterval(window._fadeInterval);
-        window._fadeInterval = null;
-        // ensure exact final volumes
-        window.vocalAudio.volume  = vocalTargetVol;
-        window.accompAudio.volume = accompTargetVol;
-      }
-    }, window.FADE_TICK_MS);
-
-    // ---- Watchdog: precise end & tiny drift correction ----
+    // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
     const DRIFT = 0.06; // resync if drift > 60ms
+
     window.activeSegmentInterval = setInterval(() => {
+      // If another play took over, stop this watchdog
       if (myRun !== window.playRunId) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
         return;
       }
+
+      // Micro-resync: keep accompaniment locked to vocal
       const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
       if (diff > DRIFT) {
         window.accompAudio.currentTime = window.vocalAudio.currentTime;
       }
+
+      // End of segment?
       if (window.vocalAudio.currentTime >= endTime - EPS) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
@@ -113,7 +80,7 @@ function playSegment(startTime, endTime, index = 0) {
           playSegment(next.start, next.end, index + 1);
         }
       }
-    }, 50);
+    }, 50); // ~20 checks per second
   }).catch(err => {
     console.warn("⚠️ loopPlayer.js: playSegment error:", err);
   });
