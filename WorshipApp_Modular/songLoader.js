@@ -1,23 +1,25 @@
 ﻿// WorshipApp_Modular/songLoader.js
 
-// Global audio elements
-let vocalAudio = new Audio();
-let accompAudio = new Audio();
+// Global audio elements (expose on window for other scripts)
+window.vocalAudio = new Audio();
+window.accompAudio = new Audio();
 
-
-
+// Flags used for the Play→Segment1 handshake
+window.wantAutoSegment1 = false;      // set true when user presses Play
+window.audioReadyPromise = null;      // resolves when both tracks have started
 
 // === Utility: Wait until both tracks are ready, then play together ===
+// NOTE: keep this name; loopPlayer.js uses a DIFFERENT name to avoid collision.
 function checkReadyAndPlay() {
   return new Promise((resolve) => {
-    let vocalReady = false;
-    let accompReady = false;
+    let vocalReady = window.vocalAudio.readyState >= 2;
+    let accompReady = window.accompAudio.readyState >= 2;
 
     const tryPlay = () => {
       if (vocalReady && accompReady) {
         Promise.all([
-          vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
-          accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
+          window.vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
+          window.accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
         ]).then(() => {
           console.log("✅ Both audio tracks started in sync.");
           resolve();
@@ -25,25 +27,24 @@ function checkReadyAndPlay() {
       }
     };
 
-    vocalAudio.addEventListener("canplaythrough", () => {
-      vocalReady = true;
-      tryPlay();
-    }, { once: true });
+    if (!vocalReady) {
+      window.vocalAudio.addEventListener("canplaythrough", () => {
+        vocalReady = true; tryPlay();
+      }, { once: true });
+    }
+    if (!accompReady) {
+      window.accompAudio.addEventListener("canplaythrough", () => {
+        accompReady = true; tryPlay();
+      }, { once: true });
+    }
 
-    accompAudio.addEventListener("canplaythrough", () => {
-      accompReady = true;
-      tryPlay();
-    }, { once: true });
+    // If both were already ready, start immediately
+    tryPlay();
   });
 }
 
-
-
-
-
-
 // === Play/Pause ===
-  document.getElementById("playBtn").addEventListener("click", () => {
+document.getElementById("playBtn").addEventListener("click", () => {
   console.log("▶️ Play button clicked");
 
   if (!ACCESS_TOKEN) {
@@ -58,89 +59,67 @@ function checkReadyAndPlay() {
   }
 
   const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
-  const accUrl = getDropboxFileURL(songName + "_acc.mp3");
+  const accUrl   = getDropboxFileURL(songName + "_acc.mp3");
 
   console.log("🎧 Streaming vocal from:", vocalUrl);
   console.log("🎧 Streaming accompaniment from:", accUrl);
 
-  vocalAudio.src = vocalUrl;
-  accompAudio.src = accUrl;
+  window.vocalAudio.src = vocalUrl;
+  window.accompAudio.src = accUrl;
 
   // Only load when play is pressed
-  vocalAudio.preload = "auto";
-  accompAudio.preload = "auto";
+  window.vocalAudio.preload = "auto";
+  window.accompAudio.preload = "auto";
 
-// ✅ Ensure both are ready before starting
-checkReadyAndPlay().then(() => {
-  console.log("🎯 Playback started after both tracks were ready.");
+  // Handshake: mark that we want Segment 1 to auto-start after audio+segments are ready
+  window.wantAutoSegment1 = true;
 
+  // Ensure both are ready and start them; store the promise globally
+  window.audioReadyPromise = checkReadyAndPlay();
 
+  window.audioReadyPromise.then(() => {
+    console.log("🎯 Playback started after both tracks were ready.");
 
-
-
-
-
-  // ✅ Auto-play Segment 1 if segments are loaded
-    if (window.segments && window.segments.length > 0) {
-      console.log("🎯 Auto-starting Segment 1");
-
+    // If segments are already loaded, start Segment 1 now (one time)
+    if (window.wantAutoSegment1 && window.segments && window.segments.length > 0 && typeof window.playSegment === "function") {
       const seg = window.segments[0];
-
-      // Optional: simulate quick taps to remove vocal sluggishness
-      playSegment(seg.start, seg.end, 0);
-      setTimeout(() => playSegment(seg.start, seg.end, 0), 100);
-      setTimeout(() => playSegment(seg.start, seg.end, 0), 200);
-
-    } else {
-      console.warn("⚠️ Segments not yet loaded. Segment 1 auto-play skipped.");
+      console.log("🎯 Auto-starting Segment 1 (from songLoader.js)");
+      window.playSegment(seg.start, seg.end, 0);
+      window.wantAutoSegment1 = false;
     }
   });
 });
-
-
-  
-  /*
-  // Sync playback
-  Promise.all([
-    vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
-    accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
-  ]).then(() => {
-    console.log("✅ Both audio tracks started.");
-  });
-  */
-});
-
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
   stopAndUnloadAudio();
 
   // Clear any loop segment timeout
-  if (typeof activeSegmentTimeout !== "undefined" && activeSegmentTimeout) {
-    clearTimeout(activeSegmentTimeout);
-    activeSegmentTimeout = null;
+  if (typeof window.activeSegmentTimeout !== "undefined" && window.activeSegmentTimeout) {
+    clearTimeout(window.activeSegmentTimeout);
+    window.activeSegmentTimeout = null;
   }
 
-  currentlyPlaying = false;
+  window.currentlyPlaying = false;
 });
 
 // === Stop & Unload Function ===
 function stopAndUnloadAudio() {
   // Pause both
-  vocalAudio.pause();
-  accompAudio.pause();
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
 
   // Reset position
-  vocalAudio.currentTime = 0;
-  accompAudio.currentTime = 0;
+  window.vocalAudio.currentTime = 0;
+  window.accompAudio.currentTime = 0;
 
   // Remove src to free memory & stop buffering
-  vocalAudio.removeAttribute("src");
-  accompAudio.removeAttribute("src");
+  window.vocalAudio.removeAttribute("src");
+  window.accompAudio.removeAttribute("src");
 
   // Force unload
-  vocalAudio.load();
-  accompAudio.load();
+  window.vocalAudio.load();
+  window.accompAudio.load();
 
   console.log("🛑 Audio stopped and unloaded from memory.");
 }
