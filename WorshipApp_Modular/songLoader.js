@@ -85,6 +85,12 @@ document.getElementById("playBtn").addEventListener("click", () => {
       const seg = window.segments[0];
       console.log("🎯 Auto-starting Segment 1 (from songLoader.js)");
       window.playSegment(seg.start, seg.end, 0);
+      // Optional single nudge ~150ms later for extra snap (guarded)
+      setTimeout(() => {
+        if (window.vocalAudio.currentTime < seg.start + 0.2) {
+          window.playSegment(seg.start, seg.end, 0);
+        }
+      }, 150);
       window.wantAutoSegment1 = false;
     }
   });
@@ -94,10 +100,14 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
   stopAndUnloadAudio();
 
-  // Clear any loop segment timeout
+  // Clear any loop segment timeout/interval
   if (typeof window.activeSegmentTimeout !== "undefined" && window.activeSegmentTimeout) {
     clearTimeout(window.activeSegmentTimeout);
     window.activeSegmentTimeout = null;
+  }
+  if (typeof window.activeSegmentInterval !== "undefined" && window.activeSegmentInterval) {
+    clearInterval(window.activeSegmentInterval);
+    window.activeSegmentInterval = null;
   }
 
   window.currentlyPlaying = false;
