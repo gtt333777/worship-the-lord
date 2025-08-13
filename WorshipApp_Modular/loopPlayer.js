@@ -3,51 +3,89 @@ console.log("🎵 loopPlayer.js: Starting...");
 
 window.segments = [];
 window.currentlyPlaying = false;
+window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play)
+window.activeSegmentInterval = null;  // watchdog interval (new)
+window.playRunId = 0;                 // cancels older overlapping plays (new)
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
-    // Defer to audio-ready handshake; Segment 1 is auto-started elsewhere once ready
     return;
   }
 
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
-
-  // Cancel any previous segment playback
+  // Cancel any previous timers/intervals from older plays
   if (window.activeSegmentTimeout) {
     clearTimeout(window.activeSegmentTimeout);
     window.activeSegmentTimeout = null;
   }
+  if (window.activeSegmentInterval) {
+    clearInterval(window.activeSegmentInterval);
+    window.activeSegmentInterval = null;
+  }
+
+  // Bump run id to invalidate older plays that might still resolve
+  const myRun = ++window.playRunId;
+
+  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+
+  // Pause and seek both players to start (seek must finish before play)
   window.vocalAudio.pause();
   window.accompAudio.pause();
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
-  // ✅ Use Promise.all to ensure both play together
-  Promise.all([window.vocalAudio.play(), window.accompAudio.play()])
-    .then(() => {
-      window.currentlyPlaying = true;
+  // Wait until both have actually finished seeking before playing
+  const once = (el, ev) => new Promise(res => (el.readyState >= 2 ? res() : el.addEventListener(ev, () => res(), { once: true })));
+  const seekedVocal = once(window.vocalAudio, "seeked");
+  const seekedAcc   = once(window.accompAudio, "seeked");
 
-      const duration = (endTime - startTime) * 1000;
-      window.activeSegmentTimeout = setTimeout(() => {
-        console.log("🔚 Segment ended.");
+  Promise.all([seekedVocal, seekedAcc]).then(() => {
+    if (myRun !== window.playRunId) return; // aborted by a newer play
+    return Promise.all([window.vocalAudio.play(), window.accompAudio.play()]);
+  }).then(() => {
+    if (myRun !== window.playRunId) return; // aborted by a newer play
+
+    window.currentlyPlaying = true;
+
+    // Watchdog based on actual time; also micro-resync the two tracks
+    const EPS   = 0.02; // 20ms guard near the end
+    const DRIFT = 0.06; // resync if drift > 60ms
+
+    window.activeSegmentInterval = setInterval(() => {
+      // If another play took over, stop this watchdog
+      if (myRun !== window.playRunId) {
+        clearInterval(window.activeSegmentInterval);
+        window.activeSegmentInterval = null;
+        return;
+      }
+
+      // Micro-resync: keep accompaniment locked to vocal
+      const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
+      if (diff > DRIFT) {
+        window.accompAudio.currentTime = window.vocalAudio.currentTime;
+      }
+
+      // End of segment?
+      if (window.vocalAudio.currentTime >= endTime - EPS) {
+        clearInterval(window.activeSegmentInterval);
+        window.activeSegmentInterval = null;
+
         window.vocalAudio.pause();
         window.accompAudio.pause();
         window.currentlyPlaying = false;
 
-        // 🔁 Auto-play next segment
+        // Auto-advance from here (no setTimeout drift)
         if (index < window.segments.length - 1) {
-          const nextSegment = window.segments[index + 1];
-          playSegment(nextSegment.start, nextSegment.end, index + 1);
+          const next = window.segments[index + 1];
+          playSegment(next.start, next.end, index + 1);
         }
-      }, duration);
-    })
-    .catch(err => {
-      console.warn("⚠️ loopPlayer.js: playSegment Promise.all error:", err);
-    });
+      }
+    }, 50); // ~20 checks per second
+  }).catch(err => {
+    console.warn("⚠️ loopPlayer.js: playSegment error:", err);
+  });
 }
 
-window.activeSegmentTimeout = null;
 window.currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
