@@ -1,44 +1,43 @@
-﻿console.log("🎵 loopPlayer.js: Starting...");
+﻿// WorshipApp_Modular/loopPlayer.js
+console.log("🎵 loopPlayer.js: Starting...");
 
-let segments = [];
-let currentlyPlaying = false;
-
+window.segments = [];
+window.currentlyPlaying = false;
 
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❌ loopPlayer.js: Audio tracks not ready, retrying...");
-    checkReadyAndPlay(startTime, endTime, index);
+    console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
+    // Defer to audio-ready handshake; Segment 1 is auto-started elsewhere once ready
     return;
   }
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
-  
 
   // Cancel any previous segment playback
-  if (activeSegmentTimeout) {
-    clearTimeout(activeSegmentTimeout);
-    activeSegmentTimeout = null;
+  if (window.activeSegmentTimeout) {
+    clearTimeout(window.activeSegmentTimeout);
+    window.activeSegmentTimeout = null;
   }
-  vocalAudio.pause();
-  accompAudio.pause();
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
+  window.vocalAudio.currentTime = startTime;
+  window.accompAudio.currentTime = startTime;
 
   // ✅ Use Promise.all to ensure both play together
-  Promise.all([vocalAudio.play(), accompAudio.play()])
+  Promise.all([window.vocalAudio.play(), window.accompAudio.play()])
     .then(() => {
-      currentlyPlaying = true;
+      window.currentlyPlaying = true;
 
       const duration = (endTime - startTime) * 1000;
-      activeSegmentTimeout = setTimeout(() => {
+      window.activeSegmentTimeout = setTimeout(() => {
         console.log("🔚 Segment ended.");
-        vocalAudio.pause();
-        accompAudio.pause();
-        currentlyPlaying = false;
+        window.vocalAudio.pause();
+        window.accompAudio.pause();
+        window.currentlyPlaying = false;
 
         // 🔁 Auto-play next segment
-        if (index < segments.length - 1) {
-          const nextSegment = segments[index + 1];
+        if (index < window.segments.length - 1) {
+          const nextSegment = window.segments[index + 1];
           playSegment(nextSegment.start, nextSegment.end, index + 1);
         }
       }, duration);
@@ -48,8 +47,8 @@ function playSegment(startTime, endTime, index = 0) {
     });
 }
 
-let activeSegmentTimeout = null;
-let currentPlayingSegmentIndex = null;
+window.activeSegmentTimeout = null;
+window.currentPlayingSegmentIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
@@ -78,126 +77,51 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then((loopData) => {
         console.log("✅ Loop data loaded:", loopData);
-        segments = loopData;
-
-
-
-
-
-        // Auto-play Segment 1 after audio is ready
-const tryStartSegment1 = () => {
-  if (vocalAudio.readyState >= 2 && accompAudio.readyState >= 2) {
-    console.log("🎯 Auto-starting Segment 1");
-    const seg = segments[0];
-    playSegment(seg.start, seg.end, 0);
-  } else {
-    console.log("⏳ Audio not ready yet, retrying Segment 1 auto-play...");
-    setTimeout(tryStartSegment1, 100);
-  }
-};
-
-// Start auto-play
-tryStartSegment1();
-
-
-
-
-
-
-
-
+        window.segments = loopData;
 
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
 
         // Create segment buttons
-        
-        /*
-          loopData.forEach((segment, index) => {
+        loopData.forEach((segment, index) => {
           const btn = document.createElement("button");
           btn.className = "segment-button";
           btn.textContent = `Segment ${index + 1}`;
+
           btn.addEventListener("click", () => {
-            playSegment(segment.start, segment.end, index);
+            const isReady = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
+            if (!isReady) {
+              console.warn("⏳ Audio not ready yet, using segment-ready helper...");
+              checkReadyAndPlaySegment(segment.start, segment.end, index);
+            } else {
+              playSegment(segment.start, segment.end, index);
+            }
           });
+
           loopButtonsDiv.appendChild(btn);
         });
 
-        */
-        
-
-        // Create segment buttons
-          loopData.forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.className = "segment-button";
-          btn.textContent = `Segment ${index + 1}`;
-
-          btn.addEventListener("click", () => {
-
-
-          const isReady = vocalAudio?.readyState >= 2 && accompAudio?.readyState >= 2;
-  if (!isReady) {
-    console.warn("⏳ Audio not ready yet, retrying with checkReadyAndPlay...");
-    checkReadyAndPlay(segment.start, segment.end, index);
-  } else {
-
-
-
-
-        // Simulate 3 quick taps to remove vocal sluggishness
-          playSegment(segment.start, segment.end, index);
-          //setTimeout(() => playSegment(segment.start, segment.end, index), 100);
-          //setTimeout(() => playSegment(segment.start, segment.end, index), 140);
-          //setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-         
-          // Extra: If this is Segment 1 and first time tapped, simulate a second tap
-         /*
-          if (index === 0 && !window.segment1TappedOnce) {
-           window.segment1TappedOnce = true; // mark first tap happened
-           // First simulated tap after 300ms
-           setTimeout(() => {
-             console.log("🎯 Simulating second tap on Segment 1 for sync");
-             playSegment(segment.start, segment.end, index);
-           }, 150); // adjustable delay (300ms)
-
-          
-                    
-                      
-          // Second simulated tap after 600ms (300ms after the previous one)
-             setTimeout(() => {
-             console.log("🎯 Simulating third tap on Segment 1 for perfect sync");
-             playSegment(segment.start, segment.end, index);
-             }, 300);
-          
-         */
-          }
-         
-          
-
-         });
-
-         loopButtonsDiv.appendChild(btn);
-            
-         });
-
-         
-         
-         /*
-         // After buttons are created, simulate a delayed manual tap on first segment
-         setTimeout(() => {
-         if (loopData.length > 0) {
-         console.log("🎯 Simulating manual tap on Segment 1");
-         playSegment(loopData[0].start, loopData[0].end, 0);
-         }
-       }, 450); // delay can be tuned: 500ms, 1000ms, etc.
-
-       */
-
-
         // ✅ Notify segmentProgressVisualizer.js
-        if (typeof startSegmentProgressVisualizer === "function") {
+        if (typeof window.startSegmentProgressVisualizer === "function") {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-          startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer);
+          window.startSegmentProgressVisualizer(window.segments, window.vocalAudio, loopButtonsContainer);
+        }
+
+        // 🔁 Handshake: if user already pressed Play and wants Segment 1 auto-start
+        if (window.wantAutoSegment1 && window.segments.length > 0) {
+          const startSeg1 = () => {
+            const seg = window.segments[0];
+            console.log("🎯 Auto-starting Segment 1 (from loopPlayer.js)");
+            playSegment(seg.start, seg.end, 0);
+            window.wantAutoSegment1 = false; // do this only once
+          };
+
+          if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
+            window.audioReadyPromise.then(startSeg1);
+          } else {
+            // If audio is already ready (rare), just go now
+            startSeg1();
+          }
         }
       })
       .catch((error) => {
@@ -206,40 +130,26 @@ tryStartSegment1();
   });
 });
 
-// ✅ Auto-retry playback if audio not ready
-function checkReadyAndPlay(startTime, endTime, index = 0) {
-  const isReady = vocalAudio.readyState >= 2 && accompAudio.readyState >= 2;
+/**
+ * ✅ Segment-specific readiness helper to avoid clashing with songLoader.js
+ * This name intentionally differs from songLoader.js's checkReadyAndPlay().
+ */
+function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
+  const isReady = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
 
   if (!isReady) {
-    console.warn("⏳ loopPlayer.js: Audio not ready yet...");
-    setTimeout(() => checkReadyAndPlay(startTime, endTime, index), 200);
+    console.warn("⏳ loopPlayer.js: Audio not ready yet for segment, waiting on audioReadyPromise...");
+    if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
+      window.audioReadyPromise.then(() => {
+        playSegment(startTime, endTime, index);
+      });
+    } else {
+      // Fallback: small delay and try again
+      setTimeout(() => checkReadyAndPlaySegment(startTime, endTime, index), 200);
+    }
     return;
   }
 
   console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
-  vocalAudio.currentTime = startTime;
-  accompAudio.currentTime = startTime;
-
-  // ✅ Use Promise.all here as well
-  Promise.all([vocalAudio.play(), accompAudio.play()])
-    .then(() => {
-      currentlyPlaying = true;
-
-      const duration = (endTime - startTime) * 1000;
-      setTimeout(() => {
-        console.log("🔚 Segment ended.");
-        vocalAudio.pause();
-        accompAudio.pause();
-        currentlyPlaying = false;
-
-        // 🔁 Auto-play next segment
-        if (index < segments.length - 1) {
-          const nextSegment = segments[index + 1];
-          playSegment(nextSegment.start, nextSegment.end, index + 1);
-        }
-      }, duration);
-    })
-    .catch(err => {
-      console.warn("⚠️ loopPlayer.js: checkReadyAndPlay Promise.all error:", err);
-    });
+  playSegment(startTime, endTime, index);
 }
