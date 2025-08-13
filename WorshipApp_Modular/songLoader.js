@@ -73,7 +73,30 @@ function checkReadyAndPlay() {
 // ✅ Ensure both are ready before starting
 checkReadyAndPlay().then(() => {
   console.log("🎯 Playback started after both tracks were ready.");
+
+
+
+
+
+
+
+  // ✅ Auto-play Segment 1 if segments are loaded
+    if (window.segments && window.segments.length > 0) {
+      console.log("🎯 Auto-starting Segment 1");
+
+      const seg = window.segments[0];
+
+      // Optional: simulate quick taps to remove vocal sluggishness
+      playSegment(seg.start, seg.end, 0);
+      setTimeout(() => playSegment(seg.start, seg.end, 0), 100);
+      setTimeout(() => playSegment(seg.start, seg.end, 0), 200);
+
+    } else {
+      console.warn("⚠️ Segments not yet loaded. Segment 1 auto-play skipped.");
+    }
+  });
 });
+
 
   
   /*
