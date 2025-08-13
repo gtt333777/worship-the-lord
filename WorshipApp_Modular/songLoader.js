@@ -109,6 +109,10 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
     clearInterval(window.activeSegmentInterval);
     window.activeSegmentInterval = null;
   }
+  if (typeof window._fadeInterval !== "undefined" && window._fadeInterval) {
+    clearInterval(window._fadeInterval);
+    window._fadeInterval = null;
+  }
 
   window.currentlyPlaying = false;
 });
