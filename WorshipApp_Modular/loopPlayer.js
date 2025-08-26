@@ -29,8 +29,14 @@ function playSegment(startTime, endTime, index = 0) {
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
   // Pause and seek both players to start (seek must finish before play)
+  
+  /*  BLOCK A START
+
   window.vocalAudio.pause();
   window.accompAudio.pause();
+  
+      BLOCK A END */
+  
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
@@ -39,6 +45,8 @@ function playSegment(startTime, endTime, index = 0) {
   const seekedVocal = once(window.vocalAudio, "seeked");
   const seekedAcc   = once(window.accompAudio, "seeked");
 
+/* BLOCK B - START
+    
   Promise.all([seekedVocal, seekedAcc]).then(() => {
     if (myRun !== window.playRunId) return; // aborted by a newer play
     return Promise.all([window.vocalAudio.play(), window.accompAudio.play()]);
@@ -58,6 +66,8 @@ function playSegment(startTime, endTime, index = 0) {
         window.activeSegmentInterval = null;
         return;
       }
+
+   BLOCK B - END */
 
       // Micro-resync: keep accompaniment locked to vocal
       const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
