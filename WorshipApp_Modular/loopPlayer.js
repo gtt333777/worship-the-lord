@@ -55,7 +55,7 @@ function playSegment(startTime, endTime, index = 0) {
 
     window.currentlyPlaying = true;
 
-    /* BLOCK B - START
+    /* BLOCK B - START*/
 
     // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
@@ -77,7 +77,7 @@ function playSegment(startTime, endTime, index = 0) {
         window.accompAudio.currentTime = window.vocalAudio.currentTime;
       }
 
-      BLOCK B - END */ 
+      /*BLOCK B - END */ 
 
 
 
