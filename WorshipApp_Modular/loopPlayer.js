@@ -29,12 +29,10 @@ function playSegment(startTime, endTime, index = 0) {
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
   // Pause and seek both players to start (seek must finish before play)
-  // window.vocalAudio.pause();
-  // window.accompAudio.pause();
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
-  try { window.vocalAudio.play(); } catch (e) {}
-  try { window.accompAudio.play(); } catch (e) {}
 
   // Wait until both have actually finished seeking before playing
   const once = (el, ev) => new Promise(res => (el.readyState >= 2 ? res() : el.addEventListener(ev, () => res(), { once: true })));
@@ -72,8 +70,8 @@ function playSegment(startTime, endTime, index = 0) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
 
-        // window.vocalAudio.pause();
-        // window.accompAudio.pause();
+        window.vocalAudio.pause();
+        window.accompAudio.pause();
         window.currentlyPlaying = false;
 
         // Auto-advance from here (no setTimeout drift)
@@ -118,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((loopData) => {
         console.log("✅ Loop data loaded:", loopData);
         window.segments = loopData;
+        window.__FIRST_TAP_BOOST_DONE = false;  // reset first-tap booster for this song
 
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
@@ -135,11 +134,13 @@ document.addEventListener("DOMContentLoaded", () => {
               checkReadyAndPlaySegment(segment.start, segment.end, index);
             } else {
               playSegment(segment.start, segment.end, index);
+              // First-tap booster: only for Segment 1 on first tap
+              if (index === 0 && !window.__FIRST_TAP_BOOST_DONE) {
+                window.__FIRST_TAP_BOOST_DONE = true;
+                setTimeout(() => playSegment(segment.start, segment.end, index), 120);
+              }
 
 
-              setTimeout(() => playSegment(segment.start, segment.end, index), 70);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 140);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 210);
 
 
 
@@ -161,6 +162,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const seg = window.segments[0];
             console.log("🎯 Auto-starting Segment 1 (from loopPlayer.js)");
             playSegment(seg.start, seg.end, 0);
+            // First-start booster for auto Segment 1
+            if (!window.__FIRST_TAP_BOOST_DONE) {
+              window.__FIRST_TAP_BOOST_DONE = true;
+              setTimeout(() => playSegment(seg.start, seg.end, 0), 120);
+            }
             window.wantAutoSegment1 = false; // do this only once
           };
 
