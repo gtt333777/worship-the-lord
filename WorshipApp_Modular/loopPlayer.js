@@ -198,187 +198,150 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
-
 /* ==========================================================
-   ✅ Single Guard: Play arms a 6s window; only Segment 1 can start
-   - Paste at END of loopPlayer.js (remove older end patches)
-   - Global/split-script safe; uses your existing checkReadyAndPlay() & getDropboxFileURL()
+   ✅ Unified Start (Play == Play+S1, Segment == Play+Segment)
+   - Paste at END of loopPlayer.js (remove previous end patches)
+   - Global/split-script safe (no modules/imports)
+   - Intercepts Play/Segment clicks (capture) and routes both
+     through ONE clean warm-up path, then calls playSegment once.
    ========================================================== */
 (function () {
-  if (window.__S1_PLAY_WINDOW_GUARD__) return;
-  window.__S1_PLAY_WINDOW_GUARD__ = true;
+  if (window.__UNIFIED_START_PATCH__) return;
+  window.__UNIFIED_START_PATCH__ = true;
 
-  var WINDOW_MS = 6000;    // 6s grace window after Play
-  var armedUntil = 0;      // timestamp (ms) until which S1 tap is accepted
-  var disarmTimer = null;
-  var startedOnce = false; // set true after the very first S1 start
-  var startingNow = false; // debounce while orchestrating start
+  var SEG_WAIT_MS = 2000;   // wait up to 2s for loops JSON
+  var pendingLaunch = false; // debounce to avoid double orchestration
 
   function now() { return Date.now(); }
 
-  function disarm(reason) {
-    armedUntil = 0;
-    if (disarmTimer) { clearTimeout(disarmTimer); disarmTimer = null; }
-    if (reason) console.log("[Guard] Disarmed:", reason);
+  function setSrcIfNeeded(a, b, songName) {
+    if (!a || !b || !songName) return;
+    var vName = songName + "_vocal.mp3";
+    var kName = songName + "_acc.mp3";
+
+    var needV = !a.src || a.src.indexOf(vName) === -1;
+    var needK = !b.src || b.src.indexOf(kName) === -1;
+
+    if (typeof window.getDropboxFileURL === "function") {
+      if (needV) a.src = window.getDropboxFileURL(vName);
+      if (needK) b.src = window.getDropboxFileURL(kName);
+    }
+    a.preload = "auto";
+    b.preload = "auto";
   }
 
-  function armWindow() {
-    armedUntil = now() + WINDOW_MS;
-    if (disarmTimer) clearTimeout(disarmTimer);
-    disarmTimer = setTimeout(() => disarm("window expired"), WINDOW_MS + 50);
-    console.log("[Guard] Play armed a", WINDOW_MS, "ms window. Tap Segment 1 to start.");
-  }
-
-  // Warm audio + ensure segments JSON, then start S1 once
-  function startSegment1Cleanly() {
-    if (startingNow) return;
-    startingNow = true;
-
-    const dd = document.getElementById("songSelect");
-    const a  = window.vocalAudio;
-    const b  = window.accompAudio;
-    if (!dd || !dd.value || !a || !b) { startingNow = false; return; }
-
-    const songName = dd.value;
-
-    // Ensure segments are loaded (trigger 'change' if needed, then wait up to ~2s)
-    function ensureSegmentsReady() {
-      if (window.segments && window.segments.length > 0) return Promise.resolve();
-      // trigger the existing loader bound to 'change'
-      dd.dispatchEvent(new Event("change"));
-      return new Promise((resolve) => {
-        const t0 = now();
-        const t = setInterval(() => {
-          if (window.segments && window.segments.length > 0) { clearInterval(t); resolve(); }
-          else if (now() - t0 > 2000) { clearInterval(t); resolve(); /* continue anyway */ }
-        }, 50);
-      });
-    }
-
-    // Ensure audio sources + warm both players using your existing function
-    function warmAudio() {
-      // set sources if missing or for a different song
-      const vName = songName + "_vocal.mp3";
-      const kName = songName + "_acc.mp3";
-      const needV = !a.src || a.src.indexOf(vName) === -1;
-      const needK = !b.src || b.src.indexOf(kName) === -1;
-
-      if (typeof window.getDropboxFileURL === "function") {
-        if (needV) a.src = window.getDropboxFileURL(vName);
-        if (needK) b.src = window.getDropboxFileURL(kName);
-      }
-      a.preload = "auto";
-      b.preload = "auto";
-
-      // Warm both tracks together
-      if (typeof window.checkReadyAndPlay === "function") {
-        window.audioReadyPromise = window.checkReadyAndPlay();
-        return window.audioReadyPromise;
-      }
-      // Fallback: resolve immediately
-      return Promise.resolve();
-    }
-
-    Promise.all([ensureSegmentsReady(), warmAudio()]).then(() => {
-      // Start Segment 1 via your normal segment path
-      const seg = window.segments && window.segments[0];
-      if (seg && typeof window.playSegment === "function") {
-        console.log("[Guard] Starting Segment 1 (clean, armed start).");
-        window.playSegment(seg.start, seg.end, 0);
-        startedOnce = true;
-        disarm("started");
-      }
-    }).catch(() => {
-      /* ignore */
-    }).finally(() => {
-      startingNow = false;
+  function ensureSegmentsReady(dd) {
+    return new Promise(function (resolve) {
+      if (window.segments && window.segments.length > 0) return resolve();
+      // trigger existing fetch bound to 'change'
+      if (dd) dd.dispatchEvent(new Event("change"));
+      var t0 = now();
+      var t = setInterval(function () {
+        if (window.segments && window.segments.length > 0) { clearInterval(t); resolve(); }
+        else if (now() - t0 > SEG_WAIT_MS) { clearInterval(t); resolve(); } // proceed anyway
+      }, 50);
     });
   }
 
-  // ---- Capture Play clicks: arm window, do NOT let original Play handler run
-  function installPlayCapture() {
+  function warmAudio() {
+    if (typeof window.checkReadyAndPlay === "function") {
+      window.audioReadyPromise = window.checkReadyAndPlay();
+      return window.audioReadyPromise;
+    }
+    // Fallback: minimal resolve to continue
+    return Promise.resolve();
+  }
+
+  function orchestrateStart(targetIndex) {
+    if (pendingLaunch) return;
+    pendingLaunch = true;
+
+    var dd = document.getElementById("songSelect");
+    var a  = window.vocalAudio;
+    var b  = window.accompAudio;
+
+    if (!dd || !dd.value) {
+      console.warn("[Unified] No song selected.");
+      pendingLaunch = false;
+      return;
+    }
+    if (!a || !b) {
+      console.warn("[Unified] Audio elements not ready.");
+      pendingLaunch = false;
+      return;
+    }
+
+    var songName = dd.value;
+
+    // 1) Ensure sources set & preloading
+    setSrcIfNeeded(a, b, songName);
+
+    // 2) Warm both players (starts them when ready)
+    // 3) Ensure segments JSON present
+    Promise.all([ warmAudio(), ensureSegmentsReady(dd) ]).then(function () {
+      var segs = window.segments || [];
+      if (!segs.length) {
+        console.warn("[Unified] Segments not available; cannot start.");
+        return;
+      }
+
+      // Clamp target index into range; default to 0 (Segment 1)
+      var idx = Math.max(0, Math.min(targetIndex|0, segs.length - 1));
+      var seg = segs[idx];
+
+      // 4) Start the requested segment via your normal path
+      if (typeof window.playSegment === "function") {
+        console.log("[Unified] Starting Segment", idx + 1, "via unified path.");
+        window.playSegment(seg.start, seg.end, idx);
+      }
+    }).catch(function (e) {
+      console.warn("[Unified] Orchestration error:", e);
+    }).finally(function () {
+      // small delay before allowing another orchestration
+      setTimeout(function(){ pendingLaunch = false; }, 50);
+    });
+  }
+
+  // ---- Capture Play clicks: route to Segment 1
+  (function installPlayCapture() {
     function handler(ev) {
-      // Always block default Play behavior
       ev.stopImmediatePropagation();
       ev.stopPropagation();
       ev.preventDefault();
-
-      // If already started or currently playing, we still ignore Play
-      if (startedOnce || window.currentlyPlaying) {
-        console.log("[Guard] Play ignored (already started / playing).");
-        return;
-      }
-      armWindow();
+      orchestrateStart(0); // Segment 1
     }
-
     function hook() {
-      const btn = document.getElementById("playBtn");
+      var btn = document.getElementById("playBtn");
       if (!btn) { setTimeout(hook, 50); return; }
-      // capture to beat the original listener
-      btn.addEventListener("click", handler, true);
-      // backup capture at document level in case of nested icons inside the button
+      btn.addEventListener("click", handler, true); // capture beats original
+      // Backup capture for icon/child clicks inside the button
       document.addEventListener("click", function (ev) {
         if (ev.target === btn || (btn.contains && btn.contains(ev.target))) handler(ev);
       }, true);
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hook);
     else hook();
-  }
+  })();
 
-  // ---- Capture Segment button clicks
-  function installSegmentCapture() {
+  // ---- Capture Segment button clicks: route to that segment
+  (function installSegmentCapture() {
+    function isSegmentButton(el) {
+      return !!(el && el.classList && el.classList.contains("segment-button"));
+    }
     document.addEventListener("click", function (ev) {
-      const t = ev.target;
-      if (!t || !t.classList || !t.classList.contains("segment-button")) return;
+      var t = ev.target;
+      if (!isSegmentButton(t)) return;
 
-      const label = (t.textContent || "").trim();
-      const m = /^Segment\s*(\d+)$/i.exec(label);
+      var label = (t.textContent || "").trim();
+      var m = /^Segment\s*(\d+)$/i.exec(label);
       if (!m) return;
 
-      const idx = parseInt(m[1], 10) - 1;
+      ev.stopImmediatePropagation();
+      ev.stopPropagation();
+      ev.preventDefault();
 
-      // If first start hasn’t happened yet…
-      if (!startedOnce) {
-        // Only allow Segment 1, and only inside the Play-armed window
-        if (idx !== 0) {
-          // block S2..N before first start
-          ev.stopImmediatePropagation(); ev.stopPropagation(); ev.preventDefault();
-          console.log("[Guard] Ignore Segment", idx + 1, "— start with Play → Segment 1.");
-          return;
-        }
-        if (now() > armedUntil) {
-          // either Play not pressed yet or window expired
-          ev.stopImmediatePropagation(); ev.stopPropagation(); ev.preventDefault();
-          console.log("[Guard] Segment 1 ignored — press Play first, then Segment 1 within", WINDOW_MS, "ms.");
-          return;
-        }
-        // Inside the window & it is Segment 1 → we take over and start cleanly
-        ev.stopImmediatePropagation(); ev.stopPropagation(); ev.preventDefault();
-        startSegment1Cleanly();
-        return;
-      }
-
-      // After first start: allow all segments normally (no blocking)
-      // (do not prevent the event)
+      var idx = (parseInt(m[1], 10) || 1) - 1;
+      orchestrateStart(idx);
     }, true); // capture
-  }
-
-  // ---- Reset guard on song change
-  function installSongChangeReset() {
-    function hook() {
-      const dd = document.getElementById("songSelect");
-      if (!dd) { setTimeout(hook, 50); return; }
-      dd.addEventListener("change", function () {
-        startedOnce = false;
-        disarm("song changed");
-        console.log("[Guard] Reset for new song — press Play then Segment 1.");
-      }, { capture: true });
-    }
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hook);
-    else hook();
-  }
-
-  installPlayCapture();
-  installSegmentCapture();
-  installSongChangeReset();
+  })();
 })();
