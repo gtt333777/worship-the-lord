@@ -207,48 +207,40 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
-
 /* ==========================================================
-   ✅ First-segment stabilizer (end-of-file patch, no other edits)
-   - Works for manual tap and auto-start
+   ✅ First-segment stabilizer v2 (no mute/volume, no pause)
+   - Works for manual tap and auto-start of Segment 1
    - Runs ONCE per song (auto-resets on song change)
-   - Hooks BEFORE the original playSegment runs
-   - Re-seeks while playing (double align), with a 20ms micro-mute
+   - Hooks BEFORE your original playSegment executes
+   - Does a precise double re-seek to start while playing
    ========================================================== */
 (function () {
-  if (window.__S1_STABILIZER_PATCHED__) return;
-  window.__S1_STABILIZER_PATCHED__ = true;
+  if (window.__S1_STAB_V2__) return;
+  window.__S1_STAB_V2__ = true;
 
   // "once per song" flag
   if (typeof window.__FIRST_TAP_BOOST_DONE === "undefined") {
     window.__FIRST_TAP_BOOST_DONE = false;
   }
 
-  // Hard align both players to the same start time, while staying in play
-  function hardAlign(startTime) {
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    // Tiny mute to hide click
-    var va = a.volume, vb = b.volume;
-    a.volume = 0; b.volume = 0;
-
-    try { (typeof a.fastSeek === "function") ? a.fastSeek(startTime) : (a.currentTime = startTime); } catch (e) { a.currentTime = startTime; }
-    try { (typeof b.fastSeek === "function") ? b.fastSeek(startTime) : (b.currentTime = startTime); } catch (e) { b.currentTime = startTime; }
-
-    try { a.play(); } catch (e) {}
-    try { b.play(); } catch (e) {}
-
-    setTimeout(function(){ a.volume = va; b.volume = vb; }, 20);
+  // Safe seek that uses fastSeek when available
+  function seekMedia(el, t) {
+    try {
+      if (typeof el.fastSeek === "function") el.fastSeek(t);
+      else el.currentTime = t;
+    } catch (e) {
+      el.currentTime = t;
+    }
   }
 
   // Wrap the existing global playSegment and attach listeners BEFORE calling it
   var __origPlaySegment = window.playSegment;
   window.playSegment = function (startTime, endTime, index) {
-    var needS1Fix = (index === 0 && !window.__FIRST_TAP_BOOST_DONE);
     var a = window.vocalAudio, b = window.accompAudio;
-    var aReady = false, bReady = false, aTU = false, bTU = false, fired = false, timer = null;
+    var needFix = (index === 0 && !window.__FIRST_TAP_BOOST_DONE && a && b);
 
+    // Gate that fires once when BOTH streams prove they’re actually emitting frames
+    var fired = false, timer = null;
     function cleanup() {
       if (!a || !b) return;
       a.removeEventListener("playing", onA);
@@ -256,37 +248,48 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
       a.removeEventListener("timeupdate", onATU);
       b.removeEventListener("timeupdate", onBTU);
       if (timer) clearTimeout(timer);
+      if (timer2) clearTimeout(timer2);
     }
     function go() {
       if (fired) return;
       fired = true;
       cleanup();
       window.__FIRST_TAP_BOOST_DONE = true;
-      // Do what your manual "second tap" does: align now, then once more 100ms later
-      hardAlign(startTime);
-      setTimeout(function(){ hardAlign(startTime); }, 100);
+      // Do what your manual 2nd tap does: align now, then reinforce once more
+      seekMedia(a, startTime);
+      seekMedia(b, startTime);
+      // Reinforce once after a short tick in case one decoder trails
+      timer2 = setTimeout(function () {
+        seekMedia(a, startTime);
+        seekMedia(b, startTime);
+      }, 100);
     }
-    function onA(){ aReady = true; if ((aReady && bReady) || (aTU && bTU)) go(); }
-    function onB(){ bReady = true; if ((aReady && bReady) || (aTU && bTU)) go(); }
-    function onATU(){ aTU = true; if ((aReady && bReady) || (aTU && bTU)) go(); }
-    function onBTU(){ bTU = true; if ((aReady && bReady) || (aTU && bTU)) go(); }
 
-    // Attach listeners BEFORE invoking the original playSegment
-    if (needS1Fix && a && b) {
-      a.addEventListener("playing", onA,  { once: true });
-      b.addEventListener("playing", onB,  { once: true });
+    // “ready once both moving” logic
+    var seen = { aPlay:false, bPlay:false, aTU:false, bTU:false };
+    function check() {
+      if ((seen.aPlay && seen.bPlay) || (seen.aTU && seen.bTU)) go();
+    }
+    function onA(){ seen.aPlay = true; check(); }
+    function onB(){ seen.bPlay = true; check(); }
+    function onATU(){ seen.aTU = true; check(); }
+    function onBTU(){ seen.bTU = true; check(); }
+
+    // Attach listeners BEFORE invoking your original playSegment
+    if (needFix) {
+      a.addEventListener("playing", onA, { once: true });
+      b.addEventListener("playing", onB, { once: true });
       a.addEventListener("timeupdate", onATU, { once: true });
       b.addEventListener("timeupdate", onBTU, { once: true });
-      // Fallback in case events are delayed (slow device/network)
-      timer = setTimeout(go, 300);
+      // Fallback if events are slow on some phones
+      timer = setTimeout(go, 350);
     }
 
-    // Call your original logic
-    var r = __origPlaySegment.call(this, startTime, endTime, index);
-    return r;
+    // Run your original logic
+    return __origPlaySegment.call(this, startTime, endTime, index);
   };
 
-  // Reset "once per song" when the song selection changes
+  // Reset the “once per song” flag when the song changes
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
