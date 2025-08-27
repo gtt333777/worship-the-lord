@@ -30,12 +30,8 @@ function playSegment(startTime, endTime, index = 0) {
 
   // Pause and seek both players to start (seek must finish before play)
   
-  /*  BLOCK A START
-
   window.vocalAudio.pause();
   window.accompAudio.pause();
-  
-      BLOCK A END */
   
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
@@ -54,9 +50,7 @@ function playSegment(startTime, endTime, index = 0) {
     if (myRun !== window.playRunId) return; // aborted by a newer play
 
     window.currentlyPlaying = true;
-
-    /* BLOCK B - START*/
-
+        
     // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
     const DRIFT = 0.06; // resync if drift > 60ms
@@ -69,17 +63,12 @@ function playSegment(startTime, endTime, index = 0) {
         return;
 
       }
-
-   
+         
       // Micro-resync: keep accompaniment locked to vocal
       const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
       if (diff > DRIFT) {
         window.accompAudio.currentTime = window.vocalAudio.currentTime;
       }
-
-      /*BLOCK B - END */ 
-
-
 
       // End of segment?
       if (window.vocalAudio.currentTime >= endTime - EPS) {
