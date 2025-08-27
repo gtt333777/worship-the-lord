@@ -28,7 +28,7 @@ function playSegment(startTime, endTime, index = 0) {
 
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
-  // Gapless: do NOT pause before seeking; seek while playing
+  // Pause and seek both players to start (seek must finish before play)
   // window.vocalAudio.pause();
   // window.accompAudio.pause();
   window.vocalAudio.currentTime = startTime;
@@ -37,9 +37,7 @@ function playSegment(startTime, endTime, index = 0) {
   try { window.accompAudio.play(); } catch (e) {}
 
   // Wait until both have actually finished seeking before playing
-  const once = (el, ev) => new Promise(res =>
-    (el.readyState >= 2 ? res() : el.addEventListener(ev, () => res(), { once: true }))
-  );
+  const once = (el, ev) => new Promise(res => (el.readyState >= 2 ? res() : el.addEventListener(ev, () => res(), { once: true })));
   const seekedVocal = once(window.vocalAudio, "seeked");
   const seekedAcc   = once(window.accompAudio, "seeked");
 
@@ -74,7 +72,6 @@ function playSegment(startTime, endTime, index = 0) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
 
-        // Do NOT pause at boundary; keep seamless chain
         // window.vocalAudio.pause();
         // window.accompAudio.pause();
         window.currentlyPlaying = false;
@@ -121,7 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((loopData) => {
         console.log("✅ Loop data loaded:", loopData);
         window.segments = loopData;
-        window.__FIRST_TAP_BOOST_DONE = false;  // reset for this song
 
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
@@ -138,14 +134,15 @@ document.addEventListener("DOMContentLoaded", () => {
               console.warn("⏳ Audio not ready yet, using segment-ready helper...");
               checkReadyAndPlaySegment(segment.start, segment.end, index);
             } else {
-              // Normal start
               playSegment(segment.start, segment.end, index);
 
-              // First segment booster: re-tap once after 100ms (first time only)
-              if (index === 0 && !window.__FIRST_TAP_BOOST_DONE) {
-                window.__FIRST_TAP_BOOST_DONE = true;
-                setTimeout(() => playSegment(segment.start, segment.end, index), 100);
-              }
+
+              setTimeout(() => playSegment(segment.start, segment.end, index), 70);
+              setTimeout(() => playSegment(segment.start, segment.end, index), 140);
+              setTimeout(() => playSegment(segment.start, segment.end, index), 210);
+
+
+
             }
           });
 
@@ -164,11 +161,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const seg = window.segments[0];
             console.log("🎯 Auto-starting Segment 1 (from loopPlayer.js)");
             playSegment(seg.start, seg.end, 0);
-            // First segment booster for auto-start: re-tap after 100ms (only once)
-            if (!window.__FIRST_TAP_BOOST_DONE) {
-              window.__FIRST_TAP_BOOST_DONE = true;
-              setTimeout(() => playSegment(seg.start, seg.end, 0), 100);
-            }
             window.wantAutoSegment1 = false; // do this only once
           };
 
@@ -209,3 +201,17 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
   playSegment(startTime, endTime, index);
 }
+
+
+/* ==========================================================
+   📌 Triple-tap helper — Segment 1 only, once per song
+   Where to put: keep this block at the **END** of the file.
+   It will work because handlers run later after the script loads.
+   ========================================================== */
+window.__FIRST_TAP_BOOST_DONE = window.__FIRST_TAP_BOOST_DONE || false;
+window.__boostFirstSegment = function (startTime, endTime, index) {
+  if (index !== 0) return; // safety
+  // simulate two extra taps at +100ms and +200ms
+  setTimeout(() => playSegment(startTime, endTime, index), 100);
+  setTimeout(() => playSegment(startTime, endTime, index), 200);
+};
