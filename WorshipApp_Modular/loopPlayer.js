@@ -204,19 +204,16 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
-
-
-
 /* ==========================================================
-   ✅ First-segment stabilizer v2 (no mute/volume, no pause)
+   ✅ First-segment stabilizer v3 (no mute, no pause, fixed timers)
    - Works for manual tap and auto-start of Segment 1
    - Runs ONCE per song (auto-resets on song change)
    - Hooks BEFORE your original playSegment executes
    - Does a precise double re-seek to start while playing
    ========================================================== */
 (function () {
-  if (window.__S1_STAB_V2__) return;
-  window.__S1_STAB_V2__ = true;
+  if (window.__S1_STAB_V3__) return;
+  window.__S1_STAB_V3__ = true;
 
   // "once per song" flag
   if (typeof window.__FIRST_TAP_BOOST_DONE === "undefined") {
@@ -233,56 +230,66 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
     }
   }
 
-  // Wrap the existing global playSegment and attach listeners BEFORE calling it
+  // Keep a handle to the original function
   var __origPlaySegment = window.playSegment;
+
+  // Override that wraps the original, arming the stabilizer for Segment 1 only
   window.playSegment = function (startTime, endTime, index) {
     var a = window.vocalAudio, b = window.accompAudio;
     var needFix = (index === 0 && !window.__FIRST_TAP_BOOST_DONE && a && b);
 
-    // Gate that fires once when BOTH streams prove they’re actually emitting frames
-    var fired = false, timer = null;
+    // Declare all state/timers up front (fixes "timer2 is not defined")
+    var fired = false, timer = null, timer2 = null;
+    var seen = { aPlay:false, bPlay:false, aTU:false, bTU:false };
+
     function cleanup() {
-      if (!a || !b) return;
-      a.removeEventListener("playing", onA);
-      b.removeEventListener("playing", onB);
-      a.removeEventListener("timeupdate", onATU);
-      b.removeEventListener("timeupdate", onBTU);
+      if (a) {
+        a.removeEventListener("playing", onA);
+        a.removeEventListener("timeupdate", onATU);
+      }
+      if (b) {
+        b.removeEventListener("playing", onB);
+        b.removeEventListener("timeupdate", onBTU);
+      }
       if (timer) clearTimeout(timer);
       if (timer2) clearTimeout(timer2);
     }
+
     function go() {
       if (fired) return;
       fired = true;
       cleanup();
       window.__FIRST_TAP_BOOST_DONE = true;
+
       // Do what your manual 2nd tap does: align now, then reinforce once more
       seekMedia(a, startTime);
       seekMedia(b, startTime);
-      // Reinforce once after a short tick in case one decoder trails
       timer2 = setTimeout(function () {
         seekMedia(a, startTime);
         seekMedia(b, startTime);
-      }, 100);
+      }, 120);
     }
 
-    // “ready once both moving” logic
-    var seen = { aPlay:false, bPlay:false, aTU:false, bTU:false };
     function check() {
+      // Fire once both streams have proved they are emitting frames,
+      // or when both delivered a first timeupdate (some mobiles prefer TU)
       if ((seen.aPlay && seen.bPlay) || (seen.aTU && seen.bTU)) go();
     }
-    function onA(){ seen.aPlay = true; check(); }
-    function onB(){ seen.bPlay = true; check(); }
-    function onATU(){ seen.aTU = true; check(); }
-    function onBTU(){ seen.bTU = true; check(); }
+    function onA()  { seen.aPlay = true; check(); }
+    function onB()  { seen.bPlay = true; check(); }
+    function onATU(){ seen.aTU   = true; check(); }
+    function onBTU(){ seen.bTU   = true; check(); }
 
-    // Attach listeners BEFORE invoking your original playSegment
+    // Attach listeners BEFORE calling the original (so we cannot miss early events)
     if (needFix) {
-      a.addEventListener("playing", onA, { once: true });
-      b.addEventListener("playing", onB, { once: true });
-      a.addEventListener("timeupdate", onATU, { once: true });
-      b.addEventListener("timeupdate", onBTU, { once: true });
-      // Fallback if events are slow on some phones
-      timer = setTimeout(go, 350);
+      a.addEventListener("playing",    onA,  { once:true });
+      b.addEventListener("playing",    onB,  { once:true });
+      a.addEventListener("timeupdate", onATU, { once:true });
+      b.addEventListener("timeupdate", onBTU, { once:true });
+
+      // Fallback for slow devices/browsers: still enforce after a short grace
+      // (tune 350→450ms if a specific phone still juggles)
+      timer = setTimeout(go, 450);
     }
 
     // Run your original logic
@@ -297,3 +304,4 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
     }, { capture: true });
   });
 })();
+
