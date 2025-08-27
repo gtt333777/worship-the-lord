@@ -205,66 +205,112 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 /* ==========================================================
-   ✅ First-segment bounce: 1 → 2 → 1 (once per song)
-   - No pause(), no volume changes
-   - Uses your existing playSegment + playRunId (latest call wins)
-   - If there is no Segment 2, falls back to quick re-taps of Segment 1
-   - Paste at END of file; no other edits needed
+   ✅ First-segment A→B→A bounce (warmup) — paste at END of file
+   - No pause(), no volume/mute
+   - Lets S1 play a hair, hops to S2 briefly, then returns to S1
+   - Uses playRunId so the latest call always wins
+   - Runs ONCE per song; resets on song change
    ========================================================== */
 (function () {
-  if (window.__S1_BOUNCE_PATCH__) return;
-  window.__S1_BOUNCE_PATCH__ = true;
+  if (window.__S1_ABA_BOUNCE__) return;
+  window.__S1_ABA_BOUNCE__ = true;
 
-  // run-once-per-song guard
-  if (typeof window.__S1_BOUNCED === "undefined") window.__S1_BOUNCED = false;
+  // once-per-song guard
+  if (typeof window.__S1_BOUNCED_ONCE === "undefined") window.__S1_BOUNCED_ONCE = false;
 
-  // Timings tuned for mobile; adjust if you ever need to
-  var BACK_DELAY_1 = 90;   // ms: come back quickly (users won’t notice)
-  var BACK_DELAY_2 = 180;  // ms: reinforce once more (latest call wins)
+  // Tunables (safe defaults for many phones)
+  var S1_RUN_SEC   = 0.09;   // how much real progress to allow on S1 before hopping
+  var S2_RUN_SEC   = 0.09;   // how much real progress to allow on S2 before returning
+  var S1_FALLBACK  = 600;    // ms max to wait for the S1 tiny run
+  var S2_FALLBACK  = 500;    // ms max to wait for the S2 tiny run
+  var REINFORCE_MS = 120;    // extra “virtual tap” back on S1 after returning
 
-  // Keep the original function
+  // Helper: wait until the leading currentTime has advanced by `deltaSec` from `base`,
+  // or until fallback deadline, while ensuring we haven’t been superseded by a newer playRunId.
+  function waitProgress(expectedRunId, base, deltaSec, fallbackMs) {
+    return new Promise(function (resolve, reject) {
+      var a = window.vocalAudio, b = window.accompAudio;
+      if (!a || !b) return resolve(); // if missing, just continue gracefully
+
+      var deadline = performance.now() + fallbackMs;
+
+      function tick() {
+        // If a newer play took over, abort quietly
+        if (window.playRunId !== expectedRunId) return reject(new Error("superseded"));
+
+        var lead = Math.max(a.currentTime || 0, b.currentTime || 0);
+        if (lead >= base + deltaSec) return resolve();
+
+        if (performance.now() >= deadline) return resolve(); // give up waiting; continue
+
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  // Keep original
   var __origPlaySegment = window.playSegment;
 
-  // Wrap global playSegment to bounce only the first time Segment 1 is requested
+  // Wrap global playSegment
   window.playSegment = function (startTime, endTime, index) {
     var segs = window.segments || [];
-    var hasSeg2 = segs && segs.length > 1 && segs[1];
+    var hasSeg2 = !!(segs && segs.length > 1 && segs[1]);
 
-    // Only on first ask for Segment 1, and only once per song
-    if (index === 0 && !window.__S1_BOUNCED) {
-      window.__S1_BOUNCED = true;
+    // Only on the VERY FIRST request for Segment 1 per song
+    if (index === 0 && !window.__S1_BOUNCED_ONCE) {
+      window.__S1_BOUNCED_ONCE = true;
 
-      // Ensure both players are in "playing" state (no pause/resume cycle)
-      try { window.vocalAudio && window.vocalAudio.play(); } catch (e) {}
-      try { window.accompAudio && window.accompAudio.play(); } catch (e) {}
+      // Start S1 normally
+      __origPlaySegment.call(this, startTime, endTime, 0);
+      var runIdS1 = window.playRunId;
 
-      if (hasSeg2) {
-        // 1) bounce to Segment 2 immediately…
-        var s2 = segs[1];
-        __origPlaySegment.call(this, s2.start, s2.end, 1);
+      // Allow a hair of real playback on S1
+      waitProgress(runIdS1, startTime, S1_RUN_SEC, S1_FALLBACK).then(function () {
+        // If a newer play took over, do nothing
+        if (window.playRunId !== runIdS1) return;
 
-        // 2) …then come back to Segment 1 fast (and reinforce once)
-        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_1);
-        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_2);
-      } else {
-        // Fallback if there is no Segment 2: just retap Segment 1 quickly
-        __origPlaySegment.call(this, startTime, endTime, 0);
-        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_1);
-        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_2);
-      }
-      // We handled it; do not run the normal call now.
+        if (hasSeg2) {
+          // Hop to S2 briefly
+          var s2 = segs[1];
+          __origPlaySegment.call(window, s2.start, s2.end, 1);
+          var runIdS2 = window.playRunId;
+
+          // Let S2 actually run a hair too
+          waitProgress(runIdS2, s2.start, S2_RUN_SEC, S2_FALLBACK).then(function () {
+            if (window.playRunId !== runIdS2) return;
+
+            // Return to S1 (this is the "virtual tap" users do)
+            __origPlaySegment.call(window, startTime, endTime, 0);
+
+            // Optional: reinforce once more shortly (latest call wins)
+            setTimeout(function () {
+              // If user hasn’t moved on, reinforce S1 once
+              __origPlaySegment.call(window, startTime, endTime, 0);
+            }, REINFORCE_MS);
+          }).catch(function(){ /* superseded; ignore */ });
+        } else {
+          // No Segment 2: just re-tap S1 now and reinforce once
+          __origPlaySegment.call(window, startTime, endTime, 0);
+          setTimeout(function () {
+            __origPlaySegment.call(window, startTime, endTime, 0);
+          }, REINFORCE_MS);
+        }
+      }).catch(function(){ /* superseded; ignore */ });
+
+      // We handled first S1 request—don’t run the normal call again
       return;
     }
 
-    // Normal path for all other segments (and for S1 after the first bounce)
+    // Normal behavior for everything else (S1 after first time, S2…N)
     return __origPlaySegment.call(this, startTime, endTime, index);
   };
 
-  // Reset the “once per song” guard when the song changes
+  // Reset guard when user changes song
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
-      window.__S1_BOUNCED = false;
+      window.__S1_BOUNCED_ONCE = false;
     }, { capture: true });
   });
 })();
