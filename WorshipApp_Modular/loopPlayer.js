@@ -205,98 +205,76 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 /* ==========================================================
-   ✅ First-segment stabilizer v3 (no mute, no pause, fixed timers)
-   - Works for manual tap and auto-start of Segment 1
-   - Runs ONCE per song (auto-resets on song change)
-   - Hooks BEFORE your original playSegment executes
-   - Does a precise double re-seek to start while playing
+   ✅ First-segment universal stabilizer (RAF snap for ~0.8s)
+   - No pause, no volume, no timing guesses
+   - Works for manual tap and auto-start
+   - Runs ONCE per song; auto-resets on song change
+   - Paste at END of file; no other edits needed
    ========================================================== */
 (function () {
-  if (window.__S1_STAB_V3__) return;
-  window.__S1_STAB_V3__ = true;
+  if (window.__S1_RAF_STAB__) return;
+  window.__S1_RAF_STAB__ = true;
 
-  // "once per song" flag
+  // once-per-song flag
   if (typeof window.__FIRST_TAP_BOOST_DONE === "undefined") {
     window.__FIRST_TAP_BOOST_DONE = false;
   }
 
-  // Safe seek that uses fastSeek when available
-  function seekMedia(el, t) {
-    try {
-      if (typeof el.fastSeek === "function") el.fastSeek(t);
-      else el.currentTime = t;
-    } catch (e) {
-      el.currentTime = t;
-    }
+  function seekTo(el, t) {
+    try { if (typeof el.fastSeek === "function") el.fastSeek(t); else el.currentTime = t; }
+    catch (_) { el.currentTime = t; }
   }
 
-  // Keep a handle to the original function
-  var __origPlaySegment = window.playSegment;
-
-  // Override that wraps the original, arming the stabilizer for Segment 1 only
-  window.playSegment = function (startTime, endTime, index) {
+  // High-rate snapper for the first ~800ms of Segment 1
+  function startRafSnap(startTime) {
     var a = window.vocalAudio, b = window.accompAudio;
-    var needFix = (index === 0 && !window.__FIRST_TAP_BOOST_DONE && a && b);
+    if (!a || !b) return;
 
-    // Declare all state/timers up front (fixes "timer2 is not defined")
-    var fired = false, timer = null, timer2 = null;
-    var seen = { aPlay:false, bPlay:false, aTU:false, bTU:false };
+    var start = performance.now();
+    var deadline = start + 800; // tune 600–1000ms if needed
+    var rafId = null;
 
-    function cleanup() {
-      if (a) {
-        a.removeEventListener("playing", onA);
-        a.removeEventListener("timeupdate", onATU);
+    function tick() {
+      // stop after deadline or if globals missing
+      if (!a || !b) return;
+      var now = performance.now();
+      if (now >= deadline) { cancelAnimationFrame(rafId); return; }
+
+      // only act once playback is actually moving (timeupdate happens)
+      // (if they haven't moved yet, just try again next frame)
+      var ta = a.currentTime, tb = b.currentTime;
+      var moving = (ta > startTime || tb > startTime || (!a.paused && !b.paused));
+      if (moving) {
+        // snap slower one up to the leading clock (no pauses)
+        var lead = ta > tb ? ta : tb;
+        if (Math.abs(ta - lead) > 0.01) seekTo(a, lead);
+        if (Math.abs(tb - lead) > 0.01) seekTo(b, lead);
       }
-      if (b) {
-        b.removeEventListener("playing", onB);
-        b.removeEventListener("timeupdate", onBTU);
-      }
-      if (timer) clearTimeout(timer);
-      if (timer2) clearTimeout(timer2);
+
+      rafId = requestAnimationFrame(tick);
     }
 
-    function go() {
-      if (fired) return;
-      fired = true;
-      cleanup();
+    rafId = requestAnimationFrame(tick);
+  }
+
+  // Wrap the original playSegment to arm the stabilizer for Segment 1 only
+  var __origPlaySegment = window.playSegment;
+  window.playSegment = function (startTime, endTime, index) {
+    var isS1 = (index === 0);
+    var need = isS1 && !window.__FIRST_TAP_BOOST_DONE;
+
+    if (need) {
+      // mark done (once per song) and start the high-rate snapper
       window.__FIRST_TAP_BOOST_DONE = true;
-
-      // Do what your manual 2nd tap does: align now, then reinforce once more
-      seekMedia(a, startTime);
-      seekMedia(b, startTime);
-      timer2 = setTimeout(function () {
-        seekMedia(a, startTime);
-        seekMedia(b, startTime);
-      }, 120);
+      // wait a microtask so the original function can kick playback,
+      // then begin snapping on the next frame
+      Promise.resolve().then(function () { startRafSnap(startTime); });
     }
 
-    function check() {
-      // Fire once both streams have proved they are emitting frames,
-      // or when both delivered a first timeupdate (some mobiles prefer TU)
-      if ((seen.aPlay && seen.bPlay) || (seen.aTU && seen.bTU)) go();
-    }
-    function onA()  { seen.aPlay = true; check(); }
-    function onB()  { seen.bPlay = true; check(); }
-    function onATU(){ seen.aTU   = true; check(); }
-    function onBTU(){ seen.bTU   = true; check(); }
-
-    // Attach listeners BEFORE calling the original (so we cannot miss early events)
-    if (needFix) {
-      a.addEventListener("playing",    onA,  { once:true });
-      b.addEventListener("playing",    onB,  { once:true });
-      a.addEventListener("timeupdate", onATU, { once:true });
-      b.addEventListener("timeupdate", onBTU, { once:true });
-
-      // Fallback for slow devices/browsers: still enforce after a short grace
-      // (tune 350→450ms if a specific phone still juggles)
-      timer = setTimeout(go, 450);
-    }
-
-    // Run your original logic
     return __origPlaySegment.call(this, startTime, endTime, index);
   };
 
-  // Reset the “once per song” flag when the song changes
+  // Reset the once-per-song flag when the song changes
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
@@ -304,4 +282,3 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
     }, { capture: true });
   });
 })();
-
