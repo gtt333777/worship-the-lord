@@ -292,3 +292,87 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   // Start installer now (and retry shortly if functions not defined yet)
   install();
 })();
+
+
+/* ==========================================================
+   ✅ Guard v2: Ignore Play if Segment 1 was tapped (or while playing)
+   - Paste at END of loopPlayer.js
+   - Global-safe (no modules), works with existing handlers
+   - Allows Play→Segment 1 flow
+   - Blocks Segment 1→Play mis-tap (prevents wobble)
+   ========================================================== */
+(function () {
+  if (window.__PLAY_AFTER_S1_GUARD__) return;
+  window.__PLAY_AFTER_S1_GUARD__ = true;
+
+  // Ensure the flag exists (other patches may already define it)
+  if (typeof window.__SEG1_ALLOWED__ === "undefined") window.__SEG1_ALLOWED__ = false;
+
+  function markSeg1AllowedOnClickCapture() {
+    // Mark when the user taps "Segment 1" button
+    document.addEventListener("click", function (ev) {
+      const t = ev.target;
+      if (!t) return;
+      if (t.classList && t.classList.contains("segment-button")) {
+        const txt = (t.textContent || "").trim();
+        if (/^Segment\s*1$/i.test(txt)) {
+          window.__SEG1_ALLOWED__ = true;
+          console.log("[Guard] Segment 1 tapped — subsequent Play presses will be ignored.");
+        }
+      }
+    }, true); // capture first
+  }
+
+  function blockPlayClickAfterSeg1() {
+    function handler(ev) {
+      // If user already tapped Segment 1 OR something is currently playing, ignore Play
+      if (window.__SEG1_ALLOWED__ || window.currentlyPlaying) {
+        console.log("[Guard] Play press ignored (S1 already tapped or playing).");
+        ev.stopImmediatePropagation();
+        ev.stopPropagation();
+        ev.preventDefault();
+      }
+    }
+
+    // Install once the Play button exists
+    function install() {
+      const btn = document.getElementById("playBtn");
+      if (!btn) { setTimeout(install, 50); return; }
+      // Capture-phase on the button itself so we beat the existing listener
+      btn.addEventListener("click", handler, true);
+      // Extra safety: capture at document-level too
+      document.addEventListener("click", function (ev) {
+        if (!btn) return;
+        if (ev.target === btn || (btn.contains && btn.contains(ev.target))) handler(ev);
+      }, true);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", install);
+    } else {
+      install();
+    }
+  }
+
+  function resetOnSongChange() {
+    function hook() {
+      const dd = document.getElementById("songSelect");
+      if (!dd) { setTimeout(hook, 50); return; }
+      dd.addEventListener("change", function () {
+        // New song → require Segment 1 tap again
+        window.__SEG1_ALLOWED__ = false;
+        console.log("[Guard] New song selected — Play allowed again until Segment 1 is tapped.");
+      }, { capture: true });
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", hook);
+    } else {
+      hook();
+    }
+  }
+
+  // Activate
+  markSeg1AllowedOnClickCapture();
+  blockPlayClickAfterSeg1();
+  resetOnSongChange();
+})();
