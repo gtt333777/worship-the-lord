@@ -135,14 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
               checkReadyAndPlaySegment(segment.start, segment.end, index);
             } else {
               playSegment(segment.start, segment.end, index);
-
-
-              setTimeout(() => playSegment(segment.start, segment.end, index), 70);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 140);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-
-
-
+              // (Removed mobile-unstable auto-retries 70/140/210ms)
             }
           });
 
@@ -201,88 +194,3 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
   playSegment(startTime, endTime, index);
 }
-
-
-
-/* ==========================================================
-   ✅ Segment-1 coalescer (mobile-safe) — paste at END of file
-   - Lets first call through, schedules ONE re-tap at +120 ms
-   - Swallows any other S1 calls for 300 ms (kills 70/140/210 ms)
-   - After that, S1 behaves like later segments
-   ========================================================== */
-(function () {
-  if (window.__S1_COALESCE_V2__) return;
-  window.__S1_COALESCE_V2__ = true;
-
-  var __origPlaySegment = window.playSegment;
-
-  var RETAP_DELAY_MS = 120;   // the one virtual 2nd tap (matches your manual tap)
-  var SWALLOW_MS     = 300;   // ignore extra S1 calls in this window
-
-  var s1 = {
-    warmed: false,     // once true, S1 is treated like all other segments
-    arming: false,     // true only during the first SWALLOW_MS window
-    firstTs: 0,
-    retapTimer: null
-  };
-
-  window.playSegment = function (startTime, endTime, index) {
-    // Not segment 1 → behave normally
-    if (index !== 0) {
-      return __origPlaySegment.call(this, startTime, endTime, index);
-    }
-
-    var now = performance.now();
-
-    // Already warmed → behave normally
-    if (s1.warmed) {
-      return __origPlaySegment.call(this, startTime, endTime, 0);
-    }
-
-    // First S1 call in this song → allow + schedule ONE controlled re-tap
-    if (!s1.arming) {
-      s1.arming  = true;
-      s1.firstTs = now;
-      console.log("[S1] first call → scheduling one controlled re-tap at +" + RETAP_DELAY_MS + "ms");
-
-      // Start S1 normally
-      __origPlaySegment.call(this, startTime, endTime, 0);
-
-      // ONE controlled re-tap (this is what your manual second tap does)
-      s1.retapTimer = setTimeout(function () {
-        console.log("[S1] controlled re-tap fired");
-        __origPlaySegment.call(window, startTime, endTime, 0);
-        s1.warmed = true;        // from now on S1 behaves like other segments
-        s1.arming = false;
-        s1.retapTimer = null;
-      }, RETAP_DELAY_MS);
-
-      return; // IMPORTANT: don’t run the original again now
-    }
-
-    // Inside the first 300 ms window → swallow duplicates (kills 70/140/210 ms)
-    if (now - s1.firstTs < SWALLOW_MS) {
-      console.log("[S1] swallowed duplicate call within " + SWALLOW_MS + "ms window");
-      return; // ignore this extra restart
-    }
-
-    // Outside the window but not warmed (rare) → treat as normal
-    console.log("[S1] late call after window — treating as normal");
-    return __origPlaySegment.call(this, startTime, endTime, 0);
-  };
-
-  // Reset when user selects a new song
-  document.addEventListener("DOMContentLoaded", function () {
-    var dd = document.getElementById("songSelect");
-    if (dd) dd.addEventListener("change", function () {
-      if (s1.retapTimer) { clearTimeout(s1.retapTimer); s1.retapTimer = null; }
-      s1.warmed = false;
-      s1.arming = false;
-      s1.firstTs = 0;
-      console.log("[S1] reset for new song");
-    }, { capture: true });
-  });
-})();
-
-
-
