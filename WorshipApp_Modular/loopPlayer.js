@@ -1,206 +1,188 @@
-﻿// WorshipApp_Modular/loopPlayer.js
-console.log("🎵 loopPlayer.js: Starting...");
+﻿// WorshipApp_Modular/loopPlayer.js — Mobile-gapless edition
+console.log("🎵 loopPlayer.js: Starting (mobile-gapless)");
 
-window.segments = [];
+window.segments = window.segments || [];
 window.currentlyPlaying = false;
-window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play)
-window.activeSegmentInterval = null;  // watchdog interval (new)
-window.playRunId = 0;                 // cancels older overlapping plays (new)
+window.activeSegmentTimeout = null;
+window.activeSegmentInterval = null; // unused with RAF but kept for compat
+window.playRunId = window.playRunId || 0;
 
-function playSegment(startTime, endTime, index = 0) {
-  if (!window.vocalAudio || !window.accompAudio) {
-    console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
-    return;
+(function () {
+  // ------- config you can tweak -------
+  const EPS_END_GUARD = 0.008;  // end tolerance (s)
+  const JUMP_LEAD     = 0.015;  // jump this many seconds before end
+  const DRIFT_SNAP    = 0.06;   // resync if drift > 60ms
+  const MUTE_MS       = 20;     // hide click during jump
+  // ------------------------------------
+
+  let rafId = null;
+
+  function isMobileChrome() {
+    const ua = navigator.userAgent || "";
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(ua) || (navigator.userAgentData && navigator.userAgentData.mobile);
+    return isMobile && /Chrome|CriOS/i.test(ua);
   }
 
-  // Cancel any previous timers/intervals from older plays
-  if (window.activeSegmentTimeout) {
-    clearTimeout(window.activeSegmentTimeout);
-    window.activeSegmentTimeout = null;
-  }
-  if (window.activeSegmentInterval) {
-    clearInterval(window.activeSegmentInterval);
-    window.activeSegmentInterval = null;
+  function seekMedia(el, t) {
+    try {
+      if (typeof el.fastSeek === "function") { el.fastSeek(t); return; }
+    } catch (e) {}
+    el.currentTime = t;
   }
 
-  // Bump run id to invalidate older plays that might still resolve
-  const myRun = ++window.playRunId;
+  function stopPlayback() {
+    window.currentlyPlaying = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    try { window.vocalAudio.pause(); } catch (e) {}
+    try { window.accompAudio.pause(); } catch (e) {}
+  }
 
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+  function playSegment(startTime, endTime, index = 0) {
+    const a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) {
+      console.warn("❌ loopPlayer.js: Audio tracks not present yet.");
+      return;
+    }
 
-  // Pause and seek both players to start (seek must finish before play)
-  
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-  
-  window.vocalAudio.currentTime = startTime;
-  window.accompAudio.currentTime = startTime;
+    // cancel any previous timers/raf
+    if (window.activeSegmentTimeout) { clearTimeout(window.activeSegmentTimeout); window.activeSegmentTimeout = null; }
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
 
-  // Wait until both have actually finished seeking before playing
-  const once = (el, ev) => new Promise(res => (el.readyState >= 2 ? res() : el.addEventListener(ev, () => res(), { once: true })));
-  const seekedVocal = once(window.vocalAudio, "seeked");
-  const seekedAcc   = once(window.accompAudio, "seeked");
+    const myRun = ++window.playRunId;
+    console.log(`🎵 Segment: ${startTime} -> ${endTime} (${(endTime - startTime).toFixed(2)}s)`);
 
+    // Ensure we are playing (no pause/resume cycle on mobile)
+    try { a.play(); } catch (e) {}
+    try { b.play(); } catch (e) {}
 
-    
-  Promise.all([seekedVocal, seekedAcc]).then(() => {
-    if (myRun !== window.playRunId) return; // aborted by a newer play
-    return Promise.all([window.vocalAudio.play(), window.accompAudio.play()]);
-  }).then(() => {
-    if (myRun !== window.playRunId) return; // aborted by a newer play
-
+    // Jump to start immediately (no pre-pause, no seek-wait)
+    seekMedia(a, startTime);
+    seekMedia(b, startTime);
     window.currentlyPlaying = true;
-        
-    // Watchdog based on actual time; also micro-resync the two tracks
-    const EPS   = 0.02; // 20ms guard near the end
-    const DRIFT = 0.06; // resync if drift > 60ms
 
-    window.activeSegmentInterval = setInterval(() => {
-      // If another play took over, stop this watchdog
-      if (myRun !== window.playRunId) {
-        clearInterval(window.activeSegmentInterval);
-        window.activeSegmentInterval = null;
-        return;
+    // State for chained segments
+    let curIndex = index;
+    let curEnd   = endTime;
 
-      }
-         
-      // Micro-resync: keep accompaniment locked to vocal
-      const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
-      if (diff > DRIFT) {
-        window.accompAudio.currentTime = window.vocalAudio.currentTime;
+    const tick = () => {
+      if (myRun !== window.playRunId) return; // superseded
+
+      // Micro-resync if tracks drift too far
+      const drift = Math.abs(a.currentTime - b.currentTime);
+      if (drift > DRIFT_SNAP) {
+        if (a.currentTime > b.currentTime) seekMedia(b, a.currentTime);
+        else seekMedia(a, b.currentTime);
       }
 
-      // End of segment?
-      if (window.vocalAudio.currentTime >= endTime - EPS) {
-        clearInterval(window.activeSegmentInterval);
-        window.activeSegmentInterval = null;
+      const t = Math.max(a.currentTime, b.currentTime);
 
-        window.vocalAudio.pause();
-        window.accompAudio.pause();
-        window.currentlyPlaying = false;
-
-        // Auto-advance from here (no setTimeout drift)
-        if (index < window.segments.length - 1) {
-          const next = window.segments[index + 1];
-          playSegment(next.start, next.end, index + 1);
+      // Time to jump to next?
+      if (t >= (curEnd - Math.max(JUMP_LEAD, EPS_END_GUARD))) {
+        const next = curIndex + 1;
+        if (next >= window.segments.length) {
+          stopPlayback();
+          return;
         }
+
+        const ns = window.segments[next];
+        // Brief mute to hide click artifacts on some devices
+        const va = a.volume, vb = b.volume;
+        a.volume = 0; b.volume = 0;
+        seekMedia(a, ns.start);
+        seekMedia(b, ns.start);
+        setTimeout(() => { a.volume = va; b.volume = vb; }, MUTE_MS);
+
+        // Advance state and keep the same RAF loop running (no pause/play)
+        curIndex = next;
+        curEnd   = ns.end;
       }
-    }, 50); // ~20 checks per second
-  }).catch(err => {
-    console.warn("⚠️ loopPlayer.js: playSegment error:", err);
-  });
-}
 
-window.currentPlayingSegmentIndex = null;
+      rafId = requestAnimationFrame(tick);
+    };
 
-document.addEventListener("DOMContentLoaded", () => {
-  const loopButtonsDiv = document.getElementById("loopButtonsContainer");
-  if (!loopButtonsDiv) {
-    console.warn("loopPlayer.js: #loopButtonsContainer not found");
-    return;
+    rafId = requestAnimationFrame(tick);
   }
 
-  const songNameDropdown = document.getElementById("songSelect");
-  if (!songNameDropdown) {
-    console.warn("loopPlayer.js: #songSelect not found");
-    return;
-  }
+  // Expose for other scripts
+  window.playSegment = playSegment;
 
-  songNameDropdown.addEventListener("change", () => {
-    const selectedTamilName = songNameDropdown.value;
-    console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
-    const loopFile = `lyrics/${selectedTamilName}_loops.json`;
+  // ===== UI wiring (unchanged from your version) =====
+  window.currentPlayingSegmentIndex = null;
 
-    console.log("📁 Trying to fetch loop file:", loopFile);
+  document.addEventListener("DOMContentLoaded", () => {
+    const loopButtonsDiv = document.getElementById("loopButtonsContainer");
+    if (!loopButtonsDiv) { console.warn("loopPlayer.js: #loopButtonsContainer not found"); return; }
 
-    fetch(loopFile)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Loop file not found: ${loopFile}`);
-        return response.json();
-      })
-      .then((loopData) => {
-        console.log("✅ Loop data loaded:", loopData);
-        window.segments = loopData;
+    const songNameDropdown = document.getElementById("songSelect");
+    if (!songNameDropdown) { console.warn("loopPlayer.js: #songSelect not found"); return; }
 
-        // Clear existing buttons
-        loopButtonsDiv.innerHTML = "";
+    songNameDropdown.addEventListener("change", () => {
+      const selectedTamilName = songNameDropdown.value;
+      console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
+      const loopFile = `lyrics/${selectedTamilName}_loops.json`;
 
-        // Create segment buttons
-        loopData.forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.className = "segment-button";
-          btn.textContent = `Segment ${index + 1}`;
+      console.log("📁 Trying to fetch loop file:", loopFile);
+      fetch(loopFile)
+        .then((r) => { if (!r.ok) throw new Error(`Loop file not found: ${loopFile}`); return r.json(); })
+        .then((loopData) => {
+          console.log("✅ Loop data loaded:", loopData);
+          window.segments = loopData;
 
-          btn.addEventListener("click", () => {
-            const isReady = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
-            if (!isReady) {
-              console.warn("⏳ Audio not ready yet, using segment-ready helper...");
-              checkReadyAndPlaySegment(segment.start, segment.end, index);
-            } else {
-              playSegment(segment.start, segment.end, index);
-
-
-              setTimeout(() => playSegment(segment.start, segment.end, index), 70);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 140);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-
-
-
-            }
+          loopButtonsDiv.innerHTML = "";
+          loopData.forEach((segment, index) => {
+            const btn = document.createElement("button");
+            btn.className = "segment-button";
+            btn.textContent = `Segment ${index + 1}`;
+            btn.addEventListener("click", () => {
+              const ready = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
+              if (!ready) {
+                console.warn("⏳ Audio not ready yet, using segment-ready helper...");
+                checkReadyAndPlaySegment(segment.start, segment.end, index);
+              } else {
+                // one call is enough; play() isn’t re-issued on every boundary
+                playSegment(segment.start, segment.end, index);
+              }
+            });
+            loopButtonsDiv.appendChild(btn);
           });
 
-          loopButtonsDiv.appendChild(btn);
-        });
-
-        // ✅ Notify segmentProgressVisualizer.js
-        if (typeof window.startSegmentProgressVisualizer === "function") {
-          const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-          window.startSegmentProgressVisualizer(window.segments, window.vocalAudio, loopButtonsContainer);
-        }
-
-        // 🔁 Handshake: if user already pressed Play and wants Segment 1 auto-start
-        if (window.wantAutoSegment1 && window.segments.length > 0) {
-          const startSeg1 = () => {
-            const seg = window.segments[0];
-            console.log("🎯 Auto-starting Segment 1 (from loopPlayer.js)");
-            playSegment(seg.start, seg.end, 0);
-            window.wantAutoSegment1 = false; // do this only once
-          };
-
-          if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
-            window.audioReadyPromise.then(startSeg1);
-          } else {
-            // If audio is already ready (rare), just go now
-            startSeg1();
+          if (typeof window.startSegmentProgressVisualizer === "function") {
+            const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+            window.startSegmentProgressVisualizer(window.segments, window.vocalAudio, loopButtonsContainer);
           }
-        }
-      })
-      .catch((error) => {
-        console.warn("❌ loopPlayer.js: Error loading loop file:", error);
-      });
+
+          if (window.wantAutoSegment1 && window.segments.length > 0) {
+            const startSeg1 = () => {
+              const seg = window.segments[0];
+              console.log("🎯 Auto-starting Segment 1 (from loopPlayer.js)");
+              playSegment(seg.start, seg.end, 0);
+              window.wantAutoSegment1 = false;
+            };
+            if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
+              window.audioReadyPromise.then(startSeg1);
+            } else {
+              startSeg1();
+            }
+          }
+        })
+        .catch((err) => console.warn("❌ loopPlayer.js: Error loading loop file:", err));
+    });
   });
-});
 
-/**
- * ✅ Segment-specific readiness helper to avoid clashing with songLoader.js
- * This name intentionally differs from songLoader.js's checkReadyAndPlay().
- */
-function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
-  const isReady = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
-
-  if (!isReady) {
-    console.warn("⏳ loopPlayer.js: Audio not ready yet for segment, waiting on audioReadyPromise...");
-    if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
-      window.audioReadyPromise.then(() => {
-        playSegment(startTime, endTime, index);
-      });
-    } else {
-      // Fallback: small delay and try again
-      setTimeout(() => checkReadyAndPlaySegment(startTime, endTime, index), 200);
+  // Segment-specific readiness helper (unchanged)
+  window.checkReadyAndPlaySegment = function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
+    const ready = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
+    if (!ready) {
+      console.warn("⏳ loopPlayer.js: Audio not ready yet for segment, waiting on audioReadyPromise...");
+      if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
+        window.audioReadyPromise.then(() => { window.playSegment(startTime, endTime, index); });
+      } else {
+        setTimeout(() => checkReadyAndPlaySegment(startTime, endTime, index), 200);
+      }
+      return;
     }
-    return;
-  }
-
-  console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
-  playSegment(startTime, endTime, index);
-}
+    console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
+    window.playSegment(startTime, endTime, index);
+  };
+})();
