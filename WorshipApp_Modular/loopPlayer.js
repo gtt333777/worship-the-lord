@@ -205,76 +205,73 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 /* ==========================================================
-   ✅ Segment-1 controlled re-tap (coalescer) — paste at END
-   - Matches your manual "tap again" exactly once at +120ms
-   - Swallows other S1 calls for 300ms (kills 70/140/210ms retries)
+   ✅ Segment-1 coalescer (mobile-safe) — paste at END of file
+   - Lets first call through, schedules ONE re-tap at +120 ms
+   - Swallows any other S1 calls for 300 ms (kills 70/140/210 ms)
    - After that, S1 behaves like later segments
-   - No pause(), no volume/mute; uses your existing playRunId flow
    ========================================================== */
 (function () {
-  if (window.__S1_COALESCE_PATCH__) return;
-  window.__S1_COALESCE_PATCH__ = true;
+  if (window.__S1_COALESCE_V2__) return;
+  window.__S1_COALESCE_V2__ = true;
 
   var __origPlaySegment = window.playSegment;
 
-  // State for Segment 1
-  var RETAP_DELAY_MS = 120;   // controlled virtual second tap
-  var SWALLOW_MS     = 300;   // swallow extra S1 calls for this window
+  var RETAP_DELAY_MS = 120;   // the one virtual 2nd tap (matches your manual tap)
+  var SWALLOW_MS     = 300;   // ignore extra S1 calls in this window
+
   var s1 = {
-    warmed: false,     // once true, S1 is treated like other segments
-    arming: false,     // true during the first 300ms window
+    warmed: false,     // once true, S1 is treated like all other segments
+    arming: false,     // true only during the first SWALLOW_MS window
     firstTs: 0,
     retapTimer: null
   };
 
-  // Wrap the global playSegment
   window.playSegment = function (startTime, endTime, index) {
-    // Non-S1 calls: do nothing special
+    // Not segment 1 → behave normally
     if (index !== 0) {
       return __origPlaySegment.call(this, startTime, endTime, index);
     }
 
     var now = performance.now();
 
-    // If S1 is already warmed, behave normally
+    // Already warmed → behave normally
     if (s1.warmed) {
       return __origPlaySegment.call(this, startTime, endTime, 0);
     }
 
-    // First S1 call for this song
+    // First S1 call in this song → allow + schedule ONE controlled re-tap
     if (!s1.arming) {
       s1.arming  = true;
       s1.firstTs = now;
-      console.log("[S1] first call — allowing + scheduling one controlled re-tap at +" + RETAP_DELAY_MS + "ms");
+      console.log("[S1] first call → scheduling one controlled re-tap at +" + RETAP_DELAY_MS + "ms");
 
-      // Let the original logic start S1
+      // Start S1 normally
       __origPlaySegment.call(this, startTime, endTime, 0);
 
-      // Schedule exactly one controlled re-tap (this matches your manual second tap)
+      // ONE controlled re-tap (this is what your manual second tap does)
       s1.retapTimer = setTimeout(function () {
         console.log("[S1] controlled re-tap fired");
         __origPlaySegment.call(window, startTime, endTime, 0);
-        // Mark S1 warmed; future S1 calls are normal
-        s1.warmed = true;
+        s1.warmed = true;        // from now on S1 behaves like other segments
         s1.arming = false;
         s1.retapTimer = null;
       }, RETAP_DELAY_MS);
 
-      return; // IMPORTANT: don't run original again now
+      return; // IMPORTANT: don’t run the original again now
     }
 
-    // We're inside the first 300ms window: swallow duplicates (kills 70/140/210ms retries)
+    // Inside the first 300 ms window → swallow duplicates (kills 70/140/210 ms)
     if (now - s1.firstTs < SWALLOW_MS) {
       console.log("[S1] swallowed duplicate call within " + SWALLOW_MS + "ms window");
       return; // ignore this extra restart
     }
 
-    // If we somehow get here after the swallow window but not warmed, fall back to normal
+    // Outside the window but not warmed (rare) → treat as normal
     console.log("[S1] late call after window — treating as normal");
     return __origPlaySegment.call(this, startTime, endTime, 0);
   };
 
-  // Reset S1 state when the song changes
+  // Reset when user selects a new song
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
@@ -286,3 +283,6 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
     }, { capture: true });
   });
 })();
+
+
+
