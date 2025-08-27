@@ -345,3 +345,77 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
     }, true); // capture
   })();
 })();
+
+
+
+
+
+/* ==========================================================
+   ✅ Per-Segment Fast Align Booster (paste at END of file)
+   - Runs for ~0.8s at the start of EVERY segment
+   - No pause(), no volume changes, no restarts
+   - Aligns accompaniment to vocal each animation frame
+   - Respects playRunId (stops if a newer play begins)
+   ========================================================== */
+(function () {
+  if (window.__ALL_SEG_TIGHTSYNC__) return;
+  window.__ALL_SEG_TIGHTSYNC__ = true;
+
+  var BOOST_MS  = 800;   // duration of the fast-align window (try 700–1100 if needed)
+  var SNAP_EPS  = 0.008; // snap if drift > 8 ms (try 0.005–0.012 if needed)
+  var END_GUARD = 0.02;  // don’t interfere in the last 20 ms of the segment
+
+  function fastAlignWindow(endTime, runId) {
+    var a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) return;
+
+    var stopAt = performance.now() + BOOST_MS;
+    var rafId;
+
+    function tick() {
+      // stop if another play/segment took over
+      if (runId !== window.playRunId) return;
+      if (!window.vocalAudio || !window.accompAudio) return;
+
+      var now = performance.now();
+      if (now >= stopAt) return;
+
+      var va = window.vocalAudio.currentTime;
+      var vb = window.accompAudio.currentTime;
+
+      // avoid touching right at the very end of the segment
+      if (typeof endTime === "number" && va >= endTime - END_GUARD) return;
+
+      // make accompaniment follow vocal (vocal = master clock)
+      var drift = va - vb;
+      if (drift > SNAP_EPS) {
+        try { 
+          if (typeof window.accompAudio.fastSeek === "function") window.accompAudio.fastSeek(va);
+          else window.accompAudio.currentTime = va;
+        } catch (_) {
+          window.accompAudio.currentTime = va;
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  // Wrap the existing global playSegment to start the booster for every segment
+  var __origPlaySegment = window.playSegment;
+  window.playSegment = function (startTime, endTime, index) {
+    var r = __origPlaySegment && __origPlaySegment.call(this, startTime, endTime, index);
+
+    // capture the current run id after the call (original increments it)
+    var runId = window.playRunId || 0;
+
+    // begin fast alignment for this segment
+    Promise.resolve().then(function () {
+      fastAlignWindow(endTime, runId);
+    });
+
+    return r;
+  };
+})();
