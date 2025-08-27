@@ -29,20 +29,18 @@ function playSegment(startTime, endTime, index = 0) {
   console.log(`🎵 Segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
 
   // Pause and seek both players to start (seek must finish before play)
-  
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-  
+  // window.vocalAudio.pause();
+  // window.accompAudio.pause();
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
+  try { window.vocalAudio.play(); } catch (e) {}
+  try { window.accompAudio.play(); } catch (e) {}
 
   // Wait until both have actually finished seeking before playing
   const once = (el, ev) => new Promise(res => (el.readyState >= 2 ? res() : el.addEventListener(ev, () => res(), { once: true })));
   const seekedVocal = once(window.vocalAudio, "seeked");
   const seekedAcc   = once(window.accompAudio, "seeked");
 
-
-    
   Promise.all([seekedVocal, seekedAcc]).then(() => {
     if (myRun !== window.playRunId) return; // aborted by a newer play
     return Promise.all([window.vocalAudio.play(), window.accompAudio.play()]);
@@ -50,7 +48,7 @@ function playSegment(startTime, endTime, index = 0) {
     if (myRun !== window.playRunId) return; // aborted by a newer play
 
     window.currentlyPlaying = true;
-        
+
     // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
     const DRIFT = 0.06; // resync if drift > 60ms
@@ -61,9 +59,8 @@ function playSegment(startTime, endTime, index = 0) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
         return;
-
       }
-         
+
       // Micro-resync: keep accompaniment locked to vocal
       const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
       if (diff > DRIFT) {
@@ -75,8 +72,8 @@ function playSegment(startTime, endTime, index = 0) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
 
-        window.vocalAudio.pause();
-        window.accompAudio.pause();
+        // window.vocalAudio.pause();
+        // window.accompAudio.pause();
         window.currentlyPlaying = false;
 
         // Auto-advance from here (no setTimeout drift)
