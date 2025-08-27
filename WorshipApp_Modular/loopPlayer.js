@@ -205,25 +205,21 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 /* ==========================================================
-   ✅ First-segment omni stabilizer (works on Samsung A16 & others)
-   - No pause(), no volume changes
-   - Pre-rolls slightly, then double-snap to exact start
-   - RAF alignment for ~0.9s to remove “juggle”
-   - Runs ONCE per song; auto-resets on song change
+   ✅ First-segment priming wrapper (universal, phone-safe)
+   - No pause() used; temporary muted=true only during priming
+   - Pre-roll slightly before start, wait for real frames, then snap to start
+   - Calls your original playSegment AFTER priming
+   - Runs ONCE per song and then stays out of the way
    ========================================================== */
 (function () {
-  if (window.__S1_OMNI_STAB__) return;
-  window.__S1_OMNI_STAB__ = true;
+  if (window.__S1_PRIME_PATCH__) return;
+  window.__S1_PRIME_PATCH__ = true;
 
-  // once-per-song guard shared with your app
-  if (typeof window.__FIRST_TAP_BOOST_DONE === "undefined") {
-    window.__FIRST_TAP_BOOST_DONE = false;
-  }
+  // one-time-per-song guard
+  if (typeof window.__S1_WARMED === "undefined") window.__S1_WARMED = false;
 
-  // Tunables (be conservative; these work across many phones)
-  var PRE_ROLL_SEC  = 0.06;   // seek a little before start to warm decoders
-  var STAB_MS       = 900;    // duration of aggressive alignment (600–1000 ok)
-  var SNAP_EPS      = 0.006;  // snap when behind by > 6ms
+  var PREROLL_SEC = 0.12;   // try 0.12s; raise to 0.18–0.25 on stubborn phones
+  var WAIT_MS     = 450;    // fallback wait for slow devices (try 500–600 if needed)
 
   function seekTo(el, t) {
     try { if (typeof el.fastSeek === "function") el.fastSeek(t); else el.currentTime = t; }
@@ -232,60 +228,62 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
   var __origPlaySegment = window.playSegment;
 
-  // Wrap your original playSegment to arm stabilization only for Segment 1
+  // Wrap global playSegment so we can PRIME only the very first Segment 1
   window.playSegment = function (startTime, endTime, index) {
     var a = window.vocalAudio, b = window.accompAudio;
-    var need = (index === 0 && !window.__FIRST_TAP_BOOST_DONE && a && b);
 
-    if (need) {
-      window.__FIRST_TAP_BOOST_DONE = true;
+    // Only prime ONCE per song, and only for Segment 1
+    if (index === 0 && !window.__S1_WARMED && a && b) {
+      window.__S1_WARMED = true;
 
-      // Make sure both are playing (no pause/resume cycle)
-      try { a.play(); } catch(e) {}
-      try { b.play(); } catch(e) {}
+      // ensure both are "playing" (fulfills mobile gesture policy)
+      try { a.play(); } catch (e) {}
+      try { b.play(); } catch (e) {}
 
-      // 1) tiny pre-roll to wake decoders (clamped to >= 0)
-      var pre = Math.max(0, startTime - PRE_ROLL_SEC);
+      // prime silently a little BEFORE the segment start
+      var pre = Math.max(0, startTime - PREROLL_SEC);
+      var oldMutedA = !!a.muted, oldMutedB = !!b.muted;
+      a.muted = true; b.muted = true;
+
       seekTo(a, pre);
       seekTo(b, pre);
 
-      // 2) schedule exact snap and short reinforcement after your logic begins
-      queueMicrotask(function () {
-        // exact snap to real start (twice to cover slow decoders)
+      // wait until BOTH produce a timeupdate (real frames) or fallback
+      var seen = 0, timer = null;
+      function done() {
+        a.removeEventListener("timeupdate", onTU);
+        b.removeEventListener("timeupdate", onTU);
+        if (timer) clearTimeout(timer);
+
+        // snap to the exact start and unmute
         seekTo(a, startTime);
         seekTo(b, startTime);
-        setTimeout(function () {
-          seekTo(a, startTime);
-          seekTo(b, startTime);
-        }, 100);
+        a.muted = oldMutedA; b.muted = oldMutedB;
 
-        // 3) aggressive alignment for ~0.9s (like segments 2…N)
-        var stopAt = performance.now() + STAB_MS;
-        var rafId;
-        (function tick () {
-          if (!window.vocalAudio || !window.accompAudio) return;
-          var now = performance.now();
-          if (now >= stopAt) { cancelAnimationFrame(rafId); return; }
+        // now hand off to your original implementation
+        __origPlaySegment.call(window, startTime, endTime, index);
+      }
+      function onTU() {
+        if (++seen >= 2) done();
+      }
 
-          var ta = a.currentTime, tb = b.currentTime;
-          var lead = ta > tb ? ta : tb;      // use the leader as clock
-          if (lead - ta > SNAP_EPS) seekTo(a, lead);
-          if (lead - tb > SNAP_EPS) seekTo(b, lead);
+      a.addEventListener("timeupdate", onTU, { once: true });
+      b.addEventListener("timeupdate", onTU, { once: true });
+      timer = setTimeout(done, WAIT_MS);
 
-          rafId = requestAnimationFrame(tick);
-        })();
-      });
+      // IMPORTANT: stop here — we’ll call the original after priming
+      return;
     }
 
-    // continue with your normal implementation
+    // Non-first segments (or already warmed): run your original immediately
     return __origPlaySegment.call(this, startTime, endTime, index);
   };
 
-  // reset once-per-song guard when user picks a new song
+  // reset the guard when user picks a new song
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
-      window.__FIRST_TAP_BOOST_DONE = false;
+      window.__S1_WARMED = false;
     }, { capture: true });
   });
 })();
