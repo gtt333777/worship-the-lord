@@ -202,16 +202,98 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   playSegment(startTime, endTime, index);
 }
 
-
 /* ==========================================================
-   📌 Triple-tap helper — Segment 1 only, once per song
-   Where to put: keep this block at the **END** of the file.
-   It will work because handlers run later after the script loads.
+   ✅ Bullet-proof first-segment stabilizer (end-of-file patch)
+   - Works for BOTH manual tap and auto-start of Segment 1
+   - Runs ONCE per song (we also auto-reset on song change)
+   - Re-seeks while playing after 'playing' / 'timeupdate'
+     (plus a 180ms fallback), with a 20ms micro-mute.
    ========================================================== */
-window.__FIRST_TAP_BOOST_DONE = window.__FIRST_TAP_BOOST_DONE || false;
-window.__boostFirstSegment = function (startTime, endTime, index) {
-  if (index !== 0) return; // safety
-  // simulate two extra taps at +100ms and +200ms
-  setTimeout(() => playSegment(startTime, endTime, index), 100);
-  setTimeout(() => playSegment(startTime, endTime, index), 200);
-};
+
+   /* Why this works when plain timeouts didn’t
+
+Your manual second tap succeeds because it happens after the audio pipeline is truly playing.
+
+Simple setTimeout(..., 100) doesn’t always align with that moment on mobile.
+
+This patch waits for playing/timeupdate on both audio elements (or uses a 180 ms fallback), 
+then re-seeks while still playing, which reproduces your manual second tap exactly — reliably.
+
+No modules, no imports; it stays in your global, split-script style.
+Try just pasting this block at the end — nothing else to change.*/
+
+
+(function () {
+  if (window.__FIRST_TAP_PATCHED__) return;
+  window.__FIRST_TAP_PATCHED__ = true;
+
+  // one-time flag per song
+  if (typeof window.__FIRST_TAP_BOOST_DONE === "undefined") {
+    window.__FIRST_TAP_BOOST_DONE = false;
+  }
+
+  // Helper: perform the “second tap” without restarting the pipeline
+  function retapSegment1(startTime) {
+    const a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) return;
+
+    // tiny mute to hide any click
+    const va = a.volume, vb = b.volume;
+    a.volume = 0; b.volume = 0;
+
+    try { (typeof a.fastSeek === "function") ? a.fastSeek(startTime) : (a.currentTime = startTime); } catch (e) { a.currentTime = startTime; }
+    try { (typeof b.fastSeek === "function") ? b.fastSeek(startTime) : (b.currentTime = startTime); } catch (e) { b.currentTime = startTime; }
+
+    try { a.play(); } catch (e) {}
+    try { b.play(); } catch (e) {}
+
+    setTimeout(() => { a.volume = va; b.volume = vb; }, 20);
+  }
+
+  // Wrap the existing global playSegment so we can inject the stabilizer
+  const __origPlaySegment = window.playSegment;
+  window.playSegment = function (startTime, endTime, index) {
+    const r = __origPlaySegment.call(this, startTime, endTime, index);
+
+    // Only for Segment 1, and only once per song
+    if (index === 0 && !window.__FIRST_TAP_BOOST_DONE && window.vocalAudio && window.accompAudio) {
+      window.__FIRST_TAP_BOOST_DONE = true;
+
+      const a = window.vocalAudio, b = window.accompAudio;
+      let aReady = !a.paused, bReady = !b.paused, fired = false;
+
+      const cleanup = () => {
+        a.removeEventListener("playing", onA);
+        b.removeEventListener("playing", onB);
+        a.removeEventListener("timeupdate", onA);
+        b.removeEventListener("timeupdate", onB);
+        if (timer) clearTimeout(timer);
+      };
+
+      const go = () => {
+        if (fired) return;
+        fired = true;
+        cleanup();
+        retapSegment1(startTime); // ← the “second tap” that fixes the juggle
+      };
+
+      function onA() { aReady = true; if (aReady && bReady) go(); }
+      function onB() { bReady = true; if (aReady && bReady) go(); }
+
+      // Fire as soon as both are actually moving; fallback at 180ms
+      a.addEventListener("playing", onA, { once: true });
+      b.addEventListener("playing", onB, { once: true });
+      a.addEventListener("timeupdate", onA, { once: true });
+      b.addEventListener("timeupdate", onB, { once: true });
+      const timer = setTimeout(go, 180);
+    }
+
+    return r;
+  };
+
+  // Auto-reset the “once per song” flag when song changes (safe no-op if missing)
+  document.addEventListener("DOMContentLoaded", () => {
+    const dd = document.getElementById("songSelect");
+    if (dd) dd.addEventListener("change", () => { window.__FIRST_TAP_BOOST_DONE = false; }, { capture: true });
+  });
+})();
