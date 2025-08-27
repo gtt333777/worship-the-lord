@@ -45,7 +45,7 @@ function playSegment(startTime, endTime, index = 0) {
   const seekedVocal = once(window.vocalAudio, "seeked");
   const seekedAcc   = once(window.accompAudio, "seeked");
 
-/* BLOCK B - START
+
     
   Promise.all([seekedVocal, seekedAcc]).then(() => {
     if (myRun !== window.playRunId) return; // aborted by a newer play
@@ -54,6 +54,8 @@ function playSegment(startTime, endTime, index = 0) {
     if (myRun !== window.playRunId) return; // aborted by a newer play
 
     window.currentlyPlaying = true;
+
+    /* BLOCK B - START
 
     // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
@@ -65,15 +67,19 @@ function playSegment(startTime, endTime, index = 0) {
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
         return;
+
       }
 
-   BLOCK B - END */
-
+   
       // Micro-resync: keep accompaniment locked to vocal
       const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
       if (diff > DRIFT) {
         window.accompAudio.currentTime = window.vocalAudio.currentTime;
       }
+
+      BLOCK B - END */ 
+
+
 
       // End of segment?
       if (window.vocalAudio.currentTime >= endTime - EPS) {
