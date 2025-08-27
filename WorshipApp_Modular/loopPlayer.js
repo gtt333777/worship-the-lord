@@ -205,76 +205,83 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 /* ==========================================================
-   ✅ First-segment universal stabilizer (RAF snap for ~0.8s)
-   - No pause, no volume, no timing guesses
-   - Works for manual tap and auto-start
+   ✅ First-segment omni stabilizer (works on Samsung A16 & others)
+   - No pause(), no volume changes
+   - Pre-rolls slightly, then double-snap to exact start
+   - RAF alignment for ~0.9s to remove “juggle”
    - Runs ONCE per song; auto-resets on song change
-   - Paste at END of file; no other edits needed
    ========================================================== */
 (function () {
-  if (window.__S1_RAF_STAB__) return;
-  window.__S1_RAF_STAB__ = true;
+  if (window.__S1_OMNI_STAB__) return;
+  window.__S1_OMNI_STAB__ = true;
 
-  // once-per-song flag
+  // once-per-song guard shared with your app
   if (typeof window.__FIRST_TAP_BOOST_DONE === "undefined") {
     window.__FIRST_TAP_BOOST_DONE = false;
   }
+
+  // Tunables (be conservative; these work across many phones)
+  var PRE_ROLL_SEC  = 0.06;   // seek a little before start to warm decoders
+  var STAB_MS       = 900;    // duration of aggressive alignment (600–1000 ok)
+  var SNAP_EPS      = 0.006;  // snap when behind by > 6ms
 
   function seekTo(el, t) {
     try { if (typeof el.fastSeek === "function") el.fastSeek(t); else el.currentTime = t; }
     catch (_) { el.currentTime = t; }
   }
 
-  // High-rate snapper for the first ~800ms of Segment 1
-  function startRafSnap(startTime) {
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    var start = performance.now();
-    var deadline = start + 800; // tune 600–1000ms if needed
-    var rafId = null;
-
-    function tick() {
-      // stop after deadline or if globals missing
-      if (!a || !b) return;
-      var now = performance.now();
-      if (now >= deadline) { cancelAnimationFrame(rafId); return; }
-
-      // only act once playback is actually moving (timeupdate happens)
-      // (if they haven't moved yet, just try again next frame)
-      var ta = a.currentTime, tb = b.currentTime;
-      var moving = (ta > startTime || tb > startTime || (!a.paused && !b.paused));
-      if (moving) {
-        // snap slower one up to the leading clock (no pauses)
-        var lead = ta > tb ? ta : tb;
-        if (Math.abs(ta - lead) > 0.01) seekTo(a, lead);
-        if (Math.abs(tb - lead) > 0.01) seekTo(b, lead);
-      }
-
-      rafId = requestAnimationFrame(tick);
-    }
-
-    rafId = requestAnimationFrame(tick);
-  }
-
-  // Wrap the original playSegment to arm the stabilizer for Segment 1 only
   var __origPlaySegment = window.playSegment;
+
+  // Wrap your original playSegment to arm stabilization only for Segment 1
   window.playSegment = function (startTime, endTime, index) {
-    var isS1 = (index === 0);
-    var need = isS1 && !window.__FIRST_TAP_BOOST_DONE;
+    var a = window.vocalAudio, b = window.accompAudio;
+    var need = (index === 0 && !window.__FIRST_TAP_BOOST_DONE && a && b);
 
     if (need) {
-      // mark done (once per song) and start the high-rate snapper
       window.__FIRST_TAP_BOOST_DONE = true;
-      // wait a microtask so the original function can kick playback,
-      // then begin snapping on the next frame
-      Promise.resolve().then(function () { startRafSnap(startTime); });
+
+      // Make sure both are playing (no pause/resume cycle)
+      try { a.play(); } catch(e) {}
+      try { b.play(); } catch(e) {}
+
+      // 1) tiny pre-roll to wake decoders (clamped to >= 0)
+      var pre = Math.max(0, startTime - PRE_ROLL_SEC);
+      seekTo(a, pre);
+      seekTo(b, pre);
+
+      // 2) schedule exact snap and short reinforcement after your logic begins
+      queueMicrotask(function () {
+        // exact snap to real start (twice to cover slow decoders)
+        seekTo(a, startTime);
+        seekTo(b, startTime);
+        setTimeout(function () {
+          seekTo(a, startTime);
+          seekTo(b, startTime);
+        }, 100);
+
+        // 3) aggressive alignment for ~0.9s (like segments 2…N)
+        var stopAt = performance.now() + STAB_MS;
+        var rafId;
+        (function tick () {
+          if (!window.vocalAudio || !window.accompAudio) return;
+          var now = performance.now();
+          if (now >= stopAt) { cancelAnimationFrame(rafId); return; }
+
+          var ta = a.currentTime, tb = b.currentTime;
+          var lead = ta > tb ? ta : tb;      // use the leader as clock
+          if (lead - ta > SNAP_EPS) seekTo(a, lead);
+          if (lead - tb > SNAP_EPS) seekTo(b, lead);
+
+          rafId = requestAnimationFrame(tick);
+        })();
+      });
     }
 
+    // continue with your normal implementation
     return __origPlaySegment.call(this, startTime, endTime, index);
   };
 
-  // Reset the once-per-song flag when the song changes
+  // reset once-per-song guard when user picks a new song
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
