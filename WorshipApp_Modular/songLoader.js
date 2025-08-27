@@ -67,13 +67,6 @@ document.getElementById("playBtn").addEventListener("click", () => {
   window.vocalAudio.src = vocalUrl;
   window.accompAudio.src = accUrl;
 
-  // 📱 Mobile tweak: buffer more to reduce seek stalls
-  if ((navigator.userAgentData && navigator.userAgentData.mobile) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    window.vocalAudio.preload = "auto";
-    window.accompAudio.preload = "auto";
-  }
-
-
   // Only load when play is pressed
   window.vocalAudio.preload = "auto";
   window.accompAudio.preload = "auto";
