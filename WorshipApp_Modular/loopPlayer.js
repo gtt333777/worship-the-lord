@@ -205,85 +205,66 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 /* ==========================================================
-   ✅ First-segment priming wrapper (universal, phone-safe)
-   - No pause() used; temporary muted=true only during priming
-   - Pre-roll slightly before start, wait for real frames, then snap to start
-   - Calls your original playSegment AFTER priming
-   - Runs ONCE per song and then stays out of the way
+   ✅ First-segment bounce: 1 → 2 → 1 (once per song)
+   - No pause(), no volume changes
+   - Uses your existing playSegment + playRunId (latest call wins)
+   - If there is no Segment 2, falls back to quick re-taps of Segment 1
+   - Paste at END of file; no other edits needed
    ========================================================== */
 (function () {
-  if (window.__S1_PRIME_PATCH__) return;
-  window.__S1_PRIME_PATCH__ = true;
+  if (window.__S1_BOUNCE_PATCH__) return;
+  window.__S1_BOUNCE_PATCH__ = true;
 
-  // one-time-per-song guard
-  if (typeof window.__S1_WARMED === "undefined") window.__S1_WARMED = false;
+  // run-once-per-song guard
+  if (typeof window.__S1_BOUNCED === "undefined") window.__S1_BOUNCED = false;
 
-  var PREROLL_SEC = 0.12;   // try 0.12s; raise to 0.18–0.25 on stubborn phones
-  var WAIT_MS     = 450;    // fallback wait for slow devices (try 500–600 if needed)
+  // Timings tuned for mobile; adjust if you ever need to
+  var BACK_DELAY_1 = 90;   // ms: come back quickly (users won’t notice)
+  var BACK_DELAY_2 = 180;  // ms: reinforce once more (latest call wins)
 
-  function seekTo(el, t) {
-    try { if (typeof el.fastSeek === "function") el.fastSeek(t); else el.currentTime = t; }
-    catch (_) { el.currentTime = t; }
-  }
-
+  // Keep the original function
   var __origPlaySegment = window.playSegment;
 
-  // Wrap global playSegment so we can PRIME only the very first Segment 1
+  // Wrap global playSegment to bounce only the first time Segment 1 is requested
   window.playSegment = function (startTime, endTime, index) {
-    var a = window.vocalAudio, b = window.accompAudio;
+    var segs = window.segments || [];
+    var hasSeg2 = segs && segs.length > 1 && segs[1];
 
-    // Only prime ONCE per song, and only for Segment 1
-    if (index === 0 && !window.__S1_WARMED && a && b) {
-      window.__S1_WARMED = true;
+    // Only on first ask for Segment 1, and only once per song
+    if (index === 0 && !window.__S1_BOUNCED) {
+      window.__S1_BOUNCED = true;
 
-      // ensure both are "playing" (fulfills mobile gesture policy)
-      try { a.play(); } catch (e) {}
-      try { b.play(); } catch (e) {}
+      // Ensure both players are in "playing" state (no pause/resume cycle)
+      try { window.vocalAudio && window.vocalAudio.play(); } catch (e) {}
+      try { window.accompAudio && window.accompAudio.play(); } catch (e) {}
 
-      // prime silently a little BEFORE the segment start
-      var pre = Math.max(0, startTime - PREROLL_SEC);
-      var oldMutedA = !!a.muted, oldMutedB = !!b.muted;
-      a.muted = true; b.muted = true;
+      if (hasSeg2) {
+        // 1) bounce to Segment 2 immediately…
+        var s2 = segs[1];
+        __origPlaySegment.call(this, s2.start, s2.end, 1);
 
-      seekTo(a, pre);
-      seekTo(b, pre);
-
-      // wait until BOTH produce a timeupdate (real frames) or fallback
-      var seen = 0, timer = null;
-      function done() {
-        a.removeEventListener("timeupdate", onTU);
-        b.removeEventListener("timeupdate", onTU);
-        if (timer) clearTimeout(timer);
-
-        // snap to the exact start and unmute
-        seekTo(a, startTime);
-        seekTo(b, startTime);
-        a.muted = oldMutedA; b.muted = oldMutedB;
-
-        // now hand off to your original implementation
-        __origPlaySegment.call(window, startTime, endTime, index);
+        // 2) …then come back to Segment 1 fast (and reinforce once)
+        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_1);
+        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_2);
+      } else {
+        // Fallback if there is no Segment 2: just retap Segment 1 quickly
+        __origPlaySegment.call(this, startTime, endTime, 0);
+        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_1);
+        setTimeout(() => __origPlaySegment.call(this, startTime, endTime, 0), BACK_DELAY_2);
       }
-      function onTU() {
-        if (++seen >= 2) done();
-      }
-
-      a.addEventListener("timeupdate", onTU, { once: true });
-      b.addEventListener("timeupdate", onTU, { once: true });
-      timer = setTimeout(done, WAIT_MS);
-
-      // IMPORTANT: stop here — we’ll call the original after priming
+      // We handled it; do not run the normal call now.
       return;
     }
 
-    // Non-first segments (or already warmed): run your original immediately
+    // Normal path for all other segments (and for S1 after the first bounce)
     return __origPlaySegment.call(this, startTime, endTime, index);
   };
 
-  // reset the guard when user picks a new song
+  // Reset the “once per song” guard when the song changes
   document.addEventListener("DOMContentLoaded", function () {
     var dd = document.getElementById("songSelect");
     if (dd) dd.addEventListener("change", function () {
-      window.__S1_WARMED = false;
+      window.__S1_BOUNCED = false;
     }, { capture: true });
   });
 })();
