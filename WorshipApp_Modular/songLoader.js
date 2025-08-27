@@ -61,9 +61,7 @@ document.getElementById("playBtn").addEventListener("click", () => {
   const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
   const accUrl   = getDropboxFileURL(songName + "_acc.mp3");
 
-  console.log("🎧 Streaming vocal from:", vocalUrl);
-  console.log("🎧 Streaming accompaniment from:", accUrl);
-
+  // Set sources
   window.vocalAudio.src = vocalUrl;
   window.accompAudio.src = accUrl;
 
@@ -71,46 +69,52 @@ document.getElementById("playBtn").addEventListener("click", () => {
   window.vocalAudio.preload = "auto";
   window.accompAudio.preload = "auto";
 
-  // Handshake: mark that we want Segment 1 to auto-start after audio+segments are ready
-  window.wantAutoSegment1 = true;
-
-  // Ensure both are ready and start them; store the promise globally
+  // Warm both tracks and set a promise we can await here
   window.audioReadyPromise = checkReadyAndPlay();
 
-  window.audioReadyPromise.then(() => {
-    console.log("🎯 Playback started after both tracks were ready.");
+  // Also wait until loop JSON is loaded (poll up to ~2s)
+  const waitSegments = new Promise((resolve) => {
+    if (window.segments && window.segments.length > 0) return resolve();
+    const t0 = Date.now();
+    const t = setInterval(() => {
+      if (window.segments && window.segments.length > 0) { clearInterval(t); resolve(); }
+      else if (Date.now() - t0 > 2000) { clearInterval(t); resolve(); }
+    }, 50);
+  });
 
-    // If segments are already loaded, start Segment 1 now (one time)
-    if (window.wantAutoSegment1 && window.segments && window.segments.length > 0 && typeof window.playSegment === "function") {
-      const seg = window.segments[0];
-      console.log("🎯 Auto-starting Segment 1 (from songLoader.js)");
-      window.playSegment(seg.start, seg.end, 0);
-      // Optional single nudge ~150ms later for extra snap (guarded)
-      setTimeout(() => {
-        if (window.vocalAudio.currentTime < seg.start + 0.2) {
-          window.playSegment(seg.start, seg.end, 0);
-        }
-      }, 150);
-      window.wantAutoSegment1 = false;
+  // When both tracks have started AND segments are known, start Segment 1 via the segment path
+  Promise.all([window.audioReadyPromise, waitSegments]).then(() => {
+    if (!window.segments || window.segments.length === 0) {
+      console.warn("⚠️ No segments loaded yet; cannot start Segment 1.");
+      return;
     }
+    const seg = window.segments[0];
+    console.log("🎯 Play routed to Segment 1 (strict path)");
+    window.playSegment(seg.start, seg.end, 0);
   });
 });
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Pause button clicked");
-  stopAndUnloadAudio();
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
+});
 
-  // Clear any loop segment timeout/interval
-  if (typeof window.activeSegmentTimeout !== "undefined" && window.activeSegmentTimeout) {
-    clearTimeout(window.activeSegmentTimeout);
-    window.activeSegmentTimeout = null;
-  }
-  if (typeof window.activeSegmentInterval !== "undefined" && window.activeSegmentInterval) {
-    clearInterval(window.activeSegmentInterval);
-    window.activeSegmentInterval = null;
-  }
+// === Song dropdown change: just set the textarea lyrics; loop JSON is fetched in loopPlayer.js ===
+document.addEventListener("DOMContentLoaded", () => {
+  const dd = document.getElementById("songSelect");
+  const lyricsArea = document.getElementById("lyricsText");
+  if (!dd || !lyricsArea) return;
 
-  window.currentlyPlaying = false;
+  dd.addEventListener("change", () => {
+    const selected = dd.value;
+    if (!selected) return;
+
+    fetch(`lyrics/${selected}.txt`)
+      .then(r => r.ok ? r.text() : Promise.reject(new Error("Lyrics not found")))
+      .then(txt => { lyricsArea.value = txt; })
+      .catch(err => { console.warn("⚠️ Could not load lyrics:", err); });
+  });
 });
 
 // === Stop & Unload Function ===
