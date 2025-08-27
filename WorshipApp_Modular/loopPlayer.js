@@ -194,3 +194,101 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
   playSegment(startTime, endTime, index);
 }
+
+
+
+/* ==========================================================
+   ✅ Guard: Play-alone does nothing; user must tap Segment 1
+   - Paste at the END of loopPlayer.js
+   - No modules/imports; global-safe
+   - Blocks auto Segment 1 starts from Play
+   - Also neuters checkReadyAndPlay() until Segment 1 is tapped
+   ========================================================== */
+(function () {
+  if (window.__PLAY_GUARD_INSTALLED__) return;
+  window.__PLAY_GUARD_INSTALLED__ = true;
+
+  // User must explicitly tap "Segment 1" to enable playback.
+  // Reset to false on every song change.
+  window.__SEG1_ALLOWED__ = false;
+
+  // Install AFTER both functions exist (they’re globals from your split scripts)
+  function install() {
+    if (typeof window.playSegment !== "function" || typeof window.checkReadyAndPlay !== "function") {
+      setTimeout(install, 0);
+      return;
+    }
+
+    // --- 1) Block auto Segment 1 starts (e.g., from Play path) until user taps Segment 1
+    const __origPlaySegment = window.playSegment;
+    window.playSegment = function (startTime, endTime, index) {
+      if (index === 0 && !window.__SEG1_ALLOWED__) {
+        console.log("[Guard] Ignoring Segment 1 auto-start — wait for user tap.");
+        return;
+      }
+      return __origPlaySegment.call(this, startTime, endTime, index);
+    };
+
+    // --- 2) Neuter checkReadyAndPlay() while guard is active (so Play alone won’t start audio)
+    const __origCheckReadyAndPlay = window.checkReadyAndPlay;
+    window.checkReadyAndPlay = function () {
+      if (window.__SEG1_ALLOWED__) return __origCheckReadyAndPlay.call(this);
+
+      // Wait for readiness but DO NOT call .play() on either element
+      return new Promise((resolve) => {
+        const a = window.vocalAudio, b = window.accompAudio;
+
+        function ready(el) {
+          return new Promise((res) => {
+            if (!el) return res();
+            if (el.readyState >= 2) return res();
+            el.addEventListener("canplaythrough", () => res(), { once: true });
+          });
+        }
+
+        Promise.all([ready(a), ready(b)]).then(resolve);
+      });
+    };
+
+    // --- 3) Detect user’s explicit tap on the Segment 1 button (capture phase, before existing handler)
+    document.addEventListener(
+      "click",
+      function (ev) {
+        const t = ev.target;
+        if (!t) return;
+        if (t.classList && t.classList.contains("segment-button")) {
+          const txt = (t.textContent || "").trim();
+          // Your buttons are labeled "Segment 1", "Segment 2", ...
+          if (/^Segment\s*1$/i.test(txt)) {
+            window.__SEG1_ALLOWED__ = true;
+            console.log("[Guard] User tapped Segment 1 — playback enabled.");
+          }
+        }
+      },
+      true // capture so this runs before the existing click listener
+    );
+
+    // --- 4) Reset the guard when user picks a new song
+    const onReady = () => {
+      const dd = document.getElementById("songSelect");
+      if (dd) {
+        dd.addEventListener(
+          "change",
+          () => {
+            window.__SEG1_ALLOWED__ = false;
+            console.log("[Guard] New song selected — Segment 1 tap required again.");
+          },
+          { capture: true }
+        );
+      }
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", onReady);
+    } else {
+      onReady();
+    }
+  }
+
+  // Start installer now (and retry shortly if functions not defined yet)
+  install();
+})();
