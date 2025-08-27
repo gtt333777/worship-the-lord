@@ -350,72 +350,178 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* ==========================================================
-   ✅ Per-Segment Fast Align Booster (paste at END of file)
-   - Runs for ~0.8s at the start of EVERY segment
-   - No pause(), no volume changes, no restarts
-   - Aligns accompaniment to vocal each animation frame
-   - Respects playRunId (stops if a newer play begins)
+   ✅ Promise-Barrier playSegment (phone-tight start)
+   - Seeks both, waits BOTH seeked + BOTH moving, then starts
+   - One-time micro-align after the barrier
+   - No pause() between segments → keeps your gapless flow
+   - Respects playRunId; cancels older overlaps
    ========================================================== */
 (function () {
-  if (window.__ALL_SEG_TIGHTSYNC__) return;
-  window.__ALL_SEG_TIGHTSYNC__ = true;
+  if (window.__PROMISE_BARRIER_SEGMENT__) return;
+  window.__PROMISE_BARRIER_SEGMENT__ = true;
 
-  var BOOST_MS  = 800;   // duration of the fast-align window (try 700–1100 if needed)
-  var SNAP_EPS  = 0.008; // snap if drift > 8 ms (try 0.005–0.012 if needed)
-  var END_GUARD = 0.02;  // don’t interfere in the last 20 ms of the segment
+  // Keep a reference to any existing playSegment (we’ll replace it completely)
+  var __oldPlaySegment = window.playSegment;
 
-  function fastAlignWindow(endTime, runId) {
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
+  function waitSeek(el, target, fallbackMs) {
+    return new Promise(function (resolve) {
+      // If we’re already effectively there, resolve
+      if (Math.abs((el.currentTime || 0) - target) < 0.004) return resolve();
 
-    var stopAt = performance.now() + BOOST_MS;
-    var rafId;
-
-    function tick() {
-      // stop if another play/segment took over
-      if (runId !== window.playRunId) return;
-      if (!window.vocalAudio || !window.accompAudio) return;
-
-      var now = performance.now();
-      if (now >= stopAt) return;
-
-      var va = window.vocalAudio.currentTime;
-      var vb = window.accompAudio.currentTime;
-
-      // avoid touching right at the very end of the segment
-      if (typeof endTime === "number" && va >= endTime - END_GUARD) return;
-
-      // make accompaniment follow vocal (vocal = master clock)
-      var drift = va - vb;
-      if (drift > SNAP_EPS) {
-        try { 
-          if (typeof window.accompAudio.fastSeek === "function") window.accompAudio.fastSeek(va);
-          else window.accompAudio.currentTime = va;
-        } catch (_) {
-          window.accompAudio.currentTime = va;
-        }
+      var timer = null;
+      function onSeeked() {
+        cleanup(); resolve();
       }
-
-      rafId = requestAnimationFrame(tick);
-    }
-
-    rafId = requestAnimationFrame(tick);
+      function cleanup() {
+        el.removeEventListener("seeked", onSeeked);
+        if (timer) clearTimeout(timer);
+      }
+      el.addEventListener("seeked", onSeeked, { once: true });
+      // Fallback: some mobiles don’t reliably fire 'seeked' under load
+      timer = setTimeout(function () { cleanup(); resolve(); }, fallbackMs || 400);
+    });
   }
 
-  // Wrap the existing global playSegment to start the booster for every segment
-  var __origPlaySegment = window.playSegment;
-  window.playSegment = function (startTime, endTime, index) {
-    var r = __origPlaySegment && __origPlaySegment.call(this, startTime, endTime, index);
+  function waitMovingAfter(el, minTime, fallbackMs) {
+    return new Promise(function (resolve) {
+      // If already moving past minTime, done
+      if (!el.paused && (el.currentTime || 0) >= minTime - 0.003) return resolve();
 
-    // capture the current run id after the call (original increments it)
-    var runId = window.playRunId || 0;
+      var seen = false, timer = null;
+      function done() { if (seen) return; seen = true; cleanup(); resolve(); }
+      function onTU() {
+        // make sure this TU is at/after our target region
+        if ((el.currentTime || 0) >= minTime - 0.003) done();
+      }
+      function onPlay() { /* some browsers emit 'playing' first */ }
+      function onPlaying() { onTU(); }
 
-    // begin fast alignment for this segment
-    Promise.resolve().then(function () {
-      fastAlignWindow(endTime, runId);
+      function cleanup() {
+        el.removeEventListener("timeupdate", onTU);
+        el.removeEventListener("play", onPlay);
+        el.removeEventListener("playing", onPlaying);
+        if (timer) clearTimeout(timer);
+      }
+
+      el.addEventListener("timeupdate", onTU, { once: true });
+      el.addEventListener("play", onPlay, { once: true });
+      el.addEventListener("playing", onPlaying, { once: true });
+      timer = setTimeout(function () { done(); }, fallbackMs || 450);
     });
+  }
 
-    return r;
+  window.playSegment = function promiseBarrierPlaySegment(startTime, endTime, index) {
+    // Guard: audio elements must exist
+    if (!window.vocalAudio || !window.accompAudio) {
+      console.warn("❌ playSegment: audio not ready yet"); 
+      return;
+    }
+
+    // Cancel previous watchdog
+    if (window.activeSegmentInterval) {
+      clearInterval(window.activeSegmentInterval);
+      window.activeSegmentInterval = null;
+    }
+    if (window.activeSegmentTimeout) {
+      clearTimeout(window.activeSegmentTimeout);
+      window.activeSegmentTimeout = null;
+    }
+
+    // New run id; invalidate anything older
+    const myRun = ++window.playRunId;
+    const a = window.vocalAudio;
+    const b = window.accompAudio;
+
+    console.log(`🎵 PB-Segment: ${startTime} → ${endTime}`);
+
+    // 1) Seek both (NO pause → gapless), then barrier on BOTH seeked
+    try { a.currentTime = startTime; } catch (e) { /* ignore */ }
+    try { b.currentTime = startTime; } catch (e) { /* ignore */ }
+
+    const seekBarrier = Promise.all([ waitSeek(a, startTime), waitSeek(b, startTime) ]);
+
+    // 2) Ensure both are actually playing (first segment / after pause)
+    //    (Calling play() quickly one after the other is fine; Promise resolves when allowed)
+    const ensurePlaying = () => Promise.all([
+      a.play().catch(()=>{}),
+      b.play().catch(()=>{})
+    ]);
+
+    // 3) After seek barrier, ensure BOTH are moving at/after start boundary
+    //    (This avoids one element “moving” while the other is still catching up)
+    seekBarrier.then(() => {
+      if (myRun !== window.playRunId) return;
+      return ensurePlaying();
+    }).then(() => {
+      if (myRun !== window.playRunId) return;
+      return Promise.all([
+        waitMovingAfter(a, startTime),
+        waitMovingAfter(b, startTime)
+      ]);
+    }).then(() => {
+      if (myRun !== window.playRunId) return;
+
+      // 4) One-time micro align (forward-only)
+      const ta = a.currentTime || 0;
+      const tb = b.currentTime || 0;
+      const lead = ta > tb ? ta : tb;
+      if (lead - ta > 0.006) { try { a.currentTime = lead; } catch(_){} }
+      if (lead - tb > 0.006) { try { b.currentTime = lead; } catch(_){} }
+
+      window.currentlyPlaying = true;
+
+      // 5) Start watchdog (light micro-resync + end-of-segment chaining)
+      const EPS   = 0.02; // 20 ms near segment end
+      const DRIFT = 0.05; // resync if >50 ms (tighter than before)
+
+      window.activeSegmentInterval = setInterval(() => {
+        if (myRun !== window.playRunId) {
+          clearInterval(window.activeSegmentInterval);
+          window.activeSegmentInterval = null;
+          return;
+        }
+
+        // micro-resync: accompany follows vocal (forward only)
+        const va = a.currentTime, vb = b.currentTime;
+        const diff = va - vb;
+        if (diff > DRIFT) {
+          try {
+            if (typeof b.fastSeek === "function") b.fastSeek(va);
+            else b.currentTime = va;
+          } catch(_) { b.currentTime = va; }
+        }
+
+        // End-of-segment?
+        if (va >= endTime - EPS) {
+          clearInterval(window.activeSegmentInterval);
+          window.activeSegmentInterval = null;
+          window.currentlyPlaying = false;
+
+          // Auto-advance without pause (gapless)
+          if (index < (window.segments?.length || 0) - 1) {
+            const next = window.segments[index + 1];
+            // Use the same promise-barrier starter
+            window.playSegment(next.start, next.end, index + 1);
+          }
+        }
+      }, 50);
+    }).catch(err => {
+      console.warn("⚠️ PB-Segment error:", err);
+    });
   };
+
+  console.log("🔧 Promise-Barrier playSegment installed.");
 })();
