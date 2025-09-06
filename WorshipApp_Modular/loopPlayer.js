@@ -474,5 +474,141 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
+/* ==========================================================
+   ✅ Next-segment warm-up (kills the very first handoff gap on mobile)
+   - Paste at END of loopPlayer.js (after your seamless handoff patch)
+   - No modules/imports. Safe + idempotent.
+   - Plays muted clone audios for the *next* segment for ~2s, once per segment.
+   ========================================================== */
+(function () {
+  if (window.__NEXT_SEGMENT_WARMER__) return;
+  window.__NEXT_SEGMENT_WARMER__ = true;
+
+  // Keep the current playSegment (already patched with seamless handoff) so we can extend it
+  var __playSegmentBase = window.playSegment;
+
+  // Track which segment indices we have already warmed (avoid redundant work)
+  var __warmed = new Set();
+
+  // Tunables
+  var WARM_SECONDS = 2.0;     // how long to pre-roll (muted) the next segment
+  var WARM_TIMEOUT_MS = 3500; // absolute safety timeout for the warmer lifecycle
+  var SEEK_READY_STATES = 1;  // allow seek after metadata (>=1) to be quicker
+
+  // Make a muted, off-DOM Audio clone that can seek/play independently
+  function makeMutedClone(src) {
+    var a = new Audio();
+    a.src = src;
+    a.preload = "auto";
+    a.muted = true;
+    a.playsInline = true;
+    a.crossOrigin = (window.vocalAudio && window.vocalAudio.crossOrigin) || "anonymous";
+    return a;
+  }
+
+  function waitForCanSeek(audio) {
+    return new Promise(function (res) {
+      // If metadata already loaded, resolve quickly
+      if (audio.readyState >= SEEK_READY_STATES) return res();
+      var done = false;
+      var onLoaded = function () { if (!done) { done = true; res(); } };
+      audio.addEventListener("loadedmetadata", onLoaded, { once: true });
+      audio.addEventListener("canplay", onLoaded, { once: true });
+      // Fallback: small timer in case events race
+      setTimeout(onLoaded, 500);
+    });
+  }
+
+  // Warm up decoders by briefly playing the next segment muted on clone elements
+  function warmNextSegment(nextStart) {
+    // Must have the live players and their src
+    var va = window.vocalAudio, aa = window.accompAudio;
+    if (!va || !aa || !va.src || !aa.src) return function cancel(){};
+
+    var cloneV = makeMutedClone(va.src);
+    var cloneA = makeMutedClone(aa.src);
+
+    var cancelled = false;
+    var timer = null;
+
+    function cleanup() {
+      try { cloneV.pause(); } catch(_) {}
+      try { cloneA.pause(); } catch(_) {}
+      // Release refs to help GC
+      cloneV.src = "";
+      cloneA.src = "";
+    }
+
+    (async function run() {
+      try {
+        // Load minimal metadata so we can seek quickly
+        await Promise.all([waitForCanSeek(cloneV), waitForCanSeek(cloneA)]);
+        if (cancelled) return cleanup();
+
+        // Seek to the *start* of next segment
+        try { cloneV.currentTime = Math.max(0, nextStart); } catch(_) {}
+        try { cloneA.currentTime = Math.max(0, nextStart); } catch(_) {}
+
+        // Fire them up (muted autoplay generally allowed on mobile)
+        try { await cloneV.play(); } catch(_) {}
+        try { await cloneA.play(); } catch(_) {}
+
+        // Let them run for WARM_SECONDS, then stop
+        timer = setTimeout(function () {
+          if (cancelled) return cleanup();
+          cleanup();
+        }, WARM_SECONDS * 1000);
+      } catch (_) {
+        cleanup();
+      }
+
+      // Hard safety guard
+      setTimeout(function(){
+        if (!cancelled) { cancelled = true; cleanup(); }
+      }, WARM_TIMEOUT_MS);
+    })();
+
+    // Return a cancel function in case we need to abort early
+    return function cancel() {
+      cancelled = true;
+      if (timer) { clearTimeout(timer); timer = null; }
+      cleanup();
+    };
+  }
+
+  // Wrap current playSegment so every start schedules a one-time warmer for the next
+  window.playSegment = function (startTime, endTime, index) {
+    // Call the underlying (your existing) start logic
+    __playSegmentBase && __playSegmentBase.call(this, startTime, endTime, index);
+
+    // If there is a next segment and we haven't warmed it yet, warm it now.
+    try {
+      var i = index|0;
+      if (!Array.isArray(window.segments)) return;
+      if (i < 0 || i >= window.segments.length - 1) return; // no next
+      if (__warmed.has(i+1)) return;
+
+      var next = window.segments[i + 1];
+      if (!next || typeof next.start !== "number") return;
+
+      __warmed.add(i+1);            // mark as scheduled (avoid dup)
+      var myRun = window.playRunId; // if user jumps elsewhere, we’ll abort
+
+      var cancelWarm = warmNextSegment(next.start);
+
+      // If another play takes over before warm finishes, cancel it
+      setTimeout(function checkRunStillValid(){
+        if (myRun !== window.playRunId && typeof cancelWarm === "function") {
+          cancelWarm();
+        }
+      }, 0);
+    } catch (e) {
+      // Never let warmer crash playback
+      console.warn("⚠️ warmer:", e);
+    }
+  };
+
+  console.log("🔥 Next-segment warmer installed (first handoff gap removed).");
+})();
 
 
