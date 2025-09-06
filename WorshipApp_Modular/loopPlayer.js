@@ -473,30 +473,28 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 /* ==========================================================
-   ✅ Seamless inter-segment handoff (refined mobile version)
-   - In-place jump (no pause, no re-call) like before
-   - RAF-driven when visible, interval fallback when hidden
-   - Tighter resync & safer play() usage (fewer AbortError logs)
-   - Drop-in replacement for the previous seamless patch
+   ✅ Seamless inter-segment handoff — from Segment 2 onward only
+   - First segment (index 0) is 100% untouched
+   - In-place jump (no pause, no re-call) for later segments
+   - RAF-driven when visible; interval fallback when hidden
+   - Safe play() usage (suppresses AbortError noise)
    ========================================================== */
 (function () {
-  if (window.__SEAMLESS_CHAIN_PATCH_V2__) return;
-  window.__SEAMLESS_CHAIN_PATCH_V2__ = true;
+  if (window.__SEAMLESS_CHAIN_PATCH_V3__) return;
+  window.__SEAMLESS_CHAIN_PATCH_V3__ = true;
 
   var __origPlaySegment = window.playSegment;
   if (typeof __origPlaySegment !== "function") return;
 
-  // Tunables (mildly tighter)
+  // Tunables
   var EPS_END        = 0.012; // 12 ms guard at segment end
   var DRIFT_FIX_HARD = 0.050; // snap accomp if >50 ms behind vocal
   var DRIFT_FIX_SOFT = 0.020; // nudge accomp if >20 ms behind vocal
   var CHECK_EVERY_MS = 25;    // ~40/s when interval fallback is used
 
   function safePlay(el){
-    // Only call play() if it's actually paused
     if (!el || el.error || el.ended || !el.paused) return Promise.resolve();
     var p = el.play();
-    // Quietly ignore AbortError (play interrupted by pause/seek), log others
     return p && typeof p.catch === 'function' ? p.catch(function(e){
       if (!(e && (e.name === 'AbortError' || e.code === 20))) {
         console.warn('play() warn:', e);
@@ -512,23 +510,16 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   function startTicker(step){
     var cancelled = false;
     var interval = null;
-
-    // Prefer RAF while visible (smooth & frequent); fall back when hidden
     function rafLoop(){
       if (cancelled) return;
       step();
       requestAnimationFrame(rafLoop);
     }
-
     if (document.visibilityState === 'visible' && 'requestAnimationFrame' in window) {
       requestAnimationFrame(rafLoop);
     } else {
       interval = setInterval(function(){ if (!cancelled) step(); }, CHECK_EVERY_MS);
     }
-
-    // If visibility changes, we don’t restart the ticker mid-run (keeps simple);
-    // the next playSegment call will create a fresh ticker anyway.
-
     return function stop(){
       cancelled = true;
       if (interval) { clearInterval(interval); interval = null; }
@@ -536,38 +527,39 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   }
 
   window.playSegment = function (startTime, endTime, index) {
-    // Start as you already do (keeps perfect first start)
+    // Always start with your original behavior
     __origPlaySegment.call(this, startTime, endTime, index);
+
+    // ✳️ Do NOT install seamless logic for the first segment
+    //    (index 0). This keeps it completely untouched.
+    if ((index|0) === 0) return;
 
     var myRun = window.playRunId;
     var a = window.vocalAudio, b = window.accompAudio;
     if (!a || !b) return;
 
-    // Local state for this chain
+    // Chain state for this run
     var curIdx = index|0;
     var curEnd = endTime;
     var jumping = false;
 
-    // Kill any previous ticker
+    // Stop any previous ticker from an older run
     if (window.__seamlessStopper) { try { window.__seamlessStopper(); } catch(_){} }
     window.__seamlessStopper = startTicker(function step(){
       // Abort if a newer play took over
       if (myRun !== window.playRunId) { window.__seamlessStopper(); window.__seamlessStopper = null; return; }
 
-      // Safety: players must exist
+      // Safety: both players must exist
       if (!window.vocalAudio || !window.accompAudio) { window.__seamlessStopper(); window.__seamlessStopper = null; return; }
 
       var va = a.currentTime;
       var vb = b.currentTime;
       var lag = va - vb; // vocal is master
 
-      // Keep accompaniment glued to vocal:
-      // - small nudge if softly behind (>20ms)
-      // - hard snap if it drifts a lot (>50ms)
+      // Keep accompaniment glued to vocal
       if (lag > DRIFT_FIX_HARD) {
         fastSeekOrSet(b, va);
       } else if (lag > DRIFT_FIX_SOFT) {
-        // tiny nudge forward (reduce CPU & glitches)
         try { b.currentTime = va; } catch(_) {}
       }
 
@@ -586,16 +578,16 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
         if (jumping) return; // avoid double-processing in one step
         jumping = true;
 
-        // Next segment bounds
+        // Jump to next
         var next = window.segments[curIdx + 1];
         var target = next && typeof next.start === 'number' ? next.start : null;
         if (target == null) { return; }
 
-        // Seamless in-place jump (do NOT pause)
+        // Seamless in-place jump (no pause, no re-call)
         fastSeekOrSet(a, target);
         fastSeekOrSet(b, target);
 
-        // Only ask to play if needed (reduces AbortError logs)
+        // Only play if paused (reduces AbortError logs)
         safePlay(a);
         safePlay(b);
 
@@ -604,16 +596,18 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
         curEnd  = next.end;
         window.currentPlayingSegmentIndex = curIdx;
 
-        // release jumping flag on next tick
+        // Release jumping flag soon
         setTimeout(function(){ jumping = false; }, CHECK_EVERY_MS);
       }
     });
 
-    console.log("🔧 Seamless handoff v2 active (index:", curIdx, ")");
+    // Minimal, non-noisy trace (comment out if you prefer)
+    // console.log("🔧 Seamless handoff active from segment", index);
   };
 
-  console.log("🔧 Seamless inter-segment handoff v2 installed (mobile refined).");
+  console.log("🔧 Seamless handoff v3 installed (skips segment 1; seamless from segment 2+).");
 })();
+
 
 
 
