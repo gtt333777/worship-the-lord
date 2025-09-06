@@ -356,6 +356,7 @@ Faster check frequency (CHECK_EVERY_MS): This is now 30 ms instead of the previo
 Seamless in-place jump: When a segment is finished, we jump forward in time without pausing, ensuring that there’s no gap in mobile playback.
 
    ========================================================== */
+/*
 (function () {
   if (window.__SEAMLESS_CHAIN_PATCH__) return;
   window.__SEAMLESS_CHAIN_PATCH__ = true;
@@ -467,6 +468,164 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
   console.log("🔧 Seamless inter-segment handoff installed (mobile gap removed).");
 })();
+
+*/
+
+
+/* ==========================================================
+   ✅ Seamless inter-segment handoff (refined mobile version)
+   - In-place jump (no pause, no re-call) like before
+   - RAF-driven when visible, interval fallback when hidden
+   - Tighter resync & safer play() usage (fewer AbortError logs)
+   - Drop-in replacement for the previous seamless patch
+   ========================================================== */
+(function () {
+  if (window.__SEAMLESS_CHAIN_PATCH_V2__) return;
+  window.__SEAMLESS_CHAIN_PATCH_V2__ = true;
+
+  var __origPlaySegment = window.playSegment;
+  if (typeof __origPlaySegment !== "function") return;
+
+  // Tunables (mildly tighter)
+  var EPS_END        = 0.012; // 12 ms guard at segment end
+  var DRIFT_FIX_HARD = 0.050; // snap accomp if >50 ms behind vocal
+  var DRIFT_FIX_SOFT = 0.020; // nudge accomp if >20 ms behind vocal
+  var CHECK_EVERY_MS = 25;    // ~40/s when interval fallback is used
+
+  function safePlay(el){
+    // Only call play() if it's actually paused
+    if (!el || el.error || el.ended || !el.paused) return Promise.resolve();
+    var p = el.play();
+    // Quietly ignore AbortError (play interrupted by pause/seek), log others
+    return p && typeof p.catch === 'function' ? p.catch(function(e){
+      if (!(e && (e.name === 'AbortError' || e.code === 20))) {
+        console.warn('play() warn:', e);
+      }
+    }) : Promise.resolve();
+  }
+
+  function fastSeekOrSet(el, t){
+    try { if (el.fastSeek) { el.fastSeek(t); return; } } catch(_) {}
+    try { el.currentTime = t; } catch(_) {}
+  }
+
+  function startTicker(step){
+    var cancelled = false;
+    var interval = null;
+
+    // Prefer RAF while visible (smooth & frequent); fall back when hidden
+    function rafLoop(){
+      if (cancelled) return;
+      step();
+      requestAnimationFrame(rafLoop);
+    }
+
+    if (document.visibilityState === 'visible' && 'requestAnimationFrame' in window) {
+      requestAnimationFrame(rafLoop);
+    } else {
+      interval = setInterval(function(){ if (!cancelled) step(); }, CHECK_EVERY_MS);
+    }
+
+    // If visibility changes, we don’t restart the ticker mid-run (keeps simple);
+    // the next playSegment call will create a fresh ticker anyway.
+
+    return function stop(){
+      cancelled = true;
+      if (interval) { clearInterval(interval); interval = null; }
+    };
+  }
+
+  window.playSegment = function (startTime, endTime, index) {
+    // Start as you already do (keeps perfect first start)
+    __origPlaySegment.call(this, startTime, endTime, index);
+
+    var myRun = window.playRunId;
+    var a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) return;
+
+    // Local state for this chain
+    var curIdx = index|0;
+    var curEnd = endTime;
+    var jumping = false;
+
+    // Kill any previous ticker
+    if (window.__seamlessStopper) { try { window.__seamlessStopper(); } catch(_){} }
+    window.__seamlessStopper = startTicker(function step(){
+      // Abort if a newer play took over
+      if (myRun !== window.playRunId) { window.__seamlessStopper(); window.__seamlessStopper = null; return; }
+
+      // Safety: players must exist
+      if (!window.vocalAudio || !window.accompAudio) { window.__seamlessStopper(); window.__seamlessStopper = null; return; }
+
+      var va = a.currentTime;
+      var vb = b.currentTime;
+      var lag = va - vb; // vocal is master
+
+      // Keep accompaniment glued to vocal:
+      // - small nudge if softly behind (>20ms)
+      // - hard snap if it drifts a lot (>50ms)
+      if (lag > DRIFT_FIX_HARD) {
+        fastSeekOrSet(b, va);
+      } else if (lag > DRIFT_FIX_SOFT) {
+        // tiny nudge forward (reduce CPU & glitches)
+        try { b.currentTime = va; } catch(_) {}
+      }
+
+      // End-of-segment boundary
+      if (va >= curEnd - EPS_END) {
+        // Last segment → stop exactly at end
+        if (!Array.isArray(window.segments) || curIdx >= window.segments.length - 1) {
+          window.__seamlessStopper && window.__seamlessStopper();
+          window.__seamlessStopper = null;
+          try { a.pause(); } catch(_) {}
+          try { b.pause(); } catch(_) {}
+          window.currentlyPlaying = false;
+          return;
+        }
+
+        if (jumping) return; // avoid double-processing in one step
+        jumping = true;
+
+        // Next segment bounds
+        var next = window.segments[curIdx + 1];
+        var target = next && typeof next.start === 'number' ? next.start : null;
+        if (target == null) { return; }
+
+        // Seamless in-place jump (do NOT pause)
+        fastSeekOrSet(a, target);
+        fastSeekOrSet(b, target);
+
+        // Only ask to play if needed (reduces AbortError logs)
+        safePlay(a);
+        safePlay(b);
+
+        // Advance pointers
+        curIdx += 1;
+        curEnd  = next.end;
+        window.currentPlayingSegmentIndex = curIdx;
+
+        // release jumping flag on next tick
+        setTimeout(function(){ jumping = false; }, CHECK_EVERY_MS);
+      }
+    });
+
+    console.log("🔧 Seamless handoff v2 active (index:", curIdx, ")");
+  };
+
+  console.log("🔧 Seamless inter-segment handoff v2 installed (mobile refined).");
+})();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
