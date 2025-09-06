@@ -474,12 +474,45 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
+/*
+Now it is regarding my Worship The Lord app. I have pasted below loopPlayer.js 
+In mobile there was gap between segments and you have also given code to overcome it. 
+But still first time, gap is there, second time it is seamless like in desktop. 
+To avoid that first time small gap of around one or two second, you please code. 
+That is when app song is played. loopPlayer.js should identify the segment number 
+which is played and play the next segment in mute for 2 seconds (your discretion 1, 2, 3 second) 
+so that when the previous segment gets over since already warmed up the next segment 
+will play without gap seamless. You please give bullet proof code and advise 
+whether I can paste it at the end of loopPlayer.js Before giving code first explain what you understood
+
+Notes from ChatGpt
+
+Where to paste: put this after everything else in loopPlayer.js (below your “Seamless inter-segment handoff (tighter boundary)” block).
+
+What it does: on each segment start, if there’s a next segment and we haven’t warmed it yet, it creates muted clone audios, seeks them to the next segment start, plays for ~2s, and disposes. That warms up the decoders/buffers so the first transition is also seamless.
+
+Safe + bullet-proof:
+
+Doesn’t touch your live players.
+
+Auto-cancels if the user jumps to another segment (playRunId changes).
+
+Has hard timeouts and try/catches so it never breaks playback.
+
+Runs once per segment to minimize overhead.
+
+If you want it lighter/faster, you can change WARM_SECONDS to 1.0. If you want it even more aggressive, bump to 3.0
+*/
+
 /* ==========================================================
    ✅ Next-segment warm-up (kills the very first handoff gap on mobile)
    - Paste at END of loopPlayer.js (after your seamless handoff patch)
    - No modules/imports. Safe + idempotent.
    - Plays muted clone audios for the *next* segment for ~2s, once per segment.
    ========================================================== */
+
+   /*
+
 (function () {
   if (window.__NEXT_SEGMENT_WARMER__) return;
   window.__NEXT_SEGMENT_WARMER__ = true;
@@ -612,3 +645,157 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 })();
 
 
+*/
+
+
+
+/* ==========================================================
+   ✅ Pretap (no clones, no muted play)
+   - Idea: When segment N starts, virtually "tap" segment N+1
+   - Uses the same playSegment path but short-circuits
+     so it does NOT seek/pause/play anything right now.
+   - Purely sets a "pretapped" flag and fires an event.
+   - Paste at END of loopPlayer.js
+   ========================================================== */
+(function () {
+  if (window.__PRETAP_PATCH__) return;
+  window.__PRETAP_PATCH__ = true;
+
+  // Keep your current playSegment (already patched with seamless handoff)
+  var __basePlaySegment = window.playSegment;
+
+  // Remember which indices were pretapped (for debugging/UX if needed)
+  var __pretapped = new Set();
+
+  // Internal one-shot arm that lets us call playSegment(...) to *register*
+  // a pretap via the same code path, but without actually touching audio.
+  var __pretapArmed = false;
+  var __pretapTargetIndex = -1;
+
+  // Optional: simple helper to find a segment safely
+  function getSeg(i) {
+    if (!Array.isArray(window.segments)) return null;
+    if (i < 0 || i >= window.segments.length) return null;
+    return window.segments[i];
+  }
+
+  // Optional: mark button UI (non-essential; safe if buttons exist)
+  function markButtonPretapped(i) {
+    try {
+      var container = document.getElementById("loopButtonsContainer");
+      if (!container) return;
+      var btn = container.querySelectorAll(".segment-button")[i];
+      if (btn) btn.classList.add("pretapped"); // style if you want in CSS
+    } catch(_) {}
+  }
+
+  // Fire a custom event so other parts of your UI can react if desired
+  function emitPretapEvent(i) {
+    try {
+      document.dispatchEvent(new CustomEvent("loop:pretapped", { detail: { index: i }}));
+    } catch(_) {}
+  }
+
+  // Wrap playSegment:
+  //  - If __pretapArmed and the target index matches, we ONLY record pretap
+  //    (no pause/seek/play), then return.
+  //  - Otherwise, do the normal play and schedule a pretap for the next index.
+  window.playSegment = function (startTime, endTime, index) {
+    // If this call is a pretap registration, short-circuit *before* touching audio
+    if (__pretapArmed && index === __pretapTargetIndex) {
+      __pretapArmed = false;            // consume the arm
+      __pretapped.add(index);           // record
+      markButtonPretapped(index);       // optional UI
+      emitPretapEvent(index);           // optional hook
+      // DO NOT call the base, so we do NOT pause/seek/play anything
+      // This keeps the current segment totally untouched.
+      return;
+    }
+
+    // Normal behavior: start the requested segment
+    __basePlaySegment && __basePlaySegment.call(this, startTime, endTime, index);
+
+    // After a tiny tick, pretap NEXT segment (if any)
+    try {
+      var i = index|0;
+      var nextI = i + 1;
+      var next = getSeg(nextI);
+      if (!next) return;
+
+      // Arm the pretap so that a call to playSegment(next) records-only
+      __pretapArmed = true;
+      __pretapTargetIndex = nextI;
+
+      // Call playSegment with next segment's bounds, but it will be intercepted
+      // above and turned into a "pretap only" (no audio actions).
+      setTimeout(function () {
+        // If user jumped to a new run, it's still harmless: we only set a flag
+        window.playSegment(next.start, next.end, nextI);
+      }, 0);
+    } catch (e) {
+      console.warn("pretap wrapper:", e);
+    }
+  };
+
+  // (Optional) expose for debugging
+  window.__getPretappedSegments = function(){ return Array.from(__pretapped); };
+
+  console.log("🖐️ Pretap installed (no warm-up; next segment is virtually tapped).");
+})();
+
+
+
+
+
+
+
+
+
+
+/* ===== Optional: Screen Wake Lock (paste at END of loopPlayer.js) ===== */
+(function(){
+  if (window.__WAKE_LOCK_PATCH__) return;
+  window.__WAKE_LOCK_PATCH__ = true;
+
+  let wakeLock = null;
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('🔒 Wake Lock acquired');
+        wakeLock.addEventListener('release', () => console.log('🔓 Wake Lock released'));
+      }
+    } catch (e) {
+      console.warn('Wake Lock not available or denied:', e);
+    }
+  }
+  function releaseWakeLock() {
+    try { wakeLock && wakeLock.release(); } catch(_) {}
+    wakeLock = null;
+  }
+
+  // Acquire when playback starts; release when fully stopped
+  const _basePlaySegment = window.playSegment;
+  window.playSegment = function(startTime, endTime, index){
+    _basePlaySegment && _basePlaySegment.call(this, startTime, endTime, index);
+    requestWakeLock();
+    // Watch for the run completing to release if no longer playing
+    const myRun = window.playRunId;
+    const t = setInterval(() => {
+      if (myRun !== window.playRunId) { clearInterval(t); return; }
+      if (!window.currentlyPlaying) { clearInterval(t); releaseWakeLock(); }
+    }, 1000);
+  };
+
+  // If user minimizes / restores, re-request as needed
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && window.currentlyPlaying) requestWakeLock();
+  });
+
+  // Expose helpers if you want manual control
+  window.requestWakeLock = requestWakeLock;
+  window.releaseWakeLock = releaseWakeLock;
+
+  console.log("💡 Wake Lock helper installed (keeps screen on during playback when possible).");
+})();
