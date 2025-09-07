@@ -82,15 +82,16 @@ document.getElementById("playBtn").addEventListener("click", () => {
     }, 50);
   });
 
-    // Tell loopPlayer.js to start Segment 1 when both audio & segments are ready
-    window.wantAutoSegment1 = true;
-
-    // Keep the waits (they populate audioReadyPromise and waitSegments),
-    // but do NOT start Segment 1 here — loopPlayer.js will do it.
-    Promise.all([window.audioReadyPromise, waitSegments]).then(() => {
-    /* no-op: loopPlayer.js sees wantAutoSegment1 and calls playSegment(...) */
-    });
-
+  // When both tracks have started AND segments are known, start Segment 1 via the segment path
+  Promise.all([window.audioReadyPromise, waitSegments]).then(() => {
+    if (!window.segments || window.segments.length === 0) {
+      console.warn("⚠️ No segments loaded yet; cannot start Segment 1.");
+      return;
+    }
+    const seg = window.segments[0];
+    console.log("🎯 Play routed to Segment 1 (strict path)");
+    window.playSegment(seg.start, seg.end, 0);
+  });
 });
 
 document.getElementById("pauseBtn").addEventListener("click", () => {

@@ -139,12 +139,12 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               playSegment(segment.start, segment.end, index);
 
-              
+              /*
               setTimeout(() => playSegment(segment.start, segment.end, index), 70);
               setTimeout(() => playSegment(segment.start, segment.end, index), 140);
               setTimeout(() => playSegment(segment.start, segment.end, index), 210);
 
-              
+              */
 
             }
           });
@@ -530,12 +530,15 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
     // Always start with your original behavior
     __origPlaySegment.call(this, startTime, endTime, index);
 
+
     // ✳️ Do NOT install seamless logic for the first segment
     //    (index 0). This keeps it completely untouched.
     //if ((index|0) === 0) return;
     //AFTER (delete above those lines entirely)
     // Seamless logic runs for all segments, including index 0,
     // so the 1→2 jump uses the same no-gap handoff as 2→3→…
+
+
 
 
 
@@ -748,7 +751,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - One tiny seek “tickle” once per segment boundary
    - No network check; still very light
    ========================================================== */
-/*(function () {
+(function () {
   if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
   window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
 
@@ -835,7 +838,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 })();
 
 
-*/
+
 
 
 
