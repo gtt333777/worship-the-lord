@@ -7,6 +7,23 @@ window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play
 window.activeSegmentInterval = null;  // watchdog interval (new)
 window.playRunId = 0;                 // cancels older overlapping plays (new)
 
+
+
+// Add near the top of loopPlayer.js (helper)
+   function __slowNetwork() {
+   try {
+   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+   // treat 3g/2g/slow-4g + high RTT as slow
+   if (!c) return false;
+   const slowType = ['slow-2g','2g','3g'];
+   if (slowType.includes(c.effectiveType)) return true;
+   if (typeof c.rtt === 'number' && c.rtt > 200) return true; // ~>200ms is likely to gap
+   return false;
+   } catch(_) { return false; }
+   }
+
+
+
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
@@ -566,6 +583,39 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
       } else if (lag > DRIFT_FIX_SOFT) {
         try { b.currentTime = va; } catch(_) {}
       }
+
+
+      // ───────── INSERT THIS BLOCK (micro-priming) ─────────
+      // Look ahead and gently "tickle" the next segment start on slow networks.
+      // This warms the HTTP range/tcp path without any audible change.
+      const next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
+        ? window.segments[curIdx + 1]
+        : null;
+      const timeToBoundary = curEnd - va; // seconds left in current segment
+
+      // one-time micro-priming for Airtel-like networks (safe, light)
+      if (__slowNetwork() &&
+          next && typeof next.start === 'number' &&
+          !jumping &&
+          timeToBoundary <= 0.08 && timeToBoundary > 0.0) { // ~80ms window
+        jumping = true; // prevent re-entry for this tick
+
+        // Small pre-seek ping; do NOT pause or play here.
+        setTimeout(() => {
+          try { a.currentTime = next.start; } catch(_) {}
+          try { b.currentTime = next.start; } catch(_) {}
+          // Immediately restore so the listener hears no jump
+          try { a.currentTime = va; } catch(_) {}
+          try { b.currentTime = va; } catch(_) {}
+        }, 0);
+
+        // release the flag a moment later
+        setTimeout(() => { jumping = false; }, 20);
+      }
+      // ───────── END INSERT ─────────
+
+
+
 
       // End-of-segment boundary
       if (va >= curEnd - EPS_END) {
