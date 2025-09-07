@@ -656,8 +656,9 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   if (typeof __basePlaySegment !== 'function') return;
 
   // Tunables (conservative)
-  var LOOKAHEAD_WINDOW_S = 0.08; // 80ms before boundary
+  var LOOKAHEAD_WINDOW_S = 0.12; // 120ms before boundary (relaxed for slower networks)
   var RELEASE_MS = 20;           // release re-entry guard
+
 
   function fastSeekOrSet(el, t){
     try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
