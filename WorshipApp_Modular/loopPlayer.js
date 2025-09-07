@@ -616,7 +616,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
-/* ===== Slow-network helper (safe, idempotent) ===== */
+/* ===== Slow-network helper (safe, idempotent) ===== *---/
 (function () {
   if (window.__SLOW_NET_HELPER__) return;
   window.__SLOW_NET_HELPER__ = true;
@@ -634,7 +634,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   };
 })();
 
-
+*/
 
 
 
@@ -647,6 +647,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - Runs only on slow networks (Airtel-like)
    - No clones, no muted play; seek "tickle" only
    ========================================================== */
+/*
 (function () {
   if (window.__V3_MICRO_PRIME_OVERLAY__) return;
   window.__V3_MICRO_PRIME_OVERLAY__ = true;
@@ -730,6 +731,102 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   };
 
   console.log("🌐 v3 micro-priming overlay installed (Segment 2+ only, slow networks).");
+})();
+
+*/
+
+
+/* ==========================================================
+   🌐 Micro-priming overlay for v3 (Segment 2+ only, always on)
+   - Drop-in: paste at END of loopPlayer.js (replace old overlay)
+   - Segment 1 untouched
+   - One tiny seek “tickle” once per segment boundary
+   - No network check; still very light
+   ========================================================== */
+(function () {
+  if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
+  window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
+
+  var __basePlaySegment = window.playSegment;
+  if (typeof __basePlaySegment !== 'function') return;
+
+  // Tunables (keep conservative; you can try 0.16–0.25 if needed)
+  var LOOKAHEAD_WINDOW_S = 0.20; // 200 ms before boundary
+  var RELEASE_MS = 20;           // re-entry guard
+
+  function fastSeekOrSet(el, t){
+    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
+    try { if (el) el.currentTime = t; } catch(_) {}
+  }
+
+  window.playSegment = function (startTime, endTime, index) {
+    // Run your existing v3 behavior (which skips segment 1’s seamless hook)
+    __basePlaySegment.call(this, startTime, endTime, index);
+
+    // Only enhance segments 2+
+    if ((index|0) === 0) return;
+
+    var myRun = window.playRunId;
+    var a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) return;
+
+    var jumping = false;
+    var primedFor = -1;          // ensure we prime only once per segment
+    var curIdx  = index|0;
+    var curEnd  = endTime;
+
+    // Kill previous overlay watcher if any
+    if (window.__v3MicroPrimeStop) { try { window.__v3MicroPrimeStop(); } catch(_){} }
+
+    var interval = setInterval(function(){
+      // Abort if takeover or players gone
+      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
+        clearInterval(interval); window.__v3MicroPrimeStop = null; return;
+      }
+
+      var va = a.currentTime;
+      var timeToBoundary = (curEnd - va);
+
+      // Next segment
+      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
+        ? window.segments[curIdx + 1]
+        : null;
+
+      // One-time tiny tickle before boundary (always on)
+      if (next && typeof next.start === 'number' &&
+          primedFor !== curIdx &&          // only once per segment
+          !jumping &&
+          timeToBoundary > 0 &&
+          timeToBoundary <= LOOKAHEAD_WINDOW_S) {
+
+        primedFor = curIdx;                // mark as primed
+        jumping = true;
+
+        try {
+          var returnTo = va;
+          fastSeekOrSet(a, next.start);
+          fastSeekOrSet(b, next.start);
+          fastSeekOrSet(a, returnTo);
+          fastSeekOrSet(b, returnTo);
+        } catch (_) {}
+
+        setTimeout(function(){ jumping = false; }, RELEASE_MS);
+      }
+
+      // If your base v3 logic advanced to next segment, update bounds & reset priming
+      try {
+        if (window.currentPlayingSegmentIndex === curIdx + 1 && next) {
+          curIdx += 1;
+          curEnd  = next.end;
+          primedFor = -1;                  // allow priming for new segment
+        }
+      } catch(_) {}
+    }, 25); // light; in line with v3’s check cadence
+
+    window.__v3MicroPrimeStop = function(){ clearInterval(interval); };
+  };
+
+  console.log("🌐 v3 micro-priming overlay installed (always on, Segment 2+ only, one-time per boundary).");
 })();
 
 
