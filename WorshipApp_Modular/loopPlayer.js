@@ -7,23 +7,6 @@ window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play
 window.activeSegmentInterval = null;  // watchdog interval (new)
 window.playRunId = 0;                 // cancels older overlapping plays (new)
 
-
-
-// Add near the top of loopPlayer.js (helper)
-   function __slowNetwork() {
-   try {
-   const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-   // treat 3g/2g/slow-4g + high RTT as slow
-   if (!c) return false;
-   const slowType = ['slow-2g','2g','3g'];
-   if (slowType.includes(c.effectiveType)) return true;
-   if (typeof c.rtt === 'number' && c.rtt > 200) return true; // ~>200ms is likely to gap
-   return false;
-   } catch(_) { return false; }
-   }
-
-
-
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
@@ -156,12 +139,12 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               playSegment(segment.start, segment.end, index);
 
-
+              /*
               setTimeout(() => playSegment(segment.start, segment.end, index), 70);
               setTimeout(() => playSegment(segment.start, segment.end, index), 140);
               setTimeout(() => playSegment(segment.start, segment.end, index), 210);
 
-
+              */
 
             }
           });
@@ -221,10 +204,6 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
   playSegment(startTime, endTime, index);
 }
-
-
-
-
 
 
 
@@ -584,39 +563,6 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
         try { b.currentTime = va; } catch(_) {}
       }
 
-
-      // ───────── INSERT THIS BLOCK (micro-priming) ─────────
-      // Look ahead and gently "tickle" the next segment start on slow networks.
-      // This warms the HTTP range/tcp path without any audible change.
-      const next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
-        ? window.segments[curIdx + 1]
-        : null;
-      const timeToBoundary = curEnd - va; // seconds left in current segment
-
-      // one-time micro-priming for Airtel-like networks (safe, light)
-      if (__slowNetwork() &&
-          next && typeof next.start === 'number' &&
-          !jumping &&
-          timeToBoundary <= 0.08 && timeToBoundary > 0.0) { // ~80ms window
-        jumping = true; // prevent re-entry for this tick
-
-        // Small pre-seek ping; do NOT pause or play here.
-        setTimeout(() => {
-          try { a.currentTime = next.start; } catch(_) {}
-          try { b.currentTime = next.start; } catch(_) {}
-          // Immediately restore so the listener hears no jump
-          try { a.currentTime = va; } catch(_) {}
-          try { b.currentTime = va; } catch(_) {}
-        }, 0);
-
-        // release the flag a moment later
-        setTimeout(() => { jumping = false; }, 20);
-      }
-      // ───────── END INSERT ─────────
-
-
-
-
       // End-of-segment boundary
       if (va >= curEnd - EPS_END) {
         // Last segment → stop exactly at end
@@ -670,6 +616,122 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
+/* ===== Slow-network helper (safe, idempotent) ===== */
+(function () {
+  if (window.__SLOW_NET_HELPER__) return;
+  window.__SLOW_NET_HELPER__ = true;
+
+  // Expose as window.__slowNetwork so other patches can use it
+  window.__slowNetwork = function __slowNetwork() {
+    try {
+      const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (!c) return false;
+      const slowType = ['slow-2g', '2g', '3g'];
+      if (slowType.includes(c.effectiveType)) return true;
+      if (typeof c.rtt === 'number' && c.rtt > 200) return true; // ~>200ms → likely gaps on seeks
+      return false;
+    } catch (_) { return false; }
+  };
+})();
+
+
+
+
+
+
+
+/* ==========================================================
+   🌐 Micro-priming overlay for v3 (Segment 2+ only)
+   - Drop-in: paste at END of loopPlayer.js
+   - Keeps Segment 1 untouched
+   - Runs only on slow networks (Airtel-like)
+   - No clones, no muted play; seek "tickle" only
+   ========================================================== */
+(function () {
+  if (window.__V3_MICRO_PRIME_OVERLAY__) return;
+  window.__V3_MICRO_PRIME_OVERLAY__ = true;
+
+  // must exist from your v3 patch
+  var __basePlaySegment = window.playSegment;
+  if (typeof __basePlaySegment !== 'function') return;
+
+  // Tunables (conservative)
+  var LOOKAHEAD_WINDOW_S = 0.08; // 80ms before boundary
+  var RELEASE_MS = 20;           // release re-entry guard
+
+  function fastSeekOrSet(el, t){
+    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
+    try { if (el) el.currentTime = t; } catch(_) {}
+  }
+
+  window.playSegment = function (startTime, endTime, index) {
+    // Call your existing logic first (v3 already skips segment 1’s seamless hook)
+    __basePlaySegment.call(this, startTime, endTime, index);
+
+    // Only enhance segments 2+ and only if slow network
+    if ((index|0) === 0 || !window.__slowNetwork || !window.__slowNetwork()) return;
+
+    // We attach a lightweight watcher *for this run* that just handles the look-ahead ping.
+    var myRun = window.playRunId;
+    var a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) return;
+
+    var jumping = false;
+    var curEnd  = endTime;
+    var curIdx  = index|0;
+
+    // Kill previous overlay watcher if any
+    if (window.__v3MicroPrimeStop) { try { window.__v3MicroPrimeStop(); } catch(_){} }
+
+    var interval = setInterval(function(){
+      // Abort if takeover or no players
+      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
+        clearInterval(interval); window.__v3MicroPrimeStop = null; return;
+      }
+
+      // If your base v3 stopped playback at end, this will naturally stop too
+      var va = a.currentTime;
+      var timeToBoundary = (curEnd - va);
+
+      // Find next segment (if any)
+      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
+        ? window.segments[curIdx + 1]
+        : null;
+
+      // Perform a one-time, tiny tickle just before the boundary
+      if (next && typeof next.start === 'number' &&
+          !jumping && timeToBoundary <= LOOKAHEAD_WINDOW_S && timeToBoundary > 0) {
+
+        jumping = true;
+
+        // Seek to next.start and immediately back—no audible change, just warms byte-range
+        try {
+          var returnTo = va;
+          fastSeekOrSet(a, next.start);
+          fastSeekOrSet(b, next.start);
+          fastSeekOrSet(a, returnTo);
+          fastSeekOrSet(b, returnTo);
+        } catch (_) {}
+
+        setTimeout(function(){ jumping = false; }, RELEASE_MS);
+      }
+
+      // If we detect we’ve advanced to the next segment in your base logic, update bounds
+      try {
+        if (window.currentPlayingSegmentIndex === curIdx + 1 && next) {
+          curIdx += 1;
+          curEnd  = next.end;
+        }
+      } catch(_) {}
+    }, 25); // light; matches your v3 CHECK_EVERY_MS
+
+    window.__v3MicroPrimeStop = function(){ clearInterval(interval); };
+  };
+
+  console.log("🌐 v3 micro-priming overlay installed (Segment 2+ only, slow networks).");
+})();
+
+
 
 
 
@@ -685,17 +747,21 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
   async function requestWakeLock() {
     try {
-      if ('wakeLock' in navigator) {
+      if ('wakeLock' in navigator && !wakeLock) {
         wakeLock = await navigator.wakeLock.request('screen');
         console.log('🔒 Wake Lock acquired');
-        wakeLock.addEventListener('release', () => console.log('🔓 Wake Lock released'));
+        wakeLock.addEventListener('release', () => {
+          console.log('🔓 Wake Lock released');
+          wakeLock = null;
+        });
       }
     } catch (e) {
       console.warn('Wake Lock not available or denied:', e);
     }
   }
+
   function releaseWakeLock() {
-    try { wakeLock && wakeLock.release(); } catch(_) {}
+    try { if (wakeLock) wakeLock.release(); } catch(_) {}
     wakeLock = null;
   }
 
@@ -703,7 +769,10 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   const _basePlaySegment = window.playSegment;
   window.playSegment = function(startTime, endTime, index){
     _basePlaySegment && _basePlaySegment.call(this, startTime, endTime, index);
-    requestWakeLock();
+
+    // Only request if not already held
+    if (!wakeLock) requestWakeLock();
+
     // Watch for the run completing to release if no longer playing
     const myRun = window.playRunId;
     const t = setInterval(() => {
@@ -712,10 +781,18 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
     }, 1000);
   };
 
-  // If user minimizes / restores, re-request as needed
+  // Re-acquire on visibility return; release when hidden
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && window.currentlyPlaying) requestWakeLock();
+    if (document.visibilityState === 'visible' && window.currentlyPlaying) {
+      if (!wakeLock) requestWakeLock();
+    } else if (document.visibilityState === 'hidden') {
+      releaseWakeLock();
+    }
   });
+
+  // Release on page hide/unload (iOS/Safari friendliness)
+  window.addEventListener('pagehide', releaseWakeLock);
+  window.addEventListener('beforeunload', releaseWakeLock);
 
   // Expose helpers if you want manual control
   window.requestWakeLock = requestWakeLock;
@@ -723,5 +800,3 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
   console.log("💡 Wake Lock helper installed (keeps screen on during playback when possible).");
 })();
-
-
