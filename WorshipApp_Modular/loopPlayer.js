@@ -472,6 +472,8 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 */
 
 
+
+
 /* ==========================================================
    ✅ Seamless inter-segment handoff — from Segment 2 onward only
    - First segment (index 0) is 100% untouched
@@ -480,7 +482,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - Safe play() usage (suppresses AbortError noise)
    ========================================================== */
 
-/*   
+   
 (function () {
   if (window.__SEAMLESS_CHAIN_PATCH_V3__) return;
   window.__SEAMLESS_CHAIN_PATCH_V3__ = true;
@@ -610,173 +612,6 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   console.log("🔧 Seamless handoff v3 installed (skips segment 1; seamless from segment 2+).");
 })();
 
-*/
-
-
-/* ==========================================================
-   ✅ Seamless handoff v4 — desktop-tight, from Segment 2 onward
-   - Segment 1 (index 0) is untouched
-   - Precise one-shot jump scheduled by remaining time
-   - RAF when visible; interval fallback when hidden
-   - Atomic dual seek + safe play; soft/hard drift guards
-   ========================================================== */
-(function () {
-  if (window.__SEAMLESS_CHAIN_PATCH_V4__) return;
-  window.__SEAMLESS_CHAIN_PATCH_V4__ = true;
-
-  var __origPlaySegment = window.playSegment;
-  if (typeof __origPlaySegment !== "function") return;
-
-  // Tunables
-  var EPS_END        = 0.010; // 10 ms boundary guard
-  var DRIFT_SOFT     = 0.020; // 20 ms -> gentle nudge
-  var DRIFT_HARD     = 0.050; // 50 ms -> hard snap
-  var HIDDEN_TICK_MS = 25;    // fallback tick when hidden
-  var RESCHED_JITTER = 0.010; // reschedule if estimate changed >10ms
-
-  // Utilities
-  function safePlay(el){
-    if (!el || el.error || el.ended || !el.paused) return;
-    var p = el.play();
-    if (p && p.catch) p.catch(function(e){
-      if (!(e && (e.name === 'AbortError' || e.code === 20))) console.warn('play() warn:', e);
-    });
-  }
-  function fastSeekOrSet(el, t){
-    try { if (el.fastSeek) { el.fastSeek(t); return; } } catch(_) {}
-    try { el.currentTime = t; } catch(_) {}
-  }
-
-  // Schedules a one-shot jump very close to target time; keeps re-estimating.
-  function startHandoffLoop(a, b, runId, getState){
-    var cancelled = false;
-    var rafId = 0, interval = 0, jumpTimer = 0, lastEtaMs = Infinity;
-
-    function clearJumpTimer(){ if (jumpTimer){ clearTimeout(jumpTimer); jumpTimer = 0; } }
-    function stop(){
-      cancelled = true;
-      if (rafId) cancelAnimationFrame(rafId), rafId = 0;
-      if (interval) clearInterval(interval), interval = 0;
-      clearJumpTimer();
-    }
-
-    function scheduleJump(etaMs, target){
-      clearJumpTimer();
-      // Fire a hair before end; clamp to >=0
-      var delay = Math.max(0, etaMs);
-      jumpTimer = setTimeout(function doJump(){
-        if (cancelled || runId !== window.playRunId) return;
-        // Atomic dual seek in a microtask
-        queueMicrotask(function(){
-          fastSeekOrSet(a, target);
-          fastSeekOrSet(b, target);
-          safePlay(a);
-          safePlay(b);
-        });
-      }, delay);
-    }
-
-    function tick(){
-      if (cancelled || runId !== window.playRunId) { stop(); return; }
-
-      var st = getState();
-      if (!st || !st.valid) { stop(); return; }
-
-      var va = a.currentTime, vb = b.currentTime;
-      var lag = va - vb; // vocal = master
-      if (lag > DRIFT_HARD) fastSeekOrSet(b, va);
-      else if (lag > DRIFT_SOFT) { try { b.currentTime = va; } catch(_) {} }
-
-      // If at/over end, perform the jump immediately via getState
-      if (va >= st.curEnd - EPS_END) {
-        if (st.isLast) { stop(); try{a.pause();}catch(_){} try{b.pause();}catch(_){} window.currentlyPlaying = false; return; }
-        queueMicrotask(function(){
-          fastSeekOrSet(a, st.nextStart);
-          fastSeekOrSet(b, st.nextStart);
-          safePlay(a); safePlay(b);
-        });
-        // advance local pointers for next cycle
-        getState.advance();
-        lastEtaMs = Infinity; // force reschedule for new segment
-        return;
-      }
-
-      // Estimate remaining time to end in ms
-      var remaining = Math.max(0, (st.curEnd - va) / (a.playbackRate || 1));
-      var etaMs = Math.max(0, Math.floor((remaining - EPS_END) * 1000));
-
-      // Reschedule jump timer if ETA moved significantly
-      if (Math.abs(etaMs - lastEtaMs) > RESCHED_JITTER * 1000) {
-        lastEtaMs = etaMs;
-        scheduleJump(etaMs, st.nextStart);
-      }
-    }
-
-    function loop(){
-      tick();
-      if (!cancelled) rafId = requestAnimationFrame(loop);
-    }
-
-    // Start with RAF if visible; else fallback interval
-    if (document.visibilityState === 'visible' && 'requestAnimationFrame' in window) {
-      rafId = requestAnimationFrame(loop);
-    } else {
-      interval = setInterval(tick, HIDDEN_TICK_MS);
-    }
-
-    return stop;
-  }
-
-  window.playSegment = function (startTime, endTime, index) {
-    // Always start with your original behavior (keeps segment 1 pristine)
-    __origPlaySegment.call(this, startTime, endTime, index);
-
-    // Skip seamless logic entirely for the first segment
-    if ((index|0) === 0) return;
-
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    var myRun = window.playRunId;
-
-    // Per-run state accessor so the scheduler can read/update atomically
-    var curIdx  = index|0;
-    var curEnd  = endTime;
-
-    var state = {
-      valid: Array.isArray(window.segments) && curIdx >= 0 && curIdx < window.segments.length,
-      get curEnd(){ return curEnd; },
-      get isLast(){ return !Array.isArray(window.segments) || curIdx >= window.segments.length - 1; },
-      get nextStart(){
-        var next = window.segments[curIdx + 1];
-        return next && typeof next.start === 'number' ? next.start : null;
-      },
-      advance: function(){
-        // Move to next segment bounds
-        var next = window.segments[curIdx + 1];
-        if (!next) return;
-        curIdx += 1;
-        curEnd  = next.end;
-        window.currentPlayingSegmentIndex = curIdx;
-      }
-    };
-    if (!state.valid) return;
-
-    // Stop any previous loop and start a fresh one for this run
-    if (window.__seamlessStopper) { try { window.__seamlessStopper(); } catch(_){} }
-    window.__seamlessStopper = startHandoffLoop(a, b, myRun, function(){ return {
-      valid: state.valid,
-      curEnd: state.curEnd,
-      isLast: state.isLast,
-      nextStart: state.nextStart,
-      advance: state.advance
-    }; });
-
-    // console.log("🔧 Seamless handoff v4 active from segment", index);
-  };
-
-  console.log("🔧 Seamless handoff v4 installed (skips segment 1; desktop-tight).");
-})();
 
 
 
@@ -784,70 +619,6 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
-
-
-
-
-
-
-
-/* ==========================================================
-   🛑 Pause-safe overlay for seamless handoff (Segment 2+ only)
-   - Honors user pause: no auto-advance, no auto-resume
-   - Leaves Segment 1 untouched
-   - Drop-in: paste at END of loopPlayer.js
-   ========================================================== */
-(function () {
-  if (window.__SEAMLESS_PAUSE_GUARD__) return;
-  window.__SEAMLESS_PAUSE_GUARD__ = true;
-
-  // Global user-pause flag; default false
-  if (typeof window.__userPaused === 'undefined') window.__userPaused = false;
-
-  // Keep the current playSegment (already wrapped by your seamless code)
-  var __basePlaySegment = window.playSegment;
-
-  // Wrap playSegment so a new play explicitly clears user-paused state
-  window.playSegment = function (startTime, endTime, index) {
-    // If the user had paused, a fresh play clears the flag
-    window.__userPaused = false;
-
-    // Call your current behavior (includes Segment 1 untouched + seamless from 2+)
-    __basePlaySegment && __basePlaySegment.call(this, startTime, endTime, index);
-
-    // After your seamless code sets up its ticker, gently enforce pause-respect
-    // by watching and stopping any ticker if user pauses mid-run.
-    var myRun = window.playRunId;
-
-    // Small watcher to kill any ongoing seamless loop when userPaused is true
-    var guard = setInterval(function(){
-      // Newer run took over? stop watching
-      if (myRun !== window.playRunId) { clearInterval(guard); return; }
-
-      if (window.__userPaused) {
-        // Kill any seamless ticker and reflect state
-        try { if (window.__seamlessStopper) { window.__seamlessStopper(); window.__seamlessStopper = null; } } catch(_) {}
-        try { if (window.activeSegmentInterval) { clearInterval(window.activeSegmentInterval); window.activeSegmentInterval = null; } } catch(_) {}
-        window.currentlyPlaying = false;
-        clearInterval(guard);
-      }
-    }, 150);
-  };
-
-  // Defensive: if any ticker step runs while paused, abort immediately.
-  // (Hook into requestAnimationFrame fallback by replacing setInterval used in your patch)
-  var _setInterval = window.setInterval;
-  window.setInterval = function(fn, ms){
-    // For tickers, ensure they bail when paused
-    var wrapped = function(){
-      if (window.__userPaused) return; // do nothing while paused
-      try { fn(); } catch(e) { /* avoid crashing */ }
-    };
-    return _setInterval(wrapped, ms);
-  };
-
-  console.log("🛡️ Pause-safe guard installed (no auto-start after pause).");
-})();
 
 
 
