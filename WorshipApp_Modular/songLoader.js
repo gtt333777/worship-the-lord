@@ -148,14 +148,16 @@ function getDropboxFileURL(filename) {
 
 
 
-<!-- ⬇️ paste this whole block at the very end of songLoader.js -->
-<script>
+//paste this whole block at the very end of songLoader.js 
+
 /* ==========================================================
    🎛️ Optional: Offline Prefetch Mode (drop-in, no handler edits)
    - Set window.USE_OFFLINE_PREFETCH = true to enable
    - Fully downloads vocal & accomp, then plays from Blob URLs
    - Zero changes to your existing Play click handler
    ========================================================== */
+
+
 (function () {
   if (window.__OFFLINE_PREFETCH_PATCH__) return;
   window.__OFFLINE_PREFETCH_PATCH__ = true;
@@ -263,3 +265,6 @@ window.setOfflinePrefetch = function(on){
   console.log('🎛️ Offline Prefetch Mode ready. Set window.USE_OFFLINE_PREFETCH = true to use.');
 })();
 </script>
+
+
+*/
