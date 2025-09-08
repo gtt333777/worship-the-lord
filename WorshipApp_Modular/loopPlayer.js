@@ -630,7 +630,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - One tiny seek “tickle” once per segment boundary
    - No network check; still very light
    ========================================================== */
-/*
+
 (function () {
   if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
   window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
@@ -717,7 +717,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   console.log("🌐 v3 micro-priming overlay installed (always on, Segment 2+ only, one-time per boundary).");
 })();
 
-*/
+
 
 
 
@@ -789,104 +789,3 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
-
-
-<!-- ⬇️ paste this whole block at the very end of loopPlayer.js -->
-<script>
-/* ==========================================================
-   🚀 Multi-boundary warmup overlay (always on, very light)
-   - Warms the next few segment starts ahead of time
-   - Works with streaming sources and with offline prefetch (harmless)
-   - Plays nicely with your v3 seamless handoff
-   ========================================================== */
-(function () {
-  if (window.__MULTI_BOUNDARY_WARMUP__) return;
-  window.__MULTI_BOUNDARY_WARMUP__ = true;
-
-  // Tunables
-  var LOOKAHEAD_S          = 0.80; // warm ~800 ms before a segment boundary
-  var BOUNDARIES_TO_PRIME  = 3;    // how many upcoming segment starts to warm
-  var RECHECK_MS           = 120;  // how often to reconsider priming
-  var COOLDOWN_MS          = 300;  // avoid re-priming the same boundary too often
-
-  function fastSeekOrSet(el, t){
-    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
-    try { if (el) el.currentTime = t; } catch(_) {}
-  }
-
-  // Keep a tiny memory of recently-primed (segIndex) → timestamp
-  var lastPrimedAt = Object.create(null);
-
-  // Wrap your current playSegment once more to attach warmup
-  var __basePlaySegment = window.playSegment;
-  if (typeof __basePlaySegment !== 'function') return;
-
-  window.playSegment = function(startTime, endTime, index) {
-    __basePlaySegment.call(this, startTime, endTime, index);
-
-    var myRun = window.playRunId;
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    // Kill previous warmup loop if any
-    if (window.__warmupStopper) { try { window.__warmupStopper(); } catch(_){ } }
-
-    var curIdx = index|0;
-    var curEnd = endTime;
-
-    var timer = setInterval(function(){
-      if (myRun !== window.playRunId) { clearInterval(timer); window.__warmupStopper=null; return; }
-      if (!window.vocalAudio || !window.accompAudio) { clearInterval(timer); window.__warmupStopper=null; return; }
-
-      var now = performance.now();
-      var va  = a.currentTime;
-      var timeToBoundary = curEnd - va;
-
-      // If we advanced (by v3 handoff), update bounds
-      try {
-        if (window.currentPlayingSegmentIndex === curIdx + 1 && Array.isArray(window.segments)) {
-          curIdx += 1;
-          var next = window.segments[curIdx];
-          if (next) curEnd = next.end;
-        }
-      } catch(_){}
-
-      if (!Array.isArray(window.segments)) return;
-
-      // prime the next few upcoming starts
-      for (var k = 1; k <= BOUNDARIES_TO_PRIME; k++) {
-        var targetIdx = curIdx + k;
-        var seg = window.segments[targetIdx];
-        if (!seg) break;
-
-        // Skip if too far or already well before its start
-        var dt = seg.start - va;
-        if (dt < 0 || dt > 12 /* seconds cap to avoid priming way too early */) continue;
-
-        // Only when we are within LOOKAHEAD_S of the *current* boundary,
-        // start priming upcoming boundaries (creates a rolling wave of priming)
-        if (timeToBoundary <= LOOKAHEAD_S) {
-          var last = lastPrimedAt[targetIdx] || 0;
-          if (now - last > COOLDOWN_MS) {
-            // Tiny tickle for this upcoming boundary (seek there and back)
-            var back = va;
-            try {
-              fastSeekOrSet(a, seg.start);
-              fastSeekOrSet(b, seg.start);
-              fastSeekOrSet(a, back);
-              fastSeekOrSet(b, back);
-            } catch(_){}
-            lastPrimedAt[targetIdx] = now;
-            // space out multiples a bit
-            break;
-          }
-        }
-      }
-    }, RECHECK_MS);
-
-    window.__warmupStopper = function(){ clearInterval(timer); };
-  };
-
-  console.log('🚀 Multi-boundary warmup overlay installed.');
-})();
-</script>
