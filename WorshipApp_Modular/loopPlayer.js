@@ -630,7 +630,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - One tiny seek “tickle” once per segment boundary
    - No network check; still very light
    ========================================================== */
-/*
+
 (function () {
   if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
   window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
@@ -717,7 +717,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   console.log("🌐 v3 micro-priming overlay installed (always on, Segment 2+ only, one-time per boundary).");
 })();
 
-*/
+
 
 
 
