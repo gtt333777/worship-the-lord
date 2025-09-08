@@ -789,3 +789,138 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
+
+
+
+
+
+
+
+
+
+/* ==========================================================
+   🔇 5-second muted warmup of the NEXT segment
+   - Creates muted clones of vocal & accomp
+   - Seeks to next.start, plays 5s silently, then cleans up
+   - Aborts automatically if playback run changes
+   ========================================================== */
+(function () {
+  if (window.__NEXT_SEGMENT_MUTED_WARMUP__) return;
+  window.__NEXT_SEGMENT_MUTED_WARMUP__ = true;
+
+  // Config
+  var WARMUP_SECONDS    = 5;     // how long to silently play the next segment
+  var START_DELAY_MS    = 1000;  // wait a bit after the current segment starts
+  var MAX_CONCURRENT    = 1;     // just in case, prevent stacking
+
+  // Keep references so we can abort/cleanup on new runs
+  var activeClones = [];
+  var lastWarmedForIndex = -1;
+
+  function makeMutedClone(fromEl) {
+    var el = new Audio();
+    try { el.crossOrigin = fromEl.crossOrigin || ''; } catch(_) {}
+    el.src = fromEl.currentSrc || fromEl.src; // use resolved src if available
+    el.preload = 'auto';
+    el.muted = true;
+    el.volume = 0;
+    try { el.playsInline = true; } catch(_) {}
+    try { el.setAttribute && el.setAttribute('playsinline', ''); } catch(_) {}
+    return el;
+  }
+
+  function fastSeekOrSet(el, t){
+    try { if (el.fastSeek) { el.fastSeek(t); return; } } catch(_) {}
+    try { el.currentTime = t; } catch(_) {}
+  }
+
+  function cleanupClones() {
+    while (activeClones.length) {
+      var c = activeClones.pop();
+      try { c.pause(); } catch(_) {}
+      try { c.src = ''; } catch(_) {}
+      try { c.removeAttribute && c.removeAttribute('src'); } catch(_) {}
+      try { c.load && c.load(); } catch(_) {}
+    }
+  }
+
+  // Wrap your current playSegment to attach the warmup
+  var __basePlaySegment = window.playSegment;
+  if (typeof __basePlaySegment !== 'function') return;
+
+  window.playSegment = function(startTime, endTime, index) {
+    __basePlaySegment.call(this, startTime, endTime, index);
+
+    // Nothing to warm if no next segment
+    if (!Array.isArray(window.segments) || index >= window.segments.length - 1) {
+      return;
+    }
+
+    // Only one warmup per boundary
+    if (lastWarmedForIndex === index) return;
+    lastWarmedForIndex = index;
+
+    // Delay a bit so we don't compete with the initial buffering
+    var myRun = window.playRunId;
+    setTimeout(function() {
+      // Abort if a newer run started or players vanished
+      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) return;
+
+      // Prevent stacking
+      if (activeClones.length >= MAX_CONCURRENT * 2) cleanupClones();
+
+      var next = window.segments[index + 1];
+      if (!next || typeof next.start !== 'number') return;
+
+      // Create muted clones with same sources
+      var vClone = makeMutedClone(window.vocalAudio);
+      var aClone = makeMutedClone(window.accompAudio);
+
+      // Seek both clones to the NEXT segment start
+      fastSeekOrSet(vClone, next.start);
+      fastSeekOrSet(aClone, next.start);
+
+      // Start playing muted; ignore autoplay errors
+      var stopTimer;
+      var safePlay = function(el){
+        var p;
+        try { p = el.play(); } catch(e) {}
+        if (p && typeof p.catch === 'function') {
+          p.catch(function(e){
+            // browsers may still block muted audio on first gesture-less play; harmless
+            // console.debug('Muted warmup play() blocked:', e);
+          });
+        }
+      };
+
+      safePlay(vClone);
+      safePlay(aClone);
+
+      activeClones.push(vClone, aClone);
+
+      // Stop and cleanup after WARMUP_SECONDS, unless a new run took over earlier
+      stopTimer = setTimeout(function(){
+        // If run changed, cleanup will happen from next wrapper call. Still try here.
+        cleanupClones();
+      }, WARMUP_SECONDS * 1000);
+
+      // If a newer run starts, abort early
+      var guard = setInterval(function(){
+        if (myRun !== window.playRunId) {
+          clearInterval(guard);
+          clearTimeout(stopTimer);
+          cleanupClones();
+        }
+      }, 200);
+    }, START_DELAY_MS);
+  };
+
+  // Also cleanup if the page is hidden/unloaded
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState !== 'visible') cleanupClones();
+  });
+  window.addEventListener('pagehide', cleanupClones);
+  window.addEventListener('beforeunload', cleanupClones);
+
+  console.log('🔇 Next-segment 5s muted warmup installed.');
+})();
