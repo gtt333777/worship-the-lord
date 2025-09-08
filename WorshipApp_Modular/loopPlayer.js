@@ -623,127 +623,6 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
-
-/* ===== Slow-network helper (safe, idempotent) ===== *---/
-(function () {
-  if (window.__SLOW_NET_HELPER__) return;
-  window.__SLOW_NET_HELPER__ = true;
-
-  // Expose as window.__slowNetwork so other patches can use it
-  window.__slowNetwork = function __slowNetwork() {
-    try {
-      const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      if (!c) return false;
-      const slowType = ['slow-2g', '2g', '3g'];
-      if (slowType.includes(c.effectiveType)) return true;
-      if (typeof c.rtt === 'number' && c.rtt > 200) return true; // ~>200ms → likely gaps on seeks
-      return false;
-    } catch (_) { return false; }
-  };
-})();
-
-*/
-
-
-
-
-
-/* ==========================================================
-   🌐 Micro-priming overlay for v3 (Segment 2+ only)
-   - Drop-in: paste at END of loopPlayer.js
-   - Keeps Segment 1 untouched
-   - Runs only on slow networks (Airtel-like)
-   - No clones, no muted play; seek "tickle" only
-   ========================================================== */
-/*
-(function () {
-  if (window.__V3_MICRO_PRIME_OVERLAY__) return;
-  window.__V3_MICRO_PRIME_OVERLAY__ = true;
-
-  // must exist from your v3 patch
-  var __basePlaySegment = window.playSegment;
-  if (typeof __basePlaySegment !== 'function') return;
-
-  // Tunables (conservative)
-  var LOOKAHEAD_WINDOW_S = 0.81; // 0.12 = 120ms before boundary (relaxed for slower networks)
-  var RELEASE_MS = 20;           // release re-entry guard
-
-
-  function fastSeekOrSet(el, t){
-    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
-    try { if (el) el.currentTime = t; } catch(_) {}
-  }
-
-  window.playSegment = function (startTime, endTime, index) {
-    // Call your existing logic first (v3 already skips segment 1’s seamless hook)
-    __basePlaySegment.call(this, startTime, endTime, index);
-
-    // Only enhance segments 2+ and only if slow network
-    if ((index|0) === 0 || !window.__slowNetwork || !window.__slowNetwork()) return;
-
-    // We attach a lightweight watcher *for this run* that just handles the look-ahead ping.
-    var myRun = window.playRunId;
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    var jumping = false;
-    var curEnd  = endTime;
-    var curIdx  = index|0;
-
-    // Kill previous overlay watcher if any
-    if (window.__v3MicroPrimeStop) { try { window.__v3MicroPrimeStop(); } catch(_){} }
-
-    var interval = setInterval(function(){
-      // Abort if takeover or no players
-      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
-        clearInterval(interval); window.__v3MicroPrimeStop = null; return;
-      }
-
-      // If your base v3 stopped playback at end, this will naturally stop too
-      var va = a.currentTime;
-      var timeToBoundary = (curEnd - va);
-
-      // Find next segment (if any)
-      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
-        ? window.segments[curIdx + 1]
-        : null;
-
-      // Perform a one-time, tiny tickle just before the boundary
-      if (next && typeof next.start === 'number' &&
-          !jumping && timeToBoundary <= LOOKAHEAD_WINDOW_S && timeToBoundary > 0) {
-
-        jumping = true;
-
-        // Seek to next.start and immediately back—no audible change, just warms byte-range
-        try {
-          var returnTo = va;
-          fastSeekOrSet(a, next.start);
-          fastSeekOrSet(b, next.start);
-          fastSeekOrSet(a, returnTo);
-          fastSeekOrSet(b, returnTo);
-        } catch (_) {}
-
-        setTimeout(function(){ jumping = false; }, RELEASE_MS);
-      }
-
-      // If we detect we’ve advanced to the next segment in your base logic, update bounds
-      try {
-        if (window.currentPlayingSegmentIndex === curIdx + 1 && next) {
-          curIdx += 1;
-          curEnd  = next.end;
-        }
-      } catch(_) {}
-    }, 25); // light; matches your v3 CHECK_EVERY_MS
-
-    window.__v3MicroPrimeStop = function(){ clearInterval(interval); };
-  };
-
-  console.log("🌐 v3 micro-priming overlay installed (Segment 2+ only, slow networks).");
-})();
-
-*/
-
-
 /* ==========================================================
    🌐 Micro-priming overlay for v3 (Segment 2+ only, always on)
    - Drop-in: paste at END of loopPlayer.js (replace old overlay)
@@ -912,108 +791,102 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 
 
 
-
-
-
-
-
+<!-- ⬇️ paste this whole block at the very end of loopPlayer.js -->
+<script>
 /* ==========================================================
-   🔥 Aggressive look-ahead priming (1→2 and onward)
-   - Paste at END of loopPlayer.js
-   - No extra <audio>, no WebAudio, no MSE
-   - Warms the exact range we’ll jump to, multiple times if needed
+   🚀 Multi-boundary warmup overlay (always on, very light)
+   - Warms the next few segment starts ahead of time
+   - Works with streaming sources and with offline prefetch (harmless)
+   - Plays nicely with your v3 seamless handoff
    ========================================================== */
 (function () {
-  if (window.__AGGRESSIVE_PRIME_V1__) return;
-  window.__AGGRESSIVE_PRIME_V1__ = true;
+  if (window.__MULTI_BOUNDARY_WARMUP__) return;
+  window.__MULTI_BOUNDARY_WARMUP__ = true;
 
-  var __basePlaySegment = window.playSegment;
-  if (typeof __basePlaySegment !== 'function') return;
-
-  // ---- Tunables ----
-  var LOOKAHEAD_S     = 1.20;  // start priming this many seconds before segment end
-  var REPEAT_EVERY_MS = 120;   // repeat tickle every 120ms within the window
-  var MAX_TICKLES     = 8;     // max repeats per boundary (keeps it light)
-  var COOLDOWN_MS     = 25;    // guard against re-entrancy in same tick
+  // Tunables
+  var LOOKAHEAD_S          = 0.80; // warm ~800 ms before a segment boundary
+  var BOUNDARIES_TO_PRIME  = 3;    // how many upcoming segment starts to warm
+  var RECHECK_MS           = 120;  // how often to reconsider priming
+  var COOLDOWN_MS          = 300;  // avoid re-priming the same boundary too often
 
   function fastSeekOrSet(el, t){
-    try { if (el && typeof el.fastSeek === 'function') { el.fastSeek(t); return; } } catch(_) {}
+    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
     try { if (el) el.currentTime = t; } catch(_) {}
   }
 
-  window.playSegment = function (startTime, endTime, index) {
-    // Run your existing behavior
+  // Keep a tiny memory of recently-primed (segIndex) → timestamp
+  var lastPrimedAt = Object.create(null);
+
+  // Wrap your current playSegment once more to attach warmup
+  var __basePlaySegment = window.playSegment;
+  if (typeof __basePlaySegment !== 'function') return;
+
+  window.playSegment = function(startTime, endTime, index) {
     __basePlaySegment.call(this, startTime, endTime, index);
 
     var myRun = window.playRunId;
     var a = window.vocalAudio, b = window.accompAudio;
     if (!a || !b) return;
 
-    // State for this boundary
-    var curIdx   = index|0;
-    var curEnd   = endTime;
-    var tickles  = 0;
-    var cooling  = false;
-    var primedForIdx = -1; // ensure per-segment
-    var stopTimer = null;
+    // Kill previous warmup loop if any
+    if (window.__warmupStopper) { try { window.__warmupStopper(); } catch(_){ } }
 
-    // Clean older priming loop if any
-    if (window.__aggrPrimeStop) { try { window.__aggrPrimeStop(); } catch(_){} }
+    var curIdx = index|0;
+    var curEnd = endTime;
 
-    // Small timer loop (avoids RAF to keep cost minimal & steady)
     var timer = setInterval(function(){
-      // Abort if a newer play took over or players are gone
-      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
-        clearInterval(timer); window.__aggrPrimeStop = null; return;
-      }
+      if (myRun !== window.playRunId) { clearInterval(timer); window.__warmupStopper=null; return; }
+      if (!window.vocalAudio || !window.accompAudio) { clearInterval(timer); window.__warmupStopper=null; return; }
 
-      var va = a.currentTime;
-      var timeToEnd = curEnd - va;
+      var now = performance.now();
+      var va  = a.currentTime;
+      var timeToBoundary = curEnd - va;
 
-      // Find "next" segment (if any)
-      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
-        ? window.segments[curIdx + 1]
-        : null;
+      // If we advanced (by v3 handoff), update bounds
+      try {
+        if (window.currentPlayingSegmentIndex === curIdx + 1 && Array.isArray(window.segments)) {
+          curIdx += 1;
+          var next = window.segments[curIdx];
+          if (next) curEnd = next.end;
+        }
+      } catch(_){}
 
-      if (!next || typeof next.start !== 'number') {
-        // No next segment: stop priming for this run
-        clearInterval(timer); window.__aggrPrimeStop = null; return;
-      }
+      if (!Array.isArray(window.segments)) return;
 
-      // Enter look-ahead window?
-      if (timeToEnd > 0 && timeToEnd <= LOOKAHEAD_S) {
-        if (primedForIdx !== curIdx && tickles < MAX_TICKLES && !cooling) {
-          // One tiny "tickle": jump to next.start and straight back
-          try {
-            var backTo = va;
-            fastSeekOrSet(a, next.start);
-            fastSeekOrSet(b, next.start);
-            fastSeekOrSet(a, backTo);
-            fastSeekOrSet(b, backTo);
-            tickles++;
-          } catch(_) {}
+      // prime the next few upcoming starts
+      for (var k = 1; k <= BOUNDARIES_TO_PRIME; k++) {
+        var targetIdx = curIdx + k;
+        var seg = window.segments[targetIdx];
+        if (!seg) break;
 
-          // Cooldown to avoid tight loops in the same JS tick
-          cooling = true;
-          stopTimer && clearTimeout(stopTimer);
-          stopTimer = setTimeout(function(){ cooling = false; }, COOLDOWN_MS);
+        // Skip if too far or already well before its start
+        var dt = seg.start - va;
+        if (dt < 0 || dt > 12 /* seconds cap to avoid priming way too early */) continue;
 
-          // If we’ve done enough tickles for this boundary, mark done
-          if (tickles >= MAX_TICKLES) primedForIdx = curIdx;
+        // Only when we are within LOOKAHEAD_S of the *current* boundary,
+        // start priming upcoming boundaries (creates a rolling wave of priming)
+        if (timeToBoundary <= LOOKAHEAD_S) {
+          var last = lastPrimedAt[targetIdx] || 0;
+          if (now - last > COOLDOWN_MS) {
+            // Tiny tickle for this upcoming boundary (seek there and back)
+            var back = va;
+            try {
+              fastSeekOrSet(a, seg.start);
+              fastSeekOrSet(b, seg.start);
+              fastSeekOrSet(a, back);
+              fastSeekOrSet(b, back);
+            } catch(_){}
+            lastPrimedAt[targetIdx] = now;
+            // space out multiples a bit
+            break;
+          }
         }
       }
+    }, RECHECK_MS);
 
-      // If your base logic advanced (seamless handoff), update pointers and reset
-      if (window.currentPlayingSegmentIndex === curIdx + 1) {
-        curIdx  += 1;
-        curEnd   = next.end;
-        tickles  = 0;
-        primedForIdx = -1;
-      }
-    }, REPEAT_EVERY_MS);
-
-    window.__aggrPrimeStop = function(){ clearInterval(timer); };
+    window.__warmupStopper = function(){ clearInterval(timer); };
   };
 
-  console.log("⚡ Aggressive look-ahead priming installed (1.2s window, multi-tickle).");
+  console.log('🚀 Multi-boundary warmup overlay installed.');
 })();
+</script>
