@@ -486,11 +486,39 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   var __origPlaySegment = window.playSegment;
   if (typeof __origPlaySegment !== "function") return;
 
-  // Tunables
+  /*
+  // Tunables Balanced
   var EPS_END        = 0.012; // 12 ms guard at segment end
   var DRIFT_FIX_HARD = 0.050; // snap accomp if >50 ms behind vocal
   var DRIFT_FIX_SOFT = 0.020; // nudge accomp if >20 ms behind vocal
   var CHECK_EVERY_MS = 25;    // ~40/s when interval fallback is used
+  */
+
+
+  // Tunables Smoother on mid/weak networks (my default recommendation)
+  var EPS_END        = 0.018; // (slightly larger “finish” cushion → fewer early stops from clock jitter)
+  var DRIFT_FIX_HARD = 0.040; // (snap sooner if accomp lags)
+  var DRIFT_FIX_SOFT = 0.012; // (gentler, earlier nudges keep tracks tighter so hard snaps are rare)
+  var CHECK_EVERY_MS = 16;    //(~60 Hz when interval fallback is used; RAF already covers visible tabs)
+
+
+  
+  // pick smoother vs aggressive once at startup
+  if (window.__slowNetwork && window.__slowNetwork()) {
+  EPS_END = 0.020; DRIFT_FIX_HARD = 0.038; DRIFT_FIX_SOFT = 0.010; CHECK_EVERY_MS = 16;
+  } else {
+  EPS_END = 0.018; DRIFT_FIX_HARD = 0.040; DRIFT_FIX_SOFT = 0.012; CHECK_EVERY_MS = 16;
+  }
+
+
+  /*
+  // Tunables Aggressive (lowest gap risk, a tad more CPU)
+  var EPS_END = 0.022
+  var DRIFT_FIX_HARD = 0.035
+  var DRIFT_FIX_SOFT = 0.008
+  var CHECK_EVERY_MS = 12
+  */
+
 
   function safePlay(el){
     if (!el || el.error || el.ended || !el.paused) return Promise.resolve();
