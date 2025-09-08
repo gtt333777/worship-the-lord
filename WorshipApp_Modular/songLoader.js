@@ -143,3 +143,123 @@ function getDropboxFileURL(filename) {
   const dropboxPath = "/WorshipSongs/" + filename;
   return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg={"path":"${dropboxPath}"}`;
 }
+
+
+
+
+
+<!-- ⬇️ paste this whole block at the very end of songLoader.js -->
+<script>
+/* ==========================================================
+   🎛️ Optional: Offline Prefetch Mode (drop-in, no handler edits)
+   - Set window.USE_OFFLINE_PREFETCH = true to enable
+   - Fully downloads vocal & accomp, then plays from Blob URLs
+   - Zero changes to your existing Play click handler
+   ========================================================== */
+(function () {
+  if (window.__OFFLINE_PREFETCH_PATCH__) return;
+  window.__OFFLINE_PREFETCH_PATCH__ = true;
+
+  // OFF by default. Flip true to try:
+  //window.USE_OFFLINE_PREFETCH = window.USE_OFFLINE_PREFETCH ?? false;
+
+  // Persisted default (ON by default; remembered in localStorage)
+const __stored = localStorage.getItem('use_offline_prefetch');
+window.USE_OFFLINE_PREFETCH = __stored === null ? true : (__stored === 'true');
+
+// Optional helper to change it once and remember
+window.setOfflinePrefetch = function(on){
+  const v = !!on; localStorage.setItem('use_offline_prefetch', String(v));
+  window.USE_OFFLINE_PREFETCH = v;
+  console.log('Offline prefetch is now', v ? 'ON' : 'OFF');
+};
+
+
+
+  // Helpers
+  function getSelectedSongName() {
+    var dd = document.getElementById('songSelect');
+    return dd && dd.value ? dd.value : '';
+  }
+
+  async function fetchToBlob(url, onProgress) {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Download failed: ' + url);
+    const total = Number(resp.headers.get('content-length')) || 0;
+    const reader = resp.body.getReader();
+    const chunks = [];
+    let recvd = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      recvd += value.byteLength;
+      if (onProgress && total) onProgress(recvd, total);
+    }
+    const blob = new Blob(chunks, { type: resp.headers.get('content-type') || 'audio/mpeg' });
+    return blob;
+  }
+
+  function getDropboxURLFor(name, suffix) {
+    // mirror your getDropboxFileURL logic
+    const filename = name + suffix;
+    const dropboxPath = "/WorshipSongs/" + filename;
+    return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg=${encodeURIComponent(JSON.stringify({path: dropboxPath}))}`;
+  }
+
+  async function preDownloadBothTracks() {
+    const song = getSelectedSongName();
+    if (!song) throw new Error('No song selected');
+
+    const vocalUrl = getDropboxURLFor(song, "_vocal.mp3");
+    const accUrl   = getDropboxURLFor(song, "_acc.mp3");
+
+    console.log('⬇️ Offline prefetch: starting downloads...');
+    const [vBlob, aBlob] = await Promise.all([
+      fetchToBlob(vocalUrl, (got, tot) => console.log(`Vocal ${((got/tot)*100|0)}%`)),
+      fetchToBlob(accUrl,   (got, tot) => console.log(`Accomp ${((got/tot)*100|0)}%`)),
+    ]);
+
+    // Swap to Blob URLs
+    const vObj = URL.createObjectURL(vBlob);
+    const aObj = URL.createObjectURL(aBlob);
+
+    window.vocalAudio.pause();
+    window.accompAudio.pause();
+
+    window.vocalAudio.src = vObj;
+    window.accompAudio.src = aObj;
+
+    // Keep refs to revoke later if you stop/unload
+    window.__offline_vocal_obj = vObj;
+    window.__offline_accomp_obj = aObj;
+
+    console.log('✅ Offline prefetch complete; sources swapped to Blob URLs.');
+  }
+
+  // Hook checkReadyAndPlay so the Play flow stays unchanged
+  const __origCheckReadyAndPlay = window.checkReadyAndPlay;
+  window.checkReadyAndPlay = async function() {
+    if (window.USE_OFFLINE_PREFETCH) {
+      try {
+        await preDownloadBothTracks();
+      } catch (e) {
+        console.warn('Offline prefetch failed; falling back to streaming:', e);
+      }
+    }
+    return __origCheckReadyAndPlay.call(this);
+  };
+
+  // Optional: when you call stopAndUnloadAudio(), also revoke Blob URLs
+  const __origStopUnload = window.stopAndUnloadAudio;
+  window.stopAndUnloadAudio = function() {
+    try { __origStopUnload && __origStopUnload.call(this); } catch(_){}
+    try { if (window.__offline_vocal_obj) URL.revokeObjectURL(window.__offline_vocal_obj); } catch(_){}
+    try { if (window.__offline_accomp_obj) URL.revokeObjectURL(window.__offline_accomp_obj); } catch(_){}
+    window.__offline_vocal_obj = null;
+    window.__offline_accomp_obj = null;
+  };
+
+  console.log('🎛️ Offline Prefetch Mode ready. Set window.USE_OFFLINE_PREFETCH = true to use.');
+})();
+</script>
