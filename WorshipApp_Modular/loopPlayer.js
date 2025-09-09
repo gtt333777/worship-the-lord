@@ -139,11 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               playSegment(segment.start, segment.end, index);
 
-              
+              /*
               setTimeout(() => playSegment(segment.start, segment.end, index), 70);
               setTimeout(() => playSegment(segment.start, segment.end, index), 140);
               setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-
+              */
               
 
             }
@@ -480,7 +480,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - One tiny seek “tickle” once per segment boundary
    - No network check; still very light
    ========================================================== */
-/*
+
 (function () {
   if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
   window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
@@ -568,7 +568,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
 })();
 
 
-*/
+
 
 
 
