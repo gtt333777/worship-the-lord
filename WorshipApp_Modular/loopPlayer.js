@@ -210,267 +210,6 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
-/* ==========================================================
-   ✅ Seamless inter-segment handoff (mobile-safe)
-   - Paste at END of loopPlayer.js (no modules/imports)
-   - Leaves your first segment start untouched
-   - Removes ~1s gap on phones by jumping in-place at boundaries
-   - Stops at the last segment (no postlude)
-   ========================================================== *
-(function () {
-  if (window.__SEAMLESS_CHAIN_PATCH__) return;
-  window.__SEAMLESS_CHAIN_PATCH__ = true;
-
-  // Keep a reference to your current playSegment so we can re-use its start behavior
-  var __origPlaySegment = window.playSegment;
-
-  // Replace playSegment with a version that:
-  //  - Starts the requested segment using your current logic
-  //  - Then, for chain advance, uses an in-place jump (no pause, no re-call)
-  window.playSegment = function (startTime, endTime, index) {
-    if (typeof __origPlaySegment !== "function") return;
-
-    // Start as you already do today (this preserves your perfect first start)
-    __origPlaySegment.call(this, startTime, endTime, index);
-
-    // After the original sets up and begins playback, install our seamless handoff loop
-    const myRun = window.playRunId; // capture the run that __origPlaySegment just started
-    const a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    // Small, safe constants (tunable if needed)
-    const EPS_END   = 0.02; // 20 ms guard right at a boundary
-    const DRIFT_FIX = 0.06; // if accomp lags >60 ms, snap to vocal
-    const CHECK_EVERY_MS = 40; // checker frequency (~25/s)
-
-    // Manage current segment bounds locally; we mutate them when we jump
-    let curIdx  = index|0;
-    let curEnd  = endTime;
-    let jumped  = false; // to avoid double-actions in one tick
-
-    // Kill any previous handoff loop for older runs
-    if (window.__seamlessInterval) {
-      clearInterval(window.__seamlessInterval);
-      window.__seamlessInterval = null;
-    }
-
-    window.__seamlessInterval = setInterval(function () {
-      // If another start took over, stop this loop
-      if (myRun !== window.playRunId) {
-        clearInterval(window.__seamlessInterval);
-        window.__seamlessInterval = null;
-        return;
-      }
-
-      // Safety: if players vanished, stop
-      if (!window.vocalAudio || !window.accompAudio) {
-        clearInterval(window.__seamlessInterval);
-        window.__seamlessInterval = null;
-        return;
-      }
-
-      // Micro-resync (vocal = master): if accomp lags a lot, pull it forward
-      const va = a.currentTime;
-      const vb = b.currentTime;
-      const lag = va - vb;
-      if (lag > DRIFT_FIX) {
-        try {
-          if (typeof b.fastSeek === "function") b.fastSeek(va);
-          else b.currentTime = va;
-        } catch(_) { b.currentTime = va; }
-      }
-
-      // End-of-segment handling
-      // We only change behavior HERE: no pause + no recursive playSegment call.
-      // Instead, jump in-place to the next segment's start while staying "playing".
-      if (va >= curEnd - EPS_END) {
-        // Last segment? -> stop exactly at end
-        if (!window.segments || curIdx >= window.segments.length - 1) {
-          clearInterval(window.__seamlessInterval);
-          window.__seamlessInterval = null;
-          // Stop and do NOT roll into postlude
-          try { a.pause(); } catch(_) {}
-          try { b.pause(); } catch(_) {}
-          window.currentlyPlaying = false;
-          return;
-        }
-
-        if (jumped) return; // avoid double-processing the same tick
-        jumped = true;
-        const next = window.segments[curIdx + 1];
-        const target = next.start;
-
-        // Seamless in-place jump: DO NOT pause. Seek both up to the next start.
-        try {
-          if (typeof a.fastSeek === "function") a.fastSeek(target);
-          else a.currentTime = target;
-        } catch(_) { a.currentTime = target; }
-
-        try {
-          if (typeof b.fastSeek === "function") b.fastSeek(target);
-          else b.currentTime = target;
-        } catch(_) { b.currentTime = target; }
-
-        // Ensure they remain "playing"
-        try { a.play(); } catch(_) {}
-        try { b.play(); } catch(_) {}
-
-        // Advance our local pointers and UI hint (if used elsewhere)
-        curIdx += 1;
-        curEnd  = next.end;
-        window.currentPlayingSegmentIndex = curIdx;
-
-        // Allow next tick to process normally
-        setTimeout(function(){ jumped = false; }, CHECK_EVERY_MS);
-      }
-    }, CHECK_EVERY_MS);
-  };
-
-  console.log("🔧 Seamless inter-segment handoff installed (mobile gap removed).");
-})();
-
-*/
-
-
-
-
-
-
-/* ==========================================================
-   ✅ Seamless inter-segment handoff (tighter boundary)
-   - Paste at END of loopPlayer.js (no modules/imports)
-   - Micro-adjusts end of segment (EPS_END) and check frequency (CHECK_EVERY_MS)
-   - Ensures seamless continuity between segments (mobile-safe)
-
-   -------
-   Key Changes:
-
-Tighter boundary detection (EPS_END): Now only 15 ms tolerance before a segment is considered finished.
-
-Faster check frequency (CHECK_EVERY_MS): This is now 30 ms instead of the previous 50 ms, which increases the smoothness between segment transitions.
-
-Seamless in-place jump: When a segment is finished, we jump forward in time without pausing, ensuring that there’s no gap in mobile playback.
-
-   ========================================================== */
-/*
-(function () {
-  if (window.__SEAMLESS_CHAIN_PATCH__) return;
-  window.__SEAMLESS_CHAIN_PATCH__ = true;
-
-  // Keep a reference to your current playSegment so we can re-use its start behavior
-  var __origPlaySegment = window.playSegment;
-
-  // Replace playSegment with a version that:
-  //  - Starts the requested segment using your current logic
-  //  - Then, for chain advance, uses an in-place jump (no pause, no re-call)
-  window.playSegment = function (startTime, endTime, index) {
-    if (typeof __origPlaySegment !== "function") return;
-
-    // Start as you already do today (this preserves your perfect first start)
-    __origPlaySegment.call(this, startTime, endTime, index);
-
-    // After the original sets up and begins playback, install our seamless handoff loop
-    const myRun = window.playRunId; // capture the run that __origPlaySegment just started
-    const a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    // Small, safe constants (tuned tighter)
-    const EPS_END   = 0.015; // 15 ms guard right at a boundary
-    const DRIFT_FIX = 0.06;  // if accomp lags >60 ms, snap to vocal
-    const CHECK_EVERY_MS = 30; // tighter check frequency (~33/s)
-
-    // Manage current segment bounds locally; we mutate them when we jump
-    let curIdx  = index|0;
-    let curEnd  = endTime;
-    let jumped  = false; // to avoid double-actions in one tick
-
-    // Kill any previous handoff loop for older runs
-    if (window.__seamlessInterval) {
-      clearInterval(window.__seamlessInterval);
-      window.__seamlessInterval = null;
-    }
-
-    window.__seamlessInterval = setInterval(function () {
-      // If another start took over, stop this loop
-      if (myRun !== window.playRunId) {
-        clearInterval(window.__seamlessInterval);
-        window.__seamlessInterval = null;
-        return;
-      }
-
-      // Safety: if players vanished, stop
-      if (!window.vocalAudio || !window.accompAudio) {
-        clearInterval(window.__seamlessInterval);
-        window.__seamlessInterval = null;
-        return;
-      }
-
-      // Micro-resync (vocal = master): if accomp lags a lot, pull it forward
-      const va = a.currentTime;
-      const vb = b.currentTime;
-      const lag = va - vb;
-      if (lag > DRIFT_FIX) {
-        try {
-          if (typeof b.fastSeek === "function") b.fastSeek(va);
-          else b.currentTime = va;
-        } catch(_) { b.currentTime = va; }
-      }
-
-      // End-of-segment handling
-      // We only change behavior HERE: no pause + no recursive playSegment call.
-      // Instead, jump in-place to the next segment's start while staying "playing".
-      if (va >= curEnd - EPS_END) {
-        // Last segment? -> stop exactly at end
-        if (!window.segments || curIdx >= window.segments.length - 1) {
-          clearInterval(window.__seamlessInterval);
-          window.__seamlessInterval = null;
-          // Stop and do NOT roll into postlude
-          try { a.pause(); } catch(_) {}
-          try { b.pause(); } catch(_) {}
-          window.currentlyPlaying = false;
-          return;
-        }
-
-        if (jumped) return; // avoid double-processing the same tick
-        jumped = true;
-        const next = window.segments[curIdx + 1];
-        const target = next.start;
-
-        // Seamless in-place jump: DO NOT pause. Seek both up to the next start.
-        try {
-          if (typeof a.fastSeek === "function") a.fastSeek(target);
-          else a.currentTime = target;
-        } catch(_) { a.currentTime = target; }
-
-        try {
-          if (typeof b.fastSeek === "function") b.fastSeek(target);
-          else b.currentTime = target;
-        } catch(_) { b.currentTime = target; }
-
-        // Ensure they remain "playing"
-        try { a.play(); } catch(_) {}
-        try { b.play(); } catch(_) {}
-
-        // Advance our local pointers and UI hint (if used elsewhere)
-        curIdx += 1;
-        curEnd  = next.end;
-        window.currentPlayingSegmentIndex = curIdx;
-
-        // Allow next tick to process normally
-        setTimeout(function(){ jumped = false; }, CHECK_EVERY_MS);
-      }
-    }, CHECK_EVERY_MS);
-  };
-
-  console.log("🔧 Seamless inter-segment handoff installed (mobile gap removed).");
-})();
-
-*/
-
-
-
-
-
 
 
 /* ==========================================================
@@ -480,7 +219,7 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
    - One tiny seek “tickle” once per segment boundary
    - No network check; still very light
    ========================================================== */
-
+/*
 (function () {
   if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
   window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
@@ -567,6 +306,115 @@ Seamless in-place jump: When a segment is finished, we jump forward in time with
   console.log("🌐 v3 micro-priming overlay installed (always on, Segment 2+ only, one-time per boundary).");
 })();
 
+*/
+
+
+
+
+/* ==========================================================
+   🎯 Next-segment priming overlay (2.0s before boundary)
+   - Paste at END of loopPlayer.js
+   - Does NOT alter Segment 1 start behavior
+   - While Seg N plays, primes Seg N+1 once at (end(N) - 2s)
+   - Muted micro-seek to avoid audible juggle
+   ========================================================== */
+(function () {
+  if (window.__PRIME_NEXT_2S_OVERLAY__) return;
+  window.__PRIME_NEXT_2S_OVERLAY__ = true;
+
+  var basePlay = window.playSegment;
+  if (typeof basePlay !== 'function') return;
+
+  // Tunables
+  var LOOKAHEAD_S = 2.0;  // when to prime before boundary
+  var RELEASE_MS  = 20;   // brief re-entry guard
+  var TICK_MS     = 40;   // watcher cadence (light)
+
+  function fastSeekOrSet(el, t){
+    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
+    try { if (el) el.currentTime = t; } catch(_) {}
+  }
+
+  function muteBoth(a, b, on) {
+    try { a.muted = !!on; } catch(_) {}
+    try { b.muted = !!on; } catch(_) {}
+  }
+
+  window.playSegment = function (startTime, endTime, index) {
+    // run your current (v3-less) implementation
+    basePlay.call(this, startTime, endTime, index);
+
+    // players
+    var a = window.vocalAudio, b = window.accompAudio;
+    if (!a || !b) return;
+
+    // stop any prior watcher
+    if (window.__prime2sStop) { try { window.__prime2sStop(); } catch(_) {} }
+
+    var myRun     = window.playRunId;
+    var curIdx    = (index|0);
+    var curEnd    = endTime;
+    var primedFor = -1;      // ensure one-time per segment
+    var jumping   = false;
+
+    var timer = setInterval(function () {
+      // abort if a newer play took over or players vanished
+      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
+        clearInterval(timer); window.__prime2sStop = null; return;
+      }
+
+      // How far to boundary (use vocal clock)
+      var now = a.currentTime;
+      var dt  = curEnd - now;
+
+      // Next segment data
+      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
+        ? window.segments[curIdx + 1]
+        : null;
+
+      // Do the one-time priming ~2s before boundary
+      if (next && typeof next.start === 'number' &&
+          dt > 0 && dt <= LOOKAHEAD_S &&
+          primedFor !== curIdx &&
+          !jumping) {
+
+        primedFor = curIdx;
+        jumping   = true;
+
+        try {
+          // brief, muted micro-seek to "warm" decoders/buffers
+          var returnTo = now;
+          muteBoth(a, b, true);
+          fastSeekOrSet(a, next.start + 0.001);
+          fastSeekOrSet(b, next.start + 0.001);
+          fastSeekOrSet(a, returnTo);
+          fastSeekOrSet(b, returnTo);
+          // small async release to ensure seeks settle
+          setTimeout(function(){
+            muteBoth(a, b, false);
+            jumping = false;
+          }, RELEASE_MS);
+        } catch(_) {
+          // even on error, release quickly
+          setTimeout(function(){ jumping = false; }, RELEASE_MS);
+          try { muteBoth(a, b, false); } catch(_) {}
+        }
+      }
+
+      // When your base code auto-advances to the next segment,
+      // this overlay will be re-installed by the next playSegment() call
+      // (which bumps playRunId). If for any reason we detect we've crossed
+      // the boundary without a takeover, stop this watcher.
+      if (dt <= 0) {
+        clearInterval(timer); window.__prime2sStop = null; return;
+      }
+    }, TICK_MS);
+
+    window.__prime2sStop = function(){ clearInterval(timer); };
+  };
+
+  console.log("🎯 2s-before-boundary priming overlay installed (one-time per segment).");
+})();
 
 
 
