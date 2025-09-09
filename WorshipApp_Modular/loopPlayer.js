@@ -139,11 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               playSegment(segment.start, segment.end, index);
 
-              /*
+              
               setTimeout(() => playSegment(segment.start, segment.end, index), 70);
               setTimeout(() => playSegment(segment.start, segment.end, index), 140);
               setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-              */
+              
               
 
             }
