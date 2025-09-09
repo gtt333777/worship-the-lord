@@ -139,11 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               playSegment(segment.start, segment.end, index);
 
-              
+              /*
               setTimeout(() => playSegment(segment.start, segment.end, index), 70);
               setTimeout(() => playSegment(segment.start, segment.end, index), 140);
               setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-              
+              */
               
 
             }
@@ -318,6 +318,7 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
    - While Seg N plays, primes Seg N+1 once at (end(N) - 2s)
    - Muted micro-seek to avoid audible juggle
    ========================================================== */
+/*
 (function () {
   if (window.__PRIME_NEXT_2S_OVERLAY__) return;
   window.__PRIME_NEXT_2S_OVERLAY__ = true;
@@ -416,6 +417,162 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log("🎯 2s-before-boundary priming overlay installed (one-time per segment).");
 })();
 
+*/
+
+
+
+
+/* ==========================================================
+   🔥 Non-invasive priming overlay (2s before boundary)
+   - Creates separate, muted Audio "warmers" for next segment
+   - Never seeks/touches the currently playing elements
+   - Segment 1 start remains untouched
+   - Paste at END of loopPlayer.js
+   ========================================================== */
+(function () {
+  if (window.__NONINVASIVE_PRIME_OVERLAY__) return;
+  window.__NONINVASIVE_PRIME_OVERLAY__ = true;
+
+  var basePlay = window.playSegment;
+  if (typeof basePlay !== "function") return;
+
+  // Tunables
+  var LOOKAHEAD_S = 2.0;   // when to prime before boundary
+  var WARM_MS     = 120;   // how long to "play" the warmers (muted)
+  var TICK_MS     = 40;    // watcher cadence
+  var SEEK_NUDGE  = 0.001; // avoid exact-edge rounding
+
+  function once(el, ev){
+    return new Promise(res => el.addEventListener(ev, res, { once: true }));
+  }
+
+  // Create two muted warmers at a given time; auto-clean after WARM_MS
+  async function warmNextAtTime(vocalSrc, accompSrc, t, runId){
+    // guard: if a newer run took over, skip
+    if (runId !== window.playRunId) return;
+
+    // build warmers
+    var v = new Audio(vocalSrc);
+    var a = new Audio(accompSrc);
+    // keep references to avoid GC
+    if (!window.__prime2sWarmers) window.__prime2sWarmers = [];
+    window.__prime2sWarmers.push(v, a);
+
+    // common props
+    [v, a].forEach(el => {
+      try { el.muted = true; } catch(_) {}
+      try { el.preload = "auto"; } catch(_) {}
+      try { el.playsInline = true; } catch(_) {}
+      try { el.crossOrigin = (window.vocalAudio && window.vocalAudio.crossOrigin) || (window.accompAudio && window.accompAudio.crossOrigin) || null; } catch(_) {}
+      // append to DOM (some browsers are happier if attached)
+      try { (document.body || document.documentElement).appendChild(el); } catch(_) {}
+    });
+
+    // load & seek both near next.start
+    try {
+      // Ensure metadata so we can seek
+      await Promise.all([
+        (v.readyState >= 1 ? Promise.resolve() : once(v, "loadedmetadata")),
+        (a.readyState >= 1 ? Promise.resolve() : once(a, "loadedmetadata"))
+      ]);
+      v.currentTime = Math.max(0, t + SEEK_NUDGE);
+      a.currentTime = Math.max(0, t + SEEK_NUDGE);
+
+      await Promise.all([
+        (v.readyState >= 2 ? Promise.resolve() : once(v, "seeked")),
+        (a.readyState >= 2 ? Promise.resolve() : once(a, "seeked"))
+      ]);
+
+      // muted play to warm up decoders/buffers
+      await Promise.allSettled([ v.play(), a.play() ]);
+
+      // let them run a tiny bit, then pause & cleanup
+      setTimeout(function(){
+        try { v.pause(); } catch(_) {}
+        try { a.pause(); } catch(_) {}
+        try { v.remove(); } catch(_) {}
+        try { a.remove(); } catch(_) {}
+        if (window.__prime2sWarmers) {
+          window.__prime2sWarmers = window.__prime2sWarmers.filter(x => x !== v && x !== a);
+        }
+      }, WARM_MS);
+    } catch(_) {
+      // Best-effort cleanup on any failure
+      try { v.remove(); } catch(_) {}
+      try { a.remove(); } catch(_) {}
+    }
+  }
+
+  // Cleanup any lingering warmers (called on takeover)
+  function killWarmers(){
+    if (!window.__prime2sWarmers) return;
+    window.__prime2sWarmers.forEach(el => {
+      try { el.pause(); } catch(_) {}
+      try { el.remove(); } catch(_) {}
+    });
+    window.__prime2sWarmers = [];
+  }
+
+  window.playSegment = function (startTime, endTime, index) {
+    // Run your existing implementation
+    basePlay.call(this, startTime, endTime, index);
+
+    var aMain = window.vocalAudio, bMain = window.accompAudio;
+    if (!aMain || !bMain) return;
+
+    // Stop previous watcher & warmers (if any)
+    if (window.__prime2sStop) { try { window.__prime2sStop(); } catch(_) {} }
+    killWarmers();
+
+    var myRun     = window.playRunId;
+    var curIdx    = (index|0);
+    var curEnd    = endTime;
+    var primedFor = -1; // ensure one-time per segment
+
+    var timer = setInterval(function(){
+      // Abort if takeover or players gone
+      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
+        clearInterval(timer); window.__prime2sStop = null; killWarmers(); return;
+      }
+
+      // Time to boundary using the live vocal clock (but DO NOT touch it)
+      var now = aMain.currentTime;
+      var dt  = curEnd - now;
+
+      // Identify the next segment
+      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
+        ? window.segments[curIdx + 1]
+        : null;
+
+      // Prime exactly once per segment when within the 2s window
+      if (next && typeof next.start === "number" &&
+          dt > 0 && dt <= LOOKAHEAD_S &&
+          primedFor !== curIdx) {
+
+        primedFor = curIdx;
+
+        // Use currentSrc if available (resolves <source> selection)
+        var vocalSrc  = aMain.currentSrc || aMain.src;
+        var accompSrc = bMain.currentSrc || bMain.src;
+
+        // Fire-and-forget warmers; they won't disturb main playback
+        warmNextAtTime(vocalSrc, accompSrc, next.start, myRun);
+      }
+
+      // If we cross boundary without a takeover (very unlikely), stop
+      if (dt <= 0) {
+        clearInterval(timer); window.__prime2sStop = null; killWarmers(); return;
+      }
+    }, TICK_MS);
+
+    window.__prime2sStop = function(){
+      clearInterval(timer);
+      killWarmers();
+    };
+  };
+
+  console.log("✅ Non-invasive 2s priming overlay installed (separate muted warmers).");
+})();
 
 
 
