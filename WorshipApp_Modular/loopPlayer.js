@@ -624,72 +624,78 @@ So happy this is finally buttery smooth.
 
 
 
-
-
-
-
-/* ===== Optional: Screen Wake Lock (paste at END of loopPlayer.js) ===== */
+// Put this once, anywhere AFTER the priming overlay is defined
 (function(){
-  if (window.__WAKE_LOCK_PATCH__) return;
-  window.__WAKE_LOCK_PATCH__ = true;
+  if (window.__PRIME2S_VIS_GUARD__) return;
+  window.__PRIME2S_VIS_GUARD__ = true;
 
-  let wakeLock = null;
-
-  async function requestWakeLock() {
-    try {
-      if ('wakeLock' in navigator && !wakeLock) {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log('🔒 Wake Lock acquired');
-        wakeLock.addEventListener('release', () => {
-          console.log('🔓 Wake Lock released');
-          wakeLock = null;
-        });
-      }
-    } catch (e) {
-      console.warn('Wake Lock not available or denied:', e);
-    }
+  function stopPrimers(){
+    if (typeof window.__prime2sStop === 'function') window.__prime2sStop();
   }
 
-  function releaseWakeLock() {
-    try { if (wakeLock) wakeLock.release(); } catch(_) {}
-    wakeLock = null;
-  }
-
-  // Acquire when playback starts; release when fully stopped
-  const _basePlaySegment = window.playSegment;
-  window.playSegment = function(startTime, endTime, index){
-    _basePlaySegment && _basePlaySegment.call(this, startTime, endTime, index);
-
-    // Only request if not already held
-    if (!wakeLock) requestWakeLock();
-
-    // Watch for the run completing to release if no longer playing
-    const myRun = window.playRunId;
-    const t = setInterval(() => {
-      if (myRun !== window.playRunId) { clearInterval(t); return; }
-      if (!window.currentlyPlaying) { clearInterval(t); releaseWakeLock(); }
-    }, 1000);
-  };
-
-  // Re-acquire on visibility return; release when hidden
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && window.currentlyPlaying) {
-      if (!wakeLock) requestWakeLock();
-    } else if (document.visibilityState === 'hidden') {
-      releaseWakeLock();
-    }
+    if (document.hidden) stopPrimers();
   });
 
-  // Release on page hide/unload (iOS/Safari friendliness)
-  window.addEventListener('pagehide', releaseWakeLock);
-  window.addEventListener('beforeunload', releaseWakeLock);
-
-  // Expose helpers if you want manual control
-  window.requestWakeLock = requestWakeLock;
-  window.releaseWakeLock = releaseWakeLock;
-
-  console.log("💡 Wake Lock helper installed (keeps screen on during playback when possible).");
+  // iOS/Safari sometimes skips visibilitychange → use pagehide too
+  window.addEventListener('pagehide', stopPrimers);
 })();
 
 
 
+
+
+/* ===== Super-light Wake Lock (event-driven, no wrapping, no polling) ===== */
+(function(){
+  if (window.__WAKE_LOCK_SAFE__) return;
+  window.__WAKE_LOCK_SAFE__ = true;
+
+  let wakeLock = null;
+  let wantLock = false;
+
+  async function acquire() {
+    if (!('wakeLock' in navigator)) return;
+    if (wakeLock) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('🔒 Wake Lock acquired');
+      wakeLock.addEventListener('release', () => {
+        console.log('🔓 Wake Lock released');
+        wakeLock = null;
+        // If we still want it (e.g., OS auto-released), try again.
+        if (wantLock && document.visibilityState === 'visible') acquire();
+      });
+    } catch (e) {
+      console.warn('Wake Lock request failed:', e);
+    }
+  }
+
+  function release() {
+    try { wakeLock?.release(); } catch(_) {}
+    wakeLock = null;
+  }
+
+  function update() {
+    const v = window.vocalAudio, a = window.accompAudio;
+    const anyPlaying = !!(v && !v.paused) || !!(a && !a.paused);
+    wantLock = anyPlaying && document.visibilityState === 'visible';
+    if (wantLock) acquire(); else release();
+  }
+
+  // Attach once audio elements are present
+  function attach() {
+    const v = window.vocalAudio, a = window.accompAudio;
+    if (!v || !a) { setTimeout(attach, 200); return; }
+
+    const events = ['play','playing','pause','ended','ratechange','emptied','abort','error','stalled','suspend'];
+    events.forEach(ev => { v.addEventListener(ev, update); a.addEventListener(ev, update); });
+
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('pagehide', release);
+
+    // Initial state
+    update();
+  }
+
+  attach();
+})();
