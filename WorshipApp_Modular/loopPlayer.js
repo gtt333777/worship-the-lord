@@ -311,6 +311,15 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
+
+/*
+I feel that it is only priming issue. segments handsoff are good even without seamless v3 hence I 
+removed V3 seamless codes. Now I want to focus on priming next segment that is segment 2 starting 
+has to be primed when segment 1 plays like that next next segments. Segment 1 should not be 
+touched it is good. Can you give code for 2 seconds before, for priming from segment 2 starting 
+onwards. At the same time because of this priming the segments should not juggle. I have pasted 
+below loopPlayer.js without v3
+*/
 /* ==========================================================
    🎯 Next-segment priming overlay (2.0s before boundary)
    - Paste at END of loopPlayer.js
@@ -422,6 +431,15 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
+
+
+/*
+While Priming takes place a that time current playing
+segment suffers. May be due to rule only one segment at a
+time. If so relax the rule only for this priming condition.
+Let the priming also take place during that priming time
+let the playing present segment play smoothly till end
+*/
 /* ==========================================================
    🔥 Non-invasive priming overlay (2s before boundary)
    - Creates separate, muted Audio "warmers" for next segment
@@ -574,6 +592,104 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log("✅ Non-invasive 2s priming overlay installed (separate muted warmers).");
 })();
 
+/*
+Why this fixes the “present segment suffers” issue
+•	Previously, priming briefly sought the live players, momentarily interrupting playback.
+•	Now, we never touch the live players during priming. We spin up two separate, muted <audio> warmers with the same sources, 
+seek them to next.start, play for ~120 ms (muted), then stop and remove them. Browsers reuse cache/decoder state, 
+so the real players have the next timestamp “hot” with zero disruption.
+Tweak if needed
+•	If your device needs a longer warm-up, raise WARM_MS (e.g., 150–200).
+•	If you want earlier prep, increase LOOKAHEAD_S to 2.5–3.0.
+•	If a platform dislikes removing nodes, omit el.remove() and just keep a small pool (but this version cleans up to stay light).
+This approach keeps your current segment buttery smooth and still primes the next one right on time.
+
+
+
+I think the long battle for segments buttery smooth in Airtel Network has solved. Thankyou. 
+I feel your above latest code has worked amazingly well.
+
+Safety helper (optional): add this tiny line anywhere after the overlay to make sure any warmers stop when the app is backgrounded:
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && window.__prime2sStop) window.__prime2sStop();
+});
+
+
+If anything odd shows up (rare pops, missed first note of the next segment, etc.), 
+tell me the segment length and device—I'll tune those two constants for you. 
+So happy this is finally buttery smooth.
+*/
+
+
+
+
+
+
+
+
+/* ===== Optional: Screen Wake Lock (paste at END of loopPlayer.js) ===== */
+(function(){
+  if (window.__WAKE_LOCK_PATCH__) return;
+  window.__WAKE_LOCK_PATCH__ = true;
+
+  let wakeLock = null;
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('🔒 Wake Lock acquired');
+        wakeLock.addEventListener('release', () => {
+          console.log('🔓 Wake Lock released');
+          wakeLock = null;
+        });
+      }
+    } catch (e) {
+      console.warn('Wake Lock not available or denied:', e);
+    }
+  }
+
+  function releaseWakeLock() {
+    try { if (wakeLock) wakeLock.release(); } catch(_) {}
+    wakeLock = null;
+  }
+
+  // Acquire when playback starts; release when fully stopped
+  const _basePlaySegment = window.playSegment;
+  window.playSegment = function(startTime, endTime, index){
+    _basePlaySegment && _basePlaySegment.call(this, startTime, endTime, index);
+
+    // Only request if not already held
+    if (!wakeLock) requestWakeLock();
+
+    // Watch for the run completing to release if no longer playing
+    const myRun = window.playRunId;
+    const t = setInterval(() => {
+      if (myRun !== window.playRunId) { clearInterval(t); return; }
+      if (!window.currentlyPlaying) { clearInterval(t); releaseWakeLock(); }
+    }, 1000);
+  };
+
+  // Re-acquire on visibility return; release when hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && window.currentlyPlaying) {
+      if (!wakeLock) requestWakeLock();
+    } else if (document.visibilityState === 'hidden') {
+      releaseWakeLock();
+    }
+  });
+
+  // Release on page hide/unload (iOS/Safari friendliness)
+  window.addEventListener('pagehide', releaseWakeLock);
+  window.addEventListener('beforeunload', releaseWakeLock);
+
+  // Expose helpers if you want manual control
+  window.requestWakeLock = requestWakeLock;
+  window.releaseWakeLock = releaseWakeLock;
+
+  console.log("💡 Wake Lock helper installed (keeps screen on during playback when possible).");
+})();
 
 
 
