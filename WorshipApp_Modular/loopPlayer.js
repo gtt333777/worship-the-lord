@@ -645,6 +645,15 @@ So happy this is finally buttery smooth.
 
 
 
+
+
+/*
+Even if add wake lock buttery smooth seamless between segments gets effected gap created. Hence I removed it
+
+On some Android devices, requesting/releasing Wake Lock can cause tiny main-thread hiccups right 
+when a segment boundary hits (especially if you wrap playSegment). That can show up as the little gap you heard.
+If you still want the screen to stay on, use this ultra-light, non-intrusive version that:
+*/
 /* ===== Super-light Wake Lock (event-driven, no wrapping, no polling) ===== */
 (function(){
   if (window.__WAKE_LOCK_SAFE__) return;
