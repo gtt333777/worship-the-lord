@@ -655,6 +655,7 @@ when a segment boundary hits (especially if you wrap playSegment). That can show
 If you still want the screen to stay on, use this ultra-light, non-intrusive version that:
 */
 /* ===== Super-light Wake Lock (event-driven, no wrapping, no polling) ===== */
+/*
 (function(){
   if (window.__WAKE_LOCK_SAFE__) return;
   window.__WAKE_LOCK_SAFE__ = true;
@@ -708,3 +709,4 @@ If you still want the screen to stay on, use this ultra-light, non-intrusive ver
 
   attach();
 })();
+*/
