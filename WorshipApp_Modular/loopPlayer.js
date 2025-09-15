@@ -625,6 +625,7 @@ So happy this is finally buttery smooth.
 
 
 // Put this once, anywhere AFTER the priming overlay is defined
+/*
 (function(){
   if (window.__PRIME2S_VIS_GUARD__) return;
   window.__PRIME2S_VIS_GUARD__ = true;
@@ -640,7 +641,7 @@ So happy this is finally buttery smooth.
   // iOS/Safari sometimes skips visibilitychange → use pagehide too
   window.addEventListener('pagehide', stopPrimers);
 })();
-
+*/
 
 
 
