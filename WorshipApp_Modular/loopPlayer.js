@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
   songNameDropdown.addEventListener("change", () => {
     const selectedTamilName = songNameDropdown.value;
     console.log("🎵 loopPlayer.js: Song selected ->", selectedTamilName);
-    const loopFile = `lyrics/${selectedTamilName}_loops.json`;
+    const loopFile = `lyrics/${selectedTamilName}_l.json`;
 
     console.log("📁 Trying to fetch loop file:", loopFile);
 
