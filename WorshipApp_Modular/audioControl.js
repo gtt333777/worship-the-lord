@@ -80,8 +80,8 @@ You can safely paste this block at the end of your file, after the enforceMinVol
 // --- Set initial volumes on load ---
 (function setInitialVolumes() {
   const defaults = {
-    vocal: 0.03,
-    accomp: 0.33
+    vocal: 0.02,
+    accomp: 0.30
   };
 
   ["vocal", "accomp"].forEach(type => {
