@@ -81,7 +81,6 @@ window.addEventListener("load", () => {
 });
 
 
-
 // --- Reset volumes to defaults whenever a new song loads ---
 (function enforceDefaultPerSong() {
   const defaults = {
@@ -100,7 +99,7 @@ window.addEventListener("load", () => {
       slider.value = defVal.toFixed(2);
       audio.volume = defVal;
 
-      // Important: manually trigger input so other bindings pick up new value
+      // Trigger input so your existing slider change listeners sync
       slider.dispatchEvent(new Event("input", { bubbles: true }));
       console.log(`🎚️ ${type} reset to default for new song: ${defVal}`);
     });
