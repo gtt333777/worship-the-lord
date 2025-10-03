@@ -102,7 +102,7 @@ You can safely paste this block at the end of your file, after the enforceMinVol
 */
 
 
-/*
+
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
   const defaults = {
@@ -122,4 +122,3 @@ window.addEventListener("load", () => {
     }
   });
 });
-*/
