@@ -81,11 +81,12 @@ window.addEventListener("load", () => {
 });
 
 
-// --- Reset volumes to defaults for each new song ---
+
+// --- Reset volumes to defaults whenever a new song loads ---
 (function enforceDefaultPerSong() {
   const defaults = {
-    vocal: 0.02,   // default for vocal
-    accomp: 0.30   // default for accompaniment
+    vocal: 0.02,   // default vocal volume
+    accomp: 0.30   // default accompaniment volume
   };
 
   ["vocal", "accomp"].forEach(type => {
@@ -93,14 +94,15 @@ window.addEventListener("load", () => {
     const slider = document.getElementById(`${type}Volume`);
     if (!audio || !slider) return;
 
-    // When a new audio file is loaded or starts playing
-    ["loadeddata", "play"].forEach(evt => {
-      audio.addEventListener(evt, () => {
-        slider.value = defaults[type].toFixed(2);
-        audio.volume = defaults[type];
-        slider.dispatchEvent(new Event("input")); // keep UI in sync
-        console.log(`🎚️ ${type} reset to default volume: ${defaults[type]}`);
-      });
+    // Fired whenever a new source is ready to play
+    audio.addEventListener("loadedmetadata", () => {
+      const defVal = defaults[type];
+      slider.value = defVal.toFixed(2);
+      audio.volume = defVal;
+
+      // Important: manually trigger input so other bindings pick up new value
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+      console.log(`🎚️ ${type} reset to default for new song: ${defVal}`);
     });
   });
 })();
