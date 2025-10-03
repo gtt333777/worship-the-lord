@@ -81,6 +81,9 @@ window.addEventListener("load", () => {
 });
 
 
+
+/*
+
 // --- Reset volumes to defaults whenever a new song loads ---
 (function enforceDefaultPerSong() {
   const defaults = {
@@ -105,3 +108,5 @@ window.addEventListener("load", () => {
     });
   });
 })();
+
+*/
