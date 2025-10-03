@@ -56,3 +56,43 @@ Here’s a block you can safely paste at the end of audioControl.js:
     });
   });
 })();
+
+
+
+/*
+In the below file I have added code for "Preventing volume sliders from reaching absolute zero".
+Now I want code for pasting at the end of this file, 
+for "While starting it should start from 0.03 in vocal and 0.33 in accompaniment 
+instead now starting from full volume.:
+
+Perfect 👍 I see you’ve already added the “prevent zero volume” logic.
+Now for your new requirement: when the page/app starts, you want the sliders and the audio elements to initialize at
+
+vocal → 0.03
+
+accompaniment → 0.33
+
+instead of starting at full volume.
+
+You can safely paste this block at the end of your file, after the enforceMinVolume() code:
+*/
+
+// --- Set initial volumes on load ---
+(function setInitialVolumes() {
+  const defaults = {
+    vocal: 0.03,
+    accomp: 0.33
+  };
+
+  ["vocal", "accomp"].forEach(type => {
+    const slider = document.getElementById(`${type}Volume`);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+
+    if (slider) {
+      slider.value = defaults[type].toFixed(2);
+      audio.volume = defaults[type];
+      // Fire an input event so UI stays in sync if other listeners exist
+      slider.dispatchEvent(new Event("input"));
+    }
+  });
+})();
