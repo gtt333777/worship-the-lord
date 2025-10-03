@@ -40,7 +40,7 @@ Here’s a block you can safely paste at the end of audioControl.js:
 
 // --- Prevent volume sliders from reaching absolute zero ---
 (function enforceMinVolume() {
-  const MIN_VOL = 0.02; // set your desired minimum volume
+  const MIN_VOL = 0.01; // set your desired minimum volume
 
   ["vocal", "accomp"].forEach(type => {
     const slider = document.getElementById(`${type}Volume`);
@@ -80,8 +80,8 @@ You can safely paste this block at the end of your file, after the enforceMinVol
 // --- Set initial volumes on load ---
 (function setInitialVolumes() {
   const defaults = {
-    vocal: 0.02,
-    accomp: 0.30
+    vocal: 0.01,
+    accomp: 0.25
   };
 
   ["vocal", "accomp"].forEach(type => {
