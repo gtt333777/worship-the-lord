@@ -146,3 +146,31 @@ function getDropboxFileURL(filename) {
 
 
 
+
+
+//songLoader.js → handles “reset to defaults on Play”.
+
+(function(){
+  if (window.__VOLUME_RESET_OVERLAY__) return;
+  window.__VOLUME_RESET_OVERLAY__ = true;
+
+  const DEFAULT_VOCAL_VOL  = 0.03;  // pick your defaults
+  const DEFAULT_ACC_VOL    = 0.33;
+
+  const playBtn = document.getElementById("playBtn");
+  if (!playBtn) return;
+
+  playBtn.addEventListener("click", () => {
+    try {
+      if (window.vocalAudio) {
+        window.vocalAudio.volume = DEFAULT_VOCAL_VOL;
+      }
+      if (window.accompAudio) {
+        window.accompAudio.volume = DEFAULT_ACC_VOL;
+      }
+      console.log("🎚️ Volumes reset to defaults for new song");
+    } catch(e) {
+      console.warn("⚠️ Volume reset skipped:", e);
+    }
+  });
+})();
