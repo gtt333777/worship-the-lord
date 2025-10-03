@@ -107,7 +107,7 @@ You can safely paste this block at the end of your file, after the enforceMinVol
 window.addEventListener("load", () => {
   const defaults = {
     vocal: 0.03,
-    accomp: 0.33
+    accomp: 0.30
   };
 
   ["vocal", "accomp"].forEach(type => {
