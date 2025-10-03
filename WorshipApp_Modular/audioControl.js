@@ -64,7 +64,7 @@ Here’s a block you can safely paste at the end of audioControl.js:
 window.addEventListener("load", () => {
   const defaults = {
     vocal: 0.03,
-    accomp: 0.30
+    accomp: 0.18
   };
 
   ["vocal", "accomp"].forEach(type => {
