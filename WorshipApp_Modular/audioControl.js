@@ -79,3 +79,28 @@ window.addEventListener("load", () => {
     }
   });
 });
+
+
+// --- Reset volumes to defaults for each new song ---
+(function enforceDefaultPerSong() {
+  const defaults = {
+    vocal: 0.02,   // default for vocal
+    accomp: 0.30   // default for accompaniment
+  };
+
+  ["vocal", "accomp"].forEach(type => {
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+    const slider = document.getElementById(`${type}Volume`);
+    if (!audio || !slider) return;
+
+    // When a new audio file is loaded or starts playing
+    ["loadeddata", "play"].forEach(evt => {
+      audio.addEventListener(evt, () => {
+        slider.value = defaults[type].toFixed(2);
+        audio.volume = defaults[type];
+        slider.dispatchEvent(new Event("input")); // keep UI in sync
+        console.log(`🎚️ ${type} reset to default volume: ${defaults[type]}`);
+      });
+    });
+  });
+})();
