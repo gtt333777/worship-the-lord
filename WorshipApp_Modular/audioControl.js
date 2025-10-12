@@ -112,7 +112,7 @@ window.addEventListener("load", () => {
 */
 
 
-
+/*
 // === Live Volume Display ===
 (function setupVolumeDisplays() {
   ["vocal", "accomp"].forEach(type => {
@@ -140,5 +140,33 @@ window.addEventListener("load", () => {
         display.textContent = parseFloat(slider.value).toFixed(2);
       }
     };
+  });
+})();
+
+*/
+
+// === Live Volume Display (fixed, no override) ===
+(function setupVolumeDisplays() {
+  ["vocal", "accomp"].forEach(type => {
+    const slider = document.getElementById(`${type}Volume`);
+    const display = document.getElementById(`${type}VolumeDisplay`);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+
+    if (!slider || !display || !audio) return;
+
+    // Initialize display
+    display.textContent = parseFloat(slider.value).toFixed(2);
+
+    // Update display + volume whenever slider moves
+    slider.addEventListener("input", () => {
+      const val = parseFloat(slider.value).toFixed(2);
+      display.textContent = val;
+      audio.volume = val;
+    });
+
+    // Update display whenever slider changes (e.g., via + / - buttons)
+    slider.addEventListener("change", () => {
+      display.textContent = parseFloat(slider.value).toFixed(2);
+    });
   });
 })();
