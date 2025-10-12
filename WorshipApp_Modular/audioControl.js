@@ -110,3 +110,24 @@ if (document.readyState === "loading") {
 } else {
   initAudioControls();
 }
+
+
+// --- Set initial volumes on load ---
+window.addEventListener("load", () => {
+  const defaults = {
+    vocal: 0.03,
+    accomp: 0.15
+  };
+
+  ["vocal", "accomp"].forEach(type => {
+    const slider = document.getElementById(`${type}Volume`);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+
+    if (slider && audio) {
+      slider.value = defaults[type].toFixed(2);
+      audio.volume = defaults[type];
+      // Fire an input event so UI stays in sync
+      slider.dispatchEvent(new Event("input"));
+    }
+  });
+});
