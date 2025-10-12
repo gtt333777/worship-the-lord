@@ -110,3 +110,35 @@ window.addEventListener("load", () => {
 })();
 
 */
+
+
+
+// === Live Volume Display ===
+(function setupVolumeDisplays() {
+  ["vocal", "accomp"].forEach(type => {
+    const slider = document.getElementById(`${type}Volume`);
+    const display = document.getElementById(`${type}VolumeDisplay`);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+
+    if (!slider || !display || !audio) return;
+
+    // Initialize display
+    display.textContent = slider.value;
+
+    // Update when user moves the slider
+    slider.addEventListener("input", () => {
+      let val = parseFloat(slider.value).toFixed(2);
+      display.textContent = val;
+      audio.volume = val;
+    });
+
+    // Update when using + / - buttons
+    const originalAdjustVolume = window.adjustVolume;
+    window.adjustVolume = function(t, delta) {
+      originalAdjustVolume(t, delta);
+      if (t === type) {
+        display.textContent = parseFloat(slider.value).toFixed(2);
+      }
+    };
+  });
+})();
