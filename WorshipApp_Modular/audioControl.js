@@ -173,6 +173,7 @@ window.addEventListener("load", () => {
 })();
 */
 
+/*
 // === Live Volume Display (Final Version) ===
 (function setupVolumeDisplays() {
   ["vocal", "accomp"].forEach(type => {
@@ -203,6 +204,42 @@ window.addEventListener("load", () => {
       if (t === type) {
         // After slider is updated, ensure actual volume + display sync
         syncDisplayAndVolume();
+      }
+    };
+  });
+})();
+*/
+
+// === Live Volume Display (Final + Debug Logs) ===
+(function setupVolumeDisplays() {
+  ["vocal", "accomp"].forEach(type => {
+    const slider = document.getElementById(`${type}Volume`);
+    const display = document.getElementById(`${type}VolumeDisplay`);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+
+    if (!slider || !display || !audio) return;
+
+    // Helper: update both number display and real audio volume
+    function syncDisplayAndVolume() {
+      const val = parseFloat(slider.value).toFixed(2);
+      display.textContent = val;
+      audio.volume = parseFloat(val);
+      console.log(`🎚️ ${type} volume set to ${val}`); // ✅ debug line
+    }
+
+    // Initialize when page loads
+    syncDisplayAndVolume();
+
+    // When user moves the slider
+    slider.addEventListener("input", syncDisplayAndVolume);
+    slider.addEventListener("change", syncDisplayAndVolume);
+
+    // When user presses + or − buttons
+    const oldAdjust = window.adjustVolume;
+    window.adjustVolume = function(t, delta) {
+      oldAdjust(t, delta);  // existing logic moves slider
+      if (t === type) {
+        syncDisplayAndVolume();  // ensure display + audio volume are synced
       }
     };
   });
