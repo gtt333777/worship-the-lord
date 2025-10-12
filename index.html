@@ -141,6 +141,18 @@
     width: 90%;
     font-size: 1rem;
   }
+
+    /* ✅ Show volume numbers neatly beside sliders */
+  .volume-control span {
+    display: inline-block;
+    width: 40px;
+    text-align: left;
+    font-weight: bold;
+    margin-left: 6px;
+    color: #2c3e50;
+  }
+
+
 </style>
 
 
@@ -288,8 +300,8 @@
    
   
   
- 
-
+ <!-- There’s no visible number, so users can’t see the volume level. -->
+ <!--
   <div class="volume-control">
     <label for="vocalVolume">🎤 Vocal Volume:</label>
     <button onclick="adjustVolume('vocal', -0.1)">-</button>
@@ -303,6 +315,7 @@
     <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
     <button onclick="adjustVolume('accomp', 0.1)">+</button>
   </div>
+  -->
 
 
  <!-- Simply remove the <button> elements for + and –, leaving only the labels and sliders: -->
@@ -318,6 +331,25 @@
 </div>
 
   -->
+
+  <!-- We’ll add a small <span> element right after each slider to show the current volume value, like this: -->
+  <div class="volume-control">
+  <label for="vocalVolume">🎤 Vocal Volume:</label>
+  <button onclick="adjustVolume('vocal', -0.1)">-</button>
+  <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
+  <span id="vocalVolumeDisplay">1.00</span> <!-- ✅ volume number -->
+  <button onclick="adjustVolume('vocal', 0.1)">+</button>
+</div>
+
+<!--Same for accompaniment: -->
+<div class="volume-control">
+  <label for="accompVolume">🏛️ Accompaniment Volume:</label>
+  <button onclick="adjustVolume('accomp', -0.1)">-</button>
+  <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
+  <span id="accompVolumeDisplay">1.00</span> <!-- ✅ volume number -->
+  <button onclick="adjustVolume('accomp', 0.1)">+</button>
+</div>
+
 
 
 
