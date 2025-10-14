@@ -1,7 +1,7 @@
 ﻿// favoriteSongs.js
 // List of Tamil song names marked as favorites
 window.favoriteSongs = [
-  "அழகாய் திரள் திரளாய்",
+  "அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "உமதுமுகம் நோக்கி Umathu mugam nokki",
   "காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka"
 ];
