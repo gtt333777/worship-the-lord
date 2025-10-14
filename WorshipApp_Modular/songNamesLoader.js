@@ -7,7 +7,7 @@
     window.availableTxtFiles = matches;
 
     // Load Tamil names from songs_names.txt
-    const nameRes = await fetch("lyrics/songs_names.md");
+    const nameRes = await fetch("lyrics/songs_names.txt");
     const nameText = await nameRes.text();
     const songNames = nameText.trim().split("\n");
 
