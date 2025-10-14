@@ -1,4 +1,5 @@
 ﻿
+/*
 async function loadSongNames() {
   try {
     // Get list of .txt files in lyrics/ folder
@@ -30,44 +31,78 @@ async function loadSongNames() {
   }
 }
 
+*/
 
-
+// =======================================================
+// WorshipApp_Modular/songNamesLoader.js
+// Custom two-line dropdown (Tamil + English)
+// =======================================================
 
 async function loadSongNames() {
   try {
-    // Get list of .txt files in lyrics/ folder
-    const res = await fetch("lyrics/");
-    const html = await res.text();
-    const matches = [...html.matchAll(/href="([^"]+\.txt)"/g)].map(m => m[1]);
-    window.availableTxtFiles = matches;
+    // 1️⃣ Fetch the text file containing song names
+    const res = await fetch("lyrics/songs_names.txt");
+    const nameText = await res.text();
 
-    // Load Tamil + English song names (2 lines per song)
-    const nameRes = await fetch("lyrics/songs_names.txt");
-    const nameText = await nameRes.text();
-
-    // Split by lines, trim extra spaces, and filter out empty ones
+    // 2️⃣ Split lines, clean up
     const lines = nameText.split("\n").map(l => l.trim()).filter(l => l);
 
-    const select = document.getElementById("songSelect");
-    select.innerHTML = "";
+    // 3️⃣ Get dropdown container elements
+    const list = document.getElementById("songDropdownList");
+    const btn = document.getElementById("songDropdownBtn");
 
-    // ✅ Each song has 2 lines: Tamil + English
+    if (!list || !btn) {
+      console.error("❌ songDropdownList or songDropdownBtn not found in DOM");
+      return;
+    }
+
+    // 4️⃣ Clear existing items
+    list.innerHTML = "";
+
+    // 5️⃣ Build dropdown items (Tamil + English on two lines)
     for (let i = 0; i < lines.length; i += 2) {
       const tamil = lines[i] || "";
       const english = lines[i + 1] || "";
 
-      const option = document.createElement("option");
-      option.value = tamil; // use Tamil line as key
-      option.textContent = english ? `${tamil}\n${english}` : tamil;
-      select.appendChild(option);
+      const item = document.createElement("div");
+      item.innerHTML = `
+        <div style="
+          padding: 8px 10px;
+          border-bottom: 1px solid #eee;
+          white-space: pre-line;
+          line-height: 1.4;
+          cursor: pointer;
+        ">
+          <strong>${tamil}</strong><br>
+          <span style="color:#555;">${english}</span>
+        </div>
+      `;
+
+      // 6️⃣ Click event to load lyrics
+      item.addEventListener("click", () => {
+        btn.textContent = `🎵 ${tamil}`;
+        list.style.display = "none";
+        loadLyricsForSelectedSong({ value: tamil });
+      });
+
+      list.appendChild(item);
     }
 
-    // ✅ Allow multi-line display inside dropdown
-    select.style.whiteSpace = "pre-line";
+    // 7️⃣ Toggle dropdown open/close
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // prevent immediate close
+      list.style.display = list.style.display === "block" ? "none" : "block";
+    });
 
-    console.log("✅ Tamil + English song names loaded (2-line format)");
+    // 8️⃣ Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!list.contains(e.target) && e.target !== btn) {
+        list.style.display = "none";
+      }
+    });
+
+    console.log("✅ Song dropdown list built successfully");
   } catch (err) {
     console.error("❌ Error loading song names:", err);
   }
 }
-
