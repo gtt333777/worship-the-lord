@@ -1,4 +1,4 @@
-﻿/*
+﻿
 async function loadSongNames() {
   try {
     // Get list of .txt files in lyrics/ folder
@@ -29,8 +29,10 @@ async function loadSongNames() {
     console.error("❌ Error loading song names:", err);
   }
 }
-*/
 
+
+
+/*
 async function loadSongNames() {
   try {
     // Get list of .txt files in lyrics/ folder
@@ -68,3 +70,5 @@ async function loadSongNames() {
     console.error("❌ Error loading song names:", err);
   }
 }
+
+*/
