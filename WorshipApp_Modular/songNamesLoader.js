@@ -106,3 +106,57 @@ async function loadSongNames() {
     console.error("❌ Error loading song names:", err);
   }
 }
+
+
+
+
+
+
+// =======================================================
+// 🔧 Fix for two-line song recognition (Tamil + English)
+// =======================================================
+
+window.getSongIdFromTamil = function(tamilName) {
+  // Trim to avoid trailing spaces
+  return tamilName.trim();
+};
+
+// Override loader to use Tamil → filename mapping
+window.loadLyricsForSelectedSong = async function(selectLike) {
+  try {
+    const tamilName = selectLike?.value?.trim();
+    if (!tamilName) {
+      console.warn("⚠ No song name provided to loadLyricsForSelectedSong()");
+      return;
+    }
+
+    // 🧩 Map to filename-friendly format
+    const songId = getSongIdFromTamil(tamilName);
+
+    const lyricsPath = `lyrics/${songId}.txt`;
+    const vocalPath  = `audio/${songId}_vocal.mp3`;
+    const accompPath = `audio/${songId}_accomp.mp3`;
+
+    console.log("🎵 Loading files:", { lyricsPath, vocalPath, accompPath });
+
+    // --- Load lyrics ---
+    const lyricsRes = await fetch(lyricsPath);
+    if (!lyricsRes.ok) throw new Error(`Lyrics not found: ${lyricsPath}`);
+    const lyricsText = await lyricsRes.text();
+
+    const lyricsBox = document.getElementById("lyricsArea");
+    if (lyricsBox) lyricsBox.value = lyricsText;
+    else console.error("❌ lyricsArea not found in DOM");
+
+    // --- Load audio files globally ---
+    if (window.vocalAudio && window.accompAudio) {
+      window.vocalAudio.src = vocalPath;
+      window.accompAudio.src = accompPath;
+      console.log("🎧 Audio sources updated");
+    } else {
+      console.warn("⚠ Global audio elements not ready yet");
+    }
+  } catch (err) {
+    console.error("❌ Error loading song files:", err);
+  }
+};
