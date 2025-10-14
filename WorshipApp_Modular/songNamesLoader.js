@@ -32,7 +32,7 @@ async function loadSongNames() {
 
 
 
-/*
+
 async function loadSongNames() {
   try {
     // Get list of .txt files in lyrics/ folder
@@ -71,4 +71,3 @@ async function loadSongNames() {
   }
 }
 
-*/
