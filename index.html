@@ -152,16 +152,17 @@
     color: #2c3e50;
   }
 
-  
-  /* ✅ Add small spacing between song names in dropdown */
+    /* ✅ Add small spacing + multi-line layout for song names */
   #songSelect {
     font-size: 1rem;
     line-height: 1.5;
   }
 
   #songSelect option {
+    white-space: pre-line;   /* shows Tamil + English on separate lines */
+    line-height: 1.4;
     padding: 6px 4px;
-    margin-bottom: 3px;
+    margin-bottom: 3px;      /* small visual gap between songs */
   }
 
   
