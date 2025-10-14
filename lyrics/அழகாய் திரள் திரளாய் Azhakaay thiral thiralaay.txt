@@ -43,6 +43,7 @@ Segment 5
 மறுகரையில் மன்னன் மாளிகையில்     
 மகிழ்வுடனே நாம் சேர்ந்திடுவோம்       2
 
+Segment 
 6. கண்ணீர் கவலை இல்லை
 பாவம் சாபமில்லை                     2
 துதியின் சத்தம் எங்கும் தொனிக்கும்
@@ -88,6 +89,7 @@ pakthiyaay aayaththamaavom
 makimai tharum mana naalilae
 manavaattiyaay naam joliththiduvom
 
+Segment 
 6. kannnneer kavalai illai
 paavam saapamillai
 thuthiyin saththam engum thonikkum
