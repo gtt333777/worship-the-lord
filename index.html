@@ -189,40 +189,11 @@
     <button id="installButton">Install</button>
   </div>
 
-  <!--
+  
   <div>
     <label for="songSelect"><strong>Choose a song:</strong></label>
     <select id="songSelect"></select>
-  -->
-
-  <!-- 🎵 Custom Song Dropdown -->
-<div id="songDropdownContainer" style="position: relative; display: inline-block;">
-  <button id="songDropdownBtn" style="
-      padding: 8px 12px;
-      font-size: 1rem;
-      border: 1px solid #aaa;
-      border-radius: 6px;
-      background: white;
-      cursor: pointer;
-      min-width: 250px;
-      text-align: left;
-  ">
-    🎵 Choose a song ▾
-  </button>
-  <div id="songDropdownList" style="
-      display: none;
-      position: absolute;
-      z-index: 1000;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      max-height: 300px;
-      overflow-y: auto;
-      width: 100%;
-      text-align: left;
-  "></div>
-</div>
+  
 
     
 
@@ -490,9 +461,9 @@
     await loadSongNames();
 
  
-//    const select = document.getElementById("songSelect");
-//    loadLyricsForSelectedSong(select);
-//    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+    const select = document.getElementById("songSelect");
+    loadLyricsForSelectedSong(select);
+    select.addEventListener("change", () => loadLyricsForSelectedSong(select));
   
   };
 </script>
