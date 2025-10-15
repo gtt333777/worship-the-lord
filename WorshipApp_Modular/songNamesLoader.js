@@ -209,7 +209,7 @@ window.addEventListener('DOMContentLoaded', updateSongDisplayStyled);
 
 
 
-
+/*
 
 // --- updateSongDisplayStyled() ---
 // Shows Tamil (styled) on first line and English (smaller, gray by default) on second line.
@@ -257,3 +257,5 @@ function updateSongDisplayStyled() {
     `<div style="${taStyle}">${songObj.ta || ""}</div>` +
     `<div style="${enStyle}">${songObj.en || ""}</div>`;
 }
+
+*/
