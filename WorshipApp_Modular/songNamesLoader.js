@@ -35,80 +35,79 @@ async function loadSongNames() {
 */
 
 
-
 // =======================================================
 // WorshipApp_Modular/songNamesLoader.js
-// Loads song names and populates dropdown
+// Custom styled dropdown (no <select>)
 // =======================================================
 
 async function loadSongNames() {
   try {
-    // --- Get list of .txt files in lyrics/ folder (for debugging) ---
     const res = await fetch("lyrics/");
     const html = await res.text();
-    const matches = [...html.matchAll(/href="([^"]+\.txt)"/g)].map(m => m[1]);
-    window.availableTxtFiles = matches;
+    window.availableTxtFiles = [...html.matchAll(/href="([^"]+\.txt)"/g)].map(m => m[1]);
 
-    // --- Load Tamil names from songs_names.txt ---
     const nameRes = await fetch("lyrics/songs_names.txt");
     if (!nameRes.ok) throw new Error("songs_names.txt not found!");
     const nameText = await nameRes.text();
     const songNames = nameText.trim().split("\n").map(x => x.trim()).filter(Boolean);
 
-    // --- Populate dropdown ---
-    const select = document.getElementById("songSelect");
-    if (!select) {
-      console.error("❌ <select id='songSelect'> not found in HTML.");
-      return;
-    }
-
-    select.innerHTML = "";
-    songNames.forEach(name => {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      
-      select.appendChild(option);
-    });
-
-    console.log(`✅ Loaded ${songNames.length} Tamil song names into dropdown`);
+    buildCustomDropdown(songNames);
   } catch (err) {
     console.error("❌ Error loading song names:", err);
   }
 }
 
+// =======================================================
+// Build custom dropdown UI
+// =======================================================
+function buildCustomDropdown(songNames) {
+  const dropdownList = document.getElementById("dropdownList");
+  const selectedDiv = document.getElementById("dropdownSelected");
+  if (!dropdownList || !selectedDiv) return;
 
+  dropdownList.innerHTML = "";
 
+  songNames.forEach(name => {
+    const songObj = window.songNames.find(s => s.ta === name);
+    const style = songObj?.style || "";
+    const en = songObj?.en || "";
 
+    const item = document.createElement("div");
+    item.className = "dropdown-item";
+    item.innerHTML = `
+      <div style="${style}">${name}</div>
+      <div style="font-size:0.85em; color:#666;">${en}</div>
+    `;
 
-// --- Apply styles from songNames.js ---
+    item.addEventListener("click", () => {
+      selectedDiv.innerHTML = item.innerHTML;
+      dropdownList.style.display = "none";
 
-function updateSongDisplayStyled() {
-  const select = document.getElementById('songSelect');
-  const display = document.getElementById('songDisplay');
-  if (!select || !display) return;
+      if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyledCustom(songObj);
+      if (typeof loadLyricsForSelectedSong === "function") loadLyricsForSelectedSong({ value: name });
+    });
 
-  const selectedValue = select.value;
-  const songObj = window.songNames.find(s => s.ta === selectedValue);
-  if (!songObj) {
-    display.textContent = selectedValue || "";
-    return;
-  }
+    dropdownList.appendChild(item);
+  });
 
+  // Toggle open/close
+  selectedDiv.addEventListener("click", () => {
+    dropdownList.style.display = dropdownList.style.display === "block" ? "none" : "block";
+  });
+
+  // Close when clicking outside
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".dropdown")) dropdownList.style.display = "none";
+  });
+}
+
+// =======================================================
+// Show selected song below dropdown
+// =======================================================
+function updateSongDisplayStyledCustom(songObj) {
+  const display = document.getElementById("songDisplay");
+  if (!display || !songObj) return;
   const taHTML = `<span style="${songObj.style || ''}">${songObj.ta}</span>`;
   const enHTML = `<span style="${songObj.style || ''}; font-size:0.85em; color:#666;">${songObj.en}</span>`;
   display.innerHTML = `${taHTML}<br>${enHTML}`;
 }
-
-
-// --- Call whenever dropdown changes ---
-const sel = document.getElementById('songSelect');
-if (sel) {
-    sel.addEventListener('change', updateSongDisplayStyled);
-}
-
-// --- Initial display on page load ---
-window.addEventListener('DOMContentLoaded', updateSongDisplayStyled);
-
-
-
