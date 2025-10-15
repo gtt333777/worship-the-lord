@@ -106,7 +106,11 @@ async function loadSongNames() {
         option.style.color = "#27ae60";
 
         // Mobile-safe indicator
-        option.textContent = "★★★ " + trimmedName;
+        const starCount = 3;
+        option.textContent = "★".repeat(starCount) + " " + trimmedName;
+        /*
+        option.textContent = "★ " + trimmedName;
+        */
       } else {
         option.textContent = trimmedName;
       }
