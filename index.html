@@ -108,19 +108,21 @@
   }
 
   /* ✅ Bigger lyrics area with more padding */
-  #lyricsArea {
-    width: 95%;              /* wider */
-    height: 500px;           /* taller */
-    margin: 25px auto;       /* more space above and below */
-    padding: 20px;           /* more inner space for text */
-    font-size: 1.4rem;       /* slightly larger font */
-    line-height: 1.6;        /* better readability */
-    background-color: #fff;  /* white background for contrast */
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    white-space: pre-wrap;
-    overflow-y: auto;
-  }
+ #lyricsArea {
+  width: 95%;
+  max-height: 70vh;          /* relative to viewport height, adaptive */
+  margin: 25px auto;
+  padding: 20px;
+  font-size: 1.4rem;
+  line-height: 1.6;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  box-sizing: border-box;    
+  -webkit-overflow-scrolling: touch;  /* smooth scrolling on mobile */
+}
 
   #segments {
     margin: 10px 0;
