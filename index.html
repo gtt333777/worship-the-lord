@@ -5,133 +5,334 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
 
-  <!-- Preconnect for Dropbox or other external resources -->
-  <link rel="preconnect" href="https://www.dropbox.com">
-  <link rel="preconnect" href="https://worship-the-lord.netlify.app">
+  <!-- 🔌 Warm up Dropbox connection early -->
+  <link rel="preconnect" href="https://content.dropboxapi.com" crossorigin>
+  <link rel="dns-prefetch" href="https://content.dropboxapi.com">
 
-  <!-- Optional styles -->
-  <link rel="stylesheet" href="style.css">
+  <!-- ✅ PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
+  <meta name="theme-color" content="#2c3e50" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eaf3fb;
+      text-align: center;
+      padding: 20px;
+    }
+    h1, h3 {
+      color: #2c3e50;
+    }
+    select, button {
+      padding: 5px 10px;
+      margin: 5px;
+    }
+    .volume-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px;
+    }
+    .volume-control label {
+      margin-right: 5px;
+      width: 140px;
+      text-align: right;
+    }
+    .volume-control input[type="range"] {
+      width: 200px;
+    }
+    .volume-control span {
+      display: inline-block;
+      width: 40px;
+      text-align: left;
+      font-weight: bold;
+      margin-left: 6px;
+      color: #2c3e50;
+    }
+
+    /* Bigger lyrics area */
+    #lyricsArea {
+      width: 95%;
+      height: 500px;
+      margin: 25px auto;
+      padding: 20px;
+      font-size: 1.4rem;
+      line-height: 1.6;
+      background-color: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      overflow-y: auto;
+    }
+
+    /* Segment buttons styling */
+    #segments, #loopButtonsContainer {
+      margin: 10px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+    .segment-button {
+      margin: 3px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background-color: #4caf50;
+      transition: left 0.05s ease-out;
+    }
+
+    /* Custom dropdown styling */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      width: 90%;
+      max-width: 420px;
+      font-size: 1.05rem;
+    }
+    .dropdown-selected {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .dropdown-list {
+      display: none;
+      position: absolute;
+      width: 100%;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      max-height: 260px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    .dropdown-item {
+      padding: 6px 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover {
+      background: #f0f0f0;
+    }
+    #songDisplay {
+      margin-top: 10px;
+      line-height: 1.4;
+      font-size: 1.3rem;
+    }
+
+    #installPrompt {
+      display: none;
+      background: #fff8dc;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px auto;
+      width: 90%;
+      font-size: 1rem;
+    }
+
+    #songSelect option {
+      white-space: pre-line;
+      line-height: 1.4;
+      padding: 6px 4px;
+      margin-bottom: 3px;
+    }
+  </style>
 </head>
+
 <body>
-  <header>
-    <h1>🎵 Worship The Lord</h1>
-  </header>
+  <h3>🎵 Worship The Lord</h3>
 
-  <!-- Song selector -->
-  <section>
-    <label for="songSelect">Select Song:</label>
-    <select id="songSelect">
-      <option value="">--Choose a song--</option>
-      <!-- Song options dynamically added via JS -->
+  <!-- PWA Install Prompt -->
+  <div id="installPrompt">
+    📲 You can install this app on your device.
+    <button id="installButton">Install</button>
+  </div>
+
+  <!-- Custom dropdown -->
+  <div id="songDropdown" class="dropdown">
+    <div id="dropdownSelected" class="dropdown-selected">-- Select a Song --</div>
+    <div id="dropdownList" class="dropdown-list"></div>
+  </div>
+
+  <div id="songDisplay"></div>
+
+  <!-- Bookmark + Dropdown -->
+  <div style="display:inline-flex; align-items:center; gap:6px;">
+    <button id="bookmarkBtn" title="Toggle bookmark"
+            style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
+    <select id="bookmarkDropdown">
+      <option value="">🎯 Bookmarked Songs</option>
     </select>
-  </section>
+  </div>
 
-  <!-- Lyrics display -->
-  <section id="lyricsContainer">
-    <pre id="lyricsArea">Loading lyrics...</pre>
-  </section>
+  <br />
 
-  <!-- Audio controls -->
-  <section id="audioControls">
-    <button id="playBtn">Play</button>
-    <button id="pauseBtn">Pause</button>
-    <label for="vocalVolume">Vocal Volume:</label>
-    <input type="range" id="vocalVolume" min="0.03" max="1" step="0.01" value="0.03">
-    <label for="accompVolume">Accompaniment Volume:</label>
-    <input type="range" id="accompVolume" min="0.03" max="1" step="0.01" value="0.15">
-  </section>
+  <!-- Play/Pause buttons -->
+  <button id="playBtn">▶️ Play</button>
+  <button id="pauseBtn">⏸️ Pause</button>
 
-  <!-- Scripts -->
+  <!-- Volume sliders with numbers -->
+  <div class="volume-control">
+    <label for="vocalVolume">🎤 Vocal Volume:</label>
+    <button onclick="adjustVolume('vocal', -0.1)">-</button>
+    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
+    <span id="vocalVolumeDisplay">1.00</span>
+    <button onclick="adjustVolume('vocal', 0.1)">+</button>
+  </div>
+
+  <div class="volume-control">
+    <label for="accompVolume">🏛️ Accompaniment Volume:</label>
+    <button onclick="adjustVolume('accomp', -0.1)">-</button>
+    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
+    <span id="accompVolumeDisplay">1.00</span>
+    <button onclick="adjustVolume('accomp', 0.1)">+</button>
+  </div>
+
+  <!-- Segment buttons container -->
+  <div id="loopButtonsContainer"></div>
+
+  <!-- Lyrics area -->
+  <textarea id="lyricsArea" readonly></textarea>
+
+  <!-- Modular scripts -->
+  <script src="WorshipApp_Modular/tokenLoader.js"></script>
+  <script src="WorshipApp_Modular/favoriteSongs.js"></script>
+  <script src="WorshipApp_Modular/songs_names.js"></script>
+  <script src="WorshipApp_Modular/songNamesLoader.js"></script>
+  <script src="WorshipApp_Modular/lyricsLoader.js"></script>
+
+  <!-- Core scripts -->
+  <script src="WorshipApp_Modular/audioControl.js"></script>
+  <script src="WorshipApp_Modular/skipControl.js"></script>
+  <script src="WorshipApp_Modular/songLoader.js"></script>
+  <script src="WorshipApp_Modular/bookmarkManager.js"></script>
+  <script src="WorshipApp_Modular/pwaSetup.js"></script>
+  <script src="WorshipApp_Modular/loopPlayer.js"></script>
+  <script src="WorshipApp_Modular/segmentProgressVisualizer.js"></script>
+
   <script>
-    // Ensure deferredPrompt declared only once
-    window.deferredPrompt = window.deferredPrompt || null;
+    // Bookmark management
+    (function() {
+      const bookmarkBtn = document.getElementById('bookmarkBtn');
+      const bookmarkDropdown = document.getElementById('bookmarkDropdown');
+      let bookmarkedSongs = JSON.parse(localStorage.getItem('bookmarkedSongs') || '[]');
 
-    // Wait until DOM is loaded before running other scripts
-    document.addEventListener('DOMContentLoaded', () => {
-
-      // --- songSelect element ---
-      const songSelect = document.getElementById('songSelect');
-      if (!songSelect) {
-        console.warn('#songSelect not found!');
-        return;
+      function getCurrentSongId() {
+        const songSelect = document.getElementById('songSelect');
+        if (!songSelect) return '';
+        const opt = songSelect.options[songSelect.selectedIndex];
+        return opt ? (opt.value || opt.text) : '';
       }
 
-      // Load song names (simplified loader)
-      async function loadSongNames() {
-        try {
-          const res = await fetch('lyrics/');
-          const html = await res.text();
-          const matches = [...html.matchAll(/href="([^"]+\.txt)"/g)].map(m => m[1]);
-          matches.forEach(file => {
-            const option = document.createElement('option');
-            option.value = file;
-            option.textContent = file.replace('.txt','');
-            songSelect.appendChild(option);
-          });
-          console.log('✅ Song names loaded');
-        } catch(err) {
-          console.error('❌ Failed to load song names:', err);
+      function saveBookmarks() {
+        localStorage.setItem('bookmarkedSongs', JSON.stringify(bookmarkedSongs));
+      }
+
+      function refreshBookmarkDropdown() {
+        bookmarkDropdown.innerHTML = '<option value="">🎯 Bookmarked Songs</option>';
+        [...new Set(bookmarkedSongs)].forEach(songId => {
+          const opt = document.createElement('option');
+          opt.value = songId;
+          opt.textContent = songId;
+          bookmarkDropdown.appendChild(opt);
+        });
+      }
+
+      function updateStar() {
+        const current = getCurrentSongId();
+        const isBookmarked = bookmarkedSongs.includes(current);
+        bookmarkBtn.textContent = isBookmarked ? '★' : '☆';
+        bookmarkBtn.style.color = isBookmarked ? 'gold' : '';
+      }
+
+      bookmarkBtn.addEventListener('click', () => {
+        const current = getCurrentSongId();
+        if (!current) return;
+        if (bookmarkedSongs.includes(current)) {
+          bookmarkedSongs = bookmarkedSongs.filter(song => song !== current);
+        } else {
+          bookmarkedSongs.push(current);
         }
-      }
-      loadSongNames();
+        saveBookmarks();
+        refreshBookmarkDropdown();
+        updateStar();
+      });
 
-      // --- Lyrics loader ---
-      async function loadLyrics(filename) {
-        if (!filename) return;
-        const lyricsArea = document.getElementById('lyricsArea');
-        lyricsArea.textContent = 'Loading...';
-        try {
-          const res = await fetch('lyrics/' + filename);
-          if (!res.ok) throw new Error('Lyrics not found');
-          const txt = await res.text();
-          lyricsArea.textContent = txt;
-          console.log('✅ Loaded lyrics for', filename);
-        } catch(err) {
-          lyricsArea.textContent = 'Lyrics not found';
-          console.warn('⚠️', err.message);
+      bookmarkDropdown.addEventListener('change', () => {
+        const val = bookmarkDropdown.value;
+        if (!val) return;
+        const songSelect = document.getElementById('songSelect');
+        if (!songSelect) return;
+        for (let i = 0; i < songSelect.options.length; i++) {
+          const opt = songSelect.options[i];
+          if (opt.value === val || opt.text === val) {
+            songSelect.selectedIndex = i;
+            songSelect.dispatchEvent(new Event('change'));
+            break;
+          }
         }
+      });
+
+      function initWhenSongSelectReady() {
+        const songSelect = document.getElementById('songSelect');
+        if (!songSelect || songSelect.options.length === 0) {
+          setTimeout(initWhenSongSelectReady, 150);
+          return;
+        }
+        songSelect.addEventListener('change', updateStar);
+        refreshBookmarkDropdown();
+        updateStar();
       }
 
-      songSelect.addEventListener('change', (e) => {
-        const filename = e.target.value;
-        loadLyrics(filename);
-      });
+      initWhenSongSelectReady();
+    })();
 
-      // --- Audio elements ---
-      window.vocalAudio = new Audio();
-      window.accompAudio = new Audio();
-      const MIN_VOL = 0.03;
-      window.vocalAudio.volume = MIN_VOL;
-      window.accompAudio.volume = 0.15;
+    // PWA install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBar = document.getElementById('installPrompt');
+      if (installBar) installBar.style.display = 'block';
 
-      document.getElementById('playBtn').addEventListener('click', () => {
-        window.vocalAudio.play();
-        window.accompAudio.play();
-      });
-      document.getElementById('pauseBtn').addEventListener('click', () => {
-        window.vocalAudio.pause();
-        window.accompAudio.pause();
-      });
+      document.getElementById('installButton').onclick = async () => {
+        installBar.style.display = 'none';
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      };
+    });
 
-      // Volume sliders
-      document.getElementById('vocalVolume').addEventListener('input', e => {
-        const val = Math.max(MIN_VOL, parseFloat(e.target.value));
-        window.vocalAudio.volume = val;
-      });
-      document.getElementById('accompVolume').addEventListener('input', e => {
-        const val = Math.max(MIN_VOL, parseFloat(e.target.value));
-        window.accompAudio.volume = val;
-      });
+    // DOMContentLoaded setup
+    window.addEventListener("DOMContentLoaded", async () => {
+      if (typeof loadSongNames === "function") await loadSongNames();
 
-    }); // DOMContentLoaded end
+      const sel = document.getElementById("songSelect");
+      if (sel) {
+        sel.addEventListener("change", () => {
+          if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
+          if (typeof loadLyricsForSelectedSong === "function") loadLyricsForSelectedSong(sel);
+        });
+      }
 
-    // --- Service Worker registration ---
+      if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
+    });
+
+    // Service Worker registration
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(() => {
-        console.log('✅ Service Worker registered');
-      }).catch(err => {
-        console.warn('❌ Service Worker failed:', err);
-      });
+      navigator.serviceWorker.register('service-worker.js').catch(console.error);
     }
   </script>
 </body>
