@@ -1,0 +1,53 @@
+﻿
+//Example lyrics file (must be placed at lyrics/appaa_um_paatham_amarnthuvittaen.js)
+//Important: the key used here (appaa_um_paatham_amarnthuvittaen)
+//must match the file property in song_names.js or the auto-generated key from the loader.
+
+// lyrics/appaa_um_paatham_amarnthuvittaen.js
+// Register lyrics into the global SONG_LYRICS map (no functions exported)
+
+window.SONG_LYRICS = window.SONG_LYRICS || {};
+
+window.SONG_LYRICS["appaa_um_paatham_amarnthuvittaen"] = `
+Segment 1
+அப்பா உம் பாதம் அமர்ந்துவிட்டேன்
+அன்பின் தகப்பன் நீர்தானைய்யா
+செய்த பாவங்கள் கண்முன்னே
+வருந்துகிறேன் நான் கண்ணீரோடு       2
+
+என்னைக் கழுவி கழுவி தூய்மையாக்கும்
+கல்வாரி இரத்தத்தாலே
+நான் பனியைப் போல வெண்மையாவேன்
+முற்றிலும் வெண்மையாவேன்
+                  இயேசையா(4)
+
+Segment 2
+துணிகரமாய் நான் தவறு செய்தேன்
+துணிந்து பாவம் செய்தேன்         2
+நோக்கிப் பார்க்க பெலனில்லையே 2
+தூக்கி நிறுத்தும் என் தெய்வமே –   2 என்னைக்
+
+Segment 3
+கிழக்கு மேற்கு உள்ள தூரம்
+உந்தன் இரக்கம் உயர்ந்ததையா       2
+இல்லையே எல்லை உம் அன்பிற்கு     2
+இரக்கத்தின் செல்வந்தர் நீர்தானைய்யா 2
+
+Segment 4
+என் குற்றங்கள் நீர் நினைவு கூர்ந்தால்
+உம்முன்னே நிற்க முடியாதையா       2
+தகப்பன் மகனை மன்னிப்பதுபோல்    2
+மன்னிக்கும் தெய்வம் நீர்தானையா    2
+
+Segment 5
+முள்முடி கிரீடம் பார்க்கின்றேன்
+முகமெல்லாம் இரத்தம் காண்கின்றேன் 2
+ஜீவன் தந்தல்லோ மீட்டீரையா          2
+தேவனே நான் என்ன சொல்வேன்       2
+
+அப்பா உம் பாதம் அமர்ந்துவிட்டேன்
+அன்பின் தகப்பன் நீர்தானைய்யா
+கிருபையின்படியே மனமிரங்கி
+மீட்பின் மகிழ்ச்சி தந்தீரையா
+இயேசையா நன்றி(4)
+`;
