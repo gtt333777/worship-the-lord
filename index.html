@@ -419,71 +419,29 @@
 <script src="WorshipApp_Modular/tokenLoader.js"></script>
 <script src="WorshipApp_Modular/favoriteSongs.js"></script>
 
+<!-- Final working scripts -->
+<script src="WorshipApp_Modular/songs_names.js"></script>
+<script src="WorshipApp_Modular/songNamesLoader.js"></script>
+<script src="WorshipApp_Modular/lyricsLoader.js"></script>
 
-<!--
-index.html (minimal snippet)
-Include only the core scripts up front. Do not include each lyric file here — they will be loaded when needed.
--->
-<!DOCTYPE html>
-<html lang="ta">
-<head>
-  <meta charset="utf-8" />
-  <title>Worship App</title>
-  <style>
-    /* small styling */
-    #songSelect { font-size:1.05rem; padding:6px; }
-    #lyricsArea { width:100%; min-height:360px; white-space:pre-wrap; padding:12px; border-radius:8px; border:1px solid #ddd; background:#fff; }
-  </style>
-</head>
-<body>
+<script>
+window.addEventListener("DOMContentLoaded", async () => {
+  if (typeof loadSongNames === "function") await loadSongNames();
 
-  <h2>🎵 Tamil Worship Songs</h2>
-
-  <select id="songSelect">
-    <option value="">-- Select a Song --</option>
-  </select>
-
-  <!-- Display selected song name (styled) -->
-  <div id="songDisplay" style="margin-top:12px; font-size:1.1rem;"></div>
-
-  <!-- Lyrics area -->
-  <div id="lyricsArea" style="width:100%; min-height:360px; white-space:pre-wrap; padding:12px; border-radius:8px; border:1px solid #ddd; background:#fff; margin-top:10px;">
-    Select a song to load lyrics...
-  </div>
-
-  <!-- ===================================================== -->
-  <!--  Core script order — Global scope, Netlify-safe setup  -->
-  <!-- ===================================================== -->
-  <script src="WorshipApp_Modular/songs_names.js"></script>
-  <script src="WorshipApp_Modular/songNamesLoader.js"></script>
-  <script src="WorshipApp_Modular/lyricsLoader.js"></script>
-
-  <script>
-    // =====================================================
-    //  Page initialization — runs after DOM is ready
-    // =====================================================
-    window.addEventListener("DOMContentLoaded", async () => {
-      // Load song names into dropdown
-      if (typeof loadSongNames === "function") {
-        await loadSongNames();
-      }
-
-      const sel = document.getElementById("songSelect");
-      if (sel) {
-        // On song selection: update styled name + lyrics
-        sel.addEventListener("change", () => {
-          if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
-          if (typeof loadLyricsForSelectedSong === "function") loadLyricsForSelectedSong(sel);
-        });
-      }
-
-      // Show styled name immediately (for first song if pre-selected)
+  const sel = document.getElementById("songSelect");
+  if (sel) {
+    sel.addEventListener("change", () => {
       if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
+      if (typeof loadLyricsForSelectedSong === "function") loadLyricsForSelectedSong(sel);
     });
-  </script>
+  }
+
+  if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
+});
+</script>
+
 </body>
 </html>
-
 
 
 
