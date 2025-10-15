@@ -34,6 +34,7 @@ async function loadSongNames() {
 
 */
 
+/*
 
 async function loadSongNames() {
   try {
@@ -63,6 +64,51 @@ async function loadSongNames() {
       if (isGreen) {
         option.style.fontWeight = "bold";
         option.style.color = "#27ae60"; // pleasing green
+      }
+
+      select.appendChild(option);
+    }
+
+    console.log("✅ Tamil song names loaded into dropdown");
+  } catch (err) {
+    console.error("❌ Error loading song names:", err);
+  }
+}
+
+*/
+
+async function loadSongNames() {
+  try {
+    // Get list of .txt files in lyrics/ folder
+    const res = await fetch("lyrics/");
+    const html = await res.text();
+    const matches = [...html.matchAll(/href="([^"]+\.txt)"/g)].map(m => m[1]);
+    window.availableTxtFiles = matches;
+
+    // Load Tamil names from songs_names.txt
+    const nameRes = await fetch("lyrics/songs_names.txt");
+    const nameText = await nameRes.text();
+    const songNames = nameText.trim().split("\n");
+
+    const select = document.getElementById("songSelect");
+    select.innerHTML = "";
+
+    for (const name of songNames) {
+      const trimmedName = name.trim();
+      const option = document.createElement("option");
+      option.value = trimmedName;
+
+      // ✅ Check if in green favorites
+      const isGreen = window.green && window.green.includes(trimmedName);
+      if (isGreen) {
+        // Desktop: style bold + green
+        option.style.fontWeight = "bold";
+        option.style.color = "#27ae60";
+
+        // Mobile-safe indicator
+        option.textContent = "★ " + trimmedName;
+      } else {
+        option.textContent = trimmedName;
       }
 
       select.appendChild(option);
