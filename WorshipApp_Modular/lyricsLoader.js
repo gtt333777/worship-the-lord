@@ -135,3 +135,33 @@ function loadLyricsForSelectedSong(selectElement) {
 
   document.head.appendChild(script);
 }
+
+
+
+
+
+
+
+//lyricsLoader.js already knows which song is selected from the dropdown.
+//At the end of lyricsLoader.js, paste this code:
+// --- Display English name below Tamil name in dropdown selection ---
+function updateSongDisplay() {
+    const select = document.getElementById('songSelect');
+    const display = document.getElementById('songDisplay'); // a div/span where you want to show names
+    if (!select || !display) return;
+
+    const selectedValue = select.value;
+    const songObj = window.songNames.find(s => `${s.ta} ${s.en}` === selectedValue);
+    if (!songObj) return;
+
+    display.innerHTML = `${songObj.ta}<br><span style="font-size:0.85em;color:#666;">${songObj.en}</span>`;
+}
+
+// --- Call whenever dropdown changes ---
+const selectElement = document.getElementById('songSelect');
+if (selectElement) {
+    selectElement.addEventListener('change', updateSongDisplay);
+}
+
+// --- Initial display on page load ---
+window.addEventListener('DOMContentLoaded', updateSongDisplay);
