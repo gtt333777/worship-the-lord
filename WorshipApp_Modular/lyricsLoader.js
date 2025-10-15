@@ -121,6 +121,7 @@ function loadLyricsForSelectedSong(selectElement) {
     delete window._songLoadCallbacks[key];
   };
 
+  /*
   script.onerror = () => {
     window._loadedSongScripts[key] = "error";
     _setLyricsText(lyricsBox, "Failed to load lyrics file.");
@@ -135,7 +136,45 @@ function loadLyricsForSelectedSong(selectElement) {
 
   document.head.appendChild(script);
 }
+*/
 
 
+//Perfect — your lyricsLoader.js already handles .js files elegantly.
+//We just need to extend the script.onerror block so that if the .js file is
+//missing, it automatically fetches the corresponding .txt file and displays it.
+
+  script.onerror = () => {
+    console.warn(`⚠️ JS lyrics not found for ${key}, trying TXT...`);
+    const txtUrl = `lyrics/${key}.txt`;
+
+    fetch(txtUrl)
+      .then(res => {
+        if (!res.ok) throw new Error("TXT not found");
+        return res.text();
+      })
+      .then(text => {
+
+      window.SONG_LYRICS = window.SONG_LYRICS || {};
+      window.SONG_LYRICS[key] = text;
 
 
+        _setLyricsText(lyricsBox, text);
+        console.log(`✅ Loaded TXT lyrics for: ${key}`);
+      })
+      .catch(() => {
+        _setLyricsText(lyricsBox, "❌ Lyrics file not found (.js or .txt).");
+        console.error(`❌ Neither ${scriptUrl} nor ${txtUrl} found.`);
+      })
+      .finally(() => {
+        window._loadedSongScripts[key] = "error";
+        const callbacks = window._songLoadCallbacks[key] || [];
+        callbacks.forEach(cb => {
+          try { cb(); } catch (e) { console.error(e); }
+        });
+        delete window._songLoadCallbacks[key];
+      });
+  };
+
+    // ✅ Important: Append the script so .js file can actually load
+  document.head.appendChild(script);
+}
