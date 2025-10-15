@@ -166,6 +166,51 @@
   }
 
   
+  /* 🌈 Custom styled dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  width: 90%;
+  max-width: 420px;
+  font-size: 1.05rem;
+}
+
+.dropdown-selected {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.dropdown-list {
+  display: none;
+  position: absolute;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.dropdown-item {
+  padding: 6px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover {
+  background: #f0f0f0;
+}
+
+#songDisplay {
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+
 
 
 </style>
@@ -191,10 +236,14 @@
 
   
   <div>
-    <label for="songSelect"><strong>Choose a song:</strong></label>
-    <select id="songSelect"></select>
-  
-    <!-- ✅ Song display area -->
+
+  <!-- 🔽 Custom styled dropdown -->
+<div id="songDropdown" class="dropdown">
+  <div id="dropdownSelected" class="dropdown-selected">-- Select a Song --</div>
+  <div id="dropdownList" class="dropdown-list"></div>
+</div>
+
+<!-- ✅ Song display area -->
 <div id="songDisplay"
      style="margin-top:10px; font-size:1.3rem; line-height:1.5;"></div>
 
