@@ -3,8 +3,12 @@
 // =======================================================
 
 // --- Configuration ---
-var MIN_VOL = 0.03; // never mute completely
-window.DEFAULTS = window.DEFAULTS || { vocal: 0.03, accomp: 0.15 };
+//var MIN_VOL = 0.03; // never mute completely
+  var MIN_VOL = 0.00;
+
+//window.DEFAULTS = window.DEFAULTS || { vocal: 0.03, accomp: 0.15 };
+  window.DEFAULTS = window.DEFAULTS || { vocal: 0.00, accomp: 0.00 };
+
 var DEFAULTS = window.DEFAULTS;
 
 // --- Ensure global audio elements exist ---
@@ -84,9 +88,13 @@ if (document.readyState === "loading") {
   initAudioControls();
 }
 
+
+
 // --- Set initial volumes on load (final block) ---
 window.addEventListener("load", () => {
-  const defaults = { vocal: 0.03, accomp: 0.15 };
+ // const defaults = { vocal: 0.03, accomp: 0.15 };
+    const defaults = { vocal: 0.00, accomp: 0.00 };
+
   ["vocal", "accomp"].forEach(type => {
     const slider = getSlider(type);
     const audio = (type === "vocal" ? vocalAudio : accompAudio);
