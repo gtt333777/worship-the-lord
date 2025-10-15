@@ -82,20 +82,24 @@ async function loadSongNames() {
 
 
 // --- Apply styles from songNames.js ---
+
 function updateSongDisplayStyled() {
-    const select = document.getElementById('songSelect');
-    const display = document.getElementById('songDisplay');
-    if (!select || !display) return;
+  const select = document.getElementById('songSelect');
+  const display = document.getElementById('songDisplay');
+  if (!select || !display) return;
 
-    const selectedValue = select.value;
-    const songObj = window.songNames.find(s => s.file === selectedValue);
-    if (!songObj) return;
+  const selectedValue = select.value;
+  const songObj = window.songNames.find(s => s.ta === selectedValue);
+  if (!songObj) {
+    display.textContent = selectedValue || "";
+    return;
+  }
 
-    const taHTML = `<span style="${songObj.style || ''}">${songObj.ta}</span>`;
-    const enHTML = `<span style="${songObj.style || ''}; font-size:0.85em; color:#666;">${songObj.en}</span>`;
-
-    display.innerHTML = `${taHTML}<br>${enHTML}`;
+  const taHTML = `<span style="${songObj.style || ''}">${songObj.ta}</span>`;
+  const enHTML = `<span style="${songObj.style || ''}; font-size:0.85em; color:#666;">${songObj.en}</span>`;
+  display.innerHTML = `${taHTML}<br>${enHTML}`;
 }
+
 
 // --- Call whenever dropdown changes ---
 const sel = document.getElementById('songSelect');
@@ -105,7 +109,6 @@ if (sel) {
 
 // --- Initial display on page load ---
 window.addEventListener('DOMContentLoaded', updateSongDisplayStyled);
-
 
 
 
