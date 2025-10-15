@@ -436,26 +436,49 @@ Include only the core scripts up front. Do not include each lyric file here — 
   </style>
 </head>
 <body>
+
   <h2>🎵 Tamil Worship Songs</h2>
 
   <select id="songSelect">
     <option value="">-- Select a Song --</option>
   </select>
 
-  <div id="lyricsArea">Select a song to load lyrics...</div>
+  <!-- Display selected song name (styled) -->
+  <div id="songDisplay" style="margin-top:12px; font-size:1.1rem;"></div>
 
-  <!-- core lists & loaders (order matters) -->
-  <script src="songs_names.js"></script>
+  <!-- Lyrics area -->
+  <div id="lyricsArea" style="width:100%; min-height:360px; white-space:pre-wrap; padding:12px; border-radius:8px; border:1px solid #ddd; background:#fff; margin-top:10px;">
+    Select a song to load lyrics...
+  </div>
+
+  <!-- ===================================================== -->
+  <!--  Core script order — Global scope, Netlify-safe setup  -->
+  <!-- ===================================================== -->
+  <script src="WorshipApp_Modular/songs_names.js"></script>
   <script src="WorshipApp_Modular/songNamesLoader.js"></script>
   <script src="WorshipApp_Modular/lyricsLoader.js"></script>
 
   <script>
-    // init after DOM ready
-    window.addEventListener("DOMContentLoaded", () => {
-      if (typeof loadSongNames === "function") loadSongNames();
-      // attach change handler if songNamesLoader didn't already
+    // =====================================================
+    //  Page initialization — runs after DOM is ready
+    // =====================================================
+    window.addEventListener("DOMContentLoaded", async () => {
+      // Load song names into dropdown
+      if (typeof loadSongNames === "function") {
+        await loadSongNames();
+      }
+
       const sel = document.getElementById("songSelect");
-      if (sel && !sel.onchange) sel.onchange = () => loadLyricsForSelectedSong(sel);
+      if (sel) {
+        // On song selection: update styled name + lyrics
+        sel.addEventListener("change", () => {
+          if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
+          if (typeof loadLyricsForSelectedSong === "function") loadLyricsForSelectedSong(sel);
+        });
+      }
+
+      // Show styled name immediately (for first song if pre-selected)
+      if (typeof updateSongDisplayStyled === "function") updateSongDisplayStyled();
     });
   </script>
 </body>
@@ -463,11 +486,8 @@ Include only the core scripts up front. Do not include each lyric file here — 
 
 
 
-<!-- 
-<script src="song_names.js"></script>
-<script src="WorshipApp_Modular/songNamesLoader.js"></script>
-<script src="WorshipApp_Modular/lyricsLoader.js"></script>
--->
+
+
 <script src="WorshipApp_Modular/audioControl.js"></script>
 <script src="WorshipApp_Modular/skipControl.js"></script>
 <script src="WorshipApp_Modular/songLoader.js"></script>
