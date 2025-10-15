@@ -59,8 +59,8 @@ async function loadSongNames() {
       option.textContent = trimmedName;
 
       // ✅ Check if favorite
-      const isFavorite = window.green && window.green.includes(trimmedName);
-      if (isFavorite) {
+      const isGreen = window.green && window.green.includes(trimmedName);
+      if (isGreen) {
         option.style.fontWeight = "bold";
         option.style.color = "#27ae60"; // pleasing green
       }
