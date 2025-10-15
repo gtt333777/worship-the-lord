@@ -59,7 +59,7 @@ async function loadSongNames() {
       option.textContent = trimmedName;
 
       // ✅ Check if favorite
-      const isFavorite = window.favoriteSongs && window.favoriteSongs.includes(trimmedName);
+      const isFavorite = window.green && window.green.includes(trimmedName);
       if (isFavorite) {
         option.style.fontWeight = "bold";
         option.style.color = "#27ae60"; // pleasing green
