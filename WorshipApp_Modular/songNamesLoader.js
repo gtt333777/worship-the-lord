@@ -66,7 +66,9 @@ async function loadSongNames() {
     songNames.forEach(name => {
       const option = document.createElement("option");
       option.value = name;
-      option.textContent = name;
+      //option.textContent = name;
+      option.innerHTML = `${tamilName}<br><span style="font-size: 0.85em; color: #666;">${englishName}</span>`;
+
       select.appendChild(option);
     });
 
