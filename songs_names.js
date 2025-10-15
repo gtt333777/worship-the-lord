@@ -1,6 +1,21 @@
-﻿// song_names.js — master list of song display names (Tamil + transliteration)
+﻿
+
+// style: "color:green; font-weight:bold;"        // ✅ bold + green
+// style: "color:orange;"                         // ✅ orange, normal
+// style: "font-weight:bold;"                     // ✅ bold only
+// Notes:
+// style is optional — if missing, default formatting is applied.
+// You can combine CSS rules: color:green; font-weight:bold; font-style:italic; etc.
+
+// How this works: Each song has its own style string in songNames.js
+// updateSongDisplayStyled() reads that style and applies it to the Tamil + English display in #songDisplay.  in songNamesLoader.js
+// The file property remains untouched, so all lyrics loading still works normally.
+// You can freely change colors, bold, italic, underline, etc., per song.
+
+
+// song_names.js — master list of song display names (Tamil + transliteration)
 window.songNames = [
-	{ ta: "அப்பா உம் பாதம் அமர்ந்துவிட்டேன்", en: "Appaa um paatham amarnthuvittaen", file: "short_safe_key" }
+	{ ta: "அப்பா உம் பாதம் அமர்ந்துவிட்டேன்", en: "Appaa um paatham amarnthuvittaen", file: "short_safe_key" style: "color:green; font-weight:bold;" /* ✅ bold + green */ },
 
   { ta: "அப்பா உம் பாதம் அமர்ந்துவிட்டேன்", en: "Appaa um paatham amarnthuvittaen" },
   { ta: "அப்பா பிதாவே அன்பான தேவா", en: "Appa Pithave anbana Deva" },
