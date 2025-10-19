@@ -70,7 +70,7 @@ async function loadSongNames() {
       } else if (level === 0) {
         option.textContent = "# " + trimmedName;
         option.style.color = "gray";
-        option.style.fontWeight = "normal";
+        option.style.fontWeight = "bold";
       } else {
         // normal song
         option.textContent = trimmedName;
