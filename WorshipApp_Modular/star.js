@@ -31,7 +31,7 @@ window.star = [
   "* ராஜா உம் மாளிகையில் Raja um maligaiyil",
   "* விண்ணப்பத்தைக் கேட்பவரே Vinnapathai ketpavare",
   "* ஜெபம் கேட்டீரையா ஜெயம் Jebam Keteeraiya Jeyam",
-  "* విన్నపాలు విను దైవమా Vinnapalu vinu Daivamaa",
+  "* విన్నపాలు విను దైవమా Vinnapalu vinu Daivamaa"
 
 ];
 
