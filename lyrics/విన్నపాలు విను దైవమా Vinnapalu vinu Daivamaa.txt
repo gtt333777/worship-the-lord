@@ -1,4 +1,6 @@
-﻿Vinnapalu vinu Daivamaa
+﻿
+Segment 1
+Vinnapalu vinu Daivamaa
 na kaneeru thuduchu daivama 
 Swasthatha Nichu Daivamaa
 Sthothramu Yesaiyaa           2
@@ -8,6 +10,10 @@ Sarvam(u) Saatyame
 Okka mata palikina chalu   2
 
 Iya Okka mata palikina chalu 
+
+
+Segment 2
+
 
 
 
