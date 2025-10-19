@@ -1,11 +1,14 @@
 ﻿// star.js
 // List of Tamil song names marked as favorites
+
+/*
 window.star = [
   "அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
   "அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "உமதுமுகம் நோக்கி Umathu mugam nokki",
   "காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka"
 ];
+*/
 
 /*
 அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen
@@ -37,3 +40,20 @@ window.star = [
 విన్నపాలు విను దైవమా Vinnapalu vinu Daivamaa
 
 */
+
+// star.js
+//Here you define your song categories using the prefix symbols directly:
+// ---------------------------------------
+// Levels:
+// *** → Green bold (highest)
+// **  → Orange bold
+// *   → Black bold
+// #   → Grey normal
+// ---------------------------------------
+
+window.star = [
+  "*** அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
+  "** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
+  "* உமதுமுகம் நோக்கி Umathu mugam nokki",
+  "# காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka"
+];
