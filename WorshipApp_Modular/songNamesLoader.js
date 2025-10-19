@@ -69,7 +69,8 @@ async function loadSongNames() {
         option.style.fontWeight = "bold";
       } else if (level === 0) {
         option.textContent = "# " + trimmedName;
-        option.style.color = "gray";
+        //option.style.color = "gray";
+        option.style.color = "black";
         option.style.fontWeight = "bold";
       } else {
         // normal song
