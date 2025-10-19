@@ -32,6 +32,7 @@ window.star = [
   "* விண்ணப்பத்தைக் கேட்பவரே Vinnapathai ketpavare",
   "* ஜெபம் கேட்டீரையா ஜெயம் Jebam Keteeraiya Jeyam",
   "* విన్నపాలు విను దైవమా Vinnapalu vinu Daivamaa",
+  "* రాజా నీ భవనములో Raajaa Nee Bhavanamulo",
 
 ];
 
