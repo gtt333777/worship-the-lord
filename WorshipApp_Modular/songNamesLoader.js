@@ -77,6 +77,9 @@ async function loadSongNames() {
 
 */
 
+
+
+// songNamesLoader.js
 async function loadSongNames() {
   try {
     // Get list of .txt files in lyrics/ folder
@@ -98,9 +101,9 @@ async function loadSongNames() {
       const option = document.createElement("option");
       option.value = trimmedName;
 
-      // ✅ Check if in green favorites
-      const isGreen = window.green && window.green.includes(trimmedName);
-      if (isGreen) {
+      // ✅ Check if in star favorites
+      const isStar = window.star && star.green.includes(trimmedName);
+      if (isStar) {
         // Desktop: style bold + green
         option.style.fontWeight = "bold";
         option.style.color = "#27ae60";
