@@ -102,7 +102,7 @@ async function loadSongNames() {
       option.value = trimmedName;
 
       // ✅ Check if in star favorites
-      const isStar = window.star && star.green.includes(trimmedName);
+      const isStar = window.star && star.includes(trimmedName);
       if (isStar) {
         // Desktop: style bold + green
         option.style.fontWeight = "bold";
