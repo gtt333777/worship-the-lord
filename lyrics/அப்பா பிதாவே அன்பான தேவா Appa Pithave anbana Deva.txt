@@ -1,6 +1,8 @@
-﻿அப்பா பிதாவே அன்பான தேவா
+﻿Segment 1
+அப்பா பிதாவே அன்பான தேவா
 அருமை இரட்சகரே ஆவியானவரே
 
+Segment 2
 எங்கோ நான் வாழ்ந்தேன் அறியாமல் அலைந்தேன்
 என் நேசர் தேடி வந்தீர்
 நெஞ்சார அணைத்து முத்தங்கள் கொடுத்து
@@ -8,16 +10,19 @@
 
 நன்றி உமக்கு நன்றி
 
+Segment 3
 தாழ்மையில் இருந்தேன் தள்ளாடி நடந்தேன்
 தயவாய் நினைவு கூர்ந்தீர்
 கலங்காதே என்று கண்ணீரைத் துடைத்து
 கரம் பற்றி நடத்துகிறீர்
 
+Segment 4
 உளையான சேற்றில் வாழ்ந்த என்னை 
 தூக்கி எடுத்தீரே
 கல்வாரி இரத்தம் எனக்காக சிந்தி
 கழுவி அணைத்தீரே
 
+Segment
 இரவும் பகலும் ஐயா கூட இருந்து
 எந்நாளும் காப்பவரே
 மறவாத தெய்வம் மாறாத நேசர்
@@ -25,9 +30,11 @@
 
 
 
+Segment 1
 Appa Pithave Anbana Devaa
 Arumai Iratchakarae Aaviyaanavarae
 
+Segment 2
 Engo Naan Vaalnthaen Ariyaamal Alainthaen
 En Naesar Thaeti Vantheer
 Nenjaara Annaiththu Muththangal Koduththu
@@ -35,16 +42,19 @@ Nilalaay Maari Vittir
 
 Nantri Umakku Nantri
 
+Segment 3
 Thaalmaiyil Irunthaen Thallaati Nadanthaen
 Thayavaay Ninaivu Koorntheer
 Kalangaathae Entu Kanneeraith Thutaiththu
 Karam Patti Nadaththukireer
 
+Segment 4
 Ulaiyaana Settil Vaalntha Ennai
 Thookki Eduththeerae
 Kalvaari Iraththam Enakkaaka Sinthi
 Kaluvi Annaiththeerae
 
+Segment 
 Iravum Pakalum Aiyaa Kooda Irunthu
 Ennaalum Kaappavarae
 Maravaatha Theyvam Maaraatha Naesar
