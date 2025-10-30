@@ -44,11 +44,15 @@ function checkReadyAndPlay() {
 }
 
 // === Play/Pause ===
-document.getElementById("playBtn").addEventListener("click", () => {
+document.getElementById("playBtn").addEventListener("click", async () => {
   console.log("▶️ Play button clicked");
 
+  // ✅ Wait until ACCESS_TOKEN is ready before proceeding
+  await waitForAccessToken();
+
   if (!ACCESS_TOKEN) {
-    console.error("❌ ACCESS_TOKEN not yet loaded.");
+    console.error("❌ ACCESS_TOKEN not yet loaded even after waiting.");
+    alert("Please wait a moment... connecting to Dropbox.");
     return;
   }
 
@@ -143,6 +147,3 @@ function getDropboxFileURL(filename) {
   const dropboxPath = "/WorshipSongs/" + filename;
   return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg={"path":"${dropboxPath}"}`;
 }
-
-
-
