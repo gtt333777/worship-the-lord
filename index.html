@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
 
-  <!-- 🔌 Optimize for Dropbox (legacy) -->
+  <!-- 🔌 Optimize for Dropbox -->
   <link rel="preconnect" href="https://www.dropbox.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.dropbox.com">
 
@@ -253,35 +253,65 @@
     });
   </script>
 
-  <!-- ✅ Improved Initialization -->
+  <!-- ✅ FINAL LOADING + PLAY FIX -->
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      console.log("🚀 DOM ready — initializing song list...");
+      console.log("🚀 DOM ready — initializing Worship The Lord…");
+
       if (typeof loadSongNames === "function") {
         await loadSongNames();
       } else {
-        console.error("❌ loadSongNames() not found.");
+        console.error("❌ loadSongNames() not found!");
         return;
       }
 
-      console.log("🎶 Songs loaded:", Object.keys(window.songURLs || {}).length);
+      console.log("🎶 Songs available:", Object.keys(window.songURLs || {}).length);
 
       const select = document.getElementById("songSelect");
       const playBtn = document.getElementById("playBtn");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const loader = document.getElementById("loadingIndicator");
 
-      if (select && playBtn) {
-        playBtn.addEventListener("click", async () => {
-          const chosen = select.value.trim();
-          if (!chosen) {
-            alert("Please select a song first!");
-            return;
-          }
-          console.log("▶️ Play clicked — loading:", chosen);
-          await loadSelectedSong(chosen);
-        });
-      } else {
-        console.error("⚠️ Missing #songSelect or #playBtn.");
+      if (!select || !playBtn) {
+        console.error("⚠️ Missing song selector or play button!");
+        return;
       }
+
+      // Ensure loader auto-hides if stuck
+      function hideLoaderAfterTimeout() {
+        setTimeout(() => {
+          if (loader && loader.style.display === "flex") {
+            console.warn("⚠️ Timeout reached, hiding loader");
+            loader.style.display = "none";
+          }
+        }, 12000);
+      }
+
+      // ✅ PLAY button unified logic
+      playBtn.addEventListener("click", async () => {
+        const songName = select.value.trim();
+        if (!songName) {
+          alert("Please choose a song first!");
+          return;
+        }
+
+        console.log("▶️ Play clicked:", songName);
+        if (loader) loader.style.display = "flex";
+        hideLoaderAfterTimeout();
+
+        if (typeof loadSelectedSong === "function") {
+          await loadSelectedSong(songName);
+        } else {
+          console.error("❌ loadSelectedSong() not found.");
+        }
+      });
+
+      // ✅ Pause button
+      pauseBtn.addEventListener("click", () => {
+        if (window.vocalAudio) window.vocalAudio.pause();
+        if (window.accompAudio) window.accompAudio.pause();
+        console.log("⏸️ Paused.");
+      });
     });
   </script>
 </body>
