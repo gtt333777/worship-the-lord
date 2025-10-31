@@ -1,15 +1,14 @@
-﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching + safe timeout)...");
+﻿// WorshipApp_Modular/songLoader.js
+console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
 
 // 🎵 Global audio players
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// === Smart cache fetcher (Cloudflare R2 + timeout-safe) ===
+// === Smart cache fetcher (Cloudflare R2 Safe) ===
 async function fetchWithCache(url) {
-  const CACHE_NAME = "worship-audio-cache-v4";
+  const CACHE_NAME = "worship-audio-cache-v3";
   if (!url) return "";
-
-  const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("⏰ Fetch timeout")), ms));
 
   try {
     const cache = await caches.open(CACHE_NAME);
@@ -20,33 +19,25 @@ async function fetchWithCache(url) {
     }
 
     console.log("🌐 Fetching from R2:", url);
+    const response = await fetch(url, {
+      mode: "cors",
+      credentials: "omit",
+      headers: { "Accept": "*/*" },
+    });
 
-    // Timeout-safe fetch (max 10 seconds)
-    const response = await Promise.race([
-      fetch(url, { mode: "cors" }),
-      timeout(10000),
-    ]);
+    if (!response.ok) throw new Error("Network fetch failed");
 
-    if (!response || !response.ok) throw new Error("Network fetch failed");
-
-    // Store in cache (non-blocking)
-    cache.put(url, response.clone());
+    await cache.put(url, response.clone());
     console.log("📦 Cached:", url);
 
-    // Try blob, fallback to direct URL if blob fails
-    try {
-      return URL.createObjectURL(await response.blob());
-    } catch {
-      console.warn("⚠️ Blob conversion failed, using direct URL");
-      return url;
-    }
+    return URL.createObjectURL(await response.blob());
   } catch (err) {
     console.error("⚠️ fetchWithCache failed:", err);
-    return url; // Fallback: direct playback
+    return url; // fallback direct link
   }
 }
 
-// === Load selected song ===
+// === Load selected song (with safety timeout) ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
   const entry = window.songURLs[songName];
@@ -58,29 +49,44 @@ async function loadSelectedSong(songName) {
 
   stopAndUnloadAudio();
 
-  try {
-    const [vocalSrc, accSrc] = await Promise.all([
-      fetchWithCache(vocalURL),
-      fetchWithCache(accURL),
-    ]);
+  // Safety timeout: auto-hide loader after 12s
+  const loaderTimeout = setTimeout(() => {
+    if (loader && loader.style.display === "flex") {
+      console.warn("⚠️ Timeout — hiding loader");
+      loader.style.display = "none";
+    }
+  }, 12000);
 
+  try {
+    console.log("🎧 Fetching vocal:", vocalURL);
+    const vocalSrc = await fetchWithCache(vocalURL);
+
+    console.log("🎧 Fetching accompaniment:", accURL);
+    const accSrc = await fetchWithCache(accURL);
+
+    // Assign both audio sources
     window.vocalAudio.src = vocalSrc;
     window.accompAudio.src = accSrc;
 
     window.vocalAudio.preload = "auto";
     window.accompAudio.preload = "auto";
 
+    // Hide loader once audio loads
     if (loader) loader.style.display = "none";
+    clearTimeout(loaderTimeout);
 
+    // Load lyrics
     const lyricsFile = `lyrics/${songName}.txt`;
     const res = await fetch(lyricsFile);
-    const txt = res.ok ? await res.text() : "";
+    if (!res.ok) throw new Error("Lyrics not found");
+
+    const txt = await res.text();
     const area = document.getElementById("lyricsArea");
     if (area) area.value = txt;
-    console.log(res.ok ? "✅ Lyrics loaded" : "⚠️ Lyrics missing");
+    console.log("✅ Lyrics loaded successfully.");
   } catch (err) {
     console.error("⚠️ loadSelectedSong failed:", err);
-    if (loader) loader.style.display = "none"; // Always hide on failure
+    if (loader) loader.style.display = "none";
   }
 }
 
@@ -106,58 +112,33 @@ async function playFirstSegment() {
 
   await loadSelectedSong(songName);
 
-  const first = window.segments?.[0];
-  if (!first) return console.error("❌ First segment not found");
-  playSegment(first.start, first.end, 0);
-}
-
-// === Progressive preloading ===
-async function preloadNextSegment(segment) {
-  if (!segment) return;
-  try {
-    const { vocalURL, accURL } = window.songURLs[document.getElementById("songSelect").value];
-    const v = new Audio(await fetchWithCache(vocalURL));
-    const a = new Audio(await fetchWithCache(accURL));
-    v.preload = "auto";
-    a.preload = "auto";
-    segment.vocalAudio = v;
-    segment.accAudio = a;
-    console.log(`🕐 Preloaded next segment at ${segment.start.toFixed(2)}s`);
-  } catch (err) {
-    console.warn("⚠️ Error preloading next segment:", err);
-  }
+  const segment = window.segments?.[0];
+  if (!segment) return console.error("❌ First segment not found");
+  playSegment(segment.start, segment.end, 0);
 }
 
 // === Segment playback ===
 function playSegment(startTime, endTime, index) {
-  console.log(`🎵 Segment: ${startTime} -> ${endTime} (${(endTime - startTime).toFixed(2)}s)`);
+  console.log(`🎵 Segment: ${startTime} -> ${endTime}`);
 
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
-  window.vocalAudio.play().catch(e => console.error("Vocal play error:", e));
-  window.accompAudio.play().catch(e => console.error("Acc play error:", e));
+  window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
+  window.accompAudio.play().catch((e) => console.error("Acc play error:", e));
 
-  const EPS = 0.02, DRIFT = 0.06;
+  const EPS = 0.02;
+  const DRIFT = 0.06;
+
   window.activeSegmentInterval = setInterval(() => {
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
     if (diff > DRIFT) window.accompAudio.currentTime = window.vocalAudio.currentTime;
 
-    const now = window.vocalAudio.currentTime;
-    const remaining = endTime - now;
-
-    // 🔥 Preload next 2s before end
-    if (remaining < 2 && index < window.segments.length - 1 && !window.segments[index + 1].preloaded) {
-      window.segments[index + 1].preloaded = true;
-      preloadNextSegment(window.segments[index + 1]);
-    }
-
-    if (now >= endTime - EPS) {
+    if (window.vocalAudio.currentTime >= endTime - EPS) {
       clearInterval(window.activeSegmentInterval);
       window.vocalAudio.pause();
       window.accompAudio.pause();
 
-      // Auto-advance
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
         playSegment(next.start, next.end, index + 1);
@@ -176,7 +157,7 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
 
 // === Manual cache clear ===
 async function clearAudioCache() {
-  const CACHE_NAME = "worship-audio-cache-v4";
+  const CACHE_NAME = "worship-audio-cache-v3";
   const ok = confirm("🧹 Delete cached MP3s?");
   if (!ok) return;
   await caches.delete(CACHE_NAME);
