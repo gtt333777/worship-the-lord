@@ -1,113 +1,83 @@
-﻿
-/*
-const CACHE_NAME = 'worship-the-lord-v1';
+﻿// service-worker.js
+// ---------------------------------------------
+// ✅ Works with GitHub Pages + Cloudflare R2
+// ✅ Caches app shell only (no R2 MP3s)
+// ✅ Safe install — skips missing files
+// ✅ Allows offline lyrics reading
+// ---------------------------------------------
+
+const CACHE_NAME = "worship-the-lord-v3";
 const OFFLINE_URLS = [
-  '/',
-  '/index.html',
-  '/main.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  // You can also cache lyrics files or assets as needed
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./WorshipApp_Modular/songLoader.js",
+  "./WorshipApp_Modular/loopPlayer.js",
+  "./WorshipApp_Modular/lyricsLoader.js",
+  "./WorshipApp_Modular/songNamesLoader.js",
+  "./WorshipApp_Modular/bookmarkManager.js",
+  "./WorshipApp_Modular/star.js"
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(OFFLINE_URLS))
-  );
-});
+// 🧱 Install and cache app shell (skip failed URLs)
+self.addEventListener("install", (event) => {
+  console.log("📦 Service Worker installing...");
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then(response => response || fetch(e.request))
-  );
-});
-
-*/
-
-
-
-
-// Worship The Lord — Clean Offline-Ready Service Worker
-// ------------------------------------------------------
-// 🧹 No Netlify or external API caching
-// 🧱 Caches only your static assets (HTML, JS, CSS, icons)
-// 🔁 Graceful fallback to cache when offline
-// ------------------------------------------------------
-
-const CACHE_NAME = 'worship-the-lord-v2'; // increment version when you update files
-
-const OFFLINE_URLS = [
-  '/',                // root
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-
-  // ✅ Add your modular JS files here for full offline support
-  '/WorshipApp_Modular/tokenLoader.js',
-  '/WorshipApp_Modular/star.js',
-  '/WorshipApp_Modular/songNamesLoader.js',
-  '/WorshipApp_Modular/lyricsLoader.js',
-  '/WorshipApp_Modular/audioControl.js',
-  '/WorshipApp_Modular/skipControl.js',
-  '/WorshipApp_Modular/songLoader.js',
-  '/WorshipApp_Modular/bookmarkManager.js',
-  '/WorshipApp_Modular/pwaSetup.js',
-  '/WorshipApp_Modular/loopPlayer.js',
-  '/WorshipApp_Modular/segmentProgressVisualizer.js'
-];
-
-// 🧠 Install event — cache all core files
-self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(OFFLINE_URLS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const results = await Promise.allSettled(
+        OFFLINE_URLS.map(url => cache.add(url))
+      );
+
+      const failed = results.filter(r => r.status === "rejected");
+      if (failed.length) {
+        console.warn(`⚠️ Some files failed to cache (${failed.length}):`, failed.map(f => f.reason?.message || f));
+      }
+
+      await self.skipWaiting();
+    })
   );
 });
 
-// 🧹 Activate event — clean up old caches
-self.addEventListener('activate', (event) => {
+// 🧹 Activate and clean old caches
+self.addEventListener("activate", (event) => {
+  console.log("⚙️ Service Worker activating...");
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys
-        .filter(k => k !== CACHE_NAME)
-        .map(k => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
   );
+  self.clients.claim();
 });
 
-// 🌐 Fetch handler — serve from cache first, then network
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
+// 🌐 Fetch handler
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  const url = req.url;
 
-  // ❌ Skip Netlify or API calls
-  if (request.url.includes('/.netlify/') || request.url.includes('getDropboxToken')) {
-    return; // don’t cache or handle those
+  // 🚫 Skip caching for Cloudflare R2 audio files
+  if (url.includes("r2.dev") && (url.endsWith(".mp3") || url.includes("_vocal") || url.includes("_acc"))) {
+    // stream directly from network
+    return;
   }
 
-  // ✅ Handle normal requests
+  // ✅ Standard cache-first strategy
   event.respondWith(
-    caches.match(request).then(cachedResponse => {
-      if (cachedResponse) return cachedResponse;
-      return fetch(request)
-        .then(networkResponse => {
-          // Optionally cache new static assets
-          if (request.url.startsWith(self.location.origin)) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, networkResponse.clone());
-            });
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(req)
+        .then((res) => {
+          // store a clone if it’s a successful same-origin response
+          if (res.ok && req.url.startsWith(self.location.origin)) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
           }
-          return networkResponse;
+          return res;
         })
-        .catch(() => {
-          // 🪫 Offline fallback for navigation requests
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-        });
+        .catch(() => caches.match("./index.html"));
     })
   );
 });
