@@ -1,149 +1,149 @@
-﻿// WorshipApp_Modular/songLoader.js
+﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
 
-// Global audio elements (expose on window for other scripts)
+// 🎵 Global audio players
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// Flags used for the Play→Segment1 handshake
-window.wantAutoSegment1 = false;      // set true when user presses Play
-window.audioReadyPromise = null;      // resolves when both tracks have started
+// === Smart cache fetcher (works for Cloudflare R2) ===
+async function fetchWithCache(url) {
+  const CACHE_NAME = "worship-audio-cache-v2";
+  if (!url) return "";
 
-// === Utility: Wait until both tracks are ready, then play together ===
-// NOTE: keep this name; loopPlayer.js uses a DIFFERENT name to avoid collision.
-function checkReadyAndPlay() {
-  return new Promise((resolve) => {
-    let vocalReady = window.vocalAudio.readyState >= 2;
-    let accompReady = window.accompAudio.readyState >= 2;
-
-    const tryPlay = () => {
-      if (vocalReady && accompReady) {
-        Promise.all([
-          window.vocalAudio.play().catch(err => console.error("❌ Vocal play error:", err)),
-          window.accompAudio.play().catch(err => console.error("❌ Accompaniment play error:", err))
-        ]).then(() => {
-          console.log("✅ Both audio tracks started in sync.");
-          resolve();
-        });
-      }
-    };
-
-    if (!vocalReady) {
-      window.vocalAudio.addEventListener("canplaythrough", () => {
-        vocalReady = true; tryPlay();
-      }, { once: true });
-    }
-    if (!accompReady) {
-      window.accompAudio.addEventListener("canplaythrough", () => {
-        accompReady = true; tryPlay();
-      }, { once: true });
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const cachedResponse = await cache.match(url);
+    if (cachedResponse) {
+      console.log("💾 Loaded from cache:", url);
+      return URL.createObjectURL(await cachedResponse.blob());
     }
 
-    // If both were already ready, start immediately
-    tryPlay();
-  });
+    console.log("🌐 Fetching from R2:", url);
+    const response = await fetch(url, { mode: "cors" });
+    if (!response.ok) throw new Error("Network fetch failed");
+
+    cache.put(url, response.clone());
+    console.log("📦 Cached:", url);
+
+    return URL.createObjectURL(await response.blob());
+  } catch (err) {
+    console.error("⚠️ fetchWithCache failed:", err);
+    return url; // fallback to direct URL
+  }
 }
 
-// === Play/Pause ===
-document.getElementById("playBtn").addEventListener("click", async () => {
-  console.log("▶️ Play button clicked");
+// === Load selected song ===
+async function loadSelectedSong(songName) {
+  console.log(`🎵 Song selected -> ${songName}`);
 
-  // ✅ Wait until ACCESS_TOKEN is ready before proceeding
-  await waitForAccessToken();
+  const entry = window.songURLs[songName];
+  if (!entry) return console.error("❌ No entry for", songName);
 
-  if (!ACCESS_TOKEN) {
-    console.error("❌ ACCESS_TOKEN not yet loaded even after waiting.");
-    alert("Please wait a moment... connecting to Dropbox.");
-    return;
-  }
+  const { vocalURL, accURL } = entry;
 
-  const songName = document.getElementById("songSelect").value;
-  if (!songName) {
-    console.warn("⚠️ No song selected.");
-    return;
-  }
+  stopAndUnloadAudio();
 
-  const vocalUrl = getDropboxFileURL(songName + "_vocal.mp3");
-  const accUrl   = getDropboxFileURL(songName + "_acc.mp3");
+  window.vocalAudio.src = await fetchWithCache(vocalURL);
+  window.accompAudio.src = await fetchWithCache(accURL);
 
-  // Set sources
-  window.vocalAudio.src = vocalUrl;
-  window.accompAudio.src = accUrl;
-
-  // Only load when play is pressed
   window.vocalAudio.preload = "auto";
   window.accompAudio.preload = "auto";
 
-  // Warm both tracks and set a promise we can await here
-  window.audioReadyPromise = checkReadyAndPlay();
-
-  // Also wait until loop JSON is loaded (poll up to ~2s)
-  const waitSegments = new Promise((resolve) => {
-    if (window.segments && window.segments.length > 0) return resolve();
-    const t0 = Date.now();
-    const t = setInterval(() => {
-      if (window.segments && window.segments.length > 0) { clearInterval(t); resolve(); }
-      else if (Date.now() - t0 > 2000) { clearInterval(t); resolve(); }
-    }, 50);
-  });
-
-  // When both tracks have started AND segments are known, start Segment 1 via the segment path
-  Promise.all([window.audioReadyPromise, waitSegments]).then(() => {
-    if (!window.segments || window.segments.length === 0) {
-      console.warn("⚠️ No segments loaded yet; cannot start Segment 1.");
-      return;
-    }
-    const seg = window.segments[0];
-    console.log("🎯 Play routed to Segment 1 (strict path)");
-    window.playSegment(seg.start, seg.end, 0);
-  });
-});
-
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  console.log("⏸️ Pause button clicked");
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-});
-
-// === Song dropdown change: just set the textarea lyrics; loop JSON is fetched in loopPlayer.js ===
-document.addEventListener("DOMContentLoaded", () => {
-  const dd = document.getElementById("songSelect");
-  const lyricsArea = document.getElementById("lyricsText");
-  if (!dd || !lyricsArea) return;
-
-  dd.addEventListener("change", () => {
-    const selected = dd.value;
-    if (!selected) return;
-
-    fetch(`lyrics/${selected}.txt`)
-      .then(r => r.ok ? r.text() : Promise.reject(new Error("Lyrics not found")))
-      .then(txt => { lyricsArea.value = txt; })
-      .catch(err => { console.warn("⚠️ Could not load lyrics:", err); });
-  });
-});
-
-// === Stop & Unload Function ===
-function stopAndUnloadAudio() {
-  // Pause both
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-
-  // Reset position
-  window.vocalAudio.currentTime = 0;
-  window.accompAudio.currentTime = 0;
-
-  // Remove src to free memory & stop buffering
-  window.vocalAudio.removeAttribute("src");
-  window.accompAudio.removeAttribute("src");
-
-  // Force unload
-  window.vocalAudio.load();
-  window.accompAudio.load();
-
-  console.log("🛑 Audio stopped and unloaded from memory.");
+  const lyricsFile = `lyrics/${songName}.txt`;
+  try {
+    const res = await fetch(lyricsFile);
+    if (!res.ok) throw new Error("Lyrics not found");
+    const txt = await res.text();
+    const area = document.getElementById("lyricsArea");
+    if (area) area.value = txt;
+    console.log("✅ Lyrics loaded");
+  } catch (err) {
+    console.warn("⚠️ Lyrics missing:", lyricsFile);
+    const area = document.getElementById("lyricsArea");
+    if (area) area.value = "";
+  }
 }
 
-// === Dropbox URL Builder ===
-function getDropboxFileURL(filename) {
-  const dropboxPath = "/WorshipSongs/" + filename;
-  return `https://content.dropboxapi.com/2/files/download?authorization=Bearer ${ACCESS_TOKEN}&arg={"path":"${dropboxPath}"}`;
+// === Stop / Play / Pause ===
+function stopAndUnloadAudio() {
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
+  window.vocalAudio.currentTime = 0;
+  window.accompAudio.currentTime = 0;
+  window.vocalAudio.removeAttribute("src");
+  window.accompAudio.removeAttribute("src");
+  window.vocalAudio.load();
+  window.accompAudio.load();
+  console.log("🛑 Audio stopped and unloaded");
+}
+
+// Play the first segment
+async function playFirstSegment() {
+  const select = document.getElementById("songSelect");
+  if (!select) return;
+  const songName = select.value;
+  if (!songName) return console.warn("⚠️ No song selected");
+
+  await loadSelectedSong(songName);
+
+  // Get the first segment (always start from the first segment)
+  const segment = window.segments[0];
+  if (!segment) return console.error("❌ First segment not found");
+
+  // Play the first segment
+  playSegment(segment.start, segment.end, 0);
+}
+
+// === Segment-specific playback ===
+function playSegment(startTime, endTime, index) {
+  console.log(`🎵 Playing segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+
+  window.vocalAudio.currentTime = startTime;
+  window.accompAudio.currentTime = startTime;
+
+  window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
+  window.accompAudio.play().catch((e) => console.error("Acc play error:", e));
+
+  const EPS = 0.02; // 20ms guard near the end
+  const DRIFT = 0.06; // resync if drift > 60ms
+
+  // Watchdog based on actual time to ensure both tracks are in sync
+  window.activeSegmentInterval = setInterval(() => {
+    // Micro-resync the two tracks if necessary
+    const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
+    if (diff > DRIFT) {
+      window.accompAudio.currentTime = window.vocalAudio.currentTime;
+    }
+
+    // End of segment?
+    if (window.vocalAudio.currentTime >= endTime - EPS) {
+      clearInterval(window.activeSegmentInterval);
+      window.activeSegmentInterval = null;
+
+      window.vocalAudio.pause();
+      window.accompAudio.pause();
+
+      // Auto-advance from here if there's another segment
+      if (index < window.segments.length - 1) {
+        const next = window.segments[index + 1];
+        playSegment(next.start, next.end, index + 1);
+      }
+    }
+  }, 50); // ~20 checks per second
+}
+
+document.getElementById("playBtn").addEventListener("click", playFirstSegment);
+
+document.getElementById("pauseBtn").addEventListener("click", () => {
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
+  console.log("⏸️ Paused both tracks");
+});
+
+// === Clear cache manually ===
+async function clearAudioCache() {
+  const CACHE_NAME = "worship-audio-cache-v2";
+  const ok = confirm("🧹 Delete cached MP3s?");
+  if (!ok) return;
+  await caches.delete(CACHE_NAME);
+  alert("✅ Cache cleared");
 }
