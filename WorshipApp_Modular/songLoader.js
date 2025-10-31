@@ -1,40 +1,39 @@
-﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
+﻿console.log("🎵 songLoader.js: Starting (R2 + synchronized progressive preloading)...");
 
 // 🎵 Global audio players
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// === Smart cache fetcher (works for Cloudflare R2) ===
+// === Smart cache fetcher (Cloudflare R2) ===
 async function fetchWithCache(url) {
   const CACHE_NAME = "worship-audio-cache-v2";
   if (!url) return "";
 
   try {
     const cache = await caches.open(CACHE_NAME);
-    const cachedResponse = await cache.match(url);
-    if (cachedResponse) {
-      console.log("💾 Loaded from cache:", url);
-      return URL.createObjectURL(await cachedResponse.blob());
+    const cached = await cache.match(url);
+    if (cached) {
+      console.log("💾 Cached hit:", url);
+      return URL.createObjectURL(await cached.blob());
     }
 
     console.log("🌐 Fetching from R2:", url);
-    const response = await fetch(url, { mode: "cors" });
-    if (!response.ok) throw new Error("Network fetch failed");
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) throw new Error("Network fetch failed");
 
-    cache.put(url, response.clone());
+    await cache.put(url, res.clone());
     console.log("📦 Cached:", url);
 
-    return URL.createObjectURL(await response.blob());
+    return URL.createObjectURL(await res.blob());
   } catch (err) {
     console.error("⚠️ fetchWithCache failed:", err);
-    return url; // fallback to direct URL
+    return url; // fallback direct URL
   }
 }
 
-// === Load selected song ===
+// === Load selected song (synchronized parallel load) ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
-
   const entry = window.songURLs[songName];
   if (!entry) return console.error("❌ No entry for", songName);
 
@@ -42,14 +41,23 @@ async function loadSelectedSong(songName) {
 
   stopAndUnloadAudio();
 
-  window.vocalAudio.src = await fetchWithCache(vocalURL);
-  window.accompAudio.src = await fetchWithCache(accURL);
-
-  window.vocalAudio.preload = "auto";
-  window.accompAudio.preload = "auto";
-
-  const lyricsFile = `lyrics/${songName}.txt`;
   try {
+    console.log("🚀 Starting parallel preloads...");
+    const [vocalSrc, accSrc] = await Promise.all([
+      fetchWithCache(vocalURL),
+      fetchWithCache(accURL),
+    ]);
+
+    window.vocalAudio.src = vocalSrc;
+    window.accompAudio.src = accSrc;
+
+    window.vocalAudio.preload = "auto";
+    window.accompAudio.preload = "auto";
+
+    console.log("✅ Both tracks preloaded and synchronized.");
+
+    // Load lyrics
+    const lyricsFile = `lyrics/${songName}.txt`;
     const res = await fetch(lyricsFile);
     if (!res.ok) throw new Error("Lyrics not found");
     const txt = await res.text();
@@ -57,9 +65,7 @@ async function loadSelectedSong(songName) {
     if (area) area.value = txt;
     console.log("✅ Lyrics loaded");
   } catch (err) {
-    console.warn("⚠️ Lyrics missing:", lyricsFile);
-    const area = document.getElementById("lyricsArea");
-    if (area) area.value = "";
+    console.error("⚠️ loadSelectedSong failed:", err);
   }
 }
 
@@ -76,7 +82,7 @@ function stopAndUnloadAudio() {
   console.log("🛑 Audio stopped and unloaded");
 }
 
-// Play the first segment
+// === Play first segment ===
 async function playFirstSegment() {
   const select = document.getElementById("songSelect");
   if (!select) return;
@@ -85,61 +91,59 @@ async function playFirstSegment() {
 
   await loadSelectedSong(songName);
 
-  // Get the first segment (always start from the first segment)
-  const segment = window.segments[0];
+  const segment = window.segments?.[0];
   if (!segment) return console.error("❌ First segment not found");
 
-  // Play the first segment
   playSegment(segment.start, segment.end, 0);
 }
 
-// === Segment-specific playback ===
+// === Segment playback (with prefetching next) ===
 function playSegment(startTime, endTime, index) {
-  console.log(`🎵 Playing segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+  console.log(`🎵 Segment: ${startTime} → ${endTime}`);
 
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
-  window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
-  window.accompAudio.play().catch((e) => console.error("Acc play error:", e));
+  Promise.all([
+    window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e)),
+    window.accompAudio.play().catch((e) => console.error("Acc play error:", e)),
+  ]);
 
-  const EPS = 0.02; // 20ms guard near the end
-  const DRIFT = 0.06; // resync if drift > 60ms
+  const EPS = 0.02;
+  const DRIFT = 0.06;
 
-  // Watchdog based on actual time to ensure both tracks are in sync
   window.activeSegmentInterval = setInterval(() => {
-    // Micro-resync the two tracks if necessary
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
-    if (diff > DRIFT) {
-      window.accompAudio.currentTime = window.vocalAudio.currentTime;
-    }
+    if (diff > DRIFT) window.accompAudio.currentTime = window.vocalAudio.currentTime;
 
-    // End of segment?
     if (window.vocalAudio.currentTime >= endTime - EPS) {
       clearInterval(window.activeSegmentInterval);
-      window.activeSegmentInterval = null;
-
       window.vocalAudio.pause();
       window.accompAudio.pause();
 
-      // Auto-advance from here if there's another segment
+      // Auto-next
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
+        console.log(`⏭️ Preparing next segment: ${index + 2}`);
+        window.vocalAudio.currentTime = next.start;
+        window.accompAudio.currentTime = next.start;
         playSegment(next.start, next.end, index + 1);
       }
     }
-  }, 50); // ~20 checks per second
+  }, 50);
 }
 
-document.getElementById("playBtn").addEventListener("click", playFirstSegment);
-
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-  console.log("⏸️ Paused both tracks");
+// === UI controls ===
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("playBtn")?.addEventListener("click", playFirstSegment);
+  document.getElementById("pauseBtn")?.addEventListener("click", () => {
+    window.vocalAudio.pause();
+    window.accompAudio.pause();
+    console.log("⏸️ Paused both tracks");
+  });
 });
 
-// === Clear cache manually ===
+// === Manual cache clear ===
 async function clearAudioCache() {
   const CACHE_NAME = "worship-audio-cache-v2";
   const ok = confirm("🧹 Delete cached MP3s?");
