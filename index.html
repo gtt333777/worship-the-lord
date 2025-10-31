@@ -114,6 +114,47 @@
       width: 90%;
       font-size: 1rem;
     }
+
+    /* 🌀 Floating Loading Overlay */
+    #loadingIndicator {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #007bff;
+      backdrop-filter: blur(2px);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    #loadingSpinner {
+      border: 4px solid #ccc;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 
@@ -146,6 +187,12 @@
   <!-- ✅ Player Controls -->
   <button id="playBtn">▶️ Play</button>
   <button id="pauseBtn">⏸️ Pause</button>
+
+  <!-- 🌀 Floating Loading Overlay -->
+  <div id="loadingIndicator">
+    <div id="loadingSpinner"></div>
+    ⏳ Loading audio...
+  </div>
 
   <!-- ✅ Volume Controls -->
   <div class="volume-control">
