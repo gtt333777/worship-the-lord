@@ -25,7 +25,7 @@ async function fetchWithCache(url) {
       headers: { "Accept": "*/*" },
     });
 
-    if (!response.ok) throw new Error("Network fetch failed");
+    if (!response.ok) throw new Error(`Network fetch failed: ${response.status}`);
 
     await cache.put(url, response.clone());
     console.log("📦 Cached:", url);
@@ -40,19 +40,30 @@ async function fetchWithCache(url) {
 // === Load selected song (with safety timeout) ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
-  const entry = window.songURLs[songName];
-  if (!entry) return console.error("❌ No entry for", songName);
 
-  const { vocalURL, accURL } = entry;
+  // Normalize lookup to avoid whitespace mismatch
+  const cleanName = songName.trim();
+  const entry = window.songURLs?.[cleanName];
+
+  // Show overlay
   const loader = document.getElementById("loadingIndicator");
   if (loader) loader.style.display = "flex";
 
+  // If song data not found
+  if (!entry) {
+    console.error("❌ No entry found for song:", cleanName);
+    if (loader) loader.style.display = "none";
+    alert("⚠️ Song not found in list. Please reload the page.");
+    return;
+  }
+
+  const { vocalURL, accURL } = entry;
   stopAndUnloadAudio();
 
   // Safety timeout: auto-hide loader after 12s
   const loaderTimeout = setTimeout(() => {
     if (loader && loader.style.display === "flex") {
-      console.warn("⚠️ Timeout — hiding loader");
+      console.warn("⚠️ Timeout — hiding loader (possibly slow network)");
       loader.style.display = "none";
     }
   }, 12000);
@@ -75,8 +86,8 @@ async function loadSelectedSong(songName) {
     if (loader) loader.style.display = "none";
     clearTimeout(loaderTimeout);
 
-    // Load lyrics
-    const lyricsFile = `lyrics/${songName}.txt`;
+    // === Load lyrics ===
+    const lyricsFile = `lyrics/${cleanName}.txt`;
     const res = await fetch(lyricsFile);
     if (!res.ok) throw new Error("Lyrics not found");
 
@@ -110,10 +121,21 @@ async function playFirstSegment() {
   const songName = select.value;
   if (!songName) return console.warn("⚠️ No song selected");
 
+  console.log("🎶 playFirstSegment called for:", songName);
   await loadSelectedSong(songName);
 
   const segment = window.segments?.[0];
-  if (!segment) return console.error("❌ First segment not found");
+  if (!segment) {
+    console.warn("⚠️ No segments found. Playing full track instead.");
+    try {
+      window.vocalAudio.play();
+      window.accompAudio.play();
+    } catch (err) {
+      console.error("Playback failed:", err);
+    }
+    return;
+  }
+
   playSegment(segment.start, segment.end, 0);
 }
 
