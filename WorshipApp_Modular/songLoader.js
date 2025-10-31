@@ -39,36 +39,27 @@ async function loadSelectedSong(songName) {
   if (!entry) return console.error("❌ No entry for", songName);
 
   const { vocalURL, accURL } = entry;
-  const loader = document.getElementById("loadingIndicator");
-
-  // 🌀 Show loader
-  if (loader) loader.style.display = "flex";
 
   stopAndUnloadAudio();
 
+  window.vocalAudio.src = await fetchWithCache(vocalURL);
+  window.accompAudio.src = await fetchWithCache(accURL);
+
+  window.vocalAudio.preload = "auto";
+  window.accompAudio.preload = "auto";
+
+  const lyricsFile = `lyrics/${songName}.txt`;
   try {
-    window.vocalAudio.src = await fetchWithCache(vocalURL);
-    window.accompAudio.src = await fetchWithCache(accURL);
-
-    window.vocalAudio.preload = "auto";
-    window.accompAudio.preload = "auto";
-
-    const lyricsFile = `lyrics/${songName}.txt`;
     const res = await fetch(lyricsFile);
     if (!res.ok) throw new Error("Lyrics not found");
-
     const txt = await res.text();
     const area = document.getElementById("lyricsArea");
     if (area) area.value = txt;
     console.log("✅ Lyrics loaded");
-
   } catch (err) {
-    console.warn("⚠️ Lyrics or audio load failed:", err);
+    console.warn("⚠️ Lyrics missing:", lyricsFile);
     const area = document.getElementById("lyricsArea");
     if (area) area.value = "";
-  } finally {
-    // ⏳ Hide loader after short delay
-    if (loader) setTimeout(() => loader.style.display = "none", 500);
   }
 }
 
