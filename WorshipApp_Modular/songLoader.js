@@ -1,33 +1,48 @@
-﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching + progressive preload)...");
+﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching + safe timeout)...");
 
 // 🎵 Global audio players
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// === Smart cache fetcher (Cloudflare R2) ===
+// === Smart cache fetcher (Cloudflare R2 + timeout-safe) ===
 async function fetchWithCache(url) {
-  const CACHE_NAME = "worship-audio-cache-v3";
+  const CACHE_NAME = "worship-audio-cache-v4";
   if (!url) return "";
+
+  const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("⏰ Fetch timeout")), ms));
 
   try {
     const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(url);
-    if (cached) {
+    const cachedResponse = await cache.match(url);
+    if (cachedResponse) {
       console.log("💾 Loaded from cache:", url);
-      return URL.createObjectURL(await cached.blob());
+      return URL.createObjectURL(await cachedResponse.blob());
     }
 
     console.log("🌐 Fetching from R2:", url);
-    const res = await fetch(url, { mode: "cors" });
-    if (!res.ok) throw new Error("Network fetch failed");
 
-    cache.put(url, res.clone());
+    // Timeout-safe fetch (max 10 seconds)
+    const response = await Promise.race([
+      fetch(url, { mode: "cors" }),
+      timeout(10000),
+    ]);
+
+    if (!response || !response.ok) throw new Error("Network fetch failed");
+
+    // Store in cache (non-blocking)
+    cache.put(url, response.clone());
     console.log("📦 Cached:", url);
 
-    return URL.createObjectURL(await res.blob());
+    // Try blob, fallback to direct URL if blob fails
+    try {
+      return URL.createObjectURL(await response.blob());
+    } catch {
+      console.warn("⚠️ Blob conversion failed, using direct URL");
+      return url;
+    }
   } catch (err) {
     console.error("⚠️ fetchWithCache failed:", err);
-    return url; // fallback to live URL
+    return url; // Fallback: direct playback
   }
 }
 
@@ -51,6 +66,7 @@ async function loadSelectedSong(songName) {
 
     window.vocalAudio.src = vocalSrc;
     window.accompAudio.src = accSrc;
+
     window.vocalAudio.preload = "auto";
     window.accompAudio.preload = "auto";
 
@@ -64,7 +80,7 @@ async function loadSelectedSong(songName) {
     console.log(res.ok ? "✅ Lyrics loaded" : "⚠️ Lyrics missing");
   } catch (err) {
     console.error("⚠️ loadSelectedSong failed:", err);
-    if (loader) loader.style.display = "none";
+    if (loader) loader.style.display = "none"; // Always hide on failure
   }
 }
 
@@ -95,7 +111,7 @@ async function playFirstSegment() {
   playSegment(first.start, first.end, 0);
 }
 
-// === Progressive preloading of next segment ===
+// === Progressive preloading ===
 async function preloadNextSegment(segment) {
   if (!segment) return;
   try {
@@ -130,7 +146,7 @@ function playSegment(startTime, endTime, index) {
     const now = window.vocalAudio.currentTime;
     const remaining = endTime - now;
 
-    // 🔥 Start preloading the next segment 2s before end
+    // 🔥 Preload next 2s before end
     if (remaining < 2 && index < window.segments.length - 1 && !window.segments[index + 1].preloaded) {
       window.segments[index + 1].preloaded = true;
       preloadNextSegment(window.segments[index + 1]);
@@ -160,7 +176,7 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
 
 // === Manual cache clear ===
 async function clearAudioCache() {
-  const CACHE_NAME = "worship-audio-cache-v3";
+  const CACHE_NAME = "worship-audio-cache-v4";
   const ok = confirm("🧹 Delete cached MP3s?");
   if (!ok) return;
   await caches.delete(CACHE_NAME);
