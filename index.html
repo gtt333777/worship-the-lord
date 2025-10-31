@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
 
-  <!-- 🔌 Optimize for Dropbox -->
+  <!-- 🔌 Optimize for Dropbox (legacy) -->
   <link rel="preconnect" href="https://www.dropbox.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.dropbox.com">
 
@@ -253,21 +253,34 @@
     });
   </script>
 
-  <!-- ✅ Initial Loader (Auto-detect available function) -->
+  <!-- ✅ Improved Initialization -->
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
+      console.log("🚀 DOM ready — initializing song list...");
       if (typeof loadSongNames === "function") {
         await loadSongNames();
-      } else if (typeof loadSongList === "function") {
-        await loadSongList();
       } else {
-        console.error("❌ Neither loadSongNames() nor loadSongList() found.");
+        console.error("❌ loadSongNames() not found.");
+        return;
       }
 
+      console.log("🎶 Songs loaded:", Object.keys(window.songURLs || {}).length);
+
       const select = document.getElementById("songSelect");
-      if (select && typeof loadLyricsForSelectedSong === "function") {
-        loadLyricsForSelectedSong(select);
-        select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+      const playBtn = document.getElementById("playBtn");
+
+      if (select && playBtn) {
+        playBtn.addEventListener("click", async () => {
+          const chosen = select.value.trim();
+          if (!chosen) {
+            alert("Please select a song first!");
+            return;
+          }
+          console.log("▶️ Play clicked — loading:", chosen);
+          await loadSelectedSong(chosen);
+        });
+      } else {
+        console.error("⚠️ Missing #songSelect or #playBtn.");
       }
     });
   </script>
