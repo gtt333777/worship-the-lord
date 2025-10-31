@@ -1,65 +1,63 @@
-﻿console.log("🎵 songLoader.js: Starting (R2 + progressive smart caching)...");
+﻿console.log("🎵 songLoader.js: Starting (R2 + synchronized progressive preloading)...");
 
 // 🎵 Global audio players
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// === Smart cache fetcher (works for Cloudflare R2) ===
+// === Smart cache fetcher (Cloudflare R2) ===
 async function fetchWithCache(url) {
   const CACHE_NAME = "worship-audio-cache-v2";
   if (!url) return "";
 
   try {
     const cache = await caches.open(CACHE_NAME);
-    const cachedResponse = await cache.match(url);
-    if (cachedResponse) {
-      console.log("💾 Loaded from cache:", url);
-      return URL.createObjectURL(await cachedResponse.blob());
+    const cached = await cache.match(url);
+    if (cached) {
+      console.log("💾 Cached hit:", url);
+      return URL.createObjectURL(await cached.blob());
     }
 
     console.log("🌐 Fetching from R2:", url);
-    const response = await fetch(url, { mode: "cors" });
-    if (!response.ok) throw new Error("Network fetch failed");
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) throw new Error("Network fetch failed");
 
-    cache.put(url, response.clone());
+    await cache.put(url, res.clone());
     console.log("📦 Cached:", url);
 
-    return URL.createObjectURL(await response.blob());
+    return URL.createObjectURL(await res.blob());
   } catch (err) {
     console.error("⚠️ fetchWithCache failed:", err);
-    return url; // fallback to direct URL
+    return url; // fallback direct URL
   }
 }
 
-// === Load selected song (progressive) ===
+// === Load selected song (synchronized parallel load) ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
   const entry = window.songURLs[songName];
   if (!entry) return console.error("❌ No entry for", songName);
 
   const { vocalURL, accURL } = entry;
+
   stopAndUnloadAudio();
 
-  // --- Progressive start ---
-  console.log("🚀 Progressive load: fetching vocal first...");
-  const vocalSrc = await fetchWithCache(vocalURL);
-
-  // Assign immediately (can start playback)
-  window.vocalAudio.src = vocalSrc;
-  window.vocalAudio.preload = "auto";
-
-  // Preload accompaniment asynchronously (parallel but not blocking)
-  fetchWithCache(accURL)
-    .then(blobURL => {
-      window.accompAudio.src = blobURL;
-      window.accompAudio.preload = "auto";
-      console.log("✅ Accompaniment preloaded");
-    })
-    .catch(err => console.warn("⚠️ Accompaniment preload failed:", err));
-
-  // Load lyrics (text is lightweight)
-  const lyricsFile = `lyrics/${songName}.txt`;
   try {
+    console.log("🚀 Starting parallel preloads...");
+    const [vocalSrc, accSrc] = await Promise.all([
+      fetchWithCache(vocalURL),
+      fetchWithCache(accURL),
+    ]);
+
+    window.vocalAudio.src = vocalSrc;
+    window.accompAudio.src = accSrc;
+
+    window.vocalAudio.preload = "auto";
+    window.accompAudio.preload = "auto";
+
+    console.log("✅ Both tracks preloaded and synchronized.");
+
+    // Load lyrics
+    const lyricsFile = `lyrics/${songName}.txt`;
     const res = await fetch(lyricsFile);
     if (!res.ok) throw new Error("Lyrics not found");
     const txt = await res.text();
@@ -67,9 +65,7 @@ async function loadSelectedSong(songName) {
     if (area) area.value = txt;
     console.log("✅ Lyrics loaded");
   } catch (err) {
-    console.warn("⚠️ Lyrics missing:", lyricsFile);
-    const area = document.getElementById("lyricsArea");
-    if (area) area.value = "";
+    console.error("⚠️ loadSelectedSong failed:", err);
   }
 }
 
@@ -86,7 +82,7 @@ function stopAndUnloadAudio() {
   console.log("🛑 Audio stopped and unloaded");
 }
 
-// === Play the first segment (progressive style) ===
+// === Play first segment ===
 async function playFirstSegment() {
   const select = document.getElementById("songSelect");
   if (!select) return;
@@ -95,53 +91,42 @@ async function playFirstSegment() {
 
   await loadSelectedSong(songName);
 
-  // Get the first segment (always start from the first segment)
-  const segment = window.segments[0];
+  const segment = window.segments?.[0];
   if (!segment) return console.error("❌ First segment not found");
 
-  // Play the first segment
   playSegment(segment.start, segment.end, 0);
 }
 
-// === Segment playback (auto-preload next segment) ===
+// === Segment playback (with prefetching next) ===
 function playSegment(startTime, endTime, index) {
-  console.log(`🎵 Playing segment: ${startTime} -> ${endTime} (${endTime - startTime}s)`);
+  console.log(`🎵 Segment: ${startTime} → ${endTime}`);
 
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
-  // Play both if accompaniment already preloaded
-  if (window.accompAudio.src) {
-    window.accompAudio.play().catch((e) => console.warn("Acc not ready:", e));
-  }
-  window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
+  Promise.all([
+    window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e)),
+    window.accompAudio.play().catch((e) => console.error("Acc play error:", e)),
+  ]);
 
-  const EPS = 0.02;  // 20 ms guard
-  const DRIFT = 0.06; // 60 ms resync
+  const EPS = 0.02;
+  const DRIFT = 0.06;
 
   window.activeSegmentInterval = setInterval(() => {
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
-    if (diff > DRIFT && window.accompAudio.src) {
-      window.accompAudio.currentTime = window.vocalAudio.currentTime;
-    }
+    if (diff > DRIFT) window.accompAudio.currentTime = window.vocalAudio.currentTime;
 
     if (window.vocalAudio.currentTime >= endTime - EPS) {
       clearInterval(window.activeSegmentInterval);
-      window.activeSegmentInterval = null;
-
       window.vocalAudio.pause();
-      if (window.accompAudio.src) window.accompAudio.pause();
+      window.accompAudio.pause();
 
-      // Auto-advance + preload next
+      // Auto-next
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
-        console.log(`⏭️ Preloading next segment (${index + 2})...`);
-
-        // Progressive preload — browser keeps buffer hot
+        console.log(`⏭️ Preparing next segment: ${index + 2}`);
         window.vocalAudio.currentTime = next.start;
-        if (window.accompAudio.src) window.accompAudio.currentTime = next.start;
-
-        // Play next
+        window.accompAudio.currentTime = next.start;
         playSegment(next.start, next.end, index + 1);
       }
     }
