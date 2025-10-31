@@ -42,14 +42,18 @@ async function loadSelectedSong(songName) {
 
   stopAndUnloadAudio();
 
-  window.vocalAudio.src = await fetchWithCache(vocalURL);
-  window.accompAudio.src = await fetchWithCache(accURL);
+  // 🌀 Show loader safely (only if exists)
+  const loader = document.getElementById("loadingIndicator");
+  if (loader) loader.style.display = "flex";
 
-  window.vocalAudio.preload = "auto";
-  window.accompAudio.preload = "auto";
-
-  const lyricsFile = `lyrics/${songName}.txt`;
   try {
+    window.vocalAudio.src = await fetchWithCache(vocalURL);
+    window.accompAudio.src = await fetchWithCache(accURL);
+
+    window.vocalAudio.preload = "auto";
+    window.accompAudio.preload = "auto";
+
+    const lyricsFile = `lyrics/${songName}.txt`;
     const res = await fetch(lyricsFile);
     if (!res.ok) throw new Error("Lyrics not found");
     const txt = await res.text();
@@ -57,9 +61,12 @@ async function loadSelectedSong(songName) {
     if (area) area.value = txt;
     console.log("✅ Lyrics loaded");
   } catch (err) {
-    console.warn("⚠️ Lyrics missing:", lyricsFile);
+    console.warn("⚠️ Lyrics missing or fetch failed:", err);
     const area = document.getElementById("lyricsArea");
     if (area) area.value = "";
+  } finally {
+    // ✅ Always hide loader safely (even on error)
+    if (loader) setTimeout(() => (loader.style.display = "none"), 500);
   }
 }
 
@@ -106,37 +113,42 @@ function playSegment(startTime, endTime, index) {
   const EPS = 0.02; // 20ms guard near the end
   const DRIFT = 0.06; // resync if drift > 60ms
 
-  // Watchdog based on actual time to ensure both tracks are in sync
   window.activeSegmentInterval = setInterval(() => {
-    // Micro-resync the two tracks if necessary
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
     if (diff > DRIFT) {
       window.accompAudio.currentTime = window.vocalAudio.currentTime;
     }
 
-    // End of segment?
     if (window.vocalAudio.currentTime >= endTime - EPS) {
       clearInterval(window.activeSegmentInterval);
       window.activeSegmentInterval = null;
-
       window.vocalAudio.pause();
       window.accompAudio.pause();
 
-      // Auto-advance from here if there's another segment
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
         playSegment(next.start, next.end, index + 1);
       }
     }
-  }, 50); // ~20 checks per second
+  }, 50);
 }
 
-document.getElementById("playBtn").addEventListener("click", playFirstSegment);
+// ✅ Wait until DOM is ready before binding buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const playBtn = document.getElementById("playBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
 
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-  console.log("⏸️ Paused both tracks");
+  if (playBtn) {
+    playBtn.addEventListener("click", playFirstSegment);
+  }
+
+  if (pauseBtn) {
+    pauseBtn.addEventListener("click", () => {
+      window.vocalAudio.pause();
+      window.accompAudio.pause();
+      console.log("⏸️ Paused both tracks");
+    });
+  }
 });
 
 // === Clear cache manually ===
