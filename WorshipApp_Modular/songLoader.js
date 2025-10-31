@@ -1,4 +1,4 @@
-﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
+﻿console.log("🎵 songLoader.js: Starting (R2 + progressive smart caching)...");
 
 // 🎵 Global audio players
 window.vocalAudio = new Audio();
@@ -31,29 +31,35 @@ async function fetchWithCache(url) {
   }
 }
 
-// === Load selected song ===
+// === Load selected song (progressive) ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
-
   const entry = window.songURLs[songName];
   if (!entry) return console.error("❌ No entry for", songName);
 
   const { vocalURL, accURL } = entry;
-
   stopAndUnloadAudio();
 
-  // 🌀 Show loader safely (only if exists)
-  const loader = document.getElementById("loadingIndicator");
-  if (loader) loader.style.display = "flex";
+  // --- Progressive start ---
+  console.log("🚀 Progressive load: fetching vocal first...");
+  const vocalSrc = await fetchWithCache(vocalURL);
 
+  // Assign immediately (can start playback)
+  window.vocalAudio.src = vocalSrc;
+  window.vocalAudio.preload = "auto";
+
+  // Preload accompaniment asynchronously (parallel but not blocking)
+  fetchWithCache(accURL)
+    .then(blobURL => {
+      window.accompAudio.src = blobURL;
+      window.accompAudio.preload = "auto";
+      console.log("✅ Accompaniment preloaded");
+    })
+    .catch(err => console.warn("⚠️ Accompaniment preload failed:", err));
+
+  // Load lyrics (text is lightweight)
+  const lyricsFile = `lyrics/${songName}.txt`;
   try {
-    window.vocalAudio.src = await fetchWithCache(vocalURL);
-    window.accompAudio.src = await fetchWithCache(accURL);
-
-    window.vocalAudio.preload = "auto";
-    window.accompAudio.preload = "auto";
-
-    const lyricsFile = `lyrics/${songName}.txt`;
     const res = await fetch(lyricsFile);
     if (!res.ok) throw new Error("Lyrics not found");
     const txt = await res.text();
@@ -61,12 +67,9 @@ async function loadSelectedSong(songName) {
     if (area) area.value = txt;
     console.log("✅ Lyrics loaded");
   } catch (err) {
-    console.warn("⚠️ Lyrics missing or fetch failed:", err);
+    console.warn("⚠️ Lyrics missing:", lyricsFile);
     const area = document.getElementById("lyricsArea");
     if (area) area.value = "";
-  } finally {
-    // ✅ Always hide loader safely (even on error)
-    if (loader) setTimeout(() => (loader.style.display = "none"), 500);
   }
 }
 
@@ -83,7 +86,7 @@ function stopAndUnloadAudio() {
   console.log("🛑 Audio stopped and unloaded");
 }
 
-// Play the first segment
+// === Play the first segment (progressive style) ===
 async function playFirstSegment() {
   const select = document.getElementById("songSelect");
   if (!select) return;
@@ -100,58 +103,62 @@ async function playFirstSegment() {
   playSegment(segment.start, segment.end, 0);
 }
 
-// === Segment-specific playback ===
+// === Segment playback (auto-preload next segment) ===
 function playSegment(startTime, endTime, index) {
-  console.log(`🎵 Playing segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+  console.log(`🎵 Playing segment: ${startTime} -> ${endTime} (${endTime - startTime}s)`);
 
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
 
+  // Play both if accompaniment already preloaded
+  if (window.accompAudio.src) {
+    window.accompAudio.play().catch((e) => console.warn("Acc not ready:", e));
+  }
   window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
-  window.accompAudio.play().catch((e) => console.error("Acc play error:", e));
 
-  const EPS = 0.02; // 20ms guard near the end
-  const DRIFT = 0.06; // resync if drift > 60ms
+  const EPS = 0.02;  // 20 ms guard
+  const DRIFT = 0.06; // 60 ms resync
 
   window.activeSegmentInterval = setInterval(() => {
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
-    if (diff > DRIFT) {
+    if (diff > DRIFT && window.accompAudio.src) {
       window.accompAudio.currentTime = window.vocalAudio.currentTime;
     }
 
     if (window.vocalAudio.currentTime >= endTime - EPS) {
       clearInterval(window.activeSegmentInterval);
       window.activeSegmentInterval = null;
-      window.vocalAudio.pause();
-      window.accompAudio.pause();
 
+      window.vocalAudio.pause();
+      if (window.accompAudio.src) window.accompAudio.pause();
+
+      // Auto-advance + preload next
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
+        console.log(`⏭️ Preloading next segment (${index + 2})...`);
+
+        // Progressive preload — browser keeps buffer hot
+        window.vocalAudio.currentTime = next.start;
+        if (window.accompAudio.src) window.accompAudio.currentTime = next.start;
+
+        // Play next
         playSegment(next.start, next.end, index + 1);
       }
     }
   }, 50);
 }
 
-// ✅ Wait until DOM is ready before binding buttons
+// === UI controls ===
 document.addEventListener("DOMContentLoaded", () => {
-  const playBtn = document.getElementById("playBtn");
-  const pauseBtn = document.getElementById("pauseBtn");
-
-  if (playBtn) {
-    playBtn.addEventListener("click", playFirstSegment);
-  }
-
-  if (pauseBtn) {
-    pauseBtn.addEventListener("click", () => {
-      window.vocalAudio.pause();
-      window.accompAudio.pause();
-      console.log("⏸️ Paused both tracks");
-    });
-  }
+  document.getElementById("playBtn")?.addEventListener("click", playFirstSegment);
+  document.getElementById("pauseBtn")?.addEventListener("click", () => {
+    window.vocalAudio.pause();
+    window.accompAudio.pause();
+    console.log("⏸️ Paused both tracks");
+  });
 });
 
-// === Clear cache manually ===
+// === Manual cache clear ===
 async function clearAudioCache() {
   const CACHE_NAME = "worship-audio-cache-v2";
   const ok = confirm("🧹 Delete cached MP3s?");
