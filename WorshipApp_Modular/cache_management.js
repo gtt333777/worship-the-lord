@@ -160,4 +160,4 @@ async function autoCleanOldSongs() {
   }
   if (removed > 0) console.log(`♻️ Removed ${removed} outdated song(s)`);
 }
-autoCleanOldSongs();
+// autoCleanOldSongs();   // ⛔ disabled to preserve songs permanently
