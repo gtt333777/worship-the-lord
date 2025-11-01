@@ -1,45 +1,75 @@
-﻿விண்ணிலும் மண்ணிலும் உம்மைத்தவிர
+﻿
+Segment 1
+1. விண்ணிலும் மண்ணிலும் உம்மைத்தவிர
 எனக்கு யாருண்டு ? – இந்த
 மண்ணுலகில் உம்மையன்றி வேற
-விருப்பம் எதுவுண்டு?
-நீர்தானே என் வாஞ்சையெல்லாம்
-உம்மைத்தானே பற்றிக்கொண்டேன்
-1. உம்மோடு தான் எப்போதும் நான்
-வாழ்கிறேன்
-அப்பா என் வலக்கரம் பிடித்து தாங்குகிறீர்
+விருப்பம் எதுவுண்டு?                2
+
+நீர்தானே என், வாஞ்சையெல்லாம்
+உம்மைத்தானே பற்றிக்கொண்டேன் 1
+
+Segment 2
+2. உம்மோடு தான் எப்போதும் நான்
+வாழ்கிறேன்        2
+அப்பா என் வலக்கரம் பிடித்து தாங்குகிறீர் 2
 நன்றி ஐயா நாள் முழுதும்
-நல்லவரே, வல்லவரே
-2. உம்சித்தம் போல் என்னை நீர் நடத்துகிறீர்
-முடிவிலே என்னை மகிமையில்
-ஏற்றுக்கொள்வீர்
-3. என் உள்ளத்தின் பெலனே நீர்தானய்யா
-எனக்குரிய பங்கும் என்றும் நீர்தானய்யா
-4. உம்மைத்தானே நான் அடைக்கலமாய்
-கொண்டுள்ளேன்
-உம்மோடுதான் வாழ்வது என் பாக்கியமே
-5. எனக்குள்ளே நீர், செயலாற்றி, மகிழ்கின்றீர்
+நல்லவரே, வல்லவரே   1
+
+Segment 3
+3. உம்சித்தம் போல் என்னை நீர் நடத்துகிறீர் 2 
+முடிவிலே என்னை, மகிமையில்
+ஏற்றுக்கொள்வீர்    2
+நன்றி ஐயா நாள் முழுதும்
+நல்லவரே, வல்லவரே   1
+
+Segment 4
+4. என் உள்ளத்தின் பெலனே நீர்தானய்யா 2
+எனக்குரிய பங்கும், என்றும் நீர்தானய்யா  2
+நன்றி ஐயா நாள் முழுதும்
+நல்லவரே, வல்லவரே   1
+
+Segment 5
+5. உம்மைத்தானே நான் அடைக்கலமாய்
+கொண்டுள்ளேன்     2
+உம்மோடுதான் வாழ்வது என் பாக்கியம்  2
+நன்றி ஐயா நாள் முழுதும்
+நல்லவரே, வல்லவரே   1
+
+
+6. எனக்குள்ளே நீர், செயலாற்றி, மகிழ்கின்றீர்
 உம் சித்தம் செய்ய, ஆற்றல் தருகின்றீர்
 
 
-Vinnilum Mannilum
+Segment 1
+1. Vinnilum Mannilum
 vinnnnilum mannnnilum ummaiththavira
 enakku yaarunndu ? - intha
 mannnulakil ummaiyanti vaera
 viruppam ethuvunndu?
 neerthaanae en vaanjaiyellaam
 ummaiththaanae pattikkonntaen
-1. ummodu thaan eppothum naan
+
+Segment 2
+2. ummodu thaan eppothum naan
 vaalkiraen
 appaa en valakkaram pitiththu thaangukireer
 nanti aiyaa naal muluthum
 nallavarae, vallavarae
-2. umsiththam pol ennai neer nadaththukireer
+
+Segment 3
+3. umsiththam pol ennai neer nadaththukireer
 mutivilae ennai makimaiyil
 aettukkolveer
-3. en ullaththin pelanae neerthaanayyaa
+
+Segment 4
+4. en ullaththin pelanae neerthaanayyaa
 enakkuriya pangum entum neerthaanayyaa
-4. ummaiththaanae naan ataikkalamaay
+
+Segment 5
+5. ummaiththaanae naan ataikkalamaay
 konndullaen
 ummoduthaan vaalvathu en paakkiyamae
-5. enakkullae neer, seyalaatti, makilkinteer
+
+
+6. enakkullae neer, seyalaatti, makilkinteer
 um siththam seyya, aattal tharukinteer
