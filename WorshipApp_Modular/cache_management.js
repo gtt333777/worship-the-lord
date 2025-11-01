@@ -1,4 +1,6 @@
 ﻿console.log("🧩 cache_management.js: Smart cache manager + instant playback + visual indicator");
+console.log("🧩 cache_management.js: Smart cache manager + instant playback + visual indicator (v2)");
+
 
 const SONG_CACHE_NAME = "songs-cache-v1";
 const BASE_URL = "https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev/";
