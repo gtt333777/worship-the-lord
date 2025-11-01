@@ -162,12 +162,27 @@
 }
 
 .segment-button.active .progress-bar {
-  opacity: 1; /* visible only for current segment */
+  opacity: 1; /* visible only for current segment *********
+}
+*/
+
+/* ✅ Vertical progress bar — visible only for active segment, sharp green */
+.progress-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px; /* slightly thicker for clarity */
+  background: linear-gradient(to bottom, #00c853, #1b5e20); /* bright green gradient */
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(0, 255, 0, 0.6);
+  transition: left 0.05s ease-out, opacity 0.2s ease;
+  opacity: 0; /* hidden until active */
 }
 
-
-
-
+.segment-button.active .progress-bar {
+  opacity: 1; /* only current segment shows */
+}
 
 
 
