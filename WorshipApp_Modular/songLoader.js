@@ -4,7 +4,7 @@
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// === Load selected song (now uses cacheSong from cache_management.js) ===
+// === Load selected song ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
 
@@ -15,7 +15,7 @@ async function loadSelectedSong(songName) {
 
   stopAndUnloadAudio();
 
-  // ✅ Use smart caching system (from cache_management.js)
+  // ✅ Use the centralized smart cache system (from cache_management.js)
   window.vocalAudio.src = await cacheSong(vocalURL);
   window.accompAudio.src = await cacheSong(accURL);
 
@@ -64,13 +64,12 @@ async function playFirstSegment() {
   const segment = window.segments[0];
   if (!segment) return console.error("❌ First segment not found");
 
-  // Play the first segment
   playSegment(segment.start, segment.end, 0);
 }
 
 // === Segment-specific playback ===
 function playSegment(startTime, endTime, index) {
-  console.log(`🎵 Playing segment: ${startTime} -> ${endTime} (${endTime - startTime} seconds)`);
+  console.log(`🎵 Playing segment: ${startTime} → ${endTime} (${endTime - startTime}s)`);
 
   window.vocalAudio.currentTime = startTime;
   window.accompAudio.currentTime = startTime;
@@ -78,18 +77,13 @@ function playSegment(startTime, endTime, index) {
   window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
   window.accompAudio.play().catch((e) => console.error("Acc play error:", e));
 
-  const EPS = 0.02; // 20ms guard near the end
-  const DRIFT = 0.06; // resync if drift > 60ms
+  const EPS = 0.02;
+  const DRIFT = 0.06;
 
-  // Watchdog based on actual time to ensure both tracks are in sync
   window.activeSegmentInterval = setInterval(() => {
-    // Micro-resync the two tracks if necessary
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
-    if (diff > DRIFT) {
-      window.accompAudio.currentTime = window.vocalAudio.currentTime;
-    }
+    if (diff > DRIFT) window.accompAudio.currentTime = window.vocalAudio.currentTime;
 
-    // End of segment?
     if (window.vocalAudio.currentTime >= endTime - EPS) {
       clearInterval(window.activeSegmentInterval);
       window.activeSegmentInterval = null;
@@ -97,13 +91,12 @@ function playSegment(startTime, endTime, index) {
       window.vocalAudio.pause();
       window.accompAudio.pause();
 
-      // Auto-advance if another segment exists
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
         playSegment(next.start, next.end, index + 1);
       }
     }
-  }, 50); // ~20 checks per second
+  }, 50);
 }
 
 // === Buttons: Play / Pause / Clear Cache ===
