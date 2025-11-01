@@ -24,7 +24,7 @@ window.star = [
   "* அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
   "*** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "*** உமதுமுகம் நோக்கி Umathu mugam nokki",
-  "** உம்மை புகழ்ந்து பாடுவது நல்லது ummai pukalnthu paaduvathu",
+  "** உம்மை புகழ்ந்து பாடுவது நல்லது Ummai pukalnthu paaduvathu",
   "# உன்னதரே என் நேசரே Unnathare en nesarae",
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka",
