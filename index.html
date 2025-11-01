@@ -269,7 +269,10 @@
 
 
 
-<!-- ✅ Auto-update version check with console log -->
+
+
+
+<!-- ✅ Auto-update version check + visible version label -->
 <script>
 (async () => {
   try {
@@ -279,6 +282,10 @@
     const current = localStorage.getItem("appVersion");
 
     console.log(`🪄 Worship The Lord - App Version: ${latest}`);
+
+    // 🏷️ Show version in the footer label
+    const label = document.getElementById("appVersionLabel");
+    if (label) label.textContent = "🎵 Worship The Lord — v" + latest;
 
     if (current && current !== latest) {
       console.log("🔁 New app version detected:", latest);
@@ -293,6 +300,20 @@
   }
 })();
 </script>
+
+
+
+
+<!-- ✅ App version label -->
+<div id="appVersionLabel" style="
+  font-size: 0.85rem;
+  color: gray;
+  margin-top: 12px;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+"></div>
+
+
 
 
 
