@@ -4,34 +4,7 @@
 window.vocalAudio = new Audio();
 window.accompAudio = new Audio();
 
-// === Smart cache fetcher (works for Cloudflare R2) ===
-async function fetchWithCache(url) {
-  const CACHE_NAME = "worship-audio-cache-v2";
-  if (!url) return "";
-
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    const cachedResponse = await cache.match(url);
-    if (cachedResponse) {
-      console.log("💾 Loaded from cache:", url);
-      return URL.createObjectURL(await cachedResponse.blob());
-    }
-
-    console.log("🌐 Fetching from R2:", url);
-    const response = await fetch(url, { mode: "cors" });
-    if (!response.ok) throw new Error("Network fetch failed");
-
-    cache.put(url, response.clone());
-    console.log("📦 Cached:", url);
-
-    return URL.createObjectURL(await response.blob());
-  } catch (err) {
-    console.error("⚠️ fetchWithCache failed:", err);
-    return url; // fallback to direct URL
-  }
-}
-
-// === Load selected song ===
+// === Load selected song (now uses cacheSong from cache_management.js) ===
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
 
@@ -42,12 +15,14 @@ async function loadSelectedSong(songName) {
 
   stopAndUnloadAudio();
 
-  window.vocalAudio.src = await fetchWithCache(vocalURL);
-  window.accompAudio.src = await fetchWithCache(accURL);
+  // ✅ Use smart caching system (from cache_management.js)
+  window.vocalAudio.src = await cacheSong(vocalURL);
+  window.accompAudio.src = await cacheSong(accURL);
 
   window.vocalAudio.preload = "auto";
   window.accompAudio.preload = "auto";
 
+  // === Load lyrics ===
   const lyricsFile = `lyrics/${songName}.txt`;
   try {
     const res = await fetch(lyricsFile);
@@ -76,7 +51,7 @@ function stopAndUnloadAudio() {
   console.log("🛑 Audio stopped and unloaded");
 }
 
-// Play the first segment
+// === Play the first segment ===
 async function playFirstSegment() {
   const select = document.getElementById("songSelect");
   if (!select) return;
@@ -122,7 +97,7 @@ function playSegment(startTime, endTime, index) {
       window.vocalAudio.pause();
       window.accompAudio.pause();
 
-      // Auto-advance from here if there's another segment
+      // Auto-advance if another segment exists
       if (index < window.segments.length - 1) {
         const next = window.segments[index + 1];
         playSegment(next.start, next.end, index + 1);
@@ -131,6 +106,7 @@ function playSegment(startTime, endTime, index) {
   }, 50); // ~20 checks per second
 }
 
+// === Buttons: Play / Pause / Clear Cache ===
 document.getElementById("playBtn").addEventListener("click", playFirstSegment);
 
 document.getElementById("pauseBtn").addEventListener("click", () => {
@@ -139,11 +115,10 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
   console.log("⏸️ Paused both tracks");
 });
 
-// === Clear cache manually ===
+// === Manual cache clear (developer only) ===
 async function clearAudioCache() {
-  const CACHE_NAME = "worship-audio-cache-v2";
-  const ok = confirm("🧹 Delete cached MP3s?");
+  const ok = confirm("🧹 Delete ALL cached songs?");
   if (!ok) return;
-  await caches.delete(CACHE_NAME);
-  alert("✅ Cache cleared");
+  await caches.delete("songs-cache-v1");
+  alert("✅ All songs cleared");
 }
