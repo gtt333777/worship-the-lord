@@ -1,9 +1,7 @@
 ﻿// service-worker.js
 // ---------------------------------------------
-// ✅ Worship The Lord - Smart App Cache Manager
-// ✅ Works with GitHub Pages + Cloudflare R2
-// ✅ Keeps app shell offline, skips MP3s
-// ✅ Updates automatically when new version is deployed
+// Worship The Lord - Smart App Cache Manager
+// Keeps app shell offline and preserves songs cache
 // ---------------------------------------------
 
 const CACHE_NAME = "worship-the-lord-v4";
@@ -23,34 +21,31 @@ const OFFLINE_URLS = [
   "./WorshipApp_Modular/pwaSetup.js"
 ];
 
-// 🧱 INSTALL — Cache essential app files
+// INSTALL — cache essential app files (skip failures)
 self.addEventListener("install", (event) => {
   console.log("📦 Service Worker installing...");
-
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      const results = await Promise.allSettled(
-        OFFLINE_URLS.map(url => cache.add(url))
-      );
-
+      const results = await Promise.allSettled(OFFLINE_URLS.map(url => cache.add(url)));
       const failed = results.filter(r => r.status === "rejected");
       if (failed.length) {
-        console.warn(`⚠️ Some files failed to cache (${failed.length}):`, failed.map(f => f.reason?.message || f));
+        console.warn(`⚠️ Some files failed to cache (${failed.length})`);
       }
-
       await self.skipWaiting();
-      console.log("✅ Service Worker install complete.");
     })
   );
 });
 
-// 🧹 ACTIVATE — Clean up older app versions
+// ACTIVATE — clean old app caches but PRESERVE songs-cache-v1
 self.addEventListener("activate", (event) => {
   console.log("⚙️ Service Worker activating...");
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
+          // Preserve the songs cache so MP3s remain across updates
+          if (key === "songs-cache-v1") return;
+          // Remove older app caches that start with worship-the-lord but are not the current one
           if (key !== CACHE_NAME && key.startsWith("worship-the-lord")) {
             console.log("🗑️ Removing old cache:", key);
             return caches.delete(key);
@@ -62,22 +57,20 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// 🌐 FETCH — Smart network strategy
+// FETCH — do not intercept R2 mp3s; use cache-first for app shell
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = req.url;
 
-  // 🚫 Skip Cloudflare R2 audio (handled by cache_management.js)
+  // Skip Cloudflare R2 audio files (they are handled by cache_management.js)
   if (url.includes("r2.dev") && (url.endsWith(".mp3") || url.includes("_vocal") || url.includes("_acc"))) {
-    // Don’t intercept music files — handled separately
-    return;
+    return; // let the network handle MP3s
   }
 
-  // ✅ Cache-first strategy for app shell
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) {
-        // Background update attempt (non-blocking)
+        // background update (non-blocking)
         fetch(req).then((response) => {
           if (response.ok && req.url.startsWith(self.location.origin)) {
             caches.open(CACHE_NAME).then(cache => cache.put(req, response.clone()));
@@ -86,7 +79,7 @@ self.addEventListener("fetch", (event) => {
         return cached;
       }
 
-      // Network-first fallback
+      // No cache -> network
       return fetch(req)
         .then((res) => {
           if (res.ok && req.url.startsWith(self.location.origin)) {
@@ -100,7 +93,7 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// 🔄 LISTEN for manual skipWaiting message (optional)
+// Allow main page to tell SW to skip waiting (optional use)
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
