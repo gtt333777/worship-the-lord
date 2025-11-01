@@ -5,81 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
 
-  <!-- 🔌 Optimize for Dropbox -->
-  <link rel="preconnect" href="https://www.dropbox.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.dropbox.com">
-
   <!-- ✅ PWA Basics -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-192.png" type="image/png" />
   <meta name="theme-color" content="#2c3e50" />
 
+  <!-- 🔌 Optimize connection -->
+  <link rel="preconnect" href="https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev" crossorigin>
+  <link rel="dns-prefetch" href="https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: system-ui, sans-serif;
       background-color: #eaf3fb;
       text-align: center;
-      padding: 20px;
+      padding: 10px;
+      margin: 0;
     }
-    h3 { color: #2c3e50; }
+
+    h3 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
 
     select, button {
       padding: 6px 10px;
-      margin: 5px;
+      margin: 4px;
       font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #bbb;
     }
 
-    /* ✅ Dual-line dropdown */
+    button {
+      background-color: #f8f8f8;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #eef;
+    }
+
     #songSelect {
       font-size: 1rem;
       line-height: 1.4;
       white-space: pre-line;
-      width: 90%;
+      width: 95%;
       max-width: 400px;
     }
 
     #songSelect option {
       padding: 4px;
-      margin-bottom: 3px;
       line-height: 1.3;
-      white-space: pre-line;
     }
 
-    /* ✅ Volume controls */
     .volume-control {
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
       margin: 10px;
     }
 
     .volume-control label {
-      margin-right: 6px;
-      width: 140px;
+      width: 150px;
       text-align: right;
     }
 
     .volume-control input[type="range"] {
-      width: 200px;
+      width: 150px;
+      margin: 0 5px;
     }
 
     .volume-control span {
-      display: inline-block;
-      width: 40px;
+      width: 50px;
       text-align: left;
       font-weight: bold;
-      margin-left: 6px;
       color: #2c3e50;
     }
 
-    /* ✅ Lyrics area */
     #lyricsArea {
       width: 95%;
-      height: 500px;
-      margin: 25px auto;
-      padding: 20px;
-      font-size: 1.4rem;
-      line-height: 1.6;
+      max-width: 600px;
+      height: 55vh;
+      margin: 15px auto;
+      padding: 15px;
+      font-size: 1.2rem;
+      line-height: 1.5;
       background-color: #fff;
       border: 2px solid #ccc;
       border-radius: 10px;
@@ -87,13 +98,11 @@
       overflow-y: auto;
     }
 
-    /* ✅ Segment button visuals */
     .segment-button {
       position: relative;
       margin: 3px;
       padding: 4px 8px;
       font-size: 0.9rem;
-      overflow: hidden;
     }
 
     .progress-bar {
@@ -114,6 +123,27 @@
       width: 90%;
       font-size: 1rem;
     }
+
+    /* ✅ Cache Status styling */
+    #cacheStatus {
+      font-family: system-ui, sans-serif;
+      font-size: 0.9rem;
+      transition: opacity 0.5s;
+      color: gray;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    @media (max-width: 600px) {
+      #lyricsArea {
+        font-size: 1rem;
+        height: 50vh;
+      }
+      .volume-control label {
+        width: 120px;
+        text-align: left;
+      }
+    }
   </style>
 </head>
 
@@ -133,7 +163,7 @@
   </div>
 
   <!-- ⭐️ Bookmark Feature -->
-  <div style="display:inline-flex; align-items:center; gap:6px;">
+  <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;">
     <button id="bookmarkBtn" title="Toggle bookmark"
       style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
     <select id="bookmarkDropdown">
@@ -141,11 +171,21 @@
     </select>
   </div>
 
-  <br />
-
   <!-- ✅ Player Controls -->
-  <button id="playBtn">▶️ Play</button>
-  <button id="pauseBtn">⏸️ Pause</button>
+  <div style="margin-top:10px;">
+    <button id="playBtn">▶️ Play</button>
+    <button id="pauseBtn">⏸️ Pause</button>
+  </div>
+
+  <!-- ✅ Cache Status Indicator -->
+  <div id="cacheStatus"></div>
+
+  <!-- ✅ Cache management buttons -->
+  <div style="margin-top:8px;">
+    <button onclick="showCacheInfo()">ℹ️ Cache Info</button>
+    <button onclick="clearSingleSongCache(document.getElementById('songSelect').value)">🧹 Clear Selected</button>
+    <button onclick="clearAllSongCache()">🔥 Clear All Songs</button>
+  </div>
 
   <!-- ✅ Volume Controls -->
   <div class="volume-control">
@@ -172,20 +212,21 @@
   <!-- ✅ Lyrics display -->
   <textarea id="lyricsArea" readonly></textarea>
 
-  <!-- ✅ Modular Scripts -->
-  <script src="WorshipApp_Modular/star.js"></script>
-  <script src="WorshipApp_Modular/songNamesLoader.js"></script>
-  <script src="WorshipApp_Modular/lyricsLoader.js"></script>
-  <script src="WorshipApp_Modular/audioControl.js"></script>
-  <script src="WorshipApp_Modular/skipControl.js"></script>
-  <script src="WorshipApp_Modular/songLoader.js"></script>
-  <script src="WorshipApp_Modular/bookmarkManager.js"></script>
-  <script src="WorshipApp_Modular/pwaSetup.js"></script>
-  <script src="WorshipApp_Modular/loopPlayer.js"></script>
-  <script src="WorshipApp_Modular/segmentProgressVisualizer.js"></script>
+  <!-- ✅ Modular Scripts (classic global JS, with defer) -->
+  <script src="WorshipApp_Modular/star.js" defer></script>
+  <script src="WorshipApp_Modular/songNamesLoader.js" defer></script>
+  <script src="WorshipApp_Modular/lyricsLoader.js" defer></script>
+  <script src="WorshipApp_Modular/audioControl.js" defer></script>
+  <script src="WorshipApp_Modular/skipControl.js" defer></script>
+  <script src="WorshipApp_Modular/cache_management.js" defer></script>
+  <script src="WorshipApp_Modular/songLoader.js" defer></script>
+  <script src="WorshipApp_Modular/bookmarkManager.js" defer></script>
+  <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
+  <script src="WorshipApp_Modular/loopPlayer.js" defer></script>
+  <script src="WorshipApp_Modular/segmentProgressVisualizer.js" defer></script>
 
   <!-- ✅ Service Worker -->
-  <script>
+  <script defer>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(console.error);
     }
@@ -206,8 +247,8 @@
     });
   </script>
 
-  <!-- ✅ Initial Loader (Auto-detect available function) -->
-  <script>
+  <!-- ✅ Initial Loader -->
+  <script defer>
     document.addEventListener("DOMContentLoaded", async () => {
       if (typeof loadSongNames === "function") {
         await loadSongNames();
