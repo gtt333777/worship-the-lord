@@ -99,24 +99,6 @@
     }
 
 
-    /*
-    .segment-button {
-      position: relative;
-      margin: 3px;
-      padding: 4px 8px;
-      font-size: 0.9rem;
-    }
-
-    .progress-bar {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background-color: #4caf50;
-      transition: left 0.05s ease-out;
-    }
-    */
-
     /* 🎵 Improved Segment Buttons (modern, touch-friendly) */
 .segment-button {
   position: relative;
@@ -166,13 +148,9 @@
 }
 
 
-  .progress-bar {
-  opacity: 1; /* always visible */
+.segment-button.active .progress-bar {
+  opacity: 1; /* only current segment shows */
 }
-
-
-}
-
 
 
 
@@ -377,6 +355,27 @@
 
 
 
+  <!-- ✅ Highlight current active segment -->
+  <script>
+    /* Highlight the currently active segment */
+    function markActiveSegment(index) {
+      const buttons = document.querySelectorAll('.segment-button');
+      buttons.forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+    }
+
+    /* Hook into loopPlayer if available */
+    if (window.playSegment) {
+      const originalPlaySegment = window.playSegment;
+      window.playSegment = function(start, end, index) {
+        markActiveSegment(index);  // highlight current button
+        return originalPlaySegment(start, end, index);
+      };
+    } else {
+      console.warn("⚠️ playSegment() not found; active marker won't work yet.");
+    }
+  </script>
 
 
 </body>
