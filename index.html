@@ -265,5 +265,36 @@
       }
     });
   </script>
+
+
+
+
+<!-- ✅ Auto-update version check with console log -->
+<script>
+(async () => {
+  try {
+    const resp = await fetch("version.json?cachebust=" + Date.now(), { cache: "no-store" });
+    const data = await resp.json();
+    const latest = data.version;
+    const current = localStorage.getItem("appVersion");
+
+    console.log(`🪄 Worship The Lord - App Version: ${latest}`);
+
+    if (current && current !== latest) {
+      console.log("🔁 New app version detected:", latest);
+      localStorage.setItem("appVersion", latest);
+      // Force reload to get the newest HTML + JS
+      window.location.reload(true);
+    } else if (!current) {
+      localStorage.setItem("appVersion", latest);
+    }
+  } catch (e) {
+    console.warn("⚠️ Version check failed:", e);
+  }
+})();
+</script>
+
+
+
 </body>
 </html>
