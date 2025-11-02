@@ -397,9 +397,18 @@ requestAnimationFrame(updateProgressBar);
 
 <script>
 /* 🔍 Enlarge the entire page slightly for first-time users */
+/*
+const zoomLevel = 1.15;
+Examples:
+1.05 → +5% (subtle)
+1.10 → +10% (good balance)
+1.20 → +20% (more visible for new users)
+*/
+
+
 (function() {
   // Choose a starting zoom level (try 1.1 = 110%)
-  const zoomLevel = 1.15;  
+  const zoomLevel = 1.25;  
 
   // Apply scaling to the entire body
   document.body.style.transform = `scale(${zoomLevel})`;
