@@ -394,5 +394,31 @@ requestAnimationFrame(updateProgressBar);
 </script>
 
 
+
+<script>
+/* 🔍 Enlarge the entire page slightly for first-time users */
+(function() {
+  // Choose a starting zoom level (try 1.1 = 110%)
+  const zoomLevel = 1.15;  
+
+  // Apply scaling to the entire body
+  document.body.style.transform = `scale(${zoomLevel})`;
+  document.body.style.transformOrigin = "top center";
+
+  // Adjust spacing so content doesn’t get cut off
+  document.body.style.marginTop = (zoomLevel - 1) * 100 + "px";
+
+  // Optional: Store a flag so repeat visitors keep their manual zoom
+  if (!localStorage.getItem("userZoomSet")) {
+    localStorage.setItem("userZoomSet", "yes");
+  }
+})();
+</script>
+
+
+
+
+
+
 </body>
 </html>
