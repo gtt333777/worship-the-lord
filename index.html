@@ -127,21 +127,22 @@
       color: #2c3e50;
     }
 
-    #lyricsArea {
-      width: 95%;
-      max-width: 600px;
-      height: 55vh;
-      margin: 15px auto;
-      padding: 15px;
-      font-size: 1.2rem;
-      line-height: 1.5;
-      background-color: #fff;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      white-space: pre-wrap;
-      overflow-y: auto;
-      text-align: center; /* ✅ This centers the lyrics */
-    }
+  #lyricsArea {
+  width: 95%;
+  max-width: 600px;
+  height: 55vh;
+  margin: 15px auto;
+  padding: 15px 15px 15px 30px;   /* ⬅️ extra left padding only */
+  font-size: 1.2rem;
+  line-height: 1.6;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  text-align: left;               /* keep lyrics left-aligned */
+}
+
 
 
     /* ✅ Only one moving vertical green bar on active segment */
