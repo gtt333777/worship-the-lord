@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev" crossorigin>
   <link rel="dns-prefetch" href="https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev">
 
+
+
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -44,6 +46,48 @@
     button:hover {
       background-color: #eef;
     }
+
+
+    /* ✅ Play button styling — large, bright green, inviting */
+#playBtn {
+  background: linear-gradient(to bottom right, #4caf50, #2e7d32);
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 20px;      /* Bigger touch area */
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+#playBtn:hover {
+  background: linear-gradient(to bottom right, #66bb6a, #388e3c);
+  transform: scale(1.05);
+}
+
+/* ✅ Pause button to match size but keep neutral color */
+#pauseBtn {
+  background: linear-gradient(to bottom right, #e0e0e0, #bdbdbd);
+  color: #333;
+  border: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+#pauseBtn:hover {
+  background: linear-gradient(to bottom right, #eeeeee, #cfcfcf);
+  transform: scale(1.05);
+}
+
+
+
+
+
 
     #songSelect {
       font-size: 1rem;
@@ -191,7 +235,14 @@
 
   <!-- ✅ Song selector -->
   <div>
+  <!--
     <label for="songSelect"><strong>Choose a song:</strong></label><br>
+  -->
+     <label for="songSelect" style="color: #2e8b57; background-color: #fff8b5; padding: 4px 8px; border-radius: 4px;">
+  <strong>Select a Song and Press Play, then Press Any Segment:</strong>
+</label><br>
+
+
     <select id="songSelect"></select>
   </div>
 
@@ -408,7 +459,7 @@ Examples:
 
 (function() {
   // Choose a starting zoom level (try 1.1 = 110%)
-  const zoomLevel = 1.50;  
+  const zoomLevel = 1.95;  
 
   // Apply scaling to the entire body
   document.body.style.transform = `scale(${zoomLevel})`;
