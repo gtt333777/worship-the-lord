@@ -29,7 +29,7 @@ window.star = [
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka",
   "* தளர்ந்து போன கைகளை திடப்படுத்துங்கள் Thalarnthu pona kaikalai",
-  "** நன்றி பலி, நன்றி பலி Nandri bali nandri bali",
+  "*** நன்றி பலி, நன்றி பலி Nandri bali nandri bali",
   "** பாடுவேன் மகிழ்வேன் கொண்டாடுவேன் Paaduven Magizhven",
   "* ராஜா உம் மாளிகையில் Raja um maligaiyil",
   "* வாதை உந்தன் கூடாரத்தை Vaathai unthan koodaaraththai",
