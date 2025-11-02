@@ -88,14 +88,36 @@ async function checkForSongUpdate(url, cache) {
 }
 
 // ==================================================
-// 🧹 2️⃣ Clear ALL song cache
+// 🧹 2️⃣ Clear ALL song cache (triple confirmation)
 // ==================================================
 async function clearAllSongCache() {
+  // ✅ Step 1: Keep your original first confirmation
   const ok = confirm("🔥 Delete ALL cached songs?");
-  if (!ok) return;
+  if (!ok) {
+    showCacheStatus("❎ Cancelled cache clearing", "gray");
+    return;
+  }
+
+  // ✅ Step 2: Second stronger warning
+  const warn1 = confirm("⚠️ All your downloaded songs will be erased.\n\nDo you want to continue?");
+  if (!warn1) {
+    showCacheStatus("❎ Cancelled cache clearing", "gray");
+    return;
+  }
+
+  // ✅ Step 3: Final confirmation before deletion
+  const warn2 = confirm("❗ Are you sure you want to delete ALL cached songs?");
+  if (!warn2) {
+    showCacheStatus("❎ Cancelled cache clearing", "gray");
+    return;
+  }
+
+  // ✅ Step 4: Proceed only if all confirmed
   await caches.delete(SONG_CACHE_NAME);
   showCacheStatus("🧹 All cached songs cleared", "orange");
+  console.log("🔥 All cached songs have been erased after triple confirmation.");
 }
+
 
 // ==================================================
 // 🧹 3️⃣ Clear selected song cache
