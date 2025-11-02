@@ -238,8 +238,19 @@
   <!--
     <label for="songSelect"><strong>Choose a song:</strong></label><br>
   -->
+  <!--
      <label for="songSelect" style="color: #2e8b57; background-color: #fff8b5; padding: 4px 8px; border-radius: 4px;">
   <strong>Select a Song Below and Press Play, then Press Any Segment:</strong>
+</label><br>
+-->
+<!--
+<label for="songSelect" style="color: #2e8b57; background-color: #fff8b5; padding: 4px 8px; border-radius: 4px;">
+  <strong>Select a Song <u>Below</u> and Press Play, then Press Any Segment:</strong>
+</label><br>
+-->
+
+<label for="songSelect" style="color: #2e8b57; background-color: #fff8b5; padding: 4px 8px; border-radius: 4px;">
+  <strong>Select a Song <span style="text-decoration: underline; text-underline-offset: 3px;">Below</span> and Press Play, then Press Any Segment:</strong>
 </label><br>
 
 
@@ -459,7 +470,7 @@ Examples:
 
 (function() {
   // Choose a starting zoom level (try 1.1 = 110%)
-  const zoomLevel = 1.90;  
+  const zoomLevel = 1.85;  
 
   // Apply scaling to the entire body
   document.body.style.transform = `scale(${zoomLevel})`;
