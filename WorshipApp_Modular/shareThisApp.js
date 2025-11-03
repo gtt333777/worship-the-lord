@@ -10,7 +10,11 @@ window.shareThisApp = async function() {
   const appUrl = "https://gtt333777.github.io/worship-the-lord/";
   const appTitle = "🎵 Worship The Lord";
   const appText =
-    "🙌 I enjoy using the Worship The Lord app — a bilingual worship songs app with offline playback and segment loops. Try it here: " + appUrl;
+    "🙌 ✝️ Worship The Lord App
+1️⃣ With this app., Sing unto Jesus - Triune God, with studio-grade, perfectly synchronized background music. You can gently lower the vocal track and lift your own voice in true harmony.
+2️⃣ Even in remote prayer gatherings, you can worship without internet. Using a small Bluetooth speaker (like JBL), the cached songs play beautifully — so every heart can join together in praise.
+🕊️ Let everything that has breath praise the Lord! (Psalm 150:6)
+: " + appUrl;
 
   // ✅ Native Share API (works on Android, iOS, etc.)
   if (navigator.share) {
