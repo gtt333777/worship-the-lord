@@ -57,7 +57,7 @@ window.shareThisApp = async function() {
     "You can gently lower the vocal track and lift your own voice in true harmony.\n\n" +
     "2️⃣ Even in remote prayer gatherings, you can worship without internet. " +
     "Using a small Bluetooth speaker (like JBL), the cached songs play beautifully — so every heart can join in praise.\n\n" +
-    "🕊️ Let everything that has breath praise the Lord! (Psalm 150:6)\n\n" +
+   
     appUrl;
 
   if (navigator.share) {
