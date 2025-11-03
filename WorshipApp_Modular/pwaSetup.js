@@ -61,3 +61,16 @@ window.addEventListener("appinstalled", () => {
   const installBar = document.getElementById("installPrompt");
   if (installBar) installBar.style.display = "none";
 });
+
+
+// Fallback: manual install button
+window.showInstallPrompt = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Manual install outcome: ${outcome}`);
+    deferredPrompt = null;
+  } else {
+    alert("App is already installable or installed!");
+  }
+};
