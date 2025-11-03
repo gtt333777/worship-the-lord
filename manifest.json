@@ -1,4 +1,6 @@
-﻿{
+﻿/*
+
+{
   "name": "🎵 Worship The Lord",
   "short_name": "Worship",
   "id": "./",
@@ -22,4 +24,35 @@
       "purpose": "any maskable"
     }
   ]
+}
+*/
+
+
+
+{
+  "name": "🎵 Worship The Lord",
+  "short_name": "Worship",
+  "id": "/worship-the-lord/",
+  "scope": "/worship-the-lord/",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eef3f7",
+  "theme_color": "#2c3e50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192 256x256 384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "prefer_related_applications": false,
+  "description": "🎵 Worship The Lord – bilingual worship songs app with offline access and loop segments for practice."
 }
