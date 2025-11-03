@@ -1,6 +1,8 @@
 ﻿{
   "name": "🎵 Worship The Lord",
   "short_name": "Worship",
+  "id": "/worship-the-lord/",              ← 🆕 Add this line
+  "scope": "/worship-the-lord/",           ← 🆕 Add this line
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#eef3f7",
