@@ -64,7 +64,7 @@ window.addEventListener("appinstalled", () => {
 
 
 
-
+/*
 // Fallback: manual install button
 window.showInstallPrompt = async () => {
   if (deferredPrompt) {
@@ -76,3 +76,4 @@ window.showInstallPrompt = async () => {
     alert("App is already installable or installed!");
   }
 };
+*/
