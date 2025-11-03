@@ -63,8 +63,8 @@ window.addEventListener("appinstalled", () => {
 });
 
 
-/*
 
+/*
 // Fallback: manual install button
 window.showInstallPrompt = async () => {
   if (deferredPrompt) {
