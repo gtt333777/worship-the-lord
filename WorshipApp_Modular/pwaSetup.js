@@ -63,6 +63,13 @@ window.addEventListener("appinstalled", () => {
 });
 
 
+// 🧩 Hide manual install button after app installation
+window.addEventListener("appinstalled", () => {
+  const manualButtonDiv = document.getElementById("manualInstallDiv");
+  if (manualButtonDiv) manualButtonDiv.style.display = "none";
+});
+
+
 
 
 // Fallback: manual install button
@@ -76,3 +83,5 @@ window.showInstallPrompt = async () => {
     alert("App is already installable or installed!");
   }
 };
+
+
