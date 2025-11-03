@@ -53,11 +53,11 @@ window.shareThisApp = async function() {
   const appTitle = "🎵 Worship The Lord";
   const appText =
     "🙌 ✝️ Worship The Lord App\n\n" +
-    "1️⃣ Sing unto Jesus - Triune God, with studio-grade, perfectly synchronized background music. " +
+    "1️⃣ Using this app., sing unto Jesus - Triune God, with studio-grade, perfectly synchronized background music. " +
     "You can gently lower the vocal track and lift your own voice in true harmony.\n\n" +
-    "2️⃣ Even in remote prayer gatherings, you can worship without internet. " +
-    "Using a small Bluetooth speaker (like JBL), the cached songs play beautifully — so every heart can join in praise.\n\n" +
-   
+    "2️⃣ Using this app., even in remote prayer gatherings, you can worship without internet. " +
+    "Using a small Bluetooth speaker (like JBL), the cached songs and music play seamlessly — so every heart can join in praise.\n\n" +
+    "🕊️ Let everything that has breath praise the Lord! (Psalm 150:6)\n\n" +
     appUrl;
 
   if (navigator.share) {
