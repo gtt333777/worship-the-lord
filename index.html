@@ -49,20 +49,42 @@
       background-color: #eef;
     }
 
-    /* ✅ Blue Install buttons */
-    #manualInstallDiv button,
-    #installButton {
-      background: linear-gradient(to bottom right, #1976d2, #0d47a1);
-      color: white;
-      border: none;
-      font-weight: bold;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-    }
 
-    #manualInstallDiv button:hover,
-    #installButton:hover {
-      background: linear-gradient(to bottom right, #2196f3, #1565c0);
-    }
+
+
+    #manualInstallDiv button, #shareAppDiv button {
+  min-width: 150px;
+}
+
+    /* ✅ Blue Install buttons */
+#manualInstallDiv button,
+#installButton {
+  background: linear-gradient(to bottom right, #1976d2, #0d47a1);
+  color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+#manualInstallDiv button:hover,
+#installButton:hover {
+  background: linear-gradient(to bottom right, #2196f3, #1565c0);
+}
+
+/* 🍊 Orange Share button */
+#shareAppDiv button {
+  background: linear-gradient(to bottom right, #ff9800, #f57c00);
+  color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+#shareAppDiv button:hover {
+  background: linear-gradient(to bottom right, #ffb74d, #fb8c00);
+  transform: scale(1.05);
+}
+
 
 
     /* ✅ Install prompt area cleanup */
@@ -239,27 +261,26 @@
 </head>
 
 <body>
-  <header style="margin-top:10px;">
-    <h3>🎵 Worship The Lord</h3>
 
-    <!-- ✅ Unified install area -->
+<header style="margin-top:10px;">
+  <h3>🎵 Worship The Lord</h3>
+
+  <!-- ✅ Install & Share side-by-side -->
+  <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
     <div id="installPrompt" style="display:none;">
       <button id="installButton">📲 Install App</button>
     </div>
 
-    <!-- ✅ Manual fallback (appears only if needed) -->
-    <div id="manualInstallDiv" style="margin-top:6px;">
+    <div id="manualInstallDiv">
       <button onclick="showInstallPrompt()">📲 Install App</button>
     </div>
 
-
-      <!-- ✅ Share App button -->
-  <div id="shareAppDiv" style="margin-top:6px;">
-    <button onclick="shareThisApp()">📤 Share This App</button>
+    <div id="shareAppDiv">
+      <button onclick="shareThisApp()">📤 Share This App</button>
+    </div>
   </div>
+</header>
 
-
-  </header>
 
   <!-- ✅ Song selector -->
   <div>
@@ -338,17 +359,7 @@
   <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
 
 
-  <!-- ✅ Remaining Scripts (untouched) -->
-  <!-- ✅ Service Worker, Auto Update, Version Display, etc. -->
-  <!-- ... (your full original JS remains exactly as before) ... -->
-
-</body>
-</html>
-
-
-
-
-
+  
   <!-- ✅ Service Worker -->
   <script defer>
     if ('serviceWorker' in navigator) {
@@ -392,6 +403,15 @@
 
 
 
+  <!-- ✅ App version label -->
+<div id="appVersionLabel" style="
+  font-size: 0.85rem;
+  color: gray;
+  margin-top: 12px;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+"></div>
+
 
 
 
@@ -427,14 +447,7 @@
 
 
 
-<!-- ✅ App version label -->
-<div id="appVersionLabel" style="
-  font-size: 0.85rem;
-  color: gray;
-  margin-top: 12px;
-  text-align: center;
-  font-family: system-ui, sans-serif;
-"></div>
+
 
 <script>
 /* ✅ Highlight and animate only the currently active segment */
@@ -485,6 +498,8 @@ requestAnimationFrame(updateProgressBar);
 </script>
 
 
+
+
 <!--
 
 <script>
@@ -517,8 +532,6 @@ Examples:
 </script>
 
 -->
-
-
 
 
 
