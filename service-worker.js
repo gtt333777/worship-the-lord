@@ -31,7 +31,7 @@ self.addEventListener("install", (event) => {
       if (failed.length) {
         console.warn(`⚠️ Some files failed to cache (${failed.length})`);
       }
-      await self.skipWaiting();
+       self.skipWaiting();
     })
   );
 });

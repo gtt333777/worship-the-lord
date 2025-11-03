@@ -1,7 +1,7 @@
 ﻿{
   "name": "🎵 Worship The Lord",
   "short_name": "Worship",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#eef3f7",
   "theme_color": "#2c3e50",
