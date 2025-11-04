@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎚️ Worship The Lord - Private Analytics</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f7fb;
+      text-align: center;
+      margin: 0;
+      padding: 30px;
+    }
+    h1 {
+      color: #222;
+    }
+    .card {
+      background: white;
+      display: inline-block;
+      margin: 10px;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 220px;
+    }
+    .value {
+      font-size: 2em;
+      color: #0066cc;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Worship The Lord - Private Analytics</h1>
+  <div id="stats"></div>
+
+  <script>
+    const data = JSON.parse(localStorage.getItem("worship_analytics") || "{}");
+    const keys = {
+      visits: "App Opens",
+      songsPlayed: "Songs Played",
+      appShares: "App Shares",
+      installs: "App Installs",
+      offlineMode: "Offline Mode Entries"
+    };
+
+    let html = "";
+    for (const k in keys) {
+      html += `
+        <div class="card">
+          <h3>${keys[k]}</h3>
+          <div class="value">${data[k] || 0}</div>
+        </div>`;
+    }
+    document.getElementById("stats").innerHTML = html;
+  </script>
+</body>
+</html>
