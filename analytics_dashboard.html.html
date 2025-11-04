@@ -47,21 +47,14 @@
   </style>
 </head>
 <body>
-  <h1>📊 Worship The Lord - Analytics</h1>
+  <h1>📊 Worship The Lord - Live Analytics</h1>
 
   <div id="stats"></div>
+
   <footer>Private dashboard · Updates every 15 seconds</footer>
 
   <script>
-    // 🔐 1️⃣ Password protection
-    const ACCESS_KEY = "333777"; // ← change this if you wish
-    const entered = prompt("Enter admin access key:");
-    if (entered !== ACCESS_KEY) {
-      document.body.innerHTML = "<h2>⛔ Access denied</h2>";
-      throw new Error("Access denied");
-    }
-
-    // ⚙️ 2️⃣ Main setup
+    const COUNT_API = "https://countapi.jcmd.tk"; // ✅ Global mirror endpoint
     const namespace = "worship-the-lord-app";
     const metrics = [
       { key: "visits", label: "Total Visits" },
@@ -72,12 +65,22 @@
     ];
 
     async function getCount(key) {
-      const res = await fetch(`https://api.countapi.xyz/get/${namespace}/${key}`);
-      const data = await res.json();
-      return data.value || 0;
+      try {
+        const res = await fetch(`${COUNT_API}/get/${namespace}/${key}`);
+        const text = await res.text();
+        if (text.startsWith("{")) {
+          const data = JSON.parse(text);
+          return data.value || 0;
+        } else {
+          console.warn(`⚠️ Non-JSON response for ${key}`);
+          return 0;
+        }
+      } catch {
+        console.warn(`⚠️ Failed to fetch count for ${key}`);
+        return 0;
+      }
     }
 
-    // 🧠 3️⃣ Store daily counts and detect spikes
     function storeDailyCount(metric, value) {
       const today = new Date().toISOString().slice(0, 10);
       const storageKey = `analytics_${metric.key}`;
@@ -86,7 +89,6 @@
       if (!data[today]) data[today] = value;
       localStorage.setItem(storageKey, JSON.stringify(data));
 
-      // compare last two days if available
       const dates = Object.keys(data).sort();
       if (dates.length >= 2) {
         const prev = data[dates[dates.length - 2]];

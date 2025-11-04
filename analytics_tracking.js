@@ -1,11 +1,13 @@
 ﻿// 📊 analytics_tracking.js
 // --------------------------------------------------
 // Worship The Lord App - Anonymous traffic + Event logger
-// Tracks app visits, plays, shares, and installs
-// 100% modular, non-invasive, privacy-safe
+// Uses CountAPI mirror (https://countapi.jcmd.tk) for global reliability
 // --------------------------------------------------
 
 console.log("📊 analytics_tracking.js loaded");
+
+// ✅ Base endpoint (mirror)
+const COUNT_API = "https://countapi.jcmd.tk";
 
 // -----------------------------------------------
 // 1️⃣ Count anonymous visits (no cookies)
@@ -13,10 +15,18 @@ console.log("📊 analytics_tracking.js loaded");
 (function logAnonymousVisit() {
   const namespace = "worship-the-lord-app";
   const key = "visits";
-  fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-    .then((res) => res.json())
-    .then((data) => console.log(`🙏 Total visits so far: ${data.value}`))
-    .catch((err) => console.warn("⚠️ Visit logging failed:", err));
+
+  fetch(`${COUNT_API}/hit/${namespace}/${key}`)
+    .then(async (res) => {
+      const text = await res.text();
+      if (text.startsWith("{")) {
+        const data = JSON.parse(text);
+        console.log(`🙏 Total visits so far: ${data.value}`);
+      } else {
+        console.log("⚠️ Visit logging skipped (non-JSON response)");
+      }
+    })
+    .catch(() => console.log("⚠️ Visit logging failed (network issue)"));
 })();
 
 // -----------------------------------------------
@@ -26,12 +36,18 @@ window.logAppEvent = function (action, label = "") {
   const timestamp = new Date().toISOString();
   console.log(`📈 Event: ${action}${label ? " - " + label : ""} @ ${timestamp}`);
 
-  // Anonymous counter for each event type
   const safeAction = encodeURIComponent(action.toLowerCase().replace(/\s+/g, "_"));
-  fetch(`https://api.countapi.xyz/hit/worship-the-lord-app/${safeAction}`)
-    .then((res) => res.json())
-    .then((data) => console.log(`✅ ${action} count: ${data.value}`))
-    .catch((err) => console.warn("⚠️ Event count failed:", err));
+  fetch(`${COUNT_API}/hit/worship-the-lord-app/${safeAction}`)
+    .then(async (res) => {
+      const text = await res.text();
+      if (text.startsWith("{")) {
+        const data = JSON.parse(text);
+        console.log(`✅ ${action} count: ${data.value}`);
+      } else {
+        console.log(`⚠️ ${action} logging skipped (non-JSON response)`);
+      }
+    })
+    .catch(() => console.log(`⚠️ ${action} logging failed (network issue)`));
 };
 
 // --------------------------------------------------
@@ -46,13 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 🎵 Track song play
-  // If your play buttons or elements have "play" or "▶" in them
   document.addEventListener("click", (e) => {
     if (
       e.target &&
       (e.target.matches(".play, #playButton, .play-btn") ||
-       e.target.innerText.includes("▶") ||
-       e.target.innerText.toLowerCase().includes("play"))
+        e.target.innerText.includes("▶") ||
+        e.target.innerText.toLowerCase().includes("play"))
     ) {
       const songName =
         e.target.getAttribute("data-song") ||
@@ -67,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logAppEvent("Install App");
   });
 
-  // 💡 Optional: detect offline mode entry
+  // 💡 Detect offline mode entry
   window.addEventListener("offline", () => {
     logAppEvent("Offline Mode Activated");
   });
