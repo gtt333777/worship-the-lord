@@ -1,33 +1,50 @@
-﻿// 🕊️ analytics_tracking.js — Private local analytics
-// Tracks visits, songs played, shares, and installs privately in this browser.
+﻿console.log("📊 analytics_tracking.js loaded");
 
-console.log("🕊️ analytics_tracking.js loaded");
+// Simple global analytics using CountAPI (no token, no backend)
 
-(function() {
-  // Load previous stats or initialize
-  const analytics = JSON.parse(localStorage.getItem("worship_analytics") || "{}");
+// ---- App Opens ----
+fetch("https://api.countapi.xyz/hit/worship-the-lord/app_open")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("appOpens").textContent = data.value;
+    console.log("App Opens:", data.value);
+  })
+  .catch(err => console.error("⚠️ App Opens fetch failed:", err));
 
-  // Ensure default counters
-  analytics.visits = (analytics.visits || 0) + 1;
-  analytics.songsPlayed = analytics.songsPlayed || 0;
-  analytics.appShares = analytics.appShares || 0;
-  analytics.installs = analytics.installs || 0;
-  analytics.offlineMode = analytics.offlineMode || 0;
+// ---- Songs Played ----
+fetch("https://api.countapi.xyz/hit/worship-the-lord/songs_played")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("songsPlayed").textContent = data.value;
+    console.log("Songs Played:", data.value);
+  })
+  .catch(err => console.error("⚠️ Songs Played fetch failed:", err));
 
-  // Save updated data
-  localStorage.setItem("worship_analytics", JSON.stringify(analytics));
+// ---- App Shares ----
+fetch("https://api.countapi.xyz/hit/worship-the-lord/app_shares")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("appShares").textContent = data.value;
+    console.log("App Shares:", data.value);
+  })
+  .catch(err => console.error("⚠️ App Shares fetch failed:", err));
 
-  console.log("📊 Local analytics updated:", analytics);
+// ---- App Installs ----
+fetch("https://api.countapi.xyz/hit/worship-the-lord/app_installs")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("appInstalls").textContent = data.value;
+    console.log("App Installs:", data.value);
+  })
+  .catch(err => console.error("⚠️ App Installs fetch failed:", err));
 
-  // Make it globally usable (optional)
-  window.privateAnalytics = {
-    increment: function(key) {
-      const data = JSON.parse(localStorage.getItem("worship_analytics") || "{}");
-      data[key] = (data[key] || 0) + 1;
-      localStorage.setItem("worship_analytics", JSON.stringify(data));
-    },
-    get: function() {
-      return JSON.parse(localStorage.getItem("worship_analytics") || "{}");
-    }
-  };
-})();
+// ---- Offline Mode Entries ----
+fetch("https://api.countapi.xyz/hit/worship-the-lord/offline_mode_entries")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("offlineModeEntries").textContent = data.value;
+    console.log("Offline Mode Entries:", data.value);
+  })
+  .catch(err => console.error("⚠️ Offline Mode fetch failed:", err));
+
+console.log("✅ Worship The Lord global analytics (CountAPI) ready");
