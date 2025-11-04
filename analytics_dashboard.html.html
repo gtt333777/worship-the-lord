@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📊 Worship The Lord - Analytics Dashboard</title>
-
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -15,7 +14,8 @@
       align-items: center;
       padding-top: 40px;
     }
-    h1 { font-size: 1.6rem; margin-bottom: 20px; }
+    h1 { font-size: 1.6rem; margin-bottom: 10px; }
+    #status { margin-bottom: 15px; color: gray; font-size: 0.9rem; }
     .card {
       background: white;
       padding: 20px 30px;
@@ -28,20 +28,19 @@
     .value { font-size: 2rem; font-weight: bold; color: #0066cc; }
     .spike { color: #d62828; font-weight: bold; margin-top: 5px; }
     footer { margin-top: 30px; font-size: 0.8rem; color: #666; }
-    #status { margin-bottom: 20px; color: gray; font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <h1>📊 Worship The Lord - Live Analytics</h1>
   <div id="status">Checking analytics server connectivity...</div>
   <div id="stats"></div>
-  <footer>Private dashboard · Updates every 15 seconds</footer>
+  <footer id="lastUpdate">Private dashboard · Updates every 15 seconds</footer>
 
   <script>
-    // ✅ Dual endpoint support
     const PRIMARY_API = "https://api.tinycounter.org";
     const BACKUP_API = "https://tinycounter.vercel.app";
     const namespace = "worship-the-lord-app";
+    const CORS_PROXY = "https://api.allorigins.win/raw?url=";
 
     const metrics = [
       { key: "visits", label: "Total Visits" },
@@ -51,13 +50,14 @@
       { key: "offline_mode_activated", label: "Offline Mode Entries" }
     ];
 
-    // ---------- helper ----------
     async function safeFetchJSON(url) {
       try {
-        const res = await fetch(url);
+        const res = await fetch(CORS_PROXY + encodeURIComponent(url));
         const text = await res.text();
         if (text.startsWith("{")) return JSON.parse(text);
-      } catch {}
+      } catch (e) {
+        console.warn("⚠️ Fetch failed:", e);
+      }
       return null;
     }
 
@@ -81,8 +81,7 @@
       if (dates.length >= 2) {
         const prev = data[dates[dates.length - 2]];
         const change = ((value - prev) / prev) * 100;
-        if (change >= 30)
-          return `📈 Spike +${change.toFixed(0)}% since yesterday`;
+        if (change >= 30) return `📈 Spike +${change.toFixed(0)}% since yesterday`;
       }
       return "";
     }
@@ -102,9 +101,10 @@
         `;
         statsDiv.appendChild(card);
       }
+      document.getElementById("lastUpdate").textContent =
+        "Last updated: " + new Date().toLocaleTimeString();
     }
 
-    // ---------- connectivity test ----------
     async function checkServerReachability() {
       const status = document.getElementById("status");
       try {
@@ -120,7 +120,6 @@
       }
     }
 
-    // ---------- start ----------
     checkServerReachability();
     loadStats();
     setInterval(loadStats, 15000);
