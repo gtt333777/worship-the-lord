@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📊 Worship The Lord - Analytics Dashboard</title>
+
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -12,14 +13,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
       padding-top: 40px;
     }
-    h1 {
-      font-size: 1.6rem;
-      margin-bottom: 20px;
-    }
+    h1 { font-size: 1.6rem; margin-bottom: 20px; }
     .card {
       background: white;
       padding: 20px 30px;
@@ -29,33 +25,24 @@
       margin: 10px;
       text-align: center;
     }
-    .value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #0066cc;
-    }
-    .spike {
-      color: #d62828;
-      font-weight: bold;
-      margin-top: 5px;
-    }
-    footer {
-      margin-top: 30px;
-      font-size: 0.8rem;
-      color: #666;
-    }
+    .value { font-size: 2rem; font-weight: bold; color: #0066cc; }
+    .spike { color: #d62828; font-weight: bold; margin-top: 5px; }
+    footer { margin-top: 30px; font-size: 0.8rem; color: #666; }
+    #status { margin-bottom: 20px; color: gray; font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <h1>📊 Worship The Lord - Live Analytics</h1>
-
+  <div id="status">Checking analytics server connectivity...</div>
   <div id="stats"></div>
-
   <footer>Private dashboard · Updates every 15 seconds</footer>
 
   <script>
-    const COUNT_API = "https://countapi.jcmd.tk"; // ✅ Global mirror endpoint
+    // ✅ Dual endpoint support
+    const PRIMARY_API = "https://api.tinycounter.org";
+    const BACKUP_API = "https://tinycounter.vercel.app";
     const namespace = "worship-the-lord-app";
+
     const metrics = [
       { key: "visits", label: "Total Visits" },
       { key: "play_song", label: "Songs Played" },
@@ -64,28 +51,29 @@
       { key: "offline_mode_activated", label: "Offline Mode Entries" }
     ];
 
-    async function getCount(key) {
+    // ---------- helper ----------
+    async function safeFetchJSON(url) {
       try {
-        const res = await fetch(`${COUNT_API}/get/${namespace}/${key}`);
+        const res = await fetch(url);
         const text = await res.text();
-        if (text.startsWith("{")) {
-          const data = JSON.parse(text);
-          return data.value || 0;
-        } else {
-          console.warn(`⚠️ Non-JSON response for ${key}`);
-          return 0;
-        }
-      } catch {
-        console.warn(`⚠️ Failed to fetch count for ${key}`);
-        return 0;
-      }
+        if (text.startsWith("{")) return JSON.parse(text);
+      } catch {}
+      return null;
+    }
+
+    async function getCount(key) {
+      const url1 = `${PRIMARY_API}/get/${namespace}/${key}`;
+      const url2 = `${BACKUP_API}/get/${namespace}/${key}`;
+      const data = (await safeFetchJSON(url1)) || (await safeFetchJSON(url2));
+      if (data && typeof data.value === "number") return data.value;
+      console.warn(`⚠️ Could not fetch ${key} (no valid JSON)`);
+      return 0;
     }
 
     function storeDailyCount(metric, value) {
       const today = new Date().toISOString().slice(0, 10);
       const storageKey = `analytics_${metric.key}`;
       let data = JSON.parse(localStorage.getItem(storageKey) || "{}");
-
       if (!data[today]) data[today] = value;
       localStorage.setItem(storageKey, JSON.stringify(data));
 
@@ -93,7 +81,8 @@
       if (dates.length >= 2) {
         const prev = data[dates[dates.length - 2]];
         const change = ((value - prev) / prev) * 100;
-        if (change >= 30) return `📈 Spike +${change.toFixed(0)}% since yesterday`;
+        if (change >= 30)
+          return `📈 Spike +${change.toFixed(0)}% since yesterday`;
       }
       return "";
     }
@@ -115,6 +104,24 @@
       }
     }
 
+    // ---------- connectivity test ----------
+    async function checkServerReachability() {
+      const status = document.getElementById("status");
+      try {
+        await fetch(PRIMARY_API, { method: "HEAD" });
+        status.textContent = "🌐 Primary analytics server reachable ✅";
+      } catch {
+        try {
+          await fetch(BACKUP_API, { method: "HEAD" });
+          status.textContent = "🌐 Using backup analytics mirror ✅";
+        } catch {
+          status.textContent = "🚫 Analytics servers unreachable — retrying...";
+        }
+      }
+    }
+
+    // ---------- start ----------
+    checkServerReachability();
     loadStats();
     setInterval(loadStats, 15000);
   </script>
