@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📊 Worship The Lord - Analytics Dashboard</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f4f8;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      padding-top: 40px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 16px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      width: 320px;
+      margin: 10px;
+      text-align: center;
+    }
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #0066cc;
+    }
+    .spike {
+      color: #d62828;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Worship The Lord - Analytics</h1>
+
+  <div id="stats"></div>
+  <footer>Private dashboard · Updates every 15 seconds</footer>
+
+  <script>
+    // 🔐 1️⃣ Password protection
+    const ACCESS_KEY = "333777"; // ← change this if you wish
+    const entered = prompt("Enter admin access key:");
+    if (entered !== ACCESS_KEY) {
+      document.body.innerHTML = "<h2>⛔ Access denied</h2>";
+      throw new Error("Access denied");
+    }
+
+    // ⚙️ 2️⃣ Main setup
+    const namespace = "worship-the-lord-app";
+    const metrics = [
+      { key: "visits", label: "Total Visits" },
+      { key: "play_song", label: "Songs Played" },
+      { key: "share_app", label: "App Shares" },
+      { key: "install_app", label: "App Installs" },
+      { key: "offline_mode_activated", label: "Offline Mode Entries" }
+    ];
+
+    async function getCount(key) {
+      const res = await fetch(`https://api.countapi.xyz/get/${namespace}/${key}`);
+      const data = await res.json();
+      return data.value || 0;
+    }
+
+    // 🧠 3️⃣ Store daily counts and detect spikes
+    function storeDailyCount(metric, value) {
+      const today = new Date().toISOString().slice(0, 10);
+      const storageKey = `analytics_${metric.key}`;
+      let data = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
+      if (!data[today]) data[today] = value;
+      localStorage.setItem(storageKey, JSON.stringify(data));
+
+      // compare last two days if available
+      const dates = Object.keys(data).sort();
+      if (dates.length >= 2) {
+        const prev = data[dates[dates.length - 2]];
+        const change = ((value - prev) / prev) * 100;
+        if (change >= 30) return `📈 Spike +${change.toFixed(0)}% since yesterday`;
+      }
+      return "";
+    }
+
+    async function loadStats() {
+      const statsDiv = document.getElementById("stats");
+      statsDiv.innerHTML = "";
+      for (const metric of metrics) {
+        const value = await getCount(metric.key);
+        const note = storeDailyCount(metric, value);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div>${metric.label}</div>
+          <div class="value">${value}</div>
+          ${note ? `<div class="spike">${note}</div>` : ""}
+        `;
+        statsDiv.appendChild(card);
+      }
+    }
+
+    loadStats();
+    setInterval(loadStats, 15000);
+  </script>
+</body>
+</html>
