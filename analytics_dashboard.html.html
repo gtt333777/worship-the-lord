@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📊 Worship The Lord - Analytics Dashboard</title>
+
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -52,7 +53,8 @@
 
     async function safeFetchJSON(url) {
       try {
-        const res = await fetch(CORS_PROXY + encodeURIComponent(url));
+        // ✅ Don’t encode twice — just append the raw URL
+        const res = await fetch(CORS_PROXY + url);
         const text = await res.text();
         if (text.startsWith("{")) return JSON.parse(text);
       } catch (e) {
@@ -81,7 +83,8 @@
       if (dates.length >= 2) {
         const prev = data[dates[dates.length - 2]];
         const change = ((value - prev) / prev) * 100;
-        if (change >= 30) return `📈 Spike +${change.toFixed(0)}% since yesterday`;
+        if (change >= 30)
+          return `📈 Spike +${change.toFixed(0)}% since yesterday`;
       }
       return "";
     }
