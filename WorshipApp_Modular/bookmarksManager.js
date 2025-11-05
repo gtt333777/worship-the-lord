@@ -2,10 +2,10 @@
 // 🌟 WorshipApp_Modular/bookmarksManager.js
 // Handles bookmarking songs (add/remove),
 // persistent storage, devotional banners,
-// and now auto-segment playback for bookmarks
+// and auto-segment playback for bookmarks
 // ==============================================
 
-// === 🌈 Global Devotional Alert Banner ===
+// === 🌈 Devotional Alert Banner ===
 window.showAlertBanner = function (message, type = "info", duration = 2800) {
   const banner = document.getElementById("alertBanner");
   if (!banner) return;
@@ -30,39 +30,49 @@ window.showAlertBanner = function (message, type = "info", duration = 2800) {
   };
 
   const theme = themes[type] || themes.info;
-
   banner.textContent = `${theme.emoji} ${message}`;
   banner.style.background = theme.bg;
   banner.classList.add("show");
-
   setTimeout(() => banner.classList.remove("show"), duration);
 };
 
-// === Bookmark Handling ===
+// === Bookmark Storage ===
 function loadBookmarks() {
-  const stored = localStorage.getItem("bookmarkedSongs");
-  return stored ? JSON.parse(stored) : {};
+  try {
+    const stored = localStorage.getItem("bookmarkedSongs");
+    return stored ? JSON.parse(stored) : {};
+  } catch (e) {
+    console.warn("⚠️ Error reading bookmarks:", e);
+    return {};
+  }
 }
 
 function saveBookmarks(bookmarks) {
-  localStorage.setItem("bookmarkedSongs", JSON.stringify(bookmarks));
+  try {
+    localStorage.setItem("bookmarkedSongs", JSON.stringify(bookmarks));
+  } catch (e) {
+    console.warn("⚠️ Error saving bookmarks:", e);
+  }
 }
 
-// Toggle bookmark for selected song
+// === Toggle Bookmark (add/remove) ===
 function toggleBookmark() {
   const dropdown = document.getElementById("songSelect");
+  if (!dropdown) return;
+
   const selectedSong = dropdown.value;
   if (!selectedSong) return;
 
   const bookmarks = loadBookmarks();
+  const btn = document.getElementById("bookmarkBtn");
 
   if (bookmarks[selectedSong]) {
     delete bookmarks[selectedSong];
-    document.getElementById("bookmarkBtn").textContent = "☆";
+    btn.textContent = "☆";
     showAlertBanner(`“${selectedSong}” removed from Bookmarks.`, "warning");
   } else {
     bookmarks[selectedSong] = true;
-    document.getElementById("bookmarkBtn").textContent = "★";
+    btn.textContent = "★";
     showAlertBanner(`“${selectedSong}” added to Bookmarks!`, "success");
   }
 
@@ -70,10 +80,11 @@ function toggleBookmark() {
   populateBookmarkDropdown();
 }
 
-// Populate dropdown with bookmarked songs
+// === Populate Bookmarked Songs Dropdown ===
 function populateBookmarkDropdown() {
   const bookmarks = loadBookmarks();
   const dropdown = document.getElementById("bookmarkDropdown");
+  if (!dropdown) return;
 
   dropdown.innerHTML = `<option value="">🎯 Bookmarked Songs</option>`;
   Object.keys(bookmarks).forEach((name) => {
@@ -84,52 +95,51 @@ function populateBookmarkDropdown() {
   });
 }
 
-// === Handle when user selects a bookmarked song ===
+// === Handle Bookmark Selection ===
 function handleBookmarkDropdownChange() {
   const name = document.getElementById("bookmarkDropdown").value;
   if (!name) return;
 
   const songSelect = document.getElementById("songSelect");
+  if (!songSelect) return;
 
-  // Highlight same song in main dropdown
+  // highlight same song in main dropdown
   Array.from(songSelect.options).forEach((opt) => {
-    if (opt.value === name) opt.selected = true;
+    opt.selected = (opt.value === name);
   });
 
-  // 🛑 Stop any ongoing playback before switching
+  // stop all current playback first
   if (typeof pauseBothTracks === "function") pauseBothTracks();
   if (typeof stopAllPlayback === "function") stopAllPlayback();
 
-  // Load lyrics normally
+  // now load lyrics for the selected song
   if (typeof loadLyricsForSelectedSong === "function") {
     loadLyricsForSelectedSong(songSelect);
     showAlertBanner(`🎵 “${name}” loading from Bookmarks...`, "info");
 
-    // ⏳ Wait until playback engine ready
+    // Wait until playSegment becomes available
     let retries = 0;
     const tryPlaySegment = () => {
-      retries++;
       if (typeof playSegment === "function") {
         playSegment(1);
         showAlertBanner(`🎶 “${name}” started at Segment 1.`, "success");
       } else if (retries < 10) {
-        // Try again every 300 ms (up to ~3 s total)
-        setTimeout(tryPlaySegment, 300);
+        retries++;
+        setTimeout(tryPlaySegment, 300); // retry every 300ms (3s total)
       } else {
         console.warn("⚠️ playSegment() not available after 3 s retry.");
-        showAlertBanner(`⚠️ Could not auto-start Segment 1.`, "warning");
+        showAlertBanner("⚠️ Could not auto-start Segment 1.", "warning");
       }
     };
 
-    // Begin polling after small grace period
-    setTimeout(tryPlaySegment, 800);
+    setTimeout(tryPlaySegment, 800); // initial small grace delay
   } else {
-    console.warn("⚠️ loadLyricsForSelectedSong not defined yet.");
+    console.warn("⚠️ loadLyricsForSelectedSong() not defined yet.");
     showAlertBanner("⚠️ Song loader not ready yet.", "error");
   }
 }
 
-// === Attach Events ===
+// === Attach Listeners ===
 window.addEventListener("DOMContentLoaded", () => {
   const bookmarkBtn = document.getElementById("bookmarkBtn");
   const dropdown = document.getElementById("bookmarkDropdown");
