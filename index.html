@@ -420,6 +420,9 @@
 
 
 <!-- ✅ Auto-update version check + visible version label -->
+
+
+<!--
 <script>
 (async () => {
   try {
@@ -448,6 +451,44 @@
 })();
 </script>
 
+-->
+
+<script>
+(async () => {
+  try {
+    const resp = await fetch("version.json?cachebust=" + Date.now(), { cache: "no-store" });
+    const data = await resp.json();
+    const latest = data.version;
+    const current = localStorage.getItem("appVersion");
+
+    console.log(`🪄 Worship The Lord - App Version: ${latest}`);
+
+    // 🏷️ Show version in footer label
+    const label = document.getElementById("appVersionLabel");
+    if (label) label.textContent = "🎵 Worship The Lord — v" + latest;
+
+    // ✅ Auto-update trigger
+    if (current && current !== latest) {
+      console.log("🔁 New version detected — updating to", latest);
+
+      // 1️⃣ Tell service worker to activate immediately
+      if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
+      }
+
+      // 2️⃣ Wait briefly, then reload app automatically
+      setTimeout(() => window.location.reload(true), 1500);
+
+      // Update stored version
+      localStorage.setItem("appVersion", latest);
+    } else if (!current) {
+      localStorage.setItem("appVersion", latest);
+    }
+  } catch (e) {
+    console.warn("⚠️ Version check failed:", e);
+  }
+})();
+</script>
 
 
 
