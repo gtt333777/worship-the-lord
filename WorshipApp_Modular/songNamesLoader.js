@@ -199,3 +199,75 @@ document.addEventListener("change", (e) => {
     updateBookmarkButton(e.target.value);
   }
 });
+
+
+
+
+// ---------------------------
+// ⭐ Simple Bookmark System
+// ---------------------------
+function loadBookmarks() {
+  try {
+    return JSON.parse(localStorage.getItem("bookmarkedSongs") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveBookmarks(list) {
+  localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
+}
+
+// Toggle bookmark (add/remove)
+window.toggleBookmark = function(songName) {
+  if (!songName) return alert("⚠️ Please select a song first.");
+  const btn = document.getElementById("bookmarkBtn");
+  let bookmarks = loadBookmarks();
+
+  if (bookmarks.includes(songName)) {
+    // remove
+    bookmarks = bookmarks.filter(s => s !== songName);
+    btn.textContent = "☆";
+  } else {
+    // add
+    bookmarks.push(songName);
+    btn.textContent = "★";
+  }
+
+  saveBookmarks(bookmarks);
+  console.log("⭐ Updated bookmarks:", bookmarks);
+};
+
+// Toggle between all songs and bookmarked-only view
+let showingBookmarks = false;
+window.toggleBookmarkView = function() {
+  const btn = document.getElementById("bookmarkFilterBtn");
+  const select = document.getElementById("songSelect");
+  const allOptions = [...select.options];
+  const bookmarks = loadBookmarks();
+
+  if (!showingBookmarks) {
+    // filter
+    for (const opt of allOptions) {
+      if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
+    }
+    btn.textContent = "📚 Show All Songs";
+    showingBookmarks = true;
+  } else {
+    // show all
+    for (const opt of allOptions) {
+      opt.style.display = "block";
+    }
+    btn.textContent = "🎯 Show Bookmarked";
+    showingBookmarks = false;
+  }
+};
+
+// When a song is selected, show correct star
+document.getElementById("songSelect").addEventListener("change", () => {
+  const select = document.getElementById("songSelect");
+  const btn = document.getElementById("bookmarkBtn");
+  const bookmarks = loadBookmarks();
+  const song = select.value;
+  btn.textContent = bookmarks.includes(song) ? "★" : "☆";
+});
