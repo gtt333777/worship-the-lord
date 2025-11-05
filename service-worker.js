@@ -37,25 +37,34 @@ self.addEventListener("install", (event) => {
 });
 
 // ACTIVATE — clean old app caches but PRESERVE songs-cache-v1
+
 self.addEventListener("activate", (event) => {
   console.log("⚙️ Service Worker activating...");
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
         keys.map(key => {
-          // Preserve the songs cache so MP3s remain across updates
           if (key === "songs-cache-v1") return;
-          // Remove older app caches that start with worship-the-lord but are not the current one
           if (key !== CACHE_NAME && key.startsWith("worship-the-lord")) {
             console.log("🗑️ Removing old cache:", key);
             return caches.delete(key);
           }
         })
-      )
-    )
+      );
+
+      await caches.delete("manifest-cache");
+      await caches.delete("icon-cache");
+
+      self.clients.claim();
+      console.log("✅ Service Worker activated & old icon/manifest caches cleared.");
+    })()
   );
-  self.clients.claim();
 });
+
+
+
+
 
 // FETCH — do not intercept R2 mp3s; use cache-first for app shell
 self.addEventListener("fetch", (event) => {
