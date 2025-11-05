@@ -25,10 +25,25 @@ async function loadSongNames() {
       .split(/\r?\n/)
       .map(l => normalizeName(l))
       .filter(l => l && !l.startsWith("//"));
-
+    
+      /*
     select.innerHTML = "";
     window.songURLs = {}; // 🌍 Global map for song URLs
     const seen = new Set();
+    */
+
+    // ✅ Keep helpful first line always visible
+select.innerHTML = `
+  <option value="" disabled selected>
+    ✨ Select a song from below by pressing here, then press ▶️ Play below.
+  </option>
+`;
+
+window.songURLs = {}; // 🌍 Global map for song URLs
+const seen = new Set();
+
+
+
 
     // --- Helper: find star level (from window.star) ---
     function getStarLevel(songName) {
