@@ -96,50 +96,10 @@ async function loadSongNames() {
 
     console.log(`✅ ${count} unique songs loaded from R2.`);
     console.log("📦 window.songURLs ready with bilingual normalized keys.");
-  
-    // 🪄 Update bookmark star for the initially selected song (if any)
-    updateBookmarkButtonState(select.value);
-  
-  
   } catch (err) {
     console.error("❌ songNamesLoader.js: Error loading song names:", err);
   }
 }
 
-// ✅ Insert the helper function RIGHT HERE (after loadSongNames)
-function updateBookmarkButtonState(selectedSong) {
-  if (typeof loadBookmarks !== "function") return; // bookmarksManager.js not yet ready
-  const bookmarks = loadBookmarks();
-  const btn = document.getElementById("bookmarkBtn");
-  if (!btn) return;
-  btn.textContent = bookmarks[selectedSong] ? "★" : "☆";
-}
-
-
-// ✅ Add this new global helper here
-window.stopAllPlayback = function() {
-  if (typeof pauseBothTracks === "function") pauseBothTracks();
-  if (typeof stopAudioTracks === "function") stopAudioTracks();
-  console.log("⛔ stopAllPlayback(): safely stopped current tracks before switching.");
-};
-
-
-
-
-
-
 // Ensure this runs before anything else
 window.addEventListener("DOMContentLoaded", loadSongNames);
-
-
-
-// 🪄 Update bookmark star whenever song changes
-window.addEventListener("DOMContentLoaded", () => {
-  const select = document.getElementById("songSelect");
-  if (!select) return;
-
-  select.addEventListener("change", () => {
-    const current = select.value;
-    updateBookmarkButtonState(current);
-  });
-});
