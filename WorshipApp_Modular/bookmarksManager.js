@@ -1,11 +1,11 @@
 ﻿// ==============================================
 // 🌟 WorshipApp_Modular/bookmarksManager.js
 // Handles bookmarking songs (add/remove),
-// persistent storage, and devotional banners
+// persistent storage, devotional banners,
+// and now auto-segment playback for bookmarks
 // ==============================================
 
 // === 🌈 Global Devotional Alert Banner ===
-// Reusable across all modules (cache, share, etc.)
 window.showAlertBanner = function (message, type = "info", duration = 2800) {
   const banner = document.getElementById("alertBanner");
   if (!banner) return;
@@ -39,14 +39,11 @@ window.showAlertBanner = function (message, type = "info", duration = 2800) {
 };
 
 // === Bookmark Handling ===
-
-// Load bookmarks from localStorage
 function loadBookmarks() {
   const stored = localStorage.getItem("bookmarkedSongs");
   return stored ? JSON.parse(stored) : {};
 }
 
-// Save bookmarks to localStorage
 function saveBookmarks(bookmarks) {
   localStorage.setItem("bookmarkedSongs", JSON.stringify(bookmarks));
 }
@@ -94,28 +91,38 @@ function handleBookmarkDropdownChange() {
 
   const songSelect = document.getElementById("songSelect");
 
-  // Highlight the corresponding song in main dropdown
+  // Highlight same song in main dropdown
   Array.from(songSelect.options).forEach((opt) => {
     if (opt.value === name) opt.selected = true;
   });
 
-  // Hand control to regular lyric loader
+  // 🛑 Stop any ongoing playback before switching
+  if (typeof pauseBothTracks === "function") pauseBothTracks();
+  if (typeof stopAllPlayback === "function") stopAllPlayback();
+
+  // Load lyrics normally
   if (typeof loadLyricsForSelectedSong === "function") {
     loadLyricsForSelectedSong(songSelect);
+    showAlertBanner(`🎵 “${name}” loading from Bookmarks...`, "info");
 
-    // Wait a bit for lyrics & segments to load, then play
-    setTimeout(() => {
-      if (typeof playFirstSegment === "function") {
-        playFirstSegment();
-        showAlertBanner(`🎵 “${name}” started playing from beginning.`, "success");
-      } else if (typeof playSegment === "function") {
+    // ⏳ Wait until playback engine ready
+    let retries = 0;
+    const tryPlaySegment = () => {
+      retries++;
+      if (typeof playSegment === "function") {
         playSegment(1);
-        showAlertBanner(`🎵 “${name}” started playing (Segment 1).`, "success");
+        showAlertBanner(`🎶 “${name}” started at Segment 1.`, "success");
+      } else if (retries < 10) {
+        // Try again every 300 ms (up to ~3 s total)
+        setTimeout(tryPlaySegment, 300);
       } else {
-        console.warn("⚠️ playFirstSegment/playSegment not found yet.");
-        showAlertBanner(`⚠️ Unable to start playback automatically.`, "warning");
+        console.warn("⚠️ playSegment() not available after 3 s retry.");
+        showAlertBanner(`⚠️ Could not auto-start Segment 1.`, "warning");
       }
-    }, 700);
+    };
+
+    // Begin polling after small grace period
+    setTimeout(tryPlaySegment, 800);
   } else {
     console.warn("⚠️ loadLyricsForSelectedSong not defined yet.");
     showAlertBanner("⚠️ Song loader not ready yet.", "error");

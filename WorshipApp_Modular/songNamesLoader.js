@@ -116,6 +116,17 @@ function updateBookmarkButtonState(selectedSong) {
 }
 
 
+// ✅ Add this new global helper here
+window.stopAllPlayback = function() {
+  if (typeof pauseBothTracks === "function") pauseBothTracks();
+  if (typeof stopAudioTracks === "function") stopAudioTracks();
+  console.log("⛔ stopAllPlayback(): safely stopped current tracks before switching.");
+};
+
+
+
+
+
 
 // Ensure this runs before anything else
 window.addEventListener("DOMContentLoaded", loadSongNames);
