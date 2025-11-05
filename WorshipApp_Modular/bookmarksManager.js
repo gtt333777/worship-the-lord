@@ -1,8 +1,6 @@
 ﻿// ==============================================
-// 🌟 WorshipApp_Modular/bookmarksManager.js
-// Handles bookmarking songs (add/remove),
-// persistent storage, devotional banners,
-// and auto-segment playback for bookmarks
+// 🌟 WorshipApp_Modular/bookmarksManager.js (v2)
+// Handles bookmarking songs + starts at Segment 1
 // ==============================================
 
 // === 🌈 Devotional Alert Banner ===
@@ -11,24 +9,11 @@ window.showAlertBanner = function (message, type = "info", duration = 2800) {
   if (!banner) return;
 
   const themes = {
-    success: {
-      bg: "linear-gradient(to right, #2e7d32, #1b5e20)", // green blessing
-      emoji: "🌿",
-    },
-    warning: {
-      bg: "linear-gradient(to right, #ef6c00, #f57c00)", // amber caution
-      emoji: "⚠️",
-    },
-    error: {
-      bg: "linear-gradient(to right, #b71c1c, #880e4f)", // crimson sorrow
-      emoji: "❌",
-    },
-    info: {
-      bg: "linear-gradient(to right, #1976d2, #0d47a1)", // divine blue
-      emoji: "🙏",
-    },
+    success: { bg: "linear-gradient(to right,#2e7d32,#1b5e20)", emoji: "🌿" },
+    warning: { bg: "linear-gradient(to right,#ef6c00,#f57c00)", emoji: "⚠️" },
+    error: { bg: "linear-gradient(to right,#b71c1c,#880e4f)", emoji: "❌" },
+    info: { bg: "linear-gradient(to right,#1976d2,#0d47a1)", emoji: "🙏" },
   };
-
   const theme = themes[type] || themes.info;
   banner.textContent = `${theme.emoji} ${message}`;
   banner.style.background = theme.bg;
@@ -39,43 +24,34 @@ window.showAlertBanner = function (message, type = "info", duration = 2800) {
 // === Bookmark Storage ===
 function loadBookmarks() {
   try {
-    const stored = localStorage.getItem("bookmarkedSongs");
-    return stored ? JSON.parse(stored) : {};
-  } catch (e) {
-    console.warn("⚠️ Error reading bookmarks:", e);
+    return JSON.parse(localStorage.getItem("bookmarkedSongs") || "{}");
+  } catch {
     return {};
   }
 }
-
-function saveBookmarks(bookmarks) {
-  try {
-    localStorage.setItem("bookmarkedSongs", JSON.stringify(bookmarks));
-  } catch (e) {
-    console.warn("⚠️ Error saving bookmarks:", e);
-  }
+function saveBookmarks(obj) {
+  localStorage.setItem("bookmarkedSongs", JSON.stringify(obj));
 }
 
 // === Toggle Bookmark (add/remove) ===
 function toggleBookmark() {
   const dropdown = document.getElementById("songSelect");
   if (!dropdown) return;
-
-  const selectedSong = dropdown.value;
-  if (!selectedSong) return;
+  const name = dropdown.value;
+  if (!name) return;
 
   const bookmarks = loadBookmarks();
   const btn = document.getElementById("bookmarkBtn");
 
-  if (bookmarks[selectedSong]) {
-    delete bookmarks[selectedSong];
+  if (bookmarks[name]) {
+    delete bookmarks[name];
     btn.textContent = "☆";
-    showAlertBanner(`“${selectedSong}” removed from Bookmarks.`, "warning");
+    showAlertBanner(`“${name}” removed from Bookmarks.`, "warning");
   } else {
-    bookmarks[selectedSong] = true;
+    bookmarks[name] = true;
     btn.textContent = "★";
-    showAlertBanner(`“${selectedSong}” added to Bookmarks!`, "success");
+    showAlertBanner(`“${name}” added to Bookmarks!`, "success");
   }
-
   saveBookmarks(bookmarks);
   populateBookmarkDropdown();
 }
@@ -83,19 +59,16 @@ function toggleBookmark() {
 // === Populate Bookmarked Songs Dropdown ===
 function populateBookmarkDropdown() {
   const bookmarks = loadBookmarks();
-  const dropdown = document.getElementById("bookmarkDropdown");
-  if (!dropdown) return;
-
-  dropdown.innerHTML = `<option value="">🎯 Bookmarked Songs</option>`;
-  Object.keys(bookmarks).forEach((name) => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    dropdown.appendChild(opt);
+  const dd = document.getElementById("bookmarkDropdown");
+  if (!dd) return;
+  dd.innerHTML = `<option value="">🎯 Bookmarked Songs</option>`;
+  Object.keys(bookmarks).forEach((n) => {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n; dd.appendChild(o);
   });
 }
 
-// === Handle Bookmark Selection ===
+// === Handle Bookmark Selection (fixed) ===
 function handleBookmarkDropdownChange() {
   const name = document.getElementById("bookmarkDropdown").value;
   if (!name) return;
@@ -103,49 +76,43 @@ function handleBookmarkDropdownChange() {
   const songSelect = document.getElementById("songSelect");
   if (!songSelect) return;
 
-  // highlight same song in main dropdown
-  Array.from(songSelect.options).forEach((opt) => {
-    opt.selected = (opt.value === name);
-  });
+  // Highlight same song in main selector
+  Array.from(songSelect.options).forEach(opt => opt.selected = (opt.value === name));
 
-  // stop all current playback first
-  if (typeof pauseBothTracks === "function") pauseBothTracks();
+  // Stop playback before switching
   if (typeof stopAllPlayback === "function") stopAllPlayback();
+  if (typeof pauseBothTracks === "function") pauseBothTracks();
 
-  // now load lyrics for the selected song
+  // Load the song
   if (typeof loadLyricsForSelectedSong === "function") {
     loadLyricsForSelectedSong(songSelect);
     showAlertBanner(`🎵 “${name}” loading from Bookmarks...`, "info");
 
-    // Wait until playSegment becomes available
-    let retries = 0;
-    const tryPlaySegment = () => {
-      if (typeof playSegment === "function") {
-        playSegment(1);
+    // Wait for segments to load and play the first one
+    let attempts = 0;
+    const tryStart = () => {
+      const segs = window.currentSegments || window.loadedSegments;
+      if (Array.isArray(segs) && segs.length && typeof playSegment === "function") {
+        const first = segs[0];
+        playSegment(first.start, first.end, 0);
         showAlertBanner(`🎶 “${name}” started at Segment 1.`, "success");
-      } else if (retries < 10) {
-        retries++;
-        setTimeout(tryPlaySegment, 300); // retry every 300ms (3s total)
+      } else if (attempts++ < 15) {
+        setTimeout(tryStart, 300); // retry up to 4.5 s total
       } else {
-        console.warn("⚠️ playSegment() not available after 3 s retry.");
-        showAlertBanner("⚠️ Could not auto-start Segment 1.", "warning");
+        console.warn("⚠️ Could not start first segment automatically.");
       }
     };
-
-    setTimeout(tryPlaySegment, 800); // initial small grace delay
+    setTimeout(tryStart, 1000);
   } else {
-    console.warn("⚠️ loadLyricsForSelectedSong() not defined yet.");
-    showAlertBanner("⚠️ Song loader not ready yet.", "error");
+    showAlertBanner("⚠️ Song loader not ready.", "error");
   }
 }
 
 // === Attach Listeners ===
 window.addEventListener("DOMContentLoaded", () => {
-  const bookmarkBtn = document.getElementById("bookmarkBtn");
-  const dropdown = document.getElementById("bookmarkDropdown");
-
-  if (bookmarkBtn) bookmarkBtn.addEventListener("click", toggleBookmark);
-  if (dropdown) dropdown.addEventListener("change", handleBookmarkDropdownChange);
-
+  const btn = document.getElementById("bookmarkBtn");
+  const dd = document.getElementById("bookmarkDropdown");
+  if (btn) btn.addEventListener("click", toggleBookmark);
+  if (dd) dd.addEventListener("change", handleBookmarkDropdownChange);
   populateBookmarkDropdown();
 });
