@@ -116,98 +116,10 @@ window.addEventListener("DOMContentLoaded", loadSongNames);
 
 
 /* -------------------------------------------------------------------
-   ⭐ Integrated Simple Bookmark System (added safely at the end)
+   ⭐ Integrated Simple Bookmark System (enhanced)
    ------------------------------------------------------------------- */
 
-// ✅ Get bookmarks from localStorage
-function getBookmarks() {
-  return JSON.parse(localStorage.getItem("bookmarkedSongs") || "[]");
-}
-
-// ✅ Save bookmarks to localStorage
-function saveBookmarks(list) {
-  localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
-}
-
-// ✅ Toggle bookmark for selected song
-function toggleBookmark(songName) {
-  if (!songName) return;
-  let list = getBookmarks();
-  if (list.includes(songName)) {
-    list = list.filter(s => s !== songName);
-  } else {
-    list.push(songName);
-  }
-  saveBookmarks(list);
-  refreshBookmarkDisplay();
-  updateBookmarkButton(songName);
-}
-
-// ✅ Refresh dropdown stars (★ for bookmarked)
-function refreshBookmarkDisplay() {
-  const select = document.getElementById("songSelect");
-  if (!select) return;
-  const list = getBookmarks();
-  for (const opt of select.options) {
-    const name = opt.value;
-    if (!name) continue;
-    const baseText = opt.textContent.replace(/^★\s*/, "");
-    if (list.includes(name)) {
-      if (!baseText.startsWith("★")) opt.textContent = "★ " + baseText;
-    } else {
-      opt.textContent = baseText.replace(/^★\s*/, "");
-    }
-  }
-  const current = select.value;
-  updateBookmarkButton(current);
-}
-
-// ✅ Change ☆ → ★ dynamically based on selection
-function updateBookmarkButton(songName) {
-  const btn = document.getElementById("bookmarkBtn");
-  if (!btn || !songName) return;
-  const list = getBookmarks();
-  btn.textContent = list.includes(songName) ? "★" : "☆";
-}
-
-// ✅ Optional: Show only bookmarked songs
-let showingOnlyBookmarked = false;
-
-function toggleBookmarkView() {
-  const select = document.getElementById("songSelect");
-  const list = getBookmarks();
-  showingOnlyBookmarked = !showingOnlyBookmarked;
-
-  for (const opt of select.options) {
-    if (!opt.value) continue;
-    if (showingOnlyBookmarked && !list.includes(opt.value)) {
-      opt.style.display = "none";
-    } else {
-      opt.style.display = "block";
-    }
-  }
-
-  const btn = document.getElementById("bookmarkFilterBtn");
-  if (btn) {
-    btn.textContent = showingOnlyBookmarked ? "📚 Show All Songs" : "🎯 Show Bookmarked";
-  }
-}
-
-// ✅ Keep bookmark icon in sync when user changes song
-document.addEventListener("change", (e) => {
-  if (e.target.id === "songSelect") {
-    updateBookmarkButton(e.target.value);
-  }
-});
-
-
-
-
-// ---------------------------
-// ⭐ Simple Bookmark System
-// ---------------------------
-
-
+// ✅ Safe load from localStorage
 function loadBookmarks() {
   try {
     const raw = localStorage.getItem("bookmarkedSongs");
@@ -219,35 +131,38 @@ function loadBookmarks() {
   }
 }
 
-
-
-
-
+// ✅ Save to localStorage
 function saveBookmarks(list) {
   localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
 }
 
-// Toggle bookmark (add/remove)
+// ⭐ Toggle bookmark for selected song (with gold star + size)
 window.toggleBookmark = function(songName) {
   if (!songName) return alert("⚠️ Please select a song first.");
   const btn = document.getElementById("bookmarkBtn");
   let bookmarks = loadBookmarks();
 
   if (bookmarks.includes(songName)) {
-    // remove
+    // 🔸 Remove
     bookmarks = bookmarks.filter(s => s !== songName);
     btn.textContent = "☆";
+    btn.style.color = "black";
+    btn.style.fontSize = "1.6rem";
+    btn.style.textShadow = "none";
   } else {
-    // add
+    // 🌟 Add
     bookmarks.push(songName);
     btn.textContent = "★";
+    btn.style.color = "gold";
+    btn.style.fontSize = "1.9rem";
+    btn.style.textShadow = "0 0 6px gold";
   }
 
   saveBookmarks(bookmarks);
   console.log("⭐ Updated bookmarks:", bookmarks);
 };
 
-// Toggle between all songs and bookmarked-only view
+// 🎯 Toggle between all songs and bookmarked-only view (with blue highlight)
 let showingBookmarks = false;
 window.toggleBookmarkView = function() {
   const btn = document.getElementById("bookmarkFilterBtn");
@@ -256,27 +171,54 @@ window.toggleBookmarkView = function() {
   const bookmarks = loadBookmarks();
 
   if (!showingBookmarks) {
-    // filter
+    // 🔹 Show only bookmarked
     for (const opt of allOptions) {
       if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
     }
     btn.textContent = "📚 Show All Songs";
+    btn.style.background = "linear-gradient(to bottom right, #1976d2, #0d47a1)";
+    btn.style.color = "white";
+    btn.style.fontWeight = "bold";
+    btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
     showingBookmarks = true;
   } else {
-    // show all
+    // 🔹 Show all
     for (const opt of allOptions) {
       opt.style.display = "block";
     }
     btn.textContent = "🎯 Show Bookmarked";
+    btn.style.background = "";
+    btn.style.color = "black";
+    btn.style.fontWeight = "normal";
+    btn.style.boxShadow = "none";
     showingBookmarks = false;
   }
 };
 
-// When a song is selected, show correct star
+// 🪄 Update star when song changes
 document.getElementById("songSelect").addEventListener("change", () => {
   const select = document.getElementById("songSelect");
   const btn = document.getElementById("bookmarkBtn");
   const bookmarks = loadBookmarks();
   const song = select.value;
-  btn.textContent = bookmarks.includes(song) ? "★" : "☆";
+
+  if (bookmarks.includes(song)) {
+    btn.textContent = "★";
+    btn.style.color = "gold";
+    btn.style.fontSize = "1.9rem";
+    btn.style.textShadow = "0 0 6px gold";
+  } else {
+    btn.textContent = "☆";
+    btn.style.color = "black";
+    btn.style.fontSize = "1.6rem";
+    btn.style.textShadow = "none";
+  }
+});
+
+// 🪶 Add smooth transitions once loaded
+window.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("bookmarkBtn");
+  const filterBtn = document.getElementById("bookmarkFilterBtn");
+  if (btn) btn.style.transition = "all 0.3s ease";
+  if (filterBtn) filterBtn.style.transition = "all 0.25s ease";
 });
