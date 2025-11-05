@@ -26,24 +26,15 @@ async function loadSongNames() {
       .map(l => normalizeName(l))
       .filter(l => l && !l.startsWith("//"));
     
-      /*
-    select.innerHTML = "";
+    // ✅ Keep helpful first line always visible
+    select.innerHTML = `
+      <option value="" disabled selected>
+        ✨ Select a song from below by pressing here, then press ▶️ Play below.
+      </option>
+    `;
+
     window.songURLs = {}; // 🌍 Global map for song URLs
     const seen = new Set();
-    */
-
-    // ✅ Keep helpful first line always visible
-select.innerHTML = `
-  <option value="" disabled selected>
-    ✨ Select a song from below by pressing here, then press ▶️ Play below.
-  </option>
-`;
-
-window.songURLs = {}; // 🌍 Global map for song URLs
-const seen = new Set();
-
-
-
 
     // --- Helper: find star level (from window.star) ---
     function getStarLevel(songName) {
@@ -111,6 +102,10 @@ const seen = new Set();
 
     console.log(`✅ ${count} unique songs loaded from R2.`);
     console.log("📦 window.songURLs ready with bilingual normalized keys.");
+
+    // 🟢 After songs loaded, refresh bookmark marks
+    refreshBookmarkDisplay();
+
   } catch (err) {
     console.error("❌ songNamesLoader.js: Error loading song names:", err);
   }
@@ -118,3 +113,89 @@ const seen = new Set();
 
 // Ensure this runs before anything else
 window.addEventListener("DOMContentLoaded", loadSongNames);
+
+
+/* -------------------------------------------------------------------
+   ⭐ Integrated Simple Bookmark System (added safely at the end)
+   ------------------------------------------------------------------- */
+
+// ✅ Get bookmarks from localStorage
+function getBookmarks() {
+  return JSON.parse(localStorage.getItem("bookmarkedSongs") || "[]");
+}
+
+// ✅ Save bookmarks to localStorage
+function saveBookmarks(list) {
+  localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
+}
+
+// ✅ Toggle bookmark for selected song
+function toggleBookmark(songName) {
+  if (!songName) return;
+  let list = getBookmarks();
+  if (list.includes(songName)) {
+    list = list.filter(s => s !== songName);
+  } else {
+    list.push(songName);
+  }
+  saveBookmarks(list);
+  refreshBookmarkDisplay();
+  updateBookmarkButton(songName);
+}
+
+// ✅ Refresh dropdown stars (★ for bookmarked)
+function refreshBookmarkDisplay() {
+  const select = document.getElementById("songSelect");
+  if (!select) return;
+  const list = getBookmarks();
+  for (const opt of select.options) {
+    const name = opt.value;
+    if (!name) continue;
+    const baseText = opt.textContent.replace(/^★\s*/, "");
+    if (list.includes(name)) {
+      if (!baseText.startsWith("★")) opt.textContent = "★ " + baseText;
+    } else {
+      opt.textContent = baseText.replace(/^★\s*/, "");
+    }
+  }
+  const current = select.value;
+  updateBookmarkButton(current);
+}
+
+// ✅ Change ☆ → ★ dynamically based on selection
+function updateBookmarkButton(songName) {
+  const btn = document.getElementById("bookmarkBtn");
+  if (!btn || !songName) return;
+  const list = getBookmarks();
+  btn.textContent = list.includes(songName) ? "★" : "☆";
+}
+
+// ✅ Optional: Show only bookmarked songs
+let showingOnlyBookmarked = false;
+
+function toggleBookmarkView() {
+  const select = document.getElementById("songSelect");
+  const list = getBookmarks();
+  showingOnlyBookmarked = !showingOnlyBookmarked;
+
+  for (const opt of select.options) {
+    if (!opt.value) continue;
+    if (showingOnlyBookmarked && !list.includes(opt.value)) {
+      opt.style.display = "none";
+    } else {
+      opt.style.display = "block";
+    }
+  }
+
+  const btn = document.getElementById("bookmarkFilterBtn");
+  if (btn) {
+    btn.textContent = showingOnlyBookmarked ? "📚 Show All Songs" : "🎯 Show Bookmarked";
+  }
+}
+
+// ✅ Keep bookmark icon in sync when user changes song
+document.addEventListener("change", (e) => {
+  if (e.target.id === "songSelect") {
+    updateBookmarkButton(e.target.value);
+  }
+});
