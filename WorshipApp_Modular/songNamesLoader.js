@@ -206,13 +206,22 @@ document.addEventListener("change", (e) => {
 // ---------------------------
 // ⭐ Simple Bookmark System
 // ---------------------------
+
+
 function loadBookmarks() {
   try {
-    return JSON.parse(localStorage.getItem("bookmarkedSongs") || "[]");
-  } catch {
+    const raw = localStorage.getItem("bookmarkedSongs");
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.warn("⚠️ loadBookmarks() failed:", e);
     return [];
   }
 }
+
+
+
+
 
 function saveBookmarks(list) {
   localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
