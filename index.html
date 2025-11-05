@@ -297,14 +297,21 @@
 
   </div>
 
-  <!-- ⭐️ Bookmark Feature -->
-  <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;">
-    <button id="bookmarkBtn" title="Toggle bookmark"
+
+  <!-- ⭐ Bookmark Controls -->
+  <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
+    <button id="bookmarkBtn"
+      onclick="toggleBookmark(document.getElementById('songSelect').value)"
       style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
-    <select id="bookmarkDropdown">
-      <option value="">🎯 Bookmarked Songs</option>
-    </select>
+
+    <button id="bookmarkFilterBtn"
+      onclick="toggleBookmarkView()"
+      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">🎯 Show Bookmarked</button>
   </div>
+
+
+
+
 
   <!-- ✅ Player Controls -->
   <div style="margin-top:10px;">
@@ -350,7 +357,6 @@
   <!-- ✅ Modular Scripts (untouched) -->
   <script src="WorshipApp_Modular/star.js" defer></script>
   <script src="WorshipApp_Modular/songNamesLoader.js" defer></script>
-  <script src="WorshipApp_Modular/bookmarksManager.js" defer></script>
   <script src="WorshipApp_Modular/lyricsLoader.js" defer></script>
   <script src="WorshipApp_Modular/audioControl.js" defer></script>
   <script src="WorshipApp_Modular/skipControl.js" defer></script>
