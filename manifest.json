@@ -3,7 +3,7 @@
   "short_name": "Worship",
   "id": "/worship-the-lord/",
   "scope": "/worship-the-lord/",
-  "start_url": "./index.html",
+  "start_url": "/worship-the-lord/index.html",
   "display": "standalone",
   "background_color": "#eaf3fb",
   "theme_color": "#2c3e50",
@@ -24,6 +24,11 @@
       "purpose": "maskable"
     }
   ],
+
+  "start_action": {
+    "type": "navigate",
+    "url": "/worship-the-lord/index.html"
+  },
 
   "prefer_related_applications": false
 }
