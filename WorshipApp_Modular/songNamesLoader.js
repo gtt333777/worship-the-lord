@@ -196,18 +196,20 @@ window.toggleBookmarkView = function() {
     showingBookmarks = false;
   }
 
-  // 🪄 Bring dropdown into focus + scroll current song into view
+
+  // 🪄 Bring dropdown into focus + smooth gold glow to signal update
 select.focus();
 
-// 🔍 Scroll currently selected song into view (works in all browsers)
+// 🔍 Scroll currently selected song into view
 const selectedIndex = select.selectedIndex;
 if (selectedIndex > 0) {
   select.options[selectedIndex].scrollIntoView({ block: "nearest" });
 }
 
-// 💡 Flash visual highlight to show dropdown updated
-select.style.outline = "3px solid gold";
-setTimeout(() => (select.style.outline = "none"), 800);
+// ✨ Smooth gold glow highlight (visually shows dropdown updated)
+select.style.transition = "box-shadow 0.6s ease";
+select.style.boxShadow = "0 0 14px 4px gold";
+setTimeout(() => (select.style.boxShadow = "none"), 1000);
 
 
 };
