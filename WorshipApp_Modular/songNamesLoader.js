@@ -43,15 +43,10 @@ async function loadSongNames() {
         let level = null;
         let clean = trimmed;
 
-        if (trimmed.startsWith("***")) {
-          level = 3; clean = trimmed.replace(/^\*\*\*\s*/, "");
-        } else if (trimmed.startsWith("**")) {
-          level = 2; clean = trimmed.replace(/^\*\*\s*/, "");
-        } else if (trimmed.startsWith("*")) {
-          level = 1; clean = trimmed.replace(/^\*\s*/, "");
-        } else if (trimmed.startsWith("#")) {
-          level = 0; clean = trimmed.replace(/^#\s*/, "");
-        }
+        if (trimmed.startsWith("***")) { level = 3; clean = trimmed.replace(/^\*\*\*\s*/, ""); }
+        else if (trimmed.startsWith("**")) { level = 2; clean = trimmed.replace(/^\*\*\s*/, ""); }
+        else if (trimmed.startsWith("*")) { level = 1; clean = trimmed.replace(/^\*\s*/, ""); }
+        else if (trimmed.startsWith("#")) { level = 0; clean = trimmed.replace(/^#\s*/, ""); }
 
         if (normalizeName(clean) === songName) return level;
       }
@@ -76,31 +71,26 @@ async function loadSongNames() {
       if (level === 3) {
         opt.textContent = "★★★ " + songName;
         opt.style.color = "#27ae60";
-        opt.style.fontWeight = "bold";
       } else if (level === 2) {
         opt.textContent = "★★ " + songName;
         opt.style.color = "orange";
-        opt.style.fontWeight = "bold";
       } else if (level === 1) {
         opt.textContent = "★ " + songName;
         opt.style.color = "black";
-        opt.style.fontWeight = "bold";
       } else if (level === 0) {
         opt.textContent = "# " + songName;
         opt.style.color = "gray";
-        opt.style.fontWeight = "bold";
       } else {
         opt.textContent = songName;
       }
+      opt.style.fontWeight = "bold";
 
       select.appendChild(opt);
       count++;
     }
 
     console.log(`✅ ${count} unique songs loaded.`);
-    console.log("📦 window.songURLs ready.");
-
-    const currentSong = document.getElementById("songSelect")?.value;
+    const currentSong = select.value;
     if (currentSong) updateBookmarkButton(currentSong);
   } catch (err) {
     console.error("❌ songNamesLoader.js: Error loading song names:", err);
@@ -110,7 +100,7 @@ async function loadSongNames() {
 window.addEventListener("DOMContentLoaded", loadSongNames);
 
 /* -------------------------------------------------------------------
-   ⭐ Simple Bookmark System
+   ⭐ Bookmark System
 ------------------------------------------------------------------- */
 
 function loadBookmarks() {
@@ -118,8 +108,7 @@ function loadBookmarks() {
     const raw = localStorage.getItem("bookmarkedSongs");
     const parsed = JSON.parse(raw || "[]");
     return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    console.warn("⚠️ loadBookmarks() failed:", e);
+  } catch {
     return [];
   }
 }
@@ -144,40 +133,33 @@ window.toggleBookmark = function(songName) {
     btn.style.color = "gold";
     btn.style.fontSize = "1.9rem";
   }
-
   saveBookmarks(bookmarks);
   console.log("⭐ Updated bookmarks:", bookmarks);
 };
 
 /* -------------------------------------------------------------------
    🎯 Toggle between All Songs / Bookmarked View
-   + Collapse-button guidance to focus dropdown
 ------------------------------------------------------------------- */
 
 let showingBookmarks = false;
 let collapsedGuide = false;
+let firstTimeEmptyBookmarkHandled = false; // ensures message only once
 
 function collapseFilterButtonGuide(btn) {
-  // store original state
   btn.dataset.wasText = btn.textContent;
   btn.dataset.wasBg = btn.style.background || "";
   btn.dataset.wasColor = btn.style.color || "";
   btn.dataset.wasWeight = btn.style.fontWeight || "";
 
-  // collapsed appearance
   btn.style.transition = "transform 0.18s ease, background 0.3s ease, color 0.3s ease";
-  btn.style.transformOrigin = "center";
   btn.style.transform = "translateY(6px) scale(0.96)";
   btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
   btn.style.color = "#333";
   btn.style.fontWeight = "600";
   btn.textContent = "▲ Tap the list above";
-
-  // disable button
   btn.disabled = true;
   btn.style.opacity = "0.7";
   btn.style.cursor = "not-allowed";
-
   collapsedGuide = true;
 }
 
@@ -200,8 +182,25 @@ window.toggleBookmarkView = function() {
   if (!btn || !select) return;
 
   const allOptions = [...select.options];
-  const bookmarks = loadBookmarks();
+  let bookmarks = loadBookmarks();
   const firstOption = select.options[0];
+
+  // Check if bookmarks are empty
+  if (bookmarks.length === 0) {
+    if (!firstTimeEmptyBookmarkHandled) {
+      alert("🌟 Start bookmarking a song by pressing the star (☆) at left so it turns Gold.\nI’m making the first bookmark for you!");
+      // Automatically bookmark the first available song (after header)
+      const firstSong = select.options.length > 1 ? select.options[1].value : null;
+      if (firstSong) {
+        bookmarks = [firstSong];
+        saveBookmarks(bookmarks);
+        console.log("🌟 Created first auto-bookmark:", firstSong);
+      }
+      firstTimeEmptyBookmarkHandled = true;
+    }
+    // Directly show all songs instead of empty bookmarked
+    showingBookmarks = true; // trick to toggle to blue mode below
+  }
 
   // Smooth fade
   btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
@@ -230,17 +229,14 @@ window.toggleBookmarkView = function() {
     showingBookmarks = false;
   }
 
-  // Reset dropdown selection to first line (never keep song selected)
+  // Reset dropdown
   select.selectedIndex = 0;
   select.blur();
 
-  // Collapse and disable the button
+  // Collapse + disable
   collapseFilterButtonGuide(btn);
+  try { select.focus(); } catch {}
 
-  // Focus dropdown so user’s next tap is natural
-  try { select.focus(); } catch (e) {}
-
-  // Restore button only when user interacts with dropdown
   const restoreOnce = () => {
     restoreFilterButton(btn);
     select.removeEventListener("focus", restoreOnce);
@@ -280,14 +276,11 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btn) btn.style.transition = "all 0.3s ease";
 
   if (filterBtn) {
-    // Smooth transitions for fades and transforms
     filterBtn.style.transition =
       "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-    // 🔸 Initial orange 'Show Bookmarked' state
+    // Initial orange state
     filterBtn.textContent = "🎯 Show Bookmarked";
-    filterBtn.style.background =
-      "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    filterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     filterBtn.style.color = "black";
     filterBtn.style.fontWeight = "bold";
     filterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
