@@ -196,20 +196,19 @@ window.toggleBookmarkView = function() {
     showingBookmarks = false;
   }
 
-  // 🪄 Automatically open the dropdown after filter change
-  select.focus();
-  select.click();
+  // 🪄 Bring dropdown into focus + scroll current song into view
+select.focus();
 
-  /*
-
-  // 🔍 Scroll currently selected song into view (optional UX enhancement)
+// 🔍 Scroll currently selected song into view (works in all browsers)
 const selectedIndex = select.selectedIndex;
 if (selectedIndex > 0) {
   select.options[selectedIndex].scrollIntoView({ block: "nearest" });
 }
 
+// 💡 Flash visual highlight to show dropdown updated
+select.style.outline = "3px solid gold";
+setTimeout(() => (select.style.outline = "none"), 800);
 
-*/
 
 };
 
