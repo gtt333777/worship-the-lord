@@ -194,7 +194,7 @@ window.toggleBookmarkView = function() {
       console.log("🌟 Auto-bookmarked:", firstSong);
     }
     // Force showing all songs mode next
-    showingBookmarks = true;
+    showingBookmarks = false;
   }
 
   // Smooth fade for button state
