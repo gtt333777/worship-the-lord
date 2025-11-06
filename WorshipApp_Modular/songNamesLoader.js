@@ -271,11 +271,29 @@ document.getElementById("songSelect").addEventListener("change", () => {
 });
 
 /* -------------------------------------------------------------------
-   🪶 Smooth transitions setup
+   🪶 Smooth transitions setup + initial color
 ------------------------------------------------------------------- */
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("bookmarkBtn");
   const filterBtn = document.getElementById("bookmarkFilterBtn");
+
   if (btn) btn.style.transition = "all 0.3s ease";
-  if (filterBtn) filterBtn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
+
+  if (filterBtn) {
+    // Smooth transitions for fades and transforms
+    filterBtn.style.transition =
+      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
+
+    // 🔸 Initial orange 'Show Bookmarked' state
+    filterBtn.textContent = "🎯 Show Bookmarked";
+    filterBtn.style.background =
+      "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    filterBtn.style.color = "black";
+    filterBtn.style.fontWeight = "bold";
+    filterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+    filterBtn.style.border = "none";
+    filterBtn.style.borderRadius = "8px";
+    filterBtn.style.padding = "6px 12px";
+    filterBtn.style.cursor = "pointer";
+  }
 });
