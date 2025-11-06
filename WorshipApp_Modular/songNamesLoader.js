@@ -154,77 +154,38 @@ window.toggleBookmark = function(songName) {
    + Collapse-button guidance to focus dropdown
 ------------------------------------------------------------------- */
 
-let showingBookmarks = false;      // current filter
-let collapsedGuide = false;        // whether button is in collapsed guidance state
-let hintTimeoutId = null;
-
-function ensureSelectHintElement() {
-  // Create a small hint div above the select if not present.
-  let hint = document.getElementById("songSelectHint");
-  if (!hint) {
-    hint = document.createElement("div");
-    hint.id = "songSelectHint";
-    hint.style.position = "relative";
-    hint.style.margin = "6px 0 4px 0";
-    hint.style.padding = "6px 8px";
-    hint.style.fontSize = "0.95rem";
-    hint.style.borderRadius = "6px";
-    hint.style.background = "rgba(255,255,255,0.95)";
-    hint.style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)";
-    hint.style.textAlign = "center";
-    hint.style.opacity = "0";
-    hint.style.transition = "opacity 0.25s ease, transform 0.25s ease";
-    hint.style.transform = "translateY(-4px)";
-    hint.style.zIndex = "999";
-    hint.textContent = "Tap here to choose a song";
-    // insert before select
-    const select = document.getElementById("songSelect");
-    if (select && select.parentNode) {
-      select.parentNode.insertBefore(hint, select);
-    }
-  }
-  return hint;
-}
-
-function showSelectHintTransient() {
-  const hint = ensureSelectHintElement();
-  // reset timeout if exists
-  if (hintTimeoutId) {
-    clearTimeout(hintTimeoutId);
-    hintTimeoutId = null;
-  }
-  hint.style.opacity = "1";
-  hint.style.transform = "translateY(0)";
-  // hide after 2.5s
-  hintTimeoutId = setTimeout(() => {
-    hint.style.opacity = "0";
-    hint.style.transform = "translateY(-4px)";
-    hintTimeoutId = null;
-  }, 2500);
-}
+let showingBookmarks = false;
+let collapsedGuide = false;
 
 function collapseFilterButtonGuide(btn) {
-  // visually "collapse" the filter button so it points up and invites the user
-  btn.dataset.wasText = btn.textContent; // remember
+  // store original state
+  btn.dataset.wasText = btn.textContent;
   btn.dataset.wasBg = btn.style.background || "";
   btn.dataset.wasColor = btn.style.color || "";
   btn.dataset.wasWeight = btn.style.fontWeight || "";
 
-  // collapsed look
+  // collapsed appearance
   btn.style.transition = "transform 0.18s ease, background 0.3s ease, color 0.3s ease";
   btn.style.transformOrigin = "center";
-  btn.style.transform = "translateY(6px) scale(0.98)";
-  btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f6f6f6)";
-  btn.style.color = "#222";
+  btn.style.transform = "translateY(6px) scale(0.96)";
+  btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
+  btn.style.color = "#333";
   btn.style.fontWeight = "600";
-  btn.innerHTML = "▲ Tap the list above";
+  btn.textContent = "▲ Tap the list above";
+
+  // disable button
+  btn.disabled = true;
+  btn.style.opacity = "0.7";
+  btn.style.cursor = "not-allowed";
 
   collapsedGuide = true;
 }
 
 function restoreFilterButton(btn) {
   if (!collapsedGuide) return;
-  // restore previous values saved in dataset
+  btn.disabled = false;
+  btn.style.opacity = "1";
+  btn.style.cursor = "pointer";
   btn.style.transform = "translateY(0) scale(1)";
   btn.style.background = btn.dataset.wasBg || "";
   btn.style.color = btn.dataset.wasColor || "";
@@ -242,10 +203,9 @@ window.toggleBookmarkView = function() {
   const bookmarks = loadBookmarks();
   const firstOption = select.options[0];
 
-  // Ensure smooth fade for button color
+  // Smooth fade
   btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
-  // Toggle filter state
   if (!showingBookmarks) {
     // Show only bookmarked
     for (const opt of allOptions) {
@@ -262,7 +222,6 @@ window.toggleBookmarkView = function() {
   } else {
     // Show all songs
     for (const opt of allOptions) opt.style.display = "block";
-
     btn.textContent = "🎯 Show Bookmarked";
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
@@ -275,14 +234,13 @@ window.toggleBookmarkView = function() {
   select.selectedIndex = 0;
   select.blur();
 
-  // --- Collapse button + show hint to guide the user ---
+  // Collapse and disable the button
   collapseFilterButtonGuide(btn);
-  // show transient hint above the select
-  showSelectHintTransient();
-  // focus select so user can tap it easily (won't open native dropdown reliably on all mobile, but focuses)
-  try { select.focus(); } catch (e) { /* ignore */ }
 
-  // When user interacts with select (focus or change), restore the button
+  // Focus dropdown so user’s next tap is natural
+  try { select.focus(); } catch (e) {}
+
+  // Restore button only when user interacts with dropdown
   const restoreOnce = () => {
     restoreFilterButton(btn);
     select.removeEventListener("focus", restoreOnce);
