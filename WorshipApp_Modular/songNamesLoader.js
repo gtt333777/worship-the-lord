@@ -26,7 +26,7 @@ async function loadSongNames() {
       .map(l => normalizeName(l))
       .filter(l => l && !l.startsWith("//"));
 
-    // ✅ Always start with helpful first line (not a song)
+    // Always start with helpful first line (not a song)
     select.innerHTML = `
       <option value="" disabled selected>
         ✨ Select a song from below by pressing here, then press ▶️ Play below.
@@ -151,23 +151,103 @@ window.toggleBookmark = function(songName) {
 
 /* -------------------------------------------------------------------
    🎯 Toggle between All Songs / Bookmarked View
-   + Smooth fade + dropdown first-line flash
+   + Collapse-button guidance to focus dropdown
 ------------------------------------------------------------------- */
 
-let showingBookmarks = false;
+let showingBookmarks = false;      // current filter
+let collapsedGuide = false;        // whether button is in collapsed guidance state
+let hintTimeoutId = null;
+
+function ensureSelectHintElement() {
+  // Create a small hint div above the select if not present.
+  let hint = document.getElementById("songSelectHint");
+  if (!hint) {
+    hint = document.createElement("div");
+    hint.id = "songSelectHint";
+    hint.style.position = "relative";
+    hint.style.margin = "6px 0 4px 0";
+    hint.style.padding = "6px 8px";
+    hint.style.fontSize = "0.95rem";
+    hint.style.borderRadius = "6px";
+    hint.style.background = "rgba(255,255,255,0.95)";
+    hint.style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)";
+    hint.style.textAlign = "center";
+    hint.style.opacity = "0";
+    hint.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+    hint.style.transform = "translateY(-4px)";
+    hint.style.zIndex = "999";
+    hint.textContent = "Tap here to choose a song";
+    // insert before select
+    const select = document.getElementById("songSelect");
+    if (select && select.parentNode) {
+      select.parentNode.insertBefore(hint, select);
+    }
+  }
+  return hint;
+}
+
+function showSelectHintTransient() {
+  const hint = ensureSelectHintElement();
+  // reset timeout if exists
+  if (hintTimeoutId) {
+    clearTimeout(hintTimeoutId);
+    hintTimeoutId = null;
+  }
+  hint.style.opacity = "1";
+  hint.style.transform = "translateY(0)";
+  // hide after 2.5s
+  hintTimeoutId = setTimeout(() => {
+    hint.style.opacity = "0";
+    hint.style.transform = "translateY(-4px)";
+    hintTimeoutId = null;
+  }, 2500);
+}
+
+function collapseFilterButtonGuide(btn) {
+  // visually "collapse" the filter button so it points up and invites the user
+  btn.dataset.wasText = btn.textContent; // remember
+  btn.dataset.wasBg = btn.style.background || "";
+  btn.dataset.wasColor = btn.style.color || "";
+  btn.dataset.wasWeight = btn.style.fontWeight || "";
+
+  // collapsed look
+  btn.style.transition = "transform 0.18s ease, background 0.3s ease, color 0.3s ease";
+  btn.style.transformOrigin = "center";
+  btn.style.transform = "translateY(6px) scale(0.98)";
+  btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f6f6f6)";
+  btn.style.color = "#222";
+  btn.style.fontWeight = "600";
+  btn.innerHTML = "▲ Tap the list above";
+
+  collapsedGuide = true;
+}
+
+function restoreFilterButton(btn) {
+  if (!collapsedGuide) return;
+  // restore previous values saved in dataset
+  btn.style.transform = "translateY(0) scale(1)";
+  btn.style.background = btn.dataset.wasBg || "";
+  btn.style.color = btn.dataset.wasColor || "";
+  btn.style.fontWeight = btn.dataset.wasWeight || "";
+  btn.textContent = btn.dataset.wasText || (showingBookmarks ? "📚 Show All Songs" : "🎯 Show Bookmarked");
+  collapsedGuide = false;
+}
 
 window.toggleBookmarkView = function() {
   const btn = document.getElementById("bookmarkFilterBtn");
   const select = document.getElementById("songSelect");
+  if (!btn || !select) return;
+
   const allOptions = [...select.options];
   const bookmarks = loadBookmarks();
   const firstOption = select.options[0];
 
   // Ensure smooth fade for button color
-  btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease";
+  btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
+  // Toggle filter state
   if (!showingBookmarks) {
-    // 🔹 Show only bookmarked
+    // Show only bookmarked
     for (const opt of allOptions) {
       if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
     }
@@ -180,7 +260,7 @@ window.toggleBookmarkView = function() {
     btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
     showingBookmarks = true;
   } else {
-    // 🔹 Show all songs
+    // Show all songs
     for (const opt of allOptions) opt.style.display = "block";
 
     btn.textContent = "🎯 Show Bookmarked";
@@ -191,18 +271,25 @@ window.toggleBookmarkView = function() {
     showingBookmarks = false;
   }
 
-  // 🟢 Reset dropdown to first line
+  // Reset dropdown selection to first line (never keep song selected)
   select.selectedIndex = 0;
   select.blur();
 
-  // ✨ Subtle fade flash on the first dropdown line
-  if (firstOption) {
-    firstOption.style.transition = "background-color 0.6s ease";
-    firstOption.style.backgroundColor = "#fff3b0"; // soft light yellow
-    setTimeout(() => {
-      firstOption.style.backgroundColor = "transparent";
-    }, 600);
-  }
+  // --- Collapse button + show hint to guide the user ---
+  collapseFilterButtonGuide(btn);
+  // show transient hint above the select
+  showSelectHintTransient();
+  // focus select so user can tap it easily (won't open native dropdown reliably on all mobile, but focuses)
+  try { select.focus(); } catch (e) { /* ignore */ }
+
+  // When user interacts with select (focus or change), restore the button
+  const restoreOnce = () => {
+    restoreFilterButton(btn);
+    select.removeEventListener("focus", restoreOnce);
+    select.removeEventListener("change", restoreOnce);
+  };
+  select.addEventListener("focus", restoreOnce);
+  select.addEventListener("change", restoreOnce);
 };
 
 /* -------------------------------------------------------------------
@@ -232,5 +319,5 @@ window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("bookmarkBtn");
   const filterBtn = document.getElementById("bookmarkFilterBtn");
   if (btn) btn.style.transition = "all 0.3s ease";
-  if (filterBtn) filterBtn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease";
+  if (filterBtn) filterBtn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 });
