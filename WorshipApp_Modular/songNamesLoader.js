@@ -209,7 +209,33 @@ if (selectedIndex > 0) {
 // ✨ Smooth gold glow highlight (visually shows dropdown updated)
 select.style.transition = "box-shadow 0.6s ease";
 select.style.boxShadow = "0 0 14px 4px gold";
-setTimeout(() => (select.style.boxShadow = "none"), 1000);
+setTimeout(() => (select.style.boxShadow = "none"), 1500);
+
+
+// 📱 For mobile: show a friendly message prompting user to tap dropdown
+if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+  let tip = document.createElement("div");
+  tip.textContent = "👇 Tap the song list above to view updated songs 🎵";
+  tip.style.position = "fixed";
+  tip.style.bottom = "70px";
+  tip.style.left = "50%";
+  tip.style.transform = "translateX(-50%)";
+  tip.style.background = "rgba(255, 215, 0, 0.95)";
+  tip.style.color = "black";
+  tip.style.padding = "10px 16px";
+  tip.style.borderRadius = "14px";
+  tip.style.fontSize = "1rem";
+  tip.style.fontWeight = "bold";
+  tip.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+  tip.style.zIndex = "9999";
+  tip.style.transition = "opacity 1s ease";
+  tip.style.opacity = "1";
+  document.body.appendChild(tip);
+
+  // Fade out and remove after 2.5 seconds
+  setTimeout(() => (tip.style.opacity = "0"), 2000);
+  setTimeout(() => tip.remove(), 3000);
+}
 
 
 };
