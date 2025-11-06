@@ -163,6 +163,7 @@ window.toggleBookmark = function(songName) {
   console.log("⭐ Updated bookmarks:", bookmarks);
 };
 
+
 // 🎯 Toggle between all songs and bookmarked-only view (with blue highlight)
 let showingBookmarks = false;
 window.toggleBookmarkView = function() {
@@ -194,7 +195,26 @@ window.toggleBookmarkView = function() {
     btn.style.boxShadow = "none";
     showingBookmarks = false;
   }
+
+  // 🪄 Automatically open the dropdown after filter change
+  select.focus();
+  select.click();
+
+
+  // 🔍 Scroll currently selected song into view (optional UX enhancement)
+const selectedIndex = select.selectedIndex;
+if (selectedIndex > 0) {
+  select.options[selectedIndex].scrollIntoView({ block: "nearest" });
+}
+
+
+
+
 };
+
+
+
+
 
 // 🪄 Update star when song changes
 document.getElementById("songSelect").addEventListener("change", () => {
