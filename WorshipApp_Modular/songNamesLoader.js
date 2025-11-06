@@ -103,8 +103,11 @@ async function loadSongNames() {
     console.log(`✅ ${count} unique songs loaded from R2.`);
     console.log("📦 window.songURLs ready with bilingual normalized keys.");
 
-    // 🟢 After songs loaded, refresh bookmark marks
-    refreshBookmarkDisplay();
+
+    // 🟢 After songs loaded — no refreshBookmarkDisplay needed anymore
+const currentSong = document.getElementById("songSelect")?.value;
+if (currentSong) updateBookmarkButton(currentSong);
+
 
   } catch (err) {
     console.error("❌ songNamesLoader.js: Error loading song names:", err);
