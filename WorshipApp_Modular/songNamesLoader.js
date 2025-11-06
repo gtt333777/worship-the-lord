@@ -143,7 +143,6 @@ window.toggleBookmark = function(songName) {
 
 let showingBookmarks = false;
 let collapsedGuide = false;
-let firstTimeEmptyBookmarkHandled = false; // ensures message only once
 
 function collapseFilterButtonGuide(btn) {
   btn.dataset.wasText = btn.textContent;
@@ -185,21 +184,17 @@ window.toggleBookmarkView = function() {
   let bookmarks = loadBookmarks();
   const firstOption = select.options[0];
 
-  // Check if bookmarks are empty
+  // 📜 If no bookmarked songs exist — encourage user
   if (bookmarks.length === 0) {
-    if (!firstTimeEmptyBookmarkHandled) {
-      alert("🌟 Start bookmarking a song by pressing the star (☆) at left so it turns Gold.\nI’m making the first bookmark for you!");
-      // Automatically bookmark the first available song (after header)
-      const firstSong = select.options.length > 1 ? select.options[1].value : null;
-      if (firstSong) {
-        bookmarks = [firstSong];
-        saveBookmarks(bookmarks);
-        console.log("🌟 Created first auto-bookmark:", firstSong);
-      }
-      firstTimeEmptyBookmarkHandled = true;
+    alert("🌟 Start bookmarking a song by pressing the star (☆) at left so it turns Gold.\nI’m making the first bookmark for you!");
+    const firstSong = select.options.length > 1 ? select.options[1].value : null;
+    if (firstSong) {
+      bookmarks = [firstSong];
+      saveBookmarks(bookmarks);
+      console.log("🌟 Auto-bookmarked:", firstSong);
     }
-    // Directly show all songs instead of empty bookmarked
-    showingBookmarks = true; // trick to toggle to blue mode below
+    // Force showing all songs mode
+    showingBookmarks = true;
   }
 
   // Smooth fade
