@@ -200,6 +200,7 @@ window.toggleBookmarkView = function() {
   select.focus();
   select.click();
 
+  /*
 
   // 🔍 Scroll currently selected song into view (optional UX enhancement)
 const selectedIndex = select.selectedIndex;
@@ -208,7 +209,7 @@ if (selectedIndex > 0) {
 }
 
 
-
+*/
 
 };
 
