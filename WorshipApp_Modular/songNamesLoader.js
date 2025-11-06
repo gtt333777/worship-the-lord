@@ -200,11 +200,13 @@ window.toggleBookmarkView = function() {
   // 🪄 Bring dropdown into focus + smooth gold glow to signal update
 select.focus();
 
+/*
 // 🔍 Scroll currently selected song into view
 const selectedIndex = select.selectedIndex;
 if (selectedIndex > 0) {
   select.options[selectedIndex].scrollIntoView({ block: "nearest" });
 }
+*/
 
 // ✨ Smooth gold glow highlight (visually shows dropdown updated)
 select.style.transition = "box-shadow 0.6s ease";
