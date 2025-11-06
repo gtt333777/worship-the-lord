@@ -116,7 +116,7 @@ window.addEventListener("DOMContentLoaded", loadSongNames);
 
 
 /* -------------------------------------------------------------------
-   ⭐ Integrated Simple Bookmark System (enhanced)
+   ⭐ Integrated Simple Bookmark System (plain gold star version)
    ------------------------------------------------------------------- */
 
 // ✅ Safe load from localStorage
@@ -136,7 +136,7 @@ function saveBookmarks(list) {
   localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
 }
 
-// ⭐ Toggle bookmark for selected song (with gold star + size)
+// ⭐ Toggle bookmark for selected song (plain gold, no glow)
 window.toggleBookmark = function(songName) {
   if (!songName) return alert("⚠️ Please select a song first.");
   const btn = document.getElementById("bookmarkBtn");
@@ -148,14 +148,12 @@ window.toggleBookmark = function(songName) {
     btn.textContent = "☆";
     btn.style.color = "black";
     btn.style.fontSize = "1.6rem";
-    btn.style.textShadow = "none";
   } else {
     // 🌟 Add
     bookmarks.push(songName);
     btn.textContent = "★";
     btn.style.color = "gold";
     btn.style.fontSize = "1.9rem";
-    btn.style.textShadow = "0 0 6px gold";
   }
 
   saveBookmarks(bookmarks);
@@ -206,12 +204,10 @@ document.getElementById("songSelect").addEventListener("change", () => {
     btn.textContent = "★";
     btn.style.color = "gold";
     btn.style.fontSize = "1.9rem";
-    btn.style.textShadow = "0 0 6px gold";
   } else {
     btn.textContent = "☆";
     btn.style.color = "black";
     btn.style.fontSize = "1.6rem";
-    btn.style.textShadow = "none";
   }
 });
 
