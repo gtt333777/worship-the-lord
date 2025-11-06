@@ -25,18 +25,17 @@ async function loadSongNames() {
       .split(/\r?\n/)
       .map(l => normalizeName(l))
       .filter(l => l && !l.startsWith("//"));
-    
-    // ✅ Keep helpful first line always visible
+
+    // ✅ Always start with helpful first line (not a song)
     select.innerHTML = `
       <option value="" disabled selected>
         ✨ Select a song from below by pressing here, then press ▶️ Play below.
       </option>
     `;
 
-    window.songURLs = {}; // 🌍 Global map for song URLs
+    window.songURLs = {};
     const seen = new Set();
 
-    // --- Helper: find star level (from window.star) ---
     function getStarLevel(songName) {
       if (!window.star) return null;
       for (const s of window.star) {
@@ -59,22 +58,20 @@ async function loadSongNames() {
       return null;
     }
 
-    // --- Build dropdown + URL map ---
     let count = 0;
     for (const rawLine of lines) {
       const songName = normalizeName(rawLine);
-      if (seen.has(songName)) continue; // skip duplicates
+      if (seen.has(songName)) continue;
       seen.add(songName);
 
       const encoded = encodeURIComponent(songName);
       const vocalURL = `${R2_BASE_URL}${encoded}_vocal.mp3`;
       const accURL = `${R2_BASE_URL}${encoded}_acc.mp3`;
-
       window.songURLs[songName] = { vocalURL, accURL };
+
       const opt = document.createElement("option");
       opt.value = songName;
 
-      // ⭐ Apply visual level
       const level = getStarLevel(songName);
       if (level === 3) {
         opt.textContent = "★★★ " + songName;
@@ -100,26 +97,22 @@ async function loadSongNames() {
       count++;
     }
 
-    console.log(`✅ ${count} unique songs loaded from R2.`);
-    console.log("📦 window.songURLs ready with bilingual normalized keys.");
+    console.log(`✅ ${count} unique songs loaded.`);
+    console.log("📦 window.songURLs ready.");
 
-    // 🟢 After songs loaded, refresh bookmark marks
-    refreshBookmarkDisplay();
-
+    const currentSong = document.getElementById("songSelect")?.value;
+    if (currentSong) updateBookmarkButton(currentSong);
   } catch (err) {
     console.error("❌ songNamesLoader.js: Error loading song names:", err);
   }
 }
 
-// Ensure this runs before anything else
 window.addEventListener("DOMContentLoaded", loadSongNames);
 
-
 /* -------------------------------------------------------------------
-   ⭐ Integrated Simple Bookmark System (enhanced)
-   ------------------------------------------------------------------- */
+   ⭐ Simple Bookmark System
+------------------------------------------------------------------- */
 
-// ✅ Safe load from localStorage
 function loadBookmarks() {
   try {
     const raw = localStorage.getItem("bookmarkedSongs");
@@ -131,71 +124,90 @@ function loadBookmarks() {
   }
 }
 
-// ✅ Save to localStorage
 function saveBookmarks(list) {
   localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
 }
 
-// ⭐ Toggle bookmark for selected song (with gold star + size)
 window.toggleBookmark = function(songName) {
   if (!songName) return alert("⚠️ Please select a song first.");
   const btn = document.getElementById("bookmarkBtn");
   let bookmarks = loadBookmarks();
 
   if (bookmarks.includes(songName)) {
-    // 🔸 Remove
     bookmarks = bookmarks.filter(s => s !== songName);
     btn.textContent = "☆";
     btn.style.color = "black";
     btn.style.fontSize = "1.6rem";
-    btn.style.textShadow = "none";
   } else {
-    // 🌟 Add
     bookmarks.push(songName);
     btn.textContent = "★";
     btn.style.color = "gold";
     btn.style.fontSize = "1.9rem";
-    btn.style.textShadow = "0 0 6px gold";
   }
 
   saveBookmarks(bookmarks);
   console.log("⭐ Updated bookmarks:", bookmarks);
 };
 
-// 🎯 Toggle between all songs and bookmarked-only view (with blue highlight)
+/* -------------------------------------------------------------------
+   🎯 Toggle between All Songs / Bookmarked View
+   + Smooth fade + dropdown first-line flash
+------------------------------------------------------------------- */
+
 let showingBookmarks = false;
+
 window.toggleBookmarkView = function() {
   const btn = document.getElementById("bookmarkFilterBtn");
   const select = document.getElementById("songSelect");
   const allOptions = [...select.options];
   const bookmarks = loadBookmarks();
+  const firstOption = select.options[0];
+
+  // Ensure smooth fade for button color
+  btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease";
 
   if (!showingBookmarks) {
     // 🔹 Show only bookmarked
     for (const opt of allOptions) {
       if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
     }
+    if (firstOption) firstOption.style.display = "block";
+
     btn.textContent = "📚 Show All Songs";
-    btn.style.background = "linear-gradient(to bottom right, #1976d2, #0d47a1)";
+    btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
     btn.style.color = "white";
     btn.style.fontWeight = "bold";
     btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
     showingBookmarks = true;
   } else {
-    // 🔹 Show all
-    for (const opt of allOptions) {
-      opt.style.display = "block";
-    }
+    // 🔹 Show all songs
+    for (const opt of allOptions) opt.style.display = "block";
+
     btn.textContent = "🎯 Show Bookmarked";
-    btn.style.background = "";
+    btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
-    btn.style.fontWeight = "normal";
-    btn.style.boxShadow = "none";
+    btn.style.fontWeight = "bold";
+    btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
     showingBookmarks = false;
+  }
+
+  // 🟢 Reset dropdown to first line
+  select.selectedIndex = 0;
+  select.blur();
+
+  // ✨ Subtle fade flash on the first dropdown line
+  if (firstOption) {
+    firstOption.style.transition = "background-color 0.6s ease";
+    firstOption.style.backgroundColor = "#fff3b0"; // soft light yellow
+    setTimeout(() => {
+      firstOption.style.backgroundColor = "transparent";
+    }, 600);
   }
 };
 
-// 🪄 Update star when song changes
+/* -------------------------------------------------------------------
+   🪄 Update bookmark star when song changes
+------------------------------------------------------------------- */
 document.getElementById("songSelect").addEventListener("change", () => {
   const select = document.getElementById("songSelect");
   const btn = document.getElementById("bookmarkBtn");
@@ -206,19 +218,19 @@ document.getElementById("songSelect").addEventListener("change", () => {
     btn.textContent = "★";
     btn.style.color = "gold";
     btn.style.fontSize = "1.9rem";
-    btn.style.textShadow = "0 0 6px gold";
   } else {
     btn.textContent = "☆";
     btn.style.color = "black";
     btn.style.fontSize = "1.6rem";
-    btn.style.textShadow = "none";
   }
 });
 
-// 🪶 Add smooth transitions once loaded
+/* -------------------------------------------------------------------
+   🪶 Smooth transitions setup
+------------------------------------------------------------------- */
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("bookmarkBtn");
   const filterBtn = document.getElementById("bookmarkFilterBtn");
   if (btn) btn.style.transition = "all 0.3s ease";
-  if (filterBtn) filterBtn.style.transition = "all 0.25s ease";
+  if (filterBtn) filterBtn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease";
 });
