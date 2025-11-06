@@ -184,8 +184,8 @@ window.toggleBookmarkView = function() {
   let bookmarks = loadBookmarks();
   const firstOption = select.options[0];
 
-  // 📜 If no bookmarked songs exist — encourage user
-  if (bookmarks.length === 0) {
+  // ✅ Only trigger encouragement when switching to "Show Bookmarked"
+  if (!showingBookmarks && bookmarks.length === 0) {
     alert("🌟 Start bookmarking a song by pressing the star (☆) at left so it turns Gold.\nI’m making the first bookmark for you!");
     const firstSong = select.options.length > 1 ? select.options[1].value : null;
     if (firstSong) {
@@ -193,15 +193,15 @@ window.toggleBookmarkView = function() {
       saveBookmarks(bookmarks);
       console.log("🌟 Auto-bookmarked:", firstSong);
     }
-    // Force showing all songs mode
+    // Force showing all songs mode next
     showingBookmarks = true;
   }
 
-  // Smooth fade
+  // Smooth fade for button state
   btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
   if (!showingBookmarks) {
-    // Show only bookmarked
+    // 🔹 Show only bookmarked
     for (const opt of allOptions) {
       if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
     }
@@ -214,7 +214,7 @@ window.toggleBookmarkView = function() {
     btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
     showingBookmarks = true;
   } else {
-    // Show all songs
+    // 🔹 Show all songs
     for (const opt of allOptions) opt.style.display = "block";
     btn.textContent = "🎯 Show Bookmarked";
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
@@ -228,7 +228,7 @@ window.toggleBookmarkView = function() {
   select.selectedIndex = 0;
   select.blur();
 
-  // Collapse + disable
+  // Collapse + disable temporarily
   collapseFilterButtonGuide(btn);
   try { select.focus(); } catch {}
 
