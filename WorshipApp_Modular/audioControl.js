@@ -4,7 +4,7 @@
 
 // --- Configuration ---
 //var MIN_VOL = 0.03; // never mute completely
-  var MIN_VOL = 0.0025;
+  var MIN_VOL = 0.0026;
 
 //window.DEFAULTS = window.DEFAULTS || { vocal: 0.03, accomp: 0.15 };
   window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.03 };
