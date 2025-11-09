@@ -738,99 +738,71 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
-// ---------- Helper to read the true base vocal from slider (or fallback) ----------
-function getTrueBaseVocal() {
-  // Prefer the visible slider value as the single source of truth
-  const slider = document.getElementById("vocalVolume");
-  if (slider) {
-    const parsed = parseFloat(slider.value);
-    if (Number.isFinite(parsed)) return Math.min(1, Math.max(0, parsed));
-  }
-  // Fallback to a sensible default (existing app DEFAULTS)
-  if (window.DEFAULTS && typeof window.DEFAULTS.vocal === "number") {
-    return Math.min(1, Math.max(0, window.DEFAULTS.vocal));
-  }
-  // ultimate safe fallback
-  return 0.02;
-}
+/* ==========================================================
+   🎤 STEP 1 TEST — Manual Boost + Fade Only
+   ----------------------------------------------------------
+   • Adds a test button under the Play button
+   • On click: +0.02 boost → hold 3 s → fade back
+   ========================================================== */
+(function(){
+  if (window.__STEP1_VOCALBOOST__) return;
+  window.__STEP1_VOCALBOOST__ = true;
 
-// ---------- Robust linear fade that sets exact final value ----------
-function fadeTo(target) {
-  const a = window.vocalAudio;
-  if (!a) return;
-  clearInterval(fadeInt);
-  const start = a.volume;
-  const delta = target - start;
-  const steps = Math.max(1, Math.round(FADE / STEP));
-  let n = 0;
-  fading = true;
-  fadeInt = setInterval(() => {
-    if (!window.vocalAudio) return;
-    n++;
-    const p = n / steps;
-    // linear interpolation
-    const newVal = Math.min(1, Math.max(0, start + delta * p));
-    window.vocalAudio.volume = Number(newVal.toFixed(4)); // reduce float noise
+  const BOOST = 0.02, HOLD = 3000, FADE = 500, STEP = 100;
+  let fadeInt = null, holdTimer = null;
+
+  // --- helper to read base from slider ---
+  function getBase() {
+    const s = document.getElementById("vocalVolume");
+    const v = parseFloat(s?.value);
+    return Number.isFinite(v) ? v : 0.02;
+  }
+
+  // --- fade function ---
+  function fadeTo(target) {
+    const a = window.vocalAudio; if (!a) return;
+    clearInterval(fadeInt);
+    const start = a.volume, delta = target - start;
+    const steps = Math.max(1, Math.round(FADE / STEP));
+    let n = 0;
+    fadeInt = setInterval(() => {
+      n++;
+      a.volume = start + delta * (n / steps);
+      const s = document.getElementById("vocalVolume");
+      const d = document.getElementById("vocalVolumeDisplay");
+      if (s) s.value = a.volume.toFixed(2);
+      if (d) d.textContent = a.volume.toFixed(2);
+      if (n >= steps) { clearInterval(fadeInt); a.volume = target; }
+    }, STEP);
+  }
+
+  // --- manual trigger function ---
+  window.testBoostOnce = function(){
+    const a = window.vocalAudio; if (!a) return alert("vocalAudio missing");
+    clearTimeout(holdTimer); clearInterval(fadeInt);
+    const base = getBase();
+    const boosted = Math.min(1, base + BOOST);
+    a.volume = boosted;
     const s = document.getElementById("vocalVolume");
     const d = document.getElementById("vocalVolumeDisplay");
-    if (s) s.value = window.vocalAudio.volume.toFixed(2);
-    if (d) d.textContent = window.vocalAudio.volume.toFixed(2);
-    if (n >= steps) {
-      clearInterval(fadeInt);
-      // Force exact final value
-      window.vocalAudio.volume = Number(target.toFixed(4));
-      if (s) s.value = window.vocalAudio.volume.toFixed(2);
-      if (d) d.textContent = window.vocalAudio.volume.toFixed(2);
-      fading = false;
-    }
-  }, STEP);
-}
+    if (s) s.value = boosted.toFixed(2);
+    if (d) d.textContent = boosted.toFixed(2);
+    console.log(`🎧 Boost start: ${base.toFixed(2)} → ${boosted.toFixed(2)}`);
+    holdTimer = setTimeout(() => {
+      fadeTo(base);
+      console.log(`🌅 Fade-down to ${base.toFixed(2)}`);
+    }, HOLD);
+  };
 
-// ---------- startBoost: DO NOT derive baseVocal from current (possibly boosted) audio.volume ----------
-function startBoost() {
-  const a = window.vocalAudio; if (!a) return;
-
-  // Clean previous timers/intervals
-  clearTimeout(holdTimer);
-  clearInterval(fadeInt);
-  clearInterval(endWatcher);
-  fading = false;
-
-  // Get true base from slider (pre-boost) — prevents accumulation
-  baseVocal = getTrueBaseVocal();
-
-  // compute boosted level and set immediately
-  const boosted = Math.min(1, baseVocal + BOOST);
-  a.volume = Number(boosted.toFixed(4));
-  const s = document.getElementById("vocalVolume"), d = document.getElementById("vocalVolumeDisplay");
-  if (s) s.value = a.volume.toFixed(2);
-  if (d) d.textContent = a.volume.toFixed(2);
-  glow(true);
-
-  // Hold, then fade back exactly to the true base
-  holdTimer = setTimeout(() => {
-    fadeTo(baseVocal);
-    setTimeout(() => glow(false), FADE);
-  }, HOLD);
-}
-
-// ---------- watchEnds: when scheduling end fade-up, compute base fresh from slider ----------
-function watchEnds() {
-  clearInterval(endWatcher);
-  const a = window.vocalAudio; if (!a || !Array.isArray(window.segments)) return;
-  endWatcher = setInterval(() => {
-    const segs = window.segments; if (!window.currentlyPlaying || !segs.length) return;
-    const t = a.currentTime, i = segs.findIndex(s => t >= s.start && t < s.end);
-    if (i === -1) return;
-    const seg = segs[i], last = i >= segs.length - 1, left = seg.end - t;
-    if (!last && left > 0 && left <= ENDWIN && !fading) {
-      // recompute base at this moment using slider (pre-boost base)
-      baseVocal = getTrueBaseVocal();
-      fading = true;
-      fadeTo(Math.min(1, baseVocal + BOOST));
-      glow(true);
-      // leave `endWatcher` running (next playSegment start will call startBoost() which resets timers)
-      setTimeout(() => { fading = false; }, FADE + 100);
-    }
-  }, 200);
-}
+  // --- add a small test button ---
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const playBtn = document.getElementById("playBtn");
+    if (!playBtn) return;
+    const btn = document.createElement("button");
+    btn.textContent = "🎤 Test Boost Once";
+    btn.style.marginLeft = "8px";
+    btn.onclick = window.testBoostOnce;
+    playBtn.parentNode.insertBefore(btn, playBtn.nextSibling);
+    console.log("🎤 Step 1 VocalBoost test button added");
+  });
+})();
