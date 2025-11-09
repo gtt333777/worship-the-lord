@@ -739,8 +739,6 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
-
-
 /* ==========================================================
    🎤 Vocal Vitality Boost Overlay — Final Version
    ----------------------------------------------------------
@@ -904,6 +902,10 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
+
+
+
+
 /* ==========================================================
    🔁 Vocal Vitality Auto-Segment Fade Patch
    ----------------------------------------------------------
@@ -964,3 +966,4 @@ But for now — yes, you’ve reached the gold standard.
     console.log("🔁 Vocal Vitality auto-segment fade patch active.");
   }
 })();
+
