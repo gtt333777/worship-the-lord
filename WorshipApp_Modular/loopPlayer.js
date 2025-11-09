@@ -912,58 +912,41 @@ But for now — yes, you’ve reached the gold standard.
    Ensures each new auto-advanced segment also
    fades back 3 s after start (just like Play or tap)
    ========================================================== */
-(function () {
-  if (window.__VOCAL_VITALITY_SEGMENT_PATCH__) return;
-  window.__VOCAL_VITALITY_SEGMENT_PATCH__ = true;
 
-  const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 3000;
-  const FADE_TIME = 500;
-  const CHECK_INTERVAL = 100;
+   function fadeVocalTo(target) {
+  const a = window.vocalAudio;
+  if (!a) return;
 
-  function fadeVocalTo(target) {
-    const a = window.vocalAudio;
-    if (!a) return;
-    const start = a.volume;
-    const delta = target - start;
-    const steps = Math.max(1, Math.round(FADE_TIME / CHECK_INTERVAL));
-    let c = 0;
+  // Ignore Block 1’s internal fading guard — this is independent
+  if (typeof window.__vocalFadeInt2 !== "undefined") {
     clearInterval(window.__vocalFadeInt2);
-    window.__vocalFadeInt2 = setInterval(() => {
-      if (!window.vocalAudio) return;
-      c++;
-      const p = c / steps;
-      a.volume = Math.min(1, Math.max(0, start + delta * p));
-      const s = document.getElementById("vocalVolume");
-      const d = document.getElementById("vocalVolumeDisplay");
-      if (s) s.value = a.volume.toFixed(2);
-      if (d) d.textContent = a.volume.toFixed(2);
-      if (c >= steps) clearInterval(window.__vocalFadeInt2);
-    }, CHECK_INTERVAL);
   }
 
-  const oldPlaySegment = window.playSegment;
-  if (typeof oldPlaySegment === "function") {
-    window.playSegment = function(start, end, idx) {
-      // Call the original
-      const result = oldPlaySegment.call(this, start, end, idx);
+  const start = a.volume;
+  const delta = target - start;
+  const steps = Math.max(1, Math.round(FADE_TIME / CHECK_INTERVAL));
+  let step = 0;
 
-      // Each time a segment starts (auto or manual)
-      if (window.vocalAudio) {
-        const base = parseFloat(window.vocalAudio.volume) - BOOST_AMOUNT;
-        // If we’re currently boosted, schedule fade back
-        if (base >= 0 && base <= 1) {
-          clearTimeout(window.__vocalAutoFadeTimer);
-          window.__vocalAutoFadeTimer = setTimeout(() => {
-            fadeVocalTo(base);
-            const lbl = document.querySelector('label[for="vocalVolume"]');
-            if (lbl) lbl.style.boxShadow = "", lbl.style.background = "";
-          }, HOLD_TIME);
-        }
+  window.__vocalFadeInt2 = setInterval(() => {
+    step++;
+    const p = step / steps;
+    const newVol = Math.min(1, Math.max(0, start + delta * p));
+    a.volume = newVol;
+
+    // update slider + display
+    const s = document.getElementById("vocalVolume");
+    const d = document.getElementById("vocalVolumeDisplay");
+    if (s) s.value = newVol.toFixed(2);
+    if (d) d.textContent = newVol.toFixed(2);
+
+    if (step >= steps) {
+      clearInterval(window.__vocalFadeInt2);
+      // also clear Block 1’s glow safely
+      const lbl = document.querySelector('label[for="vocalVolume"]');
+      if (lbl) {
+        lbl.style.boxShadow = "";
+        lbl.style.background = "";
       }
-      return result;
-    };
-    console.log("🔁 Vocal Vitality auto-segment fade patch active.");
-  }
-})();
-
+    }
+  }, CHECK_INTERVAL);
+}
