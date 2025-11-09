@@ -738,122 +738,99 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
-/* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Foolproof Stable Build
-   ----------------------------------------------------------
-   ✅ Single-boost per segment (no double-fire)
-   ✅ Linear fade: +0.02 → hold 3s → fade-down
-   ✅ End fade-up 2s before boundary (skip last)
-   ✅ Works for Play, manual tap, auto-advance
-   ✅ Timers safely reset at each transition
-   ========================================================== */
-(function () {
-  if (window.__VOCAL_VITALITY_FOOLPROOF__) return;
-  window.__VOCAL_VITALITY_FOOLPROOF__ = true;
-
-  const BOOST = 0.02, HOLD = 3000, FADE = 500, STEP = 100, ENDWIN = 2.0;
-  let baseVocal = null, fadeInt = null, holdTimer = null, endWatcher = null, fading = false;
-  let firstBoostHandled = false;
-
-  // ---- Label glow helper ----
-  const label = document.querySelector('label[for="vocalVolume"]');
-  function glow(on) {
-    if (!label) return;
-    label.style.transition = "box-shadow .3s, background .3s";
-    label.style.boxShadow = on ? "0 0 15px 4px rgba(255,200,80,.7)" : "";
-    label.style.background = on ? "linear-gradient(to right,#fff8e1,#ffecb3)" : "";
-    label.style.borderRadius = on ? "8px" : "";
+// ---------- Helper to read the true base vocal from slider (or fallback) ----------
+function getTrueBaseVocal() {
+  // Prefer the visible slider value as the single source of truth
+  const slider = document.getElementById("vocalVolume");
+  if (slider) {
+    const parsed = parseFloat(slider.value);
+    if (Number.isFinite(parsed)) return Math.min(1, Math.max(0, parsed));
   }
-
-  // ---- Linear fade ----
-  function fadeTo(target) {
-    const a = window.vocalAudio; if (!a) return;
-    clearInterval(fadeInt);
-    const start = a.volume, delta = target - start;
-    const steps = Math.max(1, Math.round(FADE / STEP));
-    let n = 0; fading = true;
-    fadeInt = setInterval(() => {
-      if (!window.vocalAudio) return;
-      n++;
-      a.volume = Math.min(1, Math.max(0, start + delta * (n / steps)));
-      const s = document.getElementById("vocalVolume");
-      const d = document.getElementById("vocalVolumeDisplay");
-      if (s) s.value = a.volume.toFixed(2);
-      if (d) d.textContent = a.volume.toFixed(2);
-      if (n >= steps) { clearInterval(fadeInt); fading = false; }
-    }, STEP);
+  // Fallback to a sensible default (existing app DEFAULTS)
+  if (window.DEFAULTS && typeof window.DEFAULTS.vocal === "number") {
+    return Math.min(1, Math.max(0, window.DEFAULTS.vocal));
   }
+  // ultimate safe fallback
+  return 0.02;
+}
 
-  // ---- Core: boost + hold + fade-down ----
-  function startBoost() {
-    const a = window.vocalAudio; if (!a) return;
-    // reset previous timers cleanly
-    clearTimeout(holdTimer);
-    clearInterval(fadeInt);
-    clearInterval(endWatcher);
-    fading = false;
+// ---------- Robust linear fade that sets exact final value ----------
+function fadeTo(target) {
+  const a = window.vocalAudio;
+  if (!a) return;
+  clearInterval(fadeInt);
+  const start = a.volume;
+  const delta = target - start;
+  const steps = Math.max(1, Math.round(FADE / STEP));
+  let n = 0;
+  fading = true;
+  fadeInt = setInterval(() => {
+    if (!window.vocalAudio) return;
+    n++;
+    const p = n / steps;
+    // linear interpolation
+    const newVal = Math.min(1, Math.max(0, start + delta * p));
+    window.vocalAudio.volume = Number(newVal.toFixed(4)); // reduce float noise
+    const s = document.getElementById("vocalVolume");
+    const d = document.getElementById("vocalVolumeDisplay");
+    if (s) s.value = window.vocalAudio.volume.toFixed(2);
+    if (d) d.textContent = window.vocalAudio.volume.toFixed(2);
+    if (n >= steps) {
+      clearInterval(fadeInt);
+      // Force exact final value
+      window.vocalAudio.volume = Number(target.toFixed(4));
+      if (s) s.value = window.vocalAudio.volume.toFixed(2);
+      if (d) d.textContent = window.vocalAudio.volume.toFixed(2);
+      fading = false;
+    }
+  }, STEP);
+}
 
-    baseVocal = parseFloat(a.volume) || 0;
-    const boosted = Math.min(1, baseVocal + BOOST);
-    a.volume = boosted;
+// ---------- startBoost: DO NOT derive baseVocal from current (possibly boosted) audio.volume ----------
+function startBoost() {
+  const a = window.vocalAudio; if (!a) return;
 
-    const s = document.getElementById("vocalVolume"), d = document.getElementById("vocalVolumeDisplay");
-    if (s) s.value = boosted.toFixed(2);
-    if (d) d.textContent = boosted.toFixed(2);
-    glow(true);
+  // Clean previous timers/intervals
+  clearTimeout(holdTimer);
+  clearInterval(fadeInt);
+  clearInterval(endWatcher);
+  fading = false;
 
-    holdTimer = setTimeout(() => {
-      fadeTo(baseVocal);
-      setTimeout(() => glow(false), FADE);
-    }, HOLD);
-  }
+  // Get true base from slider (pre-boost) — prevents accumulation
+  baseVocal = getTrueBaseVocal();
 
-  // ---- Watch for end fade-up ----
-  function watchEnds() {
-    clearInterval(endWatcher);
-    const a = window.vocalAudio; if (!a || !Array.isArray(window.segments)) return;
-    endWatcher = setInterval(() => {
-      const segs = window.segments; if (!window.currentlyPlaying || !segs.length) return;
-      const t = a.currentTime, i = segs.findIndex(s => t >= s.start && t < s.end);
-      if (i === -1) return;
-      const seg = segs[i], last = i >= segs.length - 1, left = seg.end - t;
-      if (!last && left > 0 && left <= ENDWIN && !fading) {
-        fading = true;
-        fadeTo(Math.min(1, baseVocal + BOOST));
-        glow(true);
-        setTimeout(() => { fading = false; }, FADE + 100);
-      }
-    }, 200);
-  }
+  // compute boosted level and set immediately
+  const boosted = Math.min(1, baseVocal + BOOST);
+  a.volume = Number(boosted.toFixed(4));
+  const s = document.getElementById("vocalVolume"), d = document.getElementById("vocalVolumeDisplay");
+  if (s) s.value = a.volume.toFixed(2);
+  if (d) d.textContent = a.volume.toFixed(2);
+  glow(true);
 
-  // ---- Wrap playSegment to unify logic ----
-  const origPlay = window.playSegment;
-  if (typeof origPlay === "function") {
-    window.playSegment = function (s, e, i) {
-      const result = origPlay.call(this, s, e, i);
+  // Hold, then fade back exactly to the true base
+  holdTimer = setTimeout(() => {
+    fadeTo(baseVocal);
+    setTimeout(() => glow(false), FADE);
+  }, HOLD);
+}
 
-      // handle first boost only once
-      if (i === 0 && firstBoostHandled) return result;
-      firstBoostHandled = true;
-
-      startBoost();
-      watchEnds();
-      return result;
-    };
-  }
-
-  // ---- Cleanup on pause / end / tab hidden ----
-  function stopAll() {
-    clearTimeout(holdTimer);
-    clearInterval(fadeInt);
-    clearInterval(endWatcher);
-    fading = false;
-    glow(false);
-  }
-  window.vocalAudio?.addEventListener("pause", stopAll);
-  window.vocalAudio?.addEventListener("ended", stopAll);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) stopAll(); });
-  window.addEventListener("pagehide", stopAll);
-
-  console.log("🎤 Foolproof Vocal Vitality overlay installed (stable build).");
-})();
+// ---------- watchEnds: when scheduling end fade-up, compute base fresh from slider ----------
+function watchEnds() {
+  clearInterval(endWatcher);
+  const a = window.vocalAudio; if (!a || !Array.isArray(window.segments)) return;
+  endWatcher = setInterval(() => {
+    const segs = window.segments; if (!window.currentlyPlaying || !segs.length) return;
+    const t = a.currentTime, i = segs.findIndex(s => t >= s.start && t < s.end);
+    if (i === -1) return;
+    const seg = segs[i], last = i >= segs.length - 1, left = seg.end - t;
+    if (!last && left > 0 && left <= ENDWIN && !fading) {
+      // recompute base at this moment using slider (pre-boost base)
+      baseVocal = getTrueBaseVocal();
+      fading = true;
+      fadeTo(Math.min(1, baseVocal + BOOST));
+      glow(true);
+      // leave `endWatcher` running (next playSegment start will call startBoost() which resets timers)
+      setTimeout(() => { fading = false; }, FADE + 100);
+    }
+  }, 200);
+}
