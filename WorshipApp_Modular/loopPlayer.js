@@ -739,22 +739,22 @@ But for now — yes, you’ve reached the gold standard.
 
 
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Multi-Segment Proper Repeat
+   🎤 Vocal Vitality Boost Overlay — Multi-Segment Stable Version
    --------------------------------------------------------------
    ✅ Every segment:
       +0.02 boost → hold 5 s → fade-down
-      Fade-up 2 s before end → quick reset to base
+      Fade-up 2 s before end → reset to base
    ✅ Final segment: no fade-up
-   ✅ No accumulation or .04 overshoot
-   ✅ Linear 0.5 s fades, consistent glow
+   ✅ Uses true base (no accumulation)
+   ✅ Linear 0.5 s fades, glow feedback
    ========================================================== */
 
 (function () {
-  if (window.__VOCAL_VITALITY_MULTI_FIXED__) return;
-  window.__VOCAL_VITALITY_MULTI_FIXED__ = true;
+  if (window.__VOCAL_VITALITY_MULTI_STABLE__) return;
+  window.__VOCAL_VITALITY_MULTI_STABLE__ = true;
 
   const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 5000; // 5 s hold
+  const HOLD_TIME = 5000; // 5 s
   const FADE_TIME = 500;
   const CHECK_INTERVAL = 100;
   const END_RAISE_WINDOW = 2.0;
@@ -806,15 +806,18 @@ But for now — yes, you’ve reached the gold standard.
     }, CHECK_INTERVAL);
   }
 
-  // --- apply start boost per segment ---
+  // --- apply start boost per segment (corrected base handling) ---
   function applyStartBoost() {
     if (!window.vocalAudio) return;
+
+    // Capture real, unboosted base from audio before boosting
+    baseVocal = baseVocal ?? parseFloat(window.vocalAudio.volume) || 0.0;
+
+    const boosted = Math.min(1, baseVocal + BOOST_AMOUNT);
+    window.vocalAudio.volume = boosted;
+
     const s = document.getElementById("vocalVolume");
     const d = document.getElementById("vocalVolumeDisplay");
-    baseVocal = parseFloat(s?.value) || 0.0;
-    const boosted = Math.min(1, baseVocal + BOOST_AMOUNT);
-
-    window.vocalAudio.volume = boosted;
     if (s) s.value = boosted.toFixed(2);
     if (d) d.textContent = boosted.toFixed(2);
     setGlow(true);
@@ -831,8 +834,7 @@ But for now — yes, you’ve reached the gold standard.
     if (isLast) return; // skip final segment
 
     fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
-      console.log(`🔄 Segment ${idx + 1} fade-up done → reset to base`);
-      // After fade-up, quick reset
+      console.log(`🔄 Segment ${idx + 1} fade-up → reset`);
       setTimeout(() => {
         fadeVocalTo(baseVocal, () => {
           const s = document.getElementById("vocalVolume");
@@ -849,7 +851,7 @@ But for now — yes, you’ve reached the gold standard.
     setGlow(true);
   }
 
-  // --- watch all segments for fade-ups ---
+  // --- watch all segments ---
   function installEndWatcher() {
     clearInterval(endWatcher);
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
@@ -873,26 +875,30 @@ But for now — yes, you’ve reached the gold standard.
     }, 200);
   }
 
-  // --- hook into segment start events (auto + manual) ---
+  // --- hook into segment starts (auto + manual) ---
   function hookSegmentStarts() {
-    // Wrap playSegment for auto transitions
+    // Intercept auto transitions
     const oldPlaySegment = window.playSegment;
     if (typeof oldPlaySegment === "function" && !oldPlaySegment.__boostWrapped__) {
       window.playSegment = function (start, end, idx) {
         const result = oldPlaySegment.call(this, start, end, idx);
+        baseVocal = parseFloat(window.vocalAudio.volume) || 0.0; // always re-baseline
         applyStartBoost();
         return result;
       };
       window.playSegment.__boostWrapped__ = true;
     }
 
-    // Attach to manual segment button clicks
+    // Hook manual clicks
     const observer = new MutationObserver(() => {
       const buttons = document.querySelectorAll(".segment-button");
       buttons.forEach(btn => {
         if (!btn.__vocalBoostHooked__) {
           btn.__vocalBoostHooked__ = true;
-          btn.addEventListener("click", () => applyStartBoost());
+          btn.addEventListener("click", () => {
+            baseVocal = parseFloat(window.vocalAudio.volume) || 0.0; // re-baseline
+            applyStartBoost();
+          });
         }
       });
     });
@@ -905,6 +911,7 @@ But for now — yes, you’ve reached the gold standard.
     if (!playBtn) return;
     playBtn.addEventListener("click", () => {
       if (window.vocalAudio && window.accompAudio) {
+        baseVocal = parseFloat(window.vocalAudio.volume) || 0.0;
         applyStartBoost();
         installEndWatcher();
         hookSegmentStarts();
@@ -928,5 +935,5 @@ But for now — yes, you’ve reached the gold standard.
     if (document.hidden) stopWatchers();
   });
 
-  console.log("🎤 Vocal Vitality Boost Overlay (multi-segment proper repeat, 5 s hold) installed.");
+  console.log("🎤 Vocal Vitality Boost Overlay (multi-segment STABLE, no accumulation) installed.");
 })();
