@@ -739,22 +739,24 @@ But for now — yes, you’ve reached the gold standard.
 
 
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Single-Segment Proper Reset
-   --------------------------------------------------------------
-   ✅ First segment only
-   ✅ +0.02 boost → hold 3 s → fade-down
-   ✅ Fade-up 2 s before end → quick reset to base
+   🎤 Vocal Vitality Boost Overlay — Multi-Segment Edition (v2)
+   ------------------------------------------------------------
+   ✅ Applies to all segments (auto + manual)
+   ✅ +0.02 boost → hold 5 s → fade-down
+   ✅ Fade-up again 2 s before end (except final segment)
+   ✅ After fade-up → reset to base (no accumulation)
+   ✅ Linear 0.5 s fades, natural glow feedback
    ========================================================== */
 
 (function () {
-  if (window.__VOCAL_VITALITY_SEGMENT1__) return;
-  window.__VOCAL_VITALITY_SEGMENT1__ = true;
+  if (window.__VOCAL_VITALITY_MULTI__) return;
+  window.__VOCAL_VITALITY_MULTI__ = true;
 
   const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 3000;
-  const FADE_TIME = 500;
-  const CHECK_INTERVAL = 100;
-  const END_RAISE_WINDOW = 2.0;
+  const HOLD_TIME = 5000;          // 5 s hold
+  const FADE_TIME = 500;           // 0.5 s fade
+  const CHECK_INTERVAL = 100;      // 0.1 s fade steps
+  const END_RAISE_WINDOW = 2.0;    // 2 s before end → fade-up
 
   let baseVocal = null;
   let boostTimer = null;
@@ -803,7 +805,7 @@ But for now — yes, you’ve reached the gold standard.
     }, CHECK_INTERVAL);
   }
 
-  // --- start boost ---
+  // --- start boost cycle ---
   function applyStartBoost() {
     if (!window.vocalAudio) return;
     const s = document.getElementById("vocalVolume");
@@ -822,46 +824,80 @@ But for now — yes, you’ve reached the gold standard.
     }, HOLD_TIME);
   }
 
-  // --- fade-up near end, then reset cleanly ---
+  // --- fade-up near end, reset afterwards ---
+  function handleSegmentEnd(segIndex, segCount) {
+    const isLast = segIndex >= segCount - 1;
+    if (isLast) return; // skip final segment fade-up
+    fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
+      console.log(`🔄 Segment ${segIndex + 1} fade-up done → quick reset`);
+      setTimeout(() => {
+        fadeVocalTo(baseVocal, () => {
+          const s = document.getElementById("vocalVolume");
+          const d = document.getElementById("vocalVolumeDisplay");
+          if (s) s.value = baseVocal.toFixed(2);
+          if (d) d.textContent = baseVocal.toFixed(2);
+          setGlow(false);
+          fading = false;
+          clearTimeout(boostTimer);
+          boostTimer = null;
+        });
+      }, 200);
+    });
+    setGlow(true);
+  }
+
+  // --- watch every segment ---
   function installEndWatcher() {
     clearInterval(endWatcher);
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
+
     endWatcher = setInterval(() => {
       const a = window.vocalAudio;
       const segs = window.segments;
       if (!a || !window.currentlyPlaying || segs.length === 0) return;
 
-      const seg = segs[0];
-      if (!seg) return;
-
       const curTime = a.currentTime;
-      if (curTime < seg.start || curTime >= seg.end) return;
+      const idx = segs.findIndex(s => curTime >= s.start && curTime < s.end);
+      if (idx === -1) return;
 
+      const seg = segs[idx];
       const timeToEnd = seg.end - curTime;
+
+      // fade-up 2 s before end of current segment
       if (timeToEnd > 0 && timeToEnd <= END_RAISE_WINDOW && !fading) {
         fading = true;
-        fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
-          console.log("🔄 Segment1 fade-up done → quick reset to base");
-          // short delay then fade back to base quietly
-          setTimeout(() => {
-            fadeVocalTo(baseVocal, () => {
-              const s = document.getElementById("vocalVolume");
-              const d = document.getElementById("vocalVolumeDisplay");
-              if (s) s.value = baseVocal.toFixed(2);
-              if (d) d.textContent = baseVocal.toFixed(2);
-              setGlow(false);
-              fading = false;
-              clearTimeout(boostTimer);
-              boostTimer = null;
-            });
-          }, 200);
-        });
-        setGlow(true);
+        handleSegmentEnd(idx, segs.length);
       }
     }, 200);
   }
 
-  // --- activate on Play ---
+  // --- hook segment starts (auto + manual) ---
+  function hookSegmentStarts() {
+    // auto: intercept playSegment()
+    const oldPlaySegment = window.playSegment;
+    if (typeof oldPlaySegment === "function" && !oldPlaySegment.__boostWrapped__) {
+      window.playSegment = function (start, end, idx) {
+        const r = oldPlaySegment.call(this, start, end, idx);
+        applyStartBoost();
+        return r;
+      };
+      window.playSegment.__boostWrapped__ = true;
+    }
+
+    // manual: clicking segment buttons
+    const observer = new MutationObserver(() => {
+      const buttons = document.querySelectorAll(".segment-button");
+      buttons.forEach(btn => {
+        if (!btn.__vocalBoostHooked__) {
+          btn.__vocalBoostHooked__ = true;
+          btn.addEventListener("click", () => applyStartBoost());
+        }
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // --- start on Play ---
   document.addEventListener("DOMContentLoaded", () => {
     const playBtn = document.getElementById("playBtn");
     if (!playBtn) return;
@@ -869,6 +905,7 @@ But for now — yes, you’ve reached the gold standard.
       if (window.vocalAudio && window.accompAudio) {
         applyStartBoost();
         installEndWatcher();
+        hookSegmentStarts();
       }
     });
   });
@@ -889,5 +926,5 @@ But for now — yes, you’ve reached the gold standard.
     if (document.hidden) stopWatchers();
   });
 
-  console.log("🎤 Vocal Vitality Boost Overlay (single-segment proper reset) installed.");
+  console.log("🎤 Vocal Vitality Boost Overlay (multi-segment, 5 s hold) installed.");
 })();
