@@ -738,23 +738,21 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
-
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Unified Final Version
+   🎤 Vocal Vitality Boost Overlay — Corrected Unified Final
    ----------------------------------------------------------
-   ✅ Linear 0.5 s fades
-   ✅ +0.02 vocal boost at start of ANY segment (auto/manual)
-   ✅ 3 s hold before fade-down
-   ✅ Smooth fade-up 2 s before segment end (except last)
-   ✅ Golden glow during boost
-   ✅ Works for Play, user taps, and auto-advance
+   ✅ +0.02 vocal boost at each segment start
+   ✅ 3 s hold then 0.5 s fade-down
+   ✅ Fade-up 2 s before each segment end (except last)
+   ✅ Works for Play, manual tap, auto-advance
+   ✅ Prevents double-trigger & keeps glow timing right
    ========================================================== */
 (function () {
-  if (window.__VOCAL_VITALITY_UNIFIED__) return;
-  window.__VOCAL_VITALITY_UNIFIED__ = true;
+  if (window.__VOCAL_VITALITY_CORRECTED__) return;
+  window.__VOCAL_VITALITY_CORRECTED__ = true;
 
   const BOOST = 0.02, HOLD = 3000, FADE = 500, STEP = 100, ENDWIN = 2.0;
-  let baseVocal = null, fadeInt = null, holdTimer = null, endWatcher = null, fading = false;
+  let baseVocal = null, fadeInt = null, holdTimer = null, endWatcher = null, fading = false, boosting = false;
 
   // ---- Glow helper ----
   const label = document.querySelector('label[for="vocalVolume"]');
@@ -785,9 +783,10 @@ But for now — yes, you’ve reached the gold standard.
     }, STEP);
   }
 
-  // ---- Boost + hold + fade-down ----
+  // ---- Boost + hold + fade-down (safe single-fire) ----
   function startBoost() {
-    const a = window.vocalAudio; if (!a) return;
+    const a = window.vocalAudio; if (!a || boosting) return;
+    boosting = true;
     baseVocal = parseFloat(a.volume) || 0;
     const boosted = Math.min(1, baseVocal + BOOST);
     a.volume = boosted;
@@ -795,10 +794,11 @@ But for now — yes, you’ve reached the gold standard.
     if (s) s.value = boosted.toFixed(2);
     if (d) d.textContent = boosted.toFixed(2);
     glow(true);
+
     clearTimeout(holdTimer);
     holdTimer = setTimeout(() => {
       fadeTo(baseVocal);
-      setTimeout(() => glow(false), FADE);
+      setTimeout(() => { glow(false); boosting = false; }, FADE);
     }, HOLD);
   }
 
@@ -820,32 +820,34 @@ But for now — yes, you’ve reached the gold standard.
     }, 200);
   }
 
-  // ---- Wrap playSegment to catch all starts ----
+  // ---- Wrap playSegment to catch every new segment start ----
   const origPlay = window.playSegment;
   if (typeof origPlay === "function") {
     window.playSegment = function (s, e, i) {
       const r = origPlay.call(this, s, e, i);
-      startBoost();       // every segment start (auto/manual)
-      watchEnds();        // re-install end watcher
+      boosting = false;       // allow next boost
+      startBoost();           // each segment start
+      watchEnds();            // reinstall watcher
       return r;
     };
   }
 
-  // ---- Also trigger on Play button ----
+  // ---- Also fire on Play button ----
   document.addEventListener("DOMContentLoaded", () => {
     const p = document.getElementById("playBtn");
     if (p) p.addEventListener("click", () => {
+      boosting = false;
       startBoost();
       watchEnds();
     });
   });
 
-  // ---- Stop all timers on pause/stop ----
+  // ---- Stop all timers on pause / end / background ----
   function stopAll() {
     clearTimeout(holdTimer);
     clearInterval(fadeInt);
     clearInterval(endWatcher);
-    fading = false;
+    fading = boosting = false;
     glow(false);
   }
   window.vocalAudio?.addEventListener("pause", stopAll);
@@ -853,5 +855,5 @@ But for now — yes, you’ve reached the gold standard.
   document.addEventListener("visibilitychange", () => { if (document.hidden) stopAll(); });
   window.addEventListener("pagehide", stopAll);
 
-  console.log("🎤 Unified Vocal Vitality Boost overlay installed.");
+  console.log("🎤 Vocal Vitality Boost overlay (corrected unified) installed.");
 })();
