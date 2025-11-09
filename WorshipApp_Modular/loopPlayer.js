@@ -739,22 +739,23 @@ But for now — yes, you’ve reached the gold standard.
 
 
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Corrected Unified Final
+   🎤 Vocal Vitality Boost Overlay — Foolproof Stable Build
    ----------------------------------------------------------
-   ✅ +0.02 vocal boost at each segment start
-   ✅ 3 s hold then 0.5 s fade-down
-   ✅ Fade-up 2 s before each segment end (except last)
+   ✅ Single-boost per segment (no double-fire)
+   ✅ Linear fade: +0.02 → hold 3s → fade-down
+   ✅ End fade-up 2s before boundary (skip last)
    ✅ Works for Play, manual tap, auto-advance
-   ✅ Prevents double-trigger & keeps glow timing right
+   ✅ Timers safely reset at each transition
    ========================================================== */
 (function () {
-  if (window.__VOCAL_VITALITY_CORRECTED__) return;
-  window.__VOCAL_VITALITY_CORRECTED__ = true;
+  if (window.__VOCAL_VITALITY_FOOLPROOF__) return;
+  window.__VOCAL_VITALITY_FOOLPROOF__ = true;
 
   const BOOST = 0.02, HOLD = 3000, FADE = 500, STEP = 100, ENDWIN = 2.0;
-  let baseVocal = null, fadeInt = null, holdTimer = null, endWatcher = null, fading = false, boosting = false;
+  let baseVocal = null, fadeInt = null, holdTimer = null, endWatcher = null, fading = false;
+  let firstBoostHandled = false;
 
-  // ---- Glow helper ----
+  // ---- Label glow helper ----
   const label = document.querySelector('label[for="vocalVolume"]');
   function glow(on) {
     if (!label) return;
@@ -783,26 +784,31 @@ But for now — yes, you’ve reached the gold standard.
     }, STEP);
   }
 
-  // ---- Boost + hold + fade-down (safe single-fire) ----
+  // ---- Core: boost + hold + fade-down ----
   function startBoost() {
-    const a = window.vocalAudio; if (!a || boosting) return;
-    boosting = true;
+    const a = window.vocalAudio; if (!a) return;
+    // reset previous timers cleanly
+    clearTimeout(holdTimer);
+    clearInterval(fadeInt);
+    clearInterval(endWatcher);
+    fading = false;
+
     baseVocal = parseFloat(a.volume) || 0;
     const boosted = Math.min(1, baseVocal + BOOST);
     a.volume = boosted;
+
     const s = document.getElementById("vocalVolume"), d = document.getElementById("vocalVolumeDisplay");
     if (s) s.value = boosted.toFixed(2);
     if (d) d.textContent = boosted.toFixed(2);
     glow(true);
 
-    clearTimeout(holdTimer);
     holdTimer = setTimeout(() => {
       fadeTo(baseVocal);
-      setTimeout(() => { glow(false); boosting = false; }, FADE);
+      setTimeout(() => glow(false), FADE);
     }, HOLD);
   }
 
-  // ---- End-fade watcher ----
+  // ---- Watch for end fade-up ----
   function watchEnds() {
     clearInterval(endWatcher);
     const a = window.vocalAudio; if (!a || !Array.isArray(window.segments)) return;
@@ -820,34 +826,28 @@ But for now — yes, you’ve reached the gold standard.
     }, 200);
   }
 
-  // ---- Wrap playSegment to catch every new segment start ----
+  // ---- Wrap playSegment to unify logic ----
   const origPlay = window.playSegment;
   if (typeof origPlay === "function") {
     window.playSegment = function (s, e, i) {
-      const r = origPlay.call(this, s, e, i);
-      boosting = false;       // allow next boost
-      startBoost();           // each segment start
-      watchEnds();            // reinstall watcher
-      return r;
+      const result = origPlay.call(this, s, e, i);
+
+      // handle first boost only once
+      if (i === 0 && firstBoostHandled) return result;
+      firstBoostHandled = true;
+
+      startBoost();
+      watchEnds();
+      return result;
     };
   }
 
-  // ---- Also fire on Play button ----
-  document.addEventListener("DOMContentLoaded", () => {
-    const p = document.getElementById("playBtn");
-    if (p) p.addEventListener("click", () => {
-      boosting = false;
-      startBoost();
-      watchEnds();
-    });
-  });
-
-  // ---- Stop all timers on pause / end / background ----
+  // ---- Cleanup on pause / end / tab hidden ----
   function stopAll() {
     clearTimeout(holdTimer);
     clearInterval(fadeInt);
     clearInterval(endWatcher);
-    fading = boosting = false;
+    fading = false;
     glow(false);
   }
   window.vocalAudio?.addEventListener("pause", stopAll);
@@ -855,5 +855,5 @@ But for now — yes, you’ve reached the gold standard.
   document.addEventListener("visibilitychange", () => { if (document.hidden) stopAll(); });
   window.addEventListener("pagehide", stopAll);
 
-  console.log("🎤 Vocal Vitality Boost overlay (corrected unified) installed.");
+  console.log("🎤 Foolproof Vocal Vitality overlay installed (stable build).");
 })();
