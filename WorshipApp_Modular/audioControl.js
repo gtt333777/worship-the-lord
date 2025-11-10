@@ -1,9 +1,9 @@
 ﻿// =======================================================
 //  audioControl.js — FINAL FOOLPROOF + VOCAL BOOST VERSION
+//  🎨 With Warm Gold → Peaceful Blue Glow Theme
 // =======================================================
 
 // --- Configuration ---
-//var MIN_VOL = 0.00;
 var MIN_VOL = 0.001;
 window.DEFAULTS = window.DEFAULTS || { vocal: 0.0025, accomp: 0.02 };
 var DEFAULTS = window.DEFAULTS;
@@ -108,27 +108,38 @@ window.addEventListener("load", () => {
 
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
+//  🎨 Warm Gold → Peaceful Blue Glow Theme
 // =======================================================
 
 (function () {
   if (window.__VOCAL_VITALITY_BUILTIN__) return;
   window.__VOCAL_VITALITY_BUILTIN__ = true;
 
-  const BOOST_AMOUNT = 0.02;       // fixed +0.02 boost
-  const HOLD_TIME = 3000;          // 3 s hold before reset
-  const END_RAISE_WINDOW = 2.0;    // seconds before segment end
-  const CHECK_INTERVAL = 200;      // check every 200 ms
-  const BOOST_DELAY = 120;         // slight delay for smooth start
+  const BOOST_AMOUNT = 0.02;
+  const HOLD_TIME = 3000;          // hold 3s
+  const END_RAISE_WINDOW = 2.0;    // seconds before end
+  const CHECK_INTERVAL = 200;
+  const BOOST_DELAY = 120;
 
   const labelEl = document.querySelector('label[for="vocalVolume"]');
-  function setGlow(on) {
+
+  // ✨ Enhanced dual-color glow function
+  function setGlow(mode) {
     if (!labelEl) return;
-    labelEl.style.transition = "box-shadow 0.3s ease, background 0.3s ease";
-    if (on) {
-      labelEl.style.boxShadow = "0 0 15px 4px rgba(255,200,80,0.7)";
-      labelEl.style.background = "linear-gradient(to right,#fff8e1,#ffecb3)";
-      labelEl.style.borderRadius = "8px";
-    } else {
+    labelEl.style.transition = "box-shadow 0.4s ease, background 0.4s ease";
+    labelEl.style.borderRadius = "8px";
+
+    if (mode === "start") {
+      // 🟡 Warm golden glow for beginning
+      labelEl.style.boxShadow = "0 0 20px 6px rgba(255, 213, 79, 0.9)";
+      labelEl.style.background = "linear-gradient(to right,#fffde7,#fff59d)";
+    } 
+    else if (mode === "end") {
+      // 🔵 Peaceful blue glow for ending
+      labelEl.style.boxShadow = "0 0 20px 6px rgba(100,181,246,0.9)";
+      labelEl.style.background = "linear-gradient(to right,#e3f2fd,#bbdefb)";
+    } 
+    else {
       labelEl.style.boxShadow = "";
       labelEl.style.background = "";
     }
@@ -157,7 +168,7 @@ window.addEventListener("load", () => {
           console.log(`🚀 Segment ${i + 1} boost`);
           setTimeout(() => {
             setVolumeOnTargets("vocal", boosted);
-            setGlow(true);
+            setGlow("start");
           }, BOOST_DELAY);
 
           // reset to base after hold
@@ -165,7 +176,7 @@ window.addEventListener("load", () => {
             if (a.paused) return;
             console.log(`⬇️ Segment ${i + 1} reset`);
             setVolumeOnTargets("vocal", base);
-            setGlow(false);
+            setGlow(null);
           }, HOLD_TIME + BOOST_DELAY);
         }
 
@@ -174,11 +185,11 @@ window.addEventListener("load", () => {
           seg._fadedUp = true;
           console.log(`🔄 Segment ${i + 1} end raise`);
           setVolumeOnTargets("vocal", boosted);
-          setGlow(true);
+          setGlow("end");
 
           setTimeout(() => {
             setVolumeOnTargets("vocal", base);
-            setGlow(false);
+            setGlow(null);
           }, 400);
         }
 
@@ -187,7 +198,7 @@ window.addEventListener("load", () => {
           seg._reset = true;
           console.log(`⏹️ Segment ${i + 1} end reset`);
           setVolumeOnTargets("vocal", base);
-          setGlow(false);
+          setGlow(null);
           clearInterval(watcher);
         }
       }, CHECK_INTERVAL);
@@ -204,5 +215,5 @@ window.addEventListener("load", () => {
     }, 200);
   });
 
-  console.log("🎤 Built-in Vocal Vitality Boost logic integrated (non-juggling).");
+  console.log("🎤 Built-in Vocal Vitality Boost logic integrated (non-juggling, gold→blue theme).");
 })();
