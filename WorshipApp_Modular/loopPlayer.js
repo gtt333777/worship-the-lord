@@ -904,20 +904,18 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
-
-
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Extension for Later Segments (Final)
+   🎤 Vocal Vitality Boost Overlay — Extension for Later Segments (Fixed v2)
    --------------------------------------------------------------
-   ✅ Exact replica of "Single-Segment Proper Reset" logic
-   ✅ Works for segments 2, 3, 4, ...
+   ✅ Identical to Single-Segment Proper Reset
+   ✅ Works for segments 2, 3, 4 …
    ✅ +0.02 boost → hold 3 s → fade-down
-   ✅ Fade-up 2 s before end → short delay → fade-down → reset glow
+   ✅ Fade-up 2 s before end → quick fade-down → reset glow
    ========================================================== */
 
 (function () {
-  if (window.__VOCAL_VITALITY_SEGMENT_EXTENSION_FINAL__) return;
-  window.__VOCAL_VITALITY_SEGMENT_EXTENSION_FINAL__ = true;
+  if (window.__VOCAL_VITALITY_SEGMENT_EXTENSION_V2__) return;
+  window.__VOCAL_VITALITY_SEGMENT_EXTENSION_V2__ = true;
 
   const BOOST_AMOUNT = 0.02;
   const HOLD_TIME = 3000;
@@ -947,7 +945,7 @@ But for now — yes, you’ve reached the gold standard.
     }
   }
 
-  // --- smooth fade (identical to base) ---
+  // --- smooth fade ---
   function fadeVocalTo(target, onComplete) {
     if (!window.vocalAudio) return;
     const start = window.vocalAudio.volume;
@@ -974,7 +972,7 @@ But for now — yes, you’ve reached the gold standard.
     }, CHECK_INTERVAL);
   }
 
-  // --- start boost (same logic as Segment 1) ---
+  // --- start boost ---
   function applyStartBoost() {
     if (!window.vocalAudio) return;
     const s = document.getElementById("vocalVolume");
@@ -993,7 +991,7 @@ But for now — yes, you’ve reached the gold standard.
     }, HOLD_TIME);
   }
 
-  // --- watcher for all segments after the first ---
+  // --- watcher for all later segments ---
   function installEndWatcher() {
     clearInterval(endWatcher);
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
@@ -1005,24 +1003,25 @@ But for now — yes, you’ve reached the gold standard.
 
       const cur = a.currentTime;
       const idx = segs.findIndex(seg => cur >= seg.start && cur < seg.end);
-      if (idx === -1) return;
-      if (idx === 0) return; // segment 1 handled by original script
+      if (idx === -1 || idx === 0) return; // skip first segment
 
       const seg = segs[idx];
 
-      // segment entry detection
+      // --- when new segment starts ---
       if (idx !== activeSegIndex) {
         activeSegIndex = idx;
+        fading = false; // ✅ reset fading flag for new segment
+        clearTimeout(boostTimer);
         console.log(`🎧 Segment ${idx + 1} started`);
         applyStartBoost();
       }
 
-      // fade-up near segment end → short delay → fade-down
+      // --- fade-up near segment end (exact replica of segment 1) ---
       const timeToEnd = seg.end - cur;
       if (timeToEnd > 0 && timeToEnd <= END_RAISE_WINDOW && !fading) {
         fading = true;
         fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
-          console.log(`🔄 Segment ${idx + 1} fade-up → quick fade-down`);
+          console.log(`🔄 Segment ${idx + 1} fade-up done → quick reset`);
           setGlow(true);
           setTimeout(() => {
             fadeVocalTo(baseVocal, () => {
@@ -1031,7 +1030,7 @@ But for now — yes, you’ve reached the gold standard.
               if (s) s.value = baseVocal.toFixed(2);
               if (d) d.textContent = baseVocal.toFixed(2);
               setGlow(false);
-              fading = false;
+              fading = false; // ✅ allow next fade cycle
               clearTimeout(boostTimer);
               boostTimer = null;
             });
@@ -1050,7 +1049,7 @@ But for now — yes, you’ve reached the gold standard.
     });
   });
 
-  // --- cleanup (same as base) ---
+  // --- cleanup ---
   function stopWatchers() {
     clearTimeout(boostTimer);
     clearInterval(endWatcher);
@@ -1066,5 +1065,5 @@ But for now — yes, you’ve reached the gold standard.
     if (document.hidden) stopWatchers();
   });
 
-  console.log("🎤 Vocal Vitality Boost Overlay — Extension for later segments (final exact replica) installed.");
+  console.log("🎤 Vocal Vitality Boost Overlay — Extension v2 (identical end fade) installed.");
 })();
