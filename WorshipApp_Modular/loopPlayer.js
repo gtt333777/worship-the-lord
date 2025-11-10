@@ -904,166 +904,36 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
-/* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Extension for Later Segments (Fixed v2)
-   --------------------------------------------------------------
-   ✅ Identical to Single-Segment Proper Reset
-   ✅ Works for segments 2, 3, 4 …
-   ✅ +0.02 boost → hold 3 s → fade-down
-   ✅ Fade-up 2 s before end → quick fade-down → reset glow
-   ========================================================== */
+// call this for each segment index you want the same effect on
+function runVocalBoostForSegment(i) {
+  const seg = window.segments?.[i];
+  if (!seg || !window.vocalAudio) return;
 
-(function () {
-  if (window.__VOCAL_VITALITY_SEGMENT_EXTENSION_V2__) return;
-  window.__VOCAL_VITALITY_SEGMENT_EXTENSION_V2__ = true;
-
-  const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 3000;
-  const FADE_TIME = 500;
-  const CHECK_INTERVAL = 100;
+  const BOOST = 0.02;
+  const HOLD = 3000;
   const END_RAISE_WINDOW = 2.0;
 
-  let baseVocal = 0.0;
   let fading = false;
-  let activeSegIndex = -1;
-  let boostTimer = null;
-  let fadeTimer = null;
-  let endWatcher = null;
+  let base = window.vocalAudio.volume;
 
-  // --- glow helper (same as base) ---
-  const labelEl = document.querySelector('label[for="vocalVolume"]');
-  function setGlow(on) {
-    if (!labelEl) return;
-    labelEl.style.transition = "box-shadow 0.3s ease, background 0.3s ease";
-    if (on) {
-      labelEl.style.boxShadow = "0 0 15px 4px rgba(255,200,80,0.7)";
-      labelEl.style.background = "linear-gradient(to right,#fff8e1,#ffecb3)";
-      labelEl.style.borderRadius = "8px";
-    } else {
-      labelEl.style.boxShadow = "";
-      labelEl.style.background = "";
+  // start boost
+  window.vocalAudio.volume = Math.min(1, base + BOOST);
+  setTimeout(() => {
+    fadeVocalTo(base);
+  }, HOLD);
+
+  // watcher for fade-up before end
+  const int = setInterval(() => {
+    const t = seg.end - window.vocalAudio.currentTime;
+    if (t > 0 && t <= END_RAISE_WINDOW && !fading) {
+      fading = true;
+      fadeVocalTo(Math.min(1, base + BOOST), () => {
+        setTimeout(() => fadeVocalTo(base), 200);
+      });
     }
-  }
+    if (window.vocalAudio.currentTime >= seg.end) clearInterval(int);
+  }, 200);
+}
 
-  // --- smooth fade ---
-  function fadeVocalTo(target, onComplete) {
-    if (!window.vocalAudio) return;
-    const start = window.vocalAudio.volume;
-    const delta = target - start;
-    const steps = Math.max(1, Math.round(FADE_TIME / CHECK_INTERVAL));
-    let count = 0;
-    fading = true;
-    clearInterval(fadeTimer);
-    fadeTimer = setInterval(() => {
-      if (!window.vocalAudio) return;
-      count++;
-      const p = count / steps;
-      const newVol = Math.min(1, Math.max(0, start + delta * p));
-      window.vocalAudio.volume = newVol;
-      const s = document.getElementById("vocalVolume");
-      const d = document.getElementById("vocalVolumeDisplay");
-      if (s) s.value = newVol.toFixed(2);
-      if (d) d.textContent = newVol.toFixed(2);
-      if (count >= steps) {
-        clearInterval(fadeTimer);
-        fading = false;
-        if (onComplete) onComplete();
-      }
-    }, CHECK_INTERVAL);
-  }
-
-  // --- start boost ---
-  function applyStartBoost() {
-    if (!window.vocalAudio) return;
-    const s = document.getElementById("vocalVolume");
-    const d = document.getElementById("vocalVolumeDisplay");
-    baseVocal = parseFloat(s?.value) || 0.0;
-    const boosted = Math.min(1, baseVocal + BOOST_AMOUNT);
-
-    window.vocalAudio.volume = boosted;
-    if (s) s.value = boosted.toFixed(2);
-    if (d) d.textContent = boosted.toFixed(2);
-    setGlow(true);
-
-    clearTimeout(boostTimer);
-    boostTimer = setTimeout(() => {
-      fadeVocalTo(baseVocal, () => setGlow(false));
-    }, HOLD_TIME);
-  }
-
-  // --- watcher for all later segments ---
-  function installEndWatcher() {
-    clearInterval(endWatcher);
-    if (!window.vocalAudio || !Array.isArray(window.segments)) return;
-
-    endWatcher = setInterval(() => {
-      const a = window.vocalAudio;
-      const segs = window.segments;
-      if (!a || !window.currentlyPlaying || segs.length < 2) return;
-
-      const cur = a.currentTime;
-      const idx = segs.findIndex(seg => cur >= seg.start && cur < seg.end);
-      if (idx === -1 || idx === 0) return; // skip first segment
-
-      const seg = segs[idx];
-
-      // --- when new segment starts ---
-      if (idx !== activeSegIndex) {
-        activeSegIndex = idx;
-        fading = false; // ✅ reset fading flag for new segment
-        clearTimeout(boostTimer);
-        console.log(`🎧 Segment ${idx + 1} started`);
-        applyStartBoost();
-      }
-
-      // --- fade-up near segment end (exact replica of segment 1) ---
-      const timeToEnd = seg.end - cur;
-      if (timeToEnd > 0 && timeToEnd <= END_RAISE_WINDOW && !fading) {
-        fading = true;
-        fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
-          console.log(`🔄 Segment ${idx + 1} fade-up done → quick reset`);
-          setGlow(true);
-          setTimeout(() => {
-            fadeVocalTo(baseVocal, () => {
-              const s = document.getElementById("vocalVolume");
-              const d = document.getElementById("vocalVolumeDisplay");
-              if (s) s.value = baseVocal.toFixed(2);
-              if (d) d.textContent = baseVocal.toFixed(2);
-              setGlow(false);
-              fading = false; // ✅ allow next fade cycle
-              clearTimeout(boostTimer);
-              boostTimer = null;
-            });
-          }, 200);
-        });
-      }
-    }, 200);
-  }
-
-  // --- activate on Play ---
-  document.addEventListener("DOMContentLoaded", () => {
-    const playBtn = document.getElementById("playBtn");
-    if (!playBtn) return;
-    playBtn.addEventListener("click", () => {
-      if (window.vocalAudio && window.accompAudio) installEndWatcher();
-    });
-  });
-
-  // --- cleanup ---
-  function stopWatchers() {
-    clearTimeout(boostTimer);
-    clearInterval(endWatcher);
-    clearInterval(fadeTimer);
-    fading = false;
-    setGlow(false);
-  }
-
-  window.vocalAudio?.addEventListener("pause", stopWatchers);
-  window.vocalAudio?.addEventListener("ended", stopWatchers);
-  window.addEventListener("pagehide", stopWatchers);
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopWatchers();
-  });
-
-  console.log("🎤 Vocal Vitality Boost Overlay — Extension v2 (identical end fade) installed.");
-})();
+// now simply call for all segments
+window.segments?.forEach((_, i) => runVocalBoostForSegment(i));
