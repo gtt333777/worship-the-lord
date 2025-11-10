@@ -739,29 +739,29 @@ But for now — yes, you’ve reached the gold standard.
 
 
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Multi-Segment Stable Version
+   🎤 Vocal Vitality Boost Overlay — Multi-Segment Version
    --------------------------------------------------------------
-   ✅ Every segment:
-      +0.02 boost → hold 5 s → fade-down
-      Fade-up 2 s before end → reset to base
-   ✅ Final segment: no fade-up
-   ✅ Uses true base (no accumulation)
-   ✅ Linear 0.5 s fades, glow feedback
+   ✅ Applies to all segments automatically
+   ✅ +0.02 boost → hold 3 s → fade-down
+   ✅ Fade-up again 2 s before segment end
+   ✅ Instant reset to base at segment end (no fade-down)
    ========================================================== */
 
 (function () {
-  if (window.__VOCAL_VITALITY_MULTI_STABLE__) return;
-  window.__VOCAL_VITALITY_MULTI_STABLE__ = true;
+  if (window.__VOCAL_VITALITY_MULTI_SEG__) return;
+  window.__VOCAL_VITALITY_MULTI_SEG__ = true;
 
   const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 5000; // 5 s
+  const HOLD_TIME = 3000;
   const FADE_TIME = 500;
   const CHECK_INTERVAL = 100;
   const END_RAISE_WINDOW = 2.0;
 
   let baseVocal = null;
   let boostTimer = null;
+  let fadeInt = null;
   let endWatcher = null;
+  let currentSegmentIndex = -1;
   let fading = false;
 
   // --- glow helper ---
@@ -782,13 +782,13 @@ But for now — yes, you’ve reached the gold standard.
   // --- smooth fade ---
   function fadeVocalTo(target, onComplete) {
     if (!window.vocalAudio) return;
+    clearInterval(fadeInt);
     const start = window.vocalAudio.volume;
     const delta = target - start;
     const steps = Math.max(1, Math.round(FADE_TIME / CHECK_INTERVAL));
     let count = 0;
     fading = true;
-    clearInterval(window.__vocalFadeInt);
-    window.__vocalFadeInt = setInterval(() => {
+    fadeInt = setInterval(() => {
       if (!window.vocalAudio) return;
       count++;
       const p = count / steps;
@@ -799,25 +799,22 @@ But for now — yes, you’ve reached the gold standard.
       if (s) s.value = newVol.toFixed(2);
       if (d) d.textContent = newVol.toFixed(2);
       if (count >= steps) {
-        clearInterval(window.__vocalFadeInt);
+        clearInterval(fadeInt);
         fading = false;
         if (onComplete) onComplete();
       }
     }, CHECK_INTERVAL);
   }
 
-  // --- apply start boost per segment (corrected base handling) ---
+  // --- start boost for a segment ---
   function applyStartBoost() {
     if (!window.vocalAudio) return;
-
-    // Capture real, unboosted base from audio before boosting
-    baseVocal = baseVocal ?? parseFloat(window.vocalAudio.volume) || 0.0;
-
-    const boosted = Math.min(1, baseVocal + BOOST_AMOUNT);
-    window.vocalAudio.volume = boosted;
-
     const s = document.getElementById("vocalVolume");
     const d = document.getElementById("vocalVolumeDisplay");
+    baseVocal = parseFloat(s?.value) || 0.0;
+    const boosted = Math.min(1, baseVocal + BOOST_AMOUNT);
+
+    window.vocalAudio.volume = boosted;
     if (s) s.value = boosted.toFixed(2);
     if (d) d.textContent = boosted.toFixed(2);
     setGlow(true);
@@ -828,30 +825,7 @@ But for now — yes, you’ve reached the gold standard.
     }, HOLD_TIME);
   }
 
-  // --- fade-up near end of each segment ---
-  function handleSegmentEnd(idx, totalSegments) {
-    const isLast = idx >= totalSegments - 1;
-    if (isLast) return; // skip final segment
-
-    fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
-      console.log(`🔄 Segment ${idx + 1} fade-up → reset`);
-      setTimeout(() => {
-        fadeVocalTo(baseVocal, () => {
-          const s = document.getElementById("vocalVolume");
-          const d = document.getElementById("vocalVolumeDisplay");
-          if (s) s.value = baseVocal.toFixed(2);
-          if (d) d.textContent = baseVocal.toFixed(2);
-          setGlow(false);
-          fading = false;
-          clearTimeout(boostTimer);
-          boostTimer = null;
-        });
-      }, 200);
-    });
-    setGlow(true);
-  }
-
-  // --- watch all segments ---
+  // --- watch playback and apply logic per segment ---
   function installEndWatcher() {
     clearInterval(endWatcher);
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
@@ -862,47 +836,45 @@ But for now — yes, you’ve reached the gold standard.
       if (!a || !window.currentlyPlaying || segs.length === 0) return;
 
       const curTime = a.currentTime;
-      const idx = segs.findIndex(s => curTime >= s.start && curTime < s.end);
+
+      // find current segment index
+      const idx = segs.findIndex(seg => curTime >= seg.start && curTime < seg.end);
       if (idx === -1) return;
 
+      // when entering a new segment
+      if (idx !== currentSegmentIndex) {
+        currentSegmentIndex = idx;
+        console.log(`🎵 Segment ${idx + 1} started`);
+        applyStartBoost();
+      }
+
+      // handle fade-up near end of this segment
       const seg = segs[idx];
       const timeToEnd = seg.end - curTime;
-
       if (timeToEnd > 0 && timeToEnd <= END_RAISE_WINDOW && !fading) {
         fading = true;
-        handleSegmentEnd(idx, segs.length);
+        fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
+          console.log(`🔄 Segment ${idx + 1} fade-up done → will reset at end`);
+          setGlow(true);
+        });
+      }
+
+      // when segment ends, instantly reset
+      if (curTime >= seg.end - 0.05 && curTime <= seg.end + 0.05) {
+        clearTimeout(boostTimer);
+        clearInterval(fadeInt);
+        if (window.vocalAudio) {
+          window.vocalAudio.volume = baseVocal;
+          const s = document.getElementById("vocalVolume");
+          const d = document.getElementById("vocalVolumeDisplay");
+          if (s) s.value = baseVocal.toFixed(2);
+          if (d) d.textContent = baseVocal.toFixed(2);
+        }
+        setGlow(false);
+        fading = false;
+        console.log(`🛑 Segment ${idx + 1} ended → instant reset to base`);
       }
     }, 200);
-  }
-
-  // --- hook into segment starts (auto + manual) ---
-  function hookSegmentStarts() {
-    // Intercept auto transitions
-    const oldPlaySegment = window.playSegment;
-    if (typeof oldPlaySegment === "function" && !oldPlaySegment.__boostWrapped__) {
-      window.playSegment = function (start, end, idx) {
-        const result = oldPlaySegment.call(this, start, end, idx);
-        baseVocal = parseFloat(window.vocalAudio.volume) || 0.0; // always re-baseline
-        applyStartBoost();
-        return result;
-      };
-      window.playSegment.__boostWrapped__ = true;
-    }
-
-    // Hook manual clicks
-    const observer = new MutationObserver(() => {
-      const buttons = document.querySelectorAll(".segment-button");
-      buttons.forEach(btn => {
-        if (!btn.__vocalBoostHooked__) {
-          btn.__vocalBoostHooked__ = true;
-          btn.addEventListener("click", () => {
-            baseVocal = parseFloat(window.vocalAudio.volume) || 0.0; // re-baseline
-            applyStartBoost();
-          });
-        }
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   // --- activate on Play ---
@@ -911,10 +883,7 @@ But for now — yes, you’ve reached the gold standard.
     if (!playBtn) return;
     playBtn.addEventListener("click", () => {
       if (window.vocalAudio && window.accompAudio) {
-        baseVocal = parseFloat(window.vocalAudio.volume) || 0.0;
-        applyStartBoost();
         installEndWatcher();
-        hookSegmentStarts();
       }
     });
   });
@@ -923,7 +892,7 @@ But for now — yes, you’ve reached the gold standard.
   function stopWatchers() {
     clearTimeout(boostTimer);
     clearInterval(endWatcher);
-    clearInterval(window.__vocalFadeInt);
+    clearInterval(fadeInt);
     fading = false;
     setGlow(false);
   }
@@ -935,5 +904,5 @@ But for now — yes, you’ve reached the gold standard.
     if (document.hidden) stopWatchers();
   });
 
-  console.log("🎤 Vocal Vitality Boost Overlay (multi-segment STABLE, no accumulation) installed.");
+  console.log("🎤 Vocal Vitality Boost Overlay (multi-segment version) installed.");
 })();
