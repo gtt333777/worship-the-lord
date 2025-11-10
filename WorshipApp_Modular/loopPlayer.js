@@ -747,7 +747,7 @@ But for now — yes, you’ve reached the gold standard.
    ✅ +0.02 boost → hold 3 s → fade-down
    ✅ Fade-up 2 s before end → quick reset to base
    ========================================================== */
-
+   /*
 (function () {
   if (window.__VOCAL_VITALITY_SEGMENT1__) return;
   window.__VOCAL_VITALITY_SEGMENT1__ = true;
@@ -895,7 +895,7 @@ But for now — yes, you’ve reached the gold standard.
 })();
 
 
-
+*/
 
 
 
