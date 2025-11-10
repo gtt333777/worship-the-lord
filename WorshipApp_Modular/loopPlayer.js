@@ -906,24 +906,25 @@ But for now — yes, you’ve reached the gold standard.
 
 
 
+
 /* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Timer-Based (All Segments)
+   🎤 Vocal Vitality Boost Overlay — Timer-Based (Stable Playback Version)
    --------------------------------------------------------------
-   ✅ Identical behavior to your working Segment-1 logic
-   ✅ Works for ALL segments automatically
-   ✅ Uses exact timeouts — no polling, no misses
+   ✅ Works for all segments 1, 2, 3, ...
    ✅ +0.02 boost → hold 3 s → fade-down
-   ✅ Fade-up 2 s before end → instant reset at end
+   ✅ Fade-up 2 s before end → quick reset
+   ✅ Survives pause/resume — fully stable
    ========================================================== */
 
 (function () {
-  if (window.__VOCAL_VITALITY_TIMER_BASED__) return;
-  window.__VOCAL_VITALITY_TIMER_BASED__ = true;
+  if (window.__VOCAL_VITALITY_TIMER_STABLE__) return;
+  window.__VOCAL_VITALITY_TIMER_STABLE__ = true;
 
   const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 3000;          // 3 seconds
-  const FADE_TIME = 500;           // ms
-  const END_RAISE_WINDOW = 2.0;    // seconds before end to fade up
+  const HOLD_TIME = 3000;          // hold boost 3s
+  const FADE_TIME = 500;           // fade speed
+  const END_RAISE_WINDOW = 2.0;    // seconds before end
+  const CHECK_INTERVAL = 200;      // interval check
 
   const labelEl = document.querySelector('label[for="vocalVolume"]');
   function setGlow(on) {
@@ -939,7 +940,7 @@ But for now — yes, you’ve reached the gold standard.
     }
   }
 
-  // --- smooth fade ---
+  // --- smooth fade helper ---
   function fadeVocalTo(target, onComplete) {
     if (!window.vocalAudio) return;
     const start = window.vocalAudio.volume;
@@ -963,81 +964,81 @@ But for now — yes, you’ve reached the gold standard.
     }, 100);
   }
 
-  // --- per-segment schedule ---
-  function scheduleSegmentTimers(seg, i) {
+  // --- main engine ---
+  function scheduleSegmentActions() {
+    if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
-    if (!a) return;
     const s = document.getElementById("vocalVolume");
     const d = document.getElementById("vocalVolumeDisplay");
-
     const base = parseFloat(s?.value) || 0.0;
     const boosted = Math.min(1, base + BOOST_AMOUNT);
-    const duration = seg.end - seg.start;
 
-    // time until segment start (from playhead=0)
-    const delayToStart = seg.start * 1000;
-    const delayToFadeDown = delayToStart + HOLD_TIME;
-    const delayToEndFadeUp = seg.end * 1000 - END_RAISE_WINDOW * 1000;
-    const delayToReset = seg.end * 1000;
+    console.log("🎵 Timer-based scheduler running...");
 
-    console.log(`🎧 Segment ${i + 1} scheduled: start=${seg.start}s end=${seg.end}s`);
+    window.segments.forEach((seg, i) => {
+      const duration = seg.end - seg.start;
 
-    // --- boost at start ---
-    setTimeout(() => {
-      if (!window.currentlyPlaying) return;
-      console.log(`🚀 Segment ${i + 1} boost +0.02`);
-      a.volume = boosted;
-      if (s) s.value = boosted.toFixed(2);
-      if (d) d.textContent = boosted.toFixed(2);
-      setGlow(true);
-    }, delayToStart);
+      // Calculate times relative to actual audio
+      const fadeUpTime = seg.end - END_RAISE_WINDOW;
 
-    // --- fade down after 3 s ---
-    setTimeout(() => {
-      if (!window.currentlyPlaying) return;
-      console.log(`⬇️ Segment ${i + 1} fade-down after hold`);
-      fadeVocalTo(base, () => setGlow(false));
-    }, delayToFadeDown);
+      // Create internal interval watcher that adapts to pause/resume
+      const watcher = setInterval(() => {
+        if (!a || a.paused) return; // only act while playing
+        const cur = a.currentTime;
 
-    // --- fade up 2 s before end ---
-    setTimeout(() => {
-      if (!window.currentlyPlaying) return;
-      console.log(`🔄 Segment ${i + 1} fade-up near end`);
-      fadeVocalTo(boosted, () => {
-        setGlow(true);
-        setTimeout(() => {
-          fadeVocalTo(base, () => {
-            console.log(`✅ Segment ${i + 1} quick fade-down done`);
-            setGlow(false);
+        // --- Boost at start ---
+        if (cur >= seg.start && cur < seg.start + 0.3 && !seg._boosted) {
+          seg._boosted = true;
+          console.log(`🚀 Segment ${i + 1} boost +0.02`);
+          a.volume = boosted;
+          if (s) s.value = boosted.toFixed(2);
+          if (d) d.textContent = boosted.toFixed(2);
+          setGlow(true);
+
+          // fade-down after 3 s
+          setTimeout(() => {
+            if (a.paused) return;
+            console.log(`⬇️ Segment ${i + 1} fade-down after hold`);
+            fadeVocalTo(base, () => setGlow(false));
+          }, HOLD_TIME);
+        }
+
+        // --- Fade-up near end ---
+        if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
+          seg._fadedUp = true;
+          console.log(`🔄 Segment ${i + 1} fade-up near end`);
+          fadeVocalTo(boosted, () => {
+            setGlow(true);
+            setTimeout(() => {
+              fadeVocalTo(base, () => {
+                console.log(`✅ Segment ${i + 1} quick fade-down done`);
+                setGlow(false);
+              });
+            }, 200);
           });
-        }, 200);
-      });
-    }, delayToEndFadeUp);
+        }
 
-    // --- instant reset at end ---
-    setTimeout(() => {
-      if (!window.currentlyPlaying) return;
-      console.log(`⏹️ Segment ${i + 1} instant reset`);
-      a.volume = base;
-      if (s) s.value = base.toFixed(2);
-      if (d) d.textContent = base.toFixed(2);
-      setGlow(false);
-    }, delayToReset);
+        // --- Instant reset at end ---
+        if (cur >= seg.end && !seg._reset) {
+          seg._reset = true;
+          console.log(`⏹️ Segment ${i + 1} instant reset`);
+          a.volume = base;
+          if (s) s.value = base.toFixed(2);
+          if (d) d.textContent = base.toFixed(2);
+          setGlow(false);
+          clearInterval(watcher);
+        }
+      }, CHECK_INTERVAL);
+    });
   }
 
-  // --- main activation ---
+  // --- activate once actual playback starts ---
   document.addEventListener("DOMContentLoaded", () => {
-    const playBtn = document.getElementById("playBtn");
-    if (!playBtn) return;
-
-    playBtn.addEventListener("click", () => {
-      if (!window.vocalAudio || !Array.isArray(window.segments)) return;
-      if (!window.currentlyPlaying) return;
-      console.log("🎵 Timer-based segment scheduling started.");
-
-      window.segments.forEach((seg, i) => scheduleSegmentTimers(seg, i));
+    if (!window.vocalAudio) return;
+    window.vocalAudio.addEventListener("play", () => {
+      scheduleSegmentActions();
     });
   });
 
-  console.log("🎤 Vocal Vitality Boost Overlay — Timer-Based installed.");
+  console.log("🎤 Vocal Vitality Boost Overlay — Timer-Based (Stable Playback) installed.");
 })();
