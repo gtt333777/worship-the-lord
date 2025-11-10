@@ -893,3 +893,182 @@ But for now — yes, you’ve reached the gold standard.
 
   console.log("🎤 Vocal Vitality Boost Overlay (single-segment proper reset) installed.");
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ==========================================================
+   🎤 Vocal Vitality Boost Overlay — Extension for Later Segments
+   --------------------------------------------------------------
+   ✅ Keeps Segment 1 logic intact
+   ✅ Repeats same behavior for segments 2, 3, 4, ...
+   ✅ +0.02 boost → hold 3 s → fade-down
+   ✅ Fade-up 2 s before end → quick reset to base
+   ✅ Includes the same glowing label effect
+   ========================================================== */
+
+(function () {
+  if (window.__VOCAL_VITALITY_SEGMENT_EXTENSION__) return;
+  window.__VOCAL_VITALITY_SEGMENT_EXTENSION__ = true;
+
+  const BOOST_AMOUNT = 0.02;
+  const HOLD_TIME = 3000;
+  const FADE_TIME = 500;
+  const END_RAISE_WINDOW = 2.0;
+  const CHECK_INTERVAL = 200;
+
+  let baseVocal = 0.0;
+  let activeSegIndex = -1;
+  let fading = false;
+  let boostTimer = null;
+  let fadeTimer = null;
+  let watcher = null;
+
+  // --- glow helper (identical to your main one) ---
+  const labelEl = document.querySelector('label[for="vocalVolume"]');
+  function setGlow(on) {
+    if (!labelEl) return;
+    labelEl.style.transition = "box-shadow 0.3s ease, background 0.3s ease";
+    if (on) {
+      labelEl.style.boxShadow = "0 0 15px 4px rgba(255,200,80,0.7)";
+      labelEl.style.background = "linear-gradient(to right,#fff8e1,#ffecb3)";
+      labelEl.style.borderRadius = "8px";
+    } else {
+      labelEl.style.boxShadow = "";
+      labelEl.style.background = "";
+    }
+  }
+
+  // --- smooth fade (same as base) ---
+  function fadeVocalTo(target, onComplete) {
+    if (!window.vocalAudio) return;
+    clearInterval(fadeTimer);
+    const start = window.vocalAudio.volume;
+    const delta = target - start;
+    const steps = Math.max(1, Math.round(FADE_TIME / CHECK_INTERVAL));
+    let count = 0;
+    fading = true;
+    fadeTimer = setInterval(() => {
+      if (!window.vocalAudio) return;
+      count++;
+      const p = count / steps;
+      const newVol = Math.min(1, Math.max(0, start + delta * p));
+      window.vocalAudio.volume = newVol;
+      const s = document.getElementById("vocalVolume");
+      const d = document.getElementById("vocalVolumeDisplay");
+      if (s) s.value = newVol.toFixed(2);
+      if (d) d.textContent = newVol.toFixed(2);
+      if (count >= steps) {
+        clearInterval(fadeTimer);
+        fading = false;
+        if (onComplete) onComplete();
+      }
+    }, CHECK_INTERVAL);
+  }
+
+  // --- boost sequence (same pattern as segment 1) ---
+  function applySegmentBoost() {
+    if (!window.vocalAudio) return;
+    const s = document.getElementById("vocalVolume");
+    const d = document.getElementById("vocalVolumeDisplay");
+    baseVocal = parseFloat(s?.value) || 0.0;
+    const boosted = Math.min(1, baseVocal + BOOST_AMOUNT);
+
+    window.vocalAudio.volume = boosted;
+    if (s) s.value = boosted.toFixed(2);
+    if (d) d.textContent = boosted.toFixed(2);
+    setGlow(true);
+
+    clearTimeout(boostTimer);
+    boostTimer = setTimeout(() => {
+      fadeVocalTo(baseVocal, () => setGlow(false));
+    }, HOLD_TIME);
+  }
+
+  // --- main watcher for all later segments ---
+  function installSegmentWatcher() {
+    clearInterval(watcher);
+    if (!window.vocalAudio || !Array.isArray(window.segments)) return;
+
+    watcher = setInterval(() => {
+      const a = window.vocalAudio;
+      const segs = window.segments;
+      if (!a || segs.length < 2) return;
+
+      const cur = a.currentTime;
+      const idx = segs.findIndex(seg => cur >= seg.start && cur < seg.end);
+
+      if (idx === -1) return;
+
+      // skip first segment (already handled by your main code)
+      if (idx === 0) return;
+
+      // when entering a new segment
+      if (idx !== activeSegIndex) {
+        activeSegIndex = idx;
+        console.log(`🎧 Segment ${idx + 1} started`);
+        applySegmentBoost();
+      }
+
+      const seg = segs[idx];
+      const timeToEnd = seg.end - cur;
+
+      // fade-up near end
+      if (timeToEnd > 0 && timeToEnd <= END_RAISE_WINDOW && !fading) {
+        fading = true;
+        fadeVocalTo(Math.min(1, baseVocal + BOOST_AMOUNT), () => {
+          console.log(`🔄 Segment ${idx + 1} fade-up → quick reset`);
+          setGlow(true);
+          setTimeout(() => {
+            if (window.vocalAudio) {
+              window.vocalAudio.volume = baseVocal;
+              const s = document.getElementById("vocalVolume");
+              const d = document.getElementById("vocalVolumeDisplay");
+              if (s) s.value = baseVocal.toFixed(2);
+              if (d) d.textContent = baseVocal.toFixed(2);
+            }
+            setGlow(false);
+            fading = false;
+          }, 200);
+        });
+      }
+    }, CHECK_INTERVAL);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const playBtn = document.getElementById("playBtn");
+    if (!playBtn) return;
+    playBtn.addEventListener("click", () => {
+      if (window.vocalAudio && window.accompAudio) installSegmentWatcher();
+    });
+  });
+
+  // --- cleanup same as base version ---
+  function stopAll() {
+    clearInterval(watcher);
+    clearInterval(fadeTimer);
+    clearTimeout(boostTimer);
+    fading = false;
+    setGlow(false);
+  }
+
+  window.vocalAudio?.addEventListener("pause", stopAll);
+  window.vocalAudio?.addEventListener("ended", stopAll);
+  window.addEventListener("pagehide", stopAll);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopAll();
+  });
+
+  console.log("🎤 Vocal Vitality Boost Overlay — Extension for later segments installed (with glow).");
+})();
