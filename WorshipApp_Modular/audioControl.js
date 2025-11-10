@@ -7,7 +7,7 @@
   var MIN_VOL = 0.0024;
 
 //window.DEFAULTS = window.DEFAULTS || { vocal: 0.03, accomp: 0.15 };
-  window.DEFAULTS = window.DEFAULTS || { vocal: 0.0025, accomp: 0.03 };
+  window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.03 };
 
 var DEFAULTS = window.DEFAULTS;
 
@@ -93,7 +93,7 @@ if (document.readyState === "loading") {
 // --- Set initial volumes on load (final block) ---
 window.addEventListener("load", () => {
  // const defaults = { vocal: 0.03, accomp: 0.15 };
-    const defaults = { vocal: 0.0025, accomp: 0.03 };
+    const defaults = { vocal: 0.0027, accomp: 0.03 };
 
   ["vocal", "accomp"].forEach(type => {
     const slider = getSlider(type);
