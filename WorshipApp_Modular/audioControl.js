@@ -5,7 +5,7 @@
 
 // --- Configuration ---
 var MIN_VOL = 0.001;
-window.DEFAULTS = window.DEFAULTS || { vocal: 0.0025, accomp: 0.02 };
+window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.02 };
 var DEFAULTS = window.DEFAULTS;
 
 // --- Ensure global audio elements exist ---
@@ -93,7 +93,7 @@ if (document.readyState === "loading") {
 
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
-  const defaults = { vocal: 0.0025, accomp: 0.02 };
+  const defaults = { vocal: 0.0027, accomp: 0.02 };
   ["vocal", "accomp"].forEach(type => {
     const slider = getSlider(type);
     const audio = (type === "vocal" ? vocalAudio : accompAudio);
@@ -110,7 +110,7 @@ window.addEventListener("load", () => {
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
 //  🎨 Warm Gold → Peaceful Blue Glow Theme
 // =======================================================
-
+/*
 (function () {
   if (window.__VOCAL_VITALITY_BUILTIN__) return;
   window.__VOCAL_VITALITY_BUILTIN__ = true;
@@ -216,4 +216,131 @@ window.addEventListener("load", () => {
   });
 
   console.log("🎤 Built-in Vocal Vitality Boost logic integrated (non-juggling, gold→blue theme).");
+})();
+
+*/
+
+// =======================================================
+//  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
+//  🎨 Warm Gold → Peaceful Blue Glow Theme
+//  ⏱️ Now strictly fires at segment boundaries
+// =======================================================
+
+(function () {
+  if (window.__VOCAL_VITALITY_BUILTIN__) return;
+  window.__VOCAL_VITALITY_BUILTIN__ = true;
+
+  const BOOST_AMOUNT = 0.02;
+  const HOLD_TIME = 5000;          // hold 3s / 5s
+  const END_RAISE_WINDOW = 3.0;    // seconds before end
+  const CHECK_INTERVAL = 100;      // faster check rate
+  const BOOST_DELAY = 100;         // small delay for smooth start
+
+  const labelEl = document.querySelector('label[for="vocalVolume"]');
+
+  // ✨ Dual-color glow
+  function setGlow(mode) {
+    if (!labelEl) return;
+    labelEl.style.transition = "box-shadow 0.4s ease, background 0.4s ease";
+    labelEl.style.borderRadius = "8px";
+
+    if (mode === "start") {
+      labelEl.style.boxShadow = "0 0 20px 6px rgba(255, 213, 79, 0.9)";
+      labelEl.style.background = "linear-gradient(to right,#fffde7,#fff59d)";
+    } else if (mode === "end") {
+      labelEl.style.boxShadow = "0 0 20px 6px rgba(100,181,246,0.9)";
+      labelEl.style.background = "linear-gradient(to right,#e3f2fd,#bbdefb)";
+    } else {
+      labelEl.style.boxShadow = "";
+      labelEl.style.background = "";
+    }
+  }
+
+  function scheduleBoosts() {
+    if (!window.vocalAudio || !Array.isArray(window.segments)) return;
+    const a = window.vocalAudio;
+    const s = document.getElementById("vocalVolume");
+    const base = parseFloat(s?.value) || 0.0;
+    const boosted = Math.min(1, base + BOOST_AMOUNT);
+
+    console.log("🎵 Built-in Vocal Vitality Boost active...");
+
+    window.segments.forEach((seg, i) => {
+      seg._boosted = seg._fadedUp = seg._reset = false;
+      const fadeUpTime = seg.end - END_RAISE_WINDOW;
+
+      const watcher = setInterval(() => {
+        if (!a || a.paused) return;
+        const cur = a.currentTime;
+
+        // --- Safety: mark done if past segment ---
+        if (cur > seg.end + 0.5) {
+          seg._reset = seg._boosted = seg._fadedUp = true;
+          clearInterval(watcher);
+          return;
+        }
+
+        // 🚀 Boost at start (strict 0–1 s window)
+        if (
+          cur >= seg.start &&
+          cur < seg.start + 1.0 &&
+          !seg._boosted &&
+          cur < seg.end - 1.0
+        ) {
+          seg._boosted = true;
+          console.log(`🚀 Segment ${i + 1} boost`);
+          setTimeout(() => {
+            setVolumeOnTargets("vocal", boosted);
+            setGlow("start");
+          }, BOOST_DELAY);
+
+          // reset to base after hold
+          setTimeout(() => {
+            if (a.paused) return;
+            console.log(`⬇️ Segment ${i + 1} reset`);
+            setVolumeOnTargets("vocal", base);
+            setGlow(null);
+          }, HOLD_TIME + BOOST_DELAY);
+        }
+
+        // 🔄 Raise again near end
+        if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
+          seg._fadedUp = true;
+          console.log(`🔄 Segment ${i + 1} end raise`);
+          setVolumeOnTargets("vocal", boosted);
+          setGlow("end");
+
+          setTimeout(() => {
+            setVolumeOnTargets("vocal", base);
+            setGlow(null);
+          }, 400);
+        }
+
+        // ⏹️ Reset at end
+        if (cur >= seg.end && !seg._reset) {
+          seg._reset = true;
+          console.log(`⏹️ Segment ${i + 1} end reset`);
+          setVolumeOnTargets("vocal", base);
+          setGlow(null);
+          clearInterval(watcher);
+        }
+
+        // 🛡️ Extra guard — if already 2 s into segment but still unboosted, mark done
+        if (cur - seg.start > 2.0 && !seg._boosted) {
+          seg._boosted = true;
+        }
+      }, CHECK_INTERVAL);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const ensureAudio = setInterval(() => {
+      if (window.vocalAudio && window.vocalAudio.addEventListener) {
+        clearInterval(ensureAudio);
+        window.vocalAudio.addEventListener("play", scheduleBoosts);
+      }
+    }, 200);
+  });
+
+  console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
 })();
