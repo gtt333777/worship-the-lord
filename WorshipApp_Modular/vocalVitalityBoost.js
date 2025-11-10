@@ -1,139 +1,144 @@
 ﻿/* ==========================================================
-   🎤 Vocal Vitality Boost Overlay — Timer-Based (Single-Trigger GainNode Edition)
+   🎤 Vocal Vitality Boost Overlay — Timer-Based (Limited Firing Stable Version)
    --------------------------------------------------------------
    ✅ Works for all segments 1, 2, 3, ...
-   ✅ Each segment fires boost logic only ONCE
-   ✅ +0.02 boost (smooth fade-up) → hold 3 s → fade-down
+   ✅ +0.02 boost → hold 3 s → fade-down
    ✅ Fade-up 2 s before end → quick reset
-   ✅ ZERO juggling, ZERO overlap
+   ✅ Survives pause/resume — fully stable
+   ✅ Prevents multiple triggers (each fires once)
    ========================================================== */
 
 (function () {
-  if (window.__VOCAL_VITALITY_FINAL__) return;
-  window.__VOCAL_VITALITY_FINAL__ = true;
+  if (window.__VOCAL_VITALITY_LIMITED__) return;
+  window.__VOCAL_VITALITY_LIMITED__ = true;
 
   const BOOST_AMOUNT = 0.02;
-  const HOLD_TIME = 3000;
-  const FADE_TIME = 500;
-  const END_RAISE_WINDOW = 2.0;
-  const BOOST_DELAY = 100;
+  const HOLD_TIME = 3000;         // hold boost 3s
+  const FADE_TIME = 500;          // fade speed
+  const END_RAISE_WINDOW = 2.0;   // seconds before end
+  const CHECK_INTERVAL = 200;     // interval check
 
-  let ctx, vocalGainNode, accompGainNode;
-
-  // --- Smooth GainNode Setup ---
-  function ensureGainNodes() {
-    if (vocalGainNode && accompGainNode) return;
-    try {
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const vocalSrc = ctx.createMediaElementSource(window.vocalAudio);
-      const accompSrc = ctx.createMediaElementSource(window.accompAudio);
-
-      vocalGainNode = ctx.createGain();
-      accompGainNode = ctx.createGain();
-      vocalGainNode.gain.value = window.vocalAudio.volume;
-      accompGainNode.gain.value = window.accompAudio.volume;
-
-      vocalSrc.connect(vocalGainNode).connect(ctx.destination);
-      accompSrc.connect(accompGainNode).connect(ctx.destination);
-
-      window.vocalGainNode = vocalGainNode;
-      console.log("🎚️ GainNodes attached (single-trigger edition).");
-    } catch (err) {
-      console.warn("⚠️ GainNode unavailable, fallback to .volume");
-    }
-  }
-
-  function setVocalVolume(vol) {
-    if (vocalGainNode) vocalGainNode.gain.value = vol;
-    else window.vocalAudio.volume = vol;
-  }
-
-  // --- Glow Helper ---
   const labelEl = document.querySelector('label[for="vocalVolume"]');
   function setGlow(on) {
     if (!labelEl) return;
     labelEl.style.transition = "box-shadow 0.3s ease, background 0.3s ease";
-    labelEl.style.boxShadow = on ? "0 0 15px 4px rgba(255,200,80,0.7)" : "";
-    labelEl.style.background = on ? "linear-gradient(to right,#fff8e1,#ffecb3)" : "";
+    if (on) {
+      labelEl.style.boxShadow = "0 0 15px 4px rgba(255,200,80,0.7)";
+      labelEl.style.background = "linear-gradient(to right,#fff8e1,#ffecb3)";
+      labelEl.style.borderRadius = "8px";
+    } else {
+      labelEl.style.boxShadow = "";
+      labelEl.style.background = "";
+    }
   }
 
-  // --- Fade Helper ---
+  // --- smooth fade helper ---
   function fadeVocalTo(target, onComplete) {
     if (!window.vocalAudio) return;
-    const s = document.getElementById("vocalVolume");
-    const d = document.getElementById("vocalVolumeDisplay");
-    const start = vocalGainNode ? vocalGainNode.gain.value : window.vocalAudio.volume;
+    const start = window.vocalAudio.volume;
     const delta = target - start;
     const steps = Math.max(1, Math.round(FADE_TIME / 100));
     let count = 0;
 
     const int = setInterval(() => {
+      if (!window.vocalAudio) return clearInterval(int);
       count++;
       const p = count / steps;
       const newVol = Math.min(1, Math.max(0, start + delta * p));
+      window.vocalAudio.volume = newVol;
+      const s = document.getElementById("vocalVolume");
+      const d = document.getElementById("vocalVolumeDisplay");
       if (s) s.value = newVol.toFixed(2);
       if (d) d.textContent = newVol.toFixed(2);
       if (count >= steps) {
         clearInterval(int);
-        setVocalVolume(target);
         if (onComplete) onComplete();
       }
     }, 100);
   }
 
-  // --- Scheduler (fires only once per segment) ---
+  // --- main engine ---
   function scheduleSegmentActions() {
-    ensureGainNodes();
+    if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
     const s = document.getElementById("vocalVolume");
+    const d = document.getElementById("vocalVolumeDisplay");
     const base = parseFloat(s?.value) || 0.0;
     const boosted = Math.min(1, base + BOOST_AMOUNT);
 
-    if (!a || !window.segments) return;
-    console.log("🎵 Single-trigger scheduler running...");
+    console.log("🎵 Timer-based scheduler (Limited firing) running...");
 
     window.segments.forEach((seg, i) => {
-      const startDelay = seg.start * 1000; // ms
-      const endFadeTime = (seg.end - END_RAISE_WINDOW) * 1000;
+      const fadeUpTime = seg.end - END_RAISE_WINDOW;
 
-      // --- 1️⃣ Boost trigger ---
-      setTimeout(() => {
-        if (a.paused) return;
-        console.log(`🚀 Segment ${i + 1} boost`);
-        setTimeout(() => fadeVocalTo(boosted, () => setGlow(true)), BOOST_DELAY);
-        setTimeout(() => fadeVocalTo(base, () => setGlow(false)), HOLD_TIME);
-      }, startDelay);
+      // ✅ Limit triggers strictly per segment
+      seg._done = false;
+      seg._boosted = false;
+      seg._fadedUp = false;
+      seg._reset = false;
 
-      // --- 2️⃣ Fade-up near end trigger ---
-      setTimeout(() => {
-        if (a.paused) return;
-        console.log(`🔄 Segment ${i + 1} fade-up near end`);
-        fadeVocalTo(boosted, () => {
+      const watcher = setInterval(() => {
+        if (!a || a.paused || seg._done) return; // skip if paused or done
+        const cur = a.currentTime;
+
+        // --- Boost at start (fires once) ---
+        if (cur >= seg.start && cur < seg.start + 0.3 && !seg._boosted) {
+          seg._boosted = true;
+          console.log(`🚀 Segment ${i + 1} boost +0.02`);
+          a.volume = boosted;
+          if (s) s.value = boosted.toFixed(2);
+          if (d) d.textContent = boosted.toFixed(2);
           setGlow(true);
+
+          // fade-down after 3 s
           setTimeout(() => {
-            fadeVocalTo(base, () => {
-              setGlow(false);
-              console.log(`✅ Segment ${i + 1} fade cycle complete`);
-            });
-          }, 200);
-        });
-      }, endFadeTime);
+            if (a.paused) return;
+            console.log(`⬇️ Segment ${i + 1} fade-down after hold`);
+            fadeVocalTo(base, () => setGlow(false));
+          }, HOLD_TIME);
+        }
+
+        // --- Fade-up near end (fires once) ---
+        if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
+          seg._fadedUp = true;
+          console.log(`🔄 Segment ${i + 1} fade-up near end`);
+          fadeVocalTo(boosted, () => {
+            setGlow(true);
+            setTimeout(() => {
+              fadeVocalTo(base, () => {
+                console.log(`✅ Segment ${i + 1} quick fade-down done`);
+                setGlow(false);
+              });
+            }, 200);
+          });
+        }
+
+        // --- Instant reset at end (fires once) ---
+        if (cur >= seg.end && !seg._reset) {
+          seg._reset = true;
+          console.log(`⏹️ Segment ${i + 1} instant reset`);
+          a.volume = base;
+          if (s) s.value = base.toFixed(2);
+          if (d) d.textContent = base.toFixed(2);
+          setGlow(false);
+
+          // ✅ Fully mark segment as done, stop checking
+          seg._done = true;
+          clearInterval(watcher);
+        }
+      }, CHECK_INTERVAL);
     });
   }
 
-  // --- Activation ---
+  // --- attach when ready ---
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
-      if (window.vocalAudio && window.accompAudio && Array.isArray(window.segments)) {
+      if (window.vocalAudio && window.vocalAudio.addEventListener) {
         clearInterval(ensureAudio);
-        ensureGainNodes();
-        window.vocalAudio.addEventListener("play", () => {
-          if (ctx?.state === "suspended") ctx.resume();
-          scheduleSegmentActions();
-        });
+        window.vocalAudio.addEventListener("play", () => scheduleSegmentActions());
       }
     }, 200);
   });
 
-  console.log("🎤 Vocal Vitality Boost Overlay — Single-Trigger GainNode Edition installed.");
+  console.log("🎤 Vocal Vitality Boost Overlay — Limited Firing Stable Version installed.");
 })();
