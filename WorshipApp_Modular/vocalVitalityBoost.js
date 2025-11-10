@@ -34,6 +34,8 @@
     }
   }
 
+
+  /*
   // --- Smooth fade helper ---
   function fadeVocalTo(target, onComplete) {
     if (!window.vocalAudio) return;
@@ -60,6 +62,46 @@
       }
     }, 100);
   }
+
+  */
+
+  // --- Smooth fade helper (non-intrusive to audio engine) ---
+function fadeVocalTo(target, onComplete) {
+  if (!window.vocalAudio) return;
+  const s = document.getElementById("vocalVolume");
+  const d = document.getElementById("vocalVolumeDisplay");
+
+  const start = window.vocalAudio.volume;
+  const delta = target - start;
+  //const steps = Math.max(1, Math.round(FADE_TIME / 100));
+  const steps = Math.max(1, Math.round(FADE_TIME / 150));
+  let count = 0;
+  let visualVol = start;
+
+  const int = setInterval(() => {
+    count++;
+    const p = count / steps;
+    visualVol = Math.min(1, Math.max(0, start + delta * p));
+
+    // Update display only (no real-time engine volume)
+    if (s) s.value = visualVol.toFixed(2);
+    if (d) d.textContent = visualVol.toFixed(2);
+
+    if (count >= steps) {
+      clearInterval(int);
+
+      // ✅ Apply final value once to engine — minimal disruption
+      window.vocalAudio.volume = target;
+      if (s) s.value = target.toFixed(2);
+      if (d) d.textContent = target.toFixed(2);
+
+      if (onComplete) onComplete();
+    }
+  }, 100);
+}
+
+
+
 
   // --- Main Engine ---
   function scheduleSegmentActions() {
