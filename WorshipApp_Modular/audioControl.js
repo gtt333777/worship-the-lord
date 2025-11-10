@@ -5,7 +5,7 @@
 
 // --- Configuration ---
 var MIN_VOL = 0.001;
-window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.02 };
+window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.03 };
 var DEFAULTS = window.DEFAULTS;
 
 // --- Ensure global audio elements exist ---
@@ -93,7 +93,7 @@ if (document.readyState === "loading") {
 
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
-  const defaults = { vocal: 0.0027, accomp: 0.02 };
+  const defaults = { vocal: 0.0027, accomp: 0.03 };
   ["vocal", "accomp"].forEach(type => {
     const slider = getSlider(type);
     const audio = (type === "vocal" ? vocalAudio : accompAudio);
@@ -232,7 +232,7 @@ window.addEventListener("load", () => {
 
   const BOOST_AMOUNT = 0.02;
   const HOLD_TIME = 5000;          // hold 3s / 5s
-  const END_RAISE_WINDOW = 3.0;    // seconds before end
+  const END_RAISE_WINDOW = 4.0;    // seconds before end
   const CHECK_INTERVAL = 100;      // faster check rate
   const BOOST_DELAY = 100;         // small delay for smooth start
 
