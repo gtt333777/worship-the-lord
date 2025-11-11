@@ -526,6 +526,7 @@ function ensureAccurateInitialVolumes() {
 document.addEventListener("DOMContentLoaded", ensureAccurateInitialVolumes);
 */
 
+/*
 // --- Ultimate safeguard: enforce slider volume exactly at play time ---
 function enforceSliderVolumeAtPlay() {
   const enforce = (type, audioEl, sliderId) => {
@@ -543,6 +544,44 @@ function enforceSliderVolumeAtPlay() {
 }
 
 document.addEventListener("DOMContentLoaded", enforceSliderVolumeAtPlay);
+*/
+
+// --- Final foolproof volume enforcer (handles dynamic audio replacements) ---
+(function () {
+  function applySliderVolumesToAllAudios() {
+    const vocalSlider = document.getElementById("vocalVolume");
+    const accompSlider = document.getElementById("accompVolume");
+
+    const vocalVal = parseFloat(vocalSlider?.value) || (DEFAULTS.vocal ?? MIN_VOL);
+    const accompVal = parseFloat(accompSlider?.value) || (DEFAULTS.accomp ?? MIN_VOL);
+
+    document.querySelectorAll("audio").forEach(a => {
+      const role = (a.getAttribute("data-role") || "").toLowerCase();
+      if (role.includes("vocal")) {
+        a.volume = vocalVal;
+      } else if (role.includes("accomp")) {
+        a.volume = accompVal;
+      }
+    });
+
+    console.log(`🎚️ Volumes enforced → vocal=${vocalVal}, accomp=${accompVal}`);
+  }
+
+  // Apply when anything changes in the DOM (new <audio> appears or is replaced)
+  const observer = new MutationObserver(() => {
+    applySliderVolumesToAllAudios();
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Also reapply right before playback
+  document.body.addEventListener("play", e => {
+    if (e.target.tagName === "AUDIO") applySliderVolumesToAllAudios();
+  }, true);
+
+  // Initial run
+  window.addEventListener("load", applySliderVolumesToAllAudios);
+})();
 
 
   console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
