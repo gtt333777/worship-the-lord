@@ -475,7 +475,7 @@ window.segments.forEach((seg, i) => {
   });
 
 
-
+  /*
     // --- Safety: ensure actual vocal & accomp audio volumes follow sliders once sources are ready ---
   window.addEventListener("load", () => {
     const vocalSlider = document.getElementById("vocalVolume");
@@ -493,6 +493,36 @@ window.segments.forEach((seg, i) => {
       console.log("🔄 Post-load accomp volume applied:", aVal);
     }
   });
+  */
+
+  // --- Final Fix: Apply initial volumes when audio metadata is ready ---
+function ensureAccurateInitialVolumes() {
+  const applyVolume = (type, audioEl, sliderEl) => {
+    if (!audioEl || !sliderEl) return;
+    const val = parseFloat(sliderEl.value) || (DEFAULTS[type] ?? MIN_VOL);
+    audioEl.volume = val;
+    console.log(`✅ ${type} initial volume applied after metadata:`, val);
+  };
+
+  // vocal
+  if (window.vocalAudio) {
+    const vocalSlider = document.getElementById("vocalVolume");
+    window.vocalAudio.addEventListener("loadedmetadata", () =>
+      applyVolume("vocal", window.vocalAudio, vocalSlider)
+    );
+  }
+
+  // accomp
+  if (window.accompAudio) {
+    const accompSlider = document.getElementById("accompVolume");
+    window.accompAudio.addEventListener("loadedmetadata", () =>
+      applyVolume("accomp", window.accompAudio, accompSlider)
+    );
+  }
+}
+
+// Run after DOM ready
+document.addEventListener("DOMContentLoaded", ensureAccurateInitialVolumes);
 
 
 
