@@ -275,6 +275,16 @@ window.addEventListener("load", () => {
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
     const s = document.getElementById("vocalVolume");
+
+
+    // --- Ensure slider and audio are in sync before boosts start ---
+if (s) {
+  const initial = parseFloat(s.value) || (DEFAULTS.vocal ?? MIN_VOL);
+  setVolumeOnTargets("vocal", initial);
+}
+
+
+
     /*
     const base = parseFloat(s?.value) || 0.0;
     const boosted = Math.min(1, base + BOOST_AMOUNT);
