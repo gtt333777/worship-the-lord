@@ -584,5 +584,4 @@ document.addEventListener("DOMContentLoaded", enforceSliderVolumeAtPlay);
 })();
 
 
-  console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
-})();
+console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
