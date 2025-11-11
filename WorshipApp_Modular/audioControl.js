@@ -381,7 +381,7 @@ window.segments.forEach((seg, i) => {
 
 
 
-
+/*
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
     window.segments.forEach((seg, i) => {
@@ -451,6 +451,9 @@ window.segments.forEach((seg, i) => {
       }, CHECK_INTERVAL);
     });
   }
+
+  */
+
 
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
