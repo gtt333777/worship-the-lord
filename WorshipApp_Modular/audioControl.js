@@ -7,10 +7,25 @@
 var MIN_VOL = 0.001;
 window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.03 };
 var DEFAULTS = window.DEFAULTS;
-
+/*
 // --- Ensure global audio elements exist ---
 if (!window.vocalAudio) window.vocalAudio = new Audio();
 if (!window.accompAudio) window.accompAudio = new Audio();
+*/
+
+// --- Ensure global audio elements point to the real players (non-juggling) ---
+window.vocalAudio =
+  document.querySelector('audio[data-role="vocal"]') ||
+  window.vocalAudio ||
+  new Audio();
+
+window.accompAudio =
+  document.querySelector('audio[data-role="accomp"]') ||
+  window.accompAudio ||
+  new Audio();
+
+
+
 
 // --- Helpers ---
 function getSlider(type) { return document.getElementById(`${type}Volume`); }
@@ -98,13 +113,9 @@ window.addEventListener("load", () => {
     const slider = getSlider(type);
     const audio = (type === "vocal" ? vocalAudio : accompAudio);
     if (slider && audio) {
-      //slider.value = defaults[type].toFixed(2);
-        slider.value = defaults[type].toFixed(3);
-
+      slider.value = defaults[type].toFixed(2);
       audio.volume = defaults[type];
       slider.dispatchEvent(new Event("input"));
-      setVolumeOnTargets(type, parseFloat(slider.value));
-
     }
   });
 });
@@ -260,133 +271,36 @@ window.addEventListener("load", () => {
     }
   }
 
-  /*
   function scheduleBoosts() {
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
     const s = document.getElementById("vocalVolume");
+    /*
     const base = parseFloat(s?.value) || 0.0;
-    //const boosted = Math.min(1, base + BOOST_AMOUNT);
+    const boosted = Math.min(1, base + BOOST_AMOUNT);
+    */
 
-    // --- Determine adaptive boost ---
-// If base is around default (Bluetooth mode), go to absolute 0.02.
-// Otherwise (user-adjusted), boost by +25% relative to base.
+    // --- Determine base & boosted dynamically ---
+let base = parseFloat(s?.value) || 0.0;
+
+// If slider still at default low level (≈ 0.0027), use fixed 0.02 target for small devices.
+// Otherwise, apply +25% boost relative to the user’s current chosen base.
 let boosted;
 if (base <= 0.003) {
   boosted = 0.02;
-  console.log("📻 Bluetooth mode → fixed boost to 0.02");
+  console.log(`🎚️ Default mode → fixed boost to 0.02`);
 } else {
   boosted = base * 1.25;
   console.log(`📱 User mode → +25% boost = ${boosted.toFixed(4)}`);
 }
+
+// Keep within valid range
 boosted = Math.min(1, boosted);
 
 
+
+
     console.log("🎵 Built-in Vocal Vitality Boost active...");
-    */
-
-    function scheduleBoosts() {
-  if (!window.vocalAudio || !Array.isArray(window.segments)) return;
-  const a = window.vocalAudio;
-
-  console.log("🎵 Built-in Vocal Vitality Boost active (dynamic base)...");
-
-  window.segments.forEach((seg, i) => {
-    seg._boosted = seg._fadedUp = seg._reset = false;
-    const fadeUpTime = seg.end - END_RAISE_WINDOW;
-
-    const watcher = setInterval(() => {
-      if (!a || a.paused) return;
-      const cur = a.currentTime;
-
-      // --- Safety: mark done if past segment ---
-      if (cur > seg.end + 0.5) {
-        seg._reset = seg._boosted = seg._fadedUp = true;
-        clearInterval(watcher);
-        return;
-      }
-
-      // 🔁 Read the latest base volume dynamically each time
-
-      const s = document.getElementById("vocalVolume");
-let base = parseFloat(s?.value);
-
-// 🛡️ Validate base (ensure finite number)
-if (!Number.isFinite(base) || base <= 0) base = 0.0027;
-
-// Clamp safely
-base = Math.min(1, Math.max(MIN_VOL, base));
-
-// --- Adaptive boost logic ---
-let boosted;
-if (base <= 0.003) {
-  // Bluetooth / default mode
-  boosted = 0.02;
-  console.log(`📻 [Seg ${i + 1}] Default mode → fixed boost = ${boosted}`);
-} else {
-  // Manual user mode: +25% relative
-  boosted = base * 1.25;
-  console.log(`📱 [Seg ${i + 1}] Manual mode → base ${base.toFixed(4)} → boost ${boosted.toFixed(4)}`);
-}
-
-// Cap boosted volume at 0.3 to prevent clipping on small speakers
-boosted = Math.min(0.3, Math.max(base, boosted));
-
-
-
-
-
-
-
-      // 🚀 Boost at start (strict 0–1 s window)
-      if (
-        cur >= seg.start &&
-        cur < seg.start + 1.0 &&
-        !seg._boosted &&
-        cur < seg.end - 1.0
-      ) {
-        seg._boosted = true;
-        setTimeout(() => {
-          setVolumeOnTargets("vocal", boosted);
-          setGlow("start");
-        }, BOOST_DELAY);
-
-        setTimeout(() => {
-          if (a.paused) return;
-          setVolumeOnTargets("vocal", base);
-          setGlow(null);
-        }, HOLD_TIME + BOOST_DELAY);
-      }
-
-      // 🔄 Raise again near end
-      if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
-        seg._fadedUp = true;
-        setVolumeOnTargets("vocal", boosted);
-        setGlow("end");
-
-        setTimeout(() => {
-          setVolumeOnTargets("vocal", base);
-          setGlow(null);
-        }, 400);
-      }
-
-      // ⏹️ Reset at end
-      if (cur >= seg.end && !seg._reset) {
-        seg._reset = true;
-        setVolumeOnTargets("vocal", base);
-        setGlow(null);
-        clearInterval(watcher);
-      }
-
-      if (cur - seg.start > 2.0 && !seg._boosted) seg._boosted = true;
-    }, CHECK_INTERVAL);
-  });
-}
-
-
-
-
-
 
     window.segments.forEach((seg, i) => {
       seg._boosted = seg._fadedUp = seg._reset = false;
