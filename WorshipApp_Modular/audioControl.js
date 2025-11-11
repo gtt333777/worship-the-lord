@@ -587,6 +587,8 @@ document.addEventListener("DOMContentLoaded", enforceSliderVolumeAtPlay);
 console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
 
 
+
+
 // --- Catch any Audio() created dynamically and auto-set volume ---
 (function interceptNewAudio() {
   const originalAudio = window.Audio;
@@ -608,4 +610,32 @@ console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end syn
     } catch (e) {}
     return a;
   };
+})();
+
+// --- Intercept .src assignment on any <audio> and reapply correct volume ---
+(function interceptAudioSrcChange() {
+  const proto = HTMLMediaElement.prototype;
+  const origSrc = Object.getOwnPropertyDescriptor(proto, "src");
+  if (!origSrc) return;
+
+  Object.defineProperty(proto, "src", {
+    get: origSrc.get,
+    set: function (newSrc) {
+      origSrc.set.call(this, newSrc);
+      try {
+        const lower = (newSrc || "").toLowerCase();
+        const roleGuess = lower.includes("vocal")
+          ? "vocal"
+          : lower.includes("acc")
+          ? "accomp"
+          : null;
+        if (roleGuess) {
+          const slider = document.getElementById(roleGuess + "Volume");
+          const val = parseFloat(slider?.value) || (DEFAULTS[roleGuess] ?? MIN_VOL);
+          this.volume = val;
+          console.log(`🎧 src reassigned for ${roleGuess}, volume re-applied →`, val);
+        }
+      } catch (e) {}
+    }
+  });
 })();
