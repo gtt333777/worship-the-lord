@@ -303,19 +303,36 @@ boosted = Math.min(1, boosted);
       }
 
       // 🔁 Read the latest base volume dynamically each time
-      const s = document.getElementById("vocalVolume");
-      const base = parseFloat(s?.value) || 0.0;
 
-      // --- Determine adaptive boost ---
-      let boosted;
-      if (base <= 0.003) {
-        boosted = 0.02;
-        console.log(`📻 [Seg ${i + 1}] Bluetooth mode → fixed boost 0.02`);
-      } else {
-        boosted = base * 1.25;
-        console.log(`📱 [Seg ${i + 1}] User mode → +25% boost = ${boosted.toFixed(4)}`);
-      }
-      boosted = Math.min(1, boosted);
+      const s = document.getElementById("vocalVolume");
+let base = parseFloat(s?.value);
+
+// 🛡️ Validate base (ensure finite number)
+if (!Number.isFinite(base) || base <= 0) base = 0.0027;
+
+// Clamp safely
+base = Math.min(1, Math.max(MIN_VOL, base));
+
+// --- Adaptive boost logic ---
+let boosted;
+if (base <= 0.003) {
+  // Bluetooth / default mode
+  boosted = 0.02;
+  console.log(`📻 [Seg ${i + 1}] Default mode → fixed boost = ${boosted}`);
+} else {
+  // Manual user mode: +25% relative
+  boosted = base * 1.25;
+  console.log(`📱 [Seg ${i + 1}] Manual mode → base ${base.toFixed(4)} → boost ${boosted.toFixed(4)}`);
+}
+
+// Cap boosted volume at 0.3 to prevent clipping on small speakers
+boosted = Math.min(0.3, Math.max(base, boosted));
+
+
+
+
+
+
 
       // 🚀 Boost at start (strict 0–1 s window)
       if (
