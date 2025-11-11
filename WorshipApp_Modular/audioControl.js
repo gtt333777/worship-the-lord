@@ -585,3 +585,27 @@ document.addEventListener("DOMContentLoaded", enforceSliderVolumeAtPlay);
 
 
 console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
+
+
+// --- Catch any Audio() created dynamically and auto-set volume ---
+(function interceptNewAudio() {
+  const originalAudio = window.Audio;
+  window.Audio = function (...args) {
+    const a = new originalAudio(...args);
+    try {
+      const roleGuess = (args[0] || "").toLowerCase().includes("vocal")
+        ? "vocal"
+        : (args[0] || "").toLowerCase().includes("acc")
+        ? "accomp"
+        : null;
+
+      if (roleGuess) {
+        const slider = document.getElementById(roleGuess + "Volume");
+        const val = parseFloat(slider?.value) || (DEFAULTS[roleGuess] ?? MIN_VOL);
+        a.volume = val;
+        console.log(`🎧 Intercepted new ${roleGuess} Audio() → volume set to`, val);
+      }
+    } catch (e) {}
+    return a;
+  };
+})();
