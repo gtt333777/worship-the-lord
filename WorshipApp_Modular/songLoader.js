@@ -49,6 +49,9 @@ function stopAndUnloadAudio() {
   window.vocalAudio.load();
   window.accompAudio.load();
   console.log("🛑 Audio stopped and unloaded");
+
+  // ✅ Reset boost guard for next playback session
+  window.__VOCAL_BOOST_ACTIVE__ = false;
 }
 
 // === Play the first segment ===
@@ -116,14 +119,15 @@ async function clearAudioCache() {
   alert("✅ All songs cleared");
 }
 
-
 // --- Safety: Apply slider volumes immediately after song load ---
 window.addEventListener("load", () => {
   try {
     const vSlider = document.getElementById("vocalVolume");
     const aSlider = document.getElementById("accompVolume");
-    if (window.vocalAudio && vSlider) window.vocalAudio.volume = parseFloat(vSlider.value) || 0.0027;
-    if (window.accompAudio && aSlider) window.accompAudio.volume = parseFloat(aSlider.value) || 0.03;
+    if (window.vocalAudio && vSlider)
+      window.vocalAudio.volume = parseFloat(vSlider.value) || 0.0027;
+    if (window.accompAudio && aSlider)
+      window.accompAudio.volume = parseFloat(aSlider.value) || 0.03;
     console.log("🎚️ Volumes re-applied post load (safety check)");
   } catch (e) {
     console.warn("⚠️ Volume reapply safety failed:", e);
