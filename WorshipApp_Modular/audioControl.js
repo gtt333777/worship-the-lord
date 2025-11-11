@@ -1,119 +1,244 @@
 ﻿// =======================================================
-//  loopPlayer.js — Segment Playback Controller
-//  🎧 Controls segment looping and synchronization
+//  audioControl.js — FINAL FOOLPROOF + VOCAL BOOST VERSION
+//  🎨 Warm Gold → Peaceful Blue Glow Theme
+//  ⚙️ Duplicate-Safe + Manual Segment Replay Support
 // =======================================================
 
-console.log("🎵 loopPlayer.js: Starting...");
+// --- Configuration ---
+var MIN_VOL = 0.001;
+window.DEFAULTS = window.DEFAULTS || { vocal: 0.0027, accomp: 0.03 };
+var DEFAULTS = window.DEFAULTS;
 
-// === Core: Segment-based playback ===
-window.playSegment = function(startTime, endTime, index) {
-  console.log(`🎵 Playing segment: ${startTime} → ${endTime} (${(endTime - startTime).toFixed(3)} seconds)`);
+// --- Ensure global audio elements (non-juggling) ---
+window.vocalAudio =
+  document.querySelector('audio[data-role="vocal"]') ||
+  window.vocalAudio ||
+  new Audio();
 
-  if (!window.vocalAudio || !window.accompAudio) {
-    console.error("❌ Missing global audio elements (vocal/accomp)");
-    return;
-  }
+window.accompAudio =
+  document.querySelector('audio[data-role="accomp"]') ||
+  window.accompAudio ||
+  new Audio();
 
-  // --- Align both audio tracks ---
-  window.vocalAudio.currentTime = startTime;
-  window.accompAudio.currentTime = startTime;
+// --- Helpers ---
+function getSlider(type) { return document.getElementById(`${type}Volume`); }
+function getDisplay(type) { return document.getElementById(`${type}VolumeDisplay`); }
 
-  // ✅ Reset boost guard for manual segment replay (fix)
-  // This ensures glow + boost + fade trigger even if user taps a segment manually
-  window.__VOCAL_BOOST_ACTIVE__ = false;
+// --- Core: set actual audio element volumes ---
+function setVolumeOnTargets(type, numericValue) {
+  numericValue = Math.min(1, Math.max(MIN_VOL, parseFloat(numericValue.toFixed(2))));
+  const targetAudio = (type === "vocal" ? window.vocalAudio : window.accompAudio);
+  if (targetAudio && typeof targetAudio.volume === "number") targetAudio.volume = numericValue;
 
-  // ✅ Optional: Subtle visual cue when user taps a segment
-  // (gives a brief gold highlight)
-  try {
-    const labelEl = document.querySelector('label[for="vocalVolume"]');
-    if (labelEl) {
-      labelEl.style.boxShadow = "0 0 16px 5px rgba(255,213,79,0.8)";
-      labelEl.style.background = "linear-gradient(to right,#fffde7,#fff59d)";
-      setTimeout(() => {
-        labelEl.style.boxShadow = "";
-        labelEl.style.background = "";
-      }, 500);
-    }
-  } catch (e) {
-    console.warn("⚠️ Glow cue skipped:", e);
-  }
-
-  // --- Begin playback ---
-  window.vocalAudio.play().catch((e) => console.error("Vocal play error:", e));
-  window.accompAudio.play().catch((e) => console.error("Acc play error:", e));
-
-  const EPS = 0.02;
-  const DRIFT = 0.06;
-
-  // --- Keep both tracks tightly synchronized ---
-  window.activeSegmentInterval = setInterval(() => {
-    const v = window.vocalAudio;
-    const a = window.accompAudio;
-
-    if (!v || !a) return;
-    const diff = Math.abs(v.currentTime - a.currentTime);
-
-    // Re-sync if drift too high
-    if (diff > DRIFT) a.currentTime = v.currentTime;
-
-    // Stop segment if end reached
-    if (v.currentTime >= endTime - EPS) {
-      clearInterval(window.activeSegmentInterval);
-      window.activeSegmentInterval = null;
-
-      v.pause();
-      a.pause();
-
-      // --- Auto-advance to next segment ---
-      if (index < window.segments.length - 1) {
-        const next = window.segments[index + 1];
-        window.playSegment(next.start, next.end, index + 1);
-      }
-    }
-  }, 50);
-};
-
-// === Segment progress logger (optional) ===
-window.logSegments = function() {
-  if (!window.segments) return;
-  window.segments.forEach((seg, i) => {
-    console.log(`🎵 Segment ${i + 1}: ${seg.start} -> ${seg.end} (${(seg.end - seg.start).toFixed(3)}s)`);
+  document.querySelectorAll("audio").forEach(a => {
+    const id = (a.id || "").toLowerCase();
+    const role = (a.getAttribute("data-role") || "").toLowerCase();
+    if (id.includes(type) || role.includes(type)) a.volume = numericValue;
   });
-};
 
-// === Buttons / Controls ===
-document.addEventListener("DOMContentLoaded", () => {
-  const playBtn = document.getElementById("playBtn");
-  const pauseBtn = document.getElementById("pauseBtn");
+  const slider = getSlider(type);
+  const display = getDisplay(type);
+  if (slider) slider.value = numericValue.toFixed(2);
+  if (display) display.textContent = numericValue.toFixed(2);
+}
 
-  if (playBtn) {
-    playBtn.addEventListener("click", async () => {
-      const select = document.getElementById("songSelect");
-      if (!select) return;
-      const songName = select.value;
-      if (!songName) return console.warn("⚠️ No song selected");
-      console.log("🎵 loopPlayer.js: Song selected ->", songName);
+// --- Core: sync slider → display → audio volume ---
+function syncDisplayAndVolume(type) {
+  const slider = getSlider(type);
+  const display = getDisplay(type);
+  if (!slider) return;
+  let val = parseFloat(slider.value);
+  if (!Number.isFinite(val)) val = DEFAULTS[type] ?? MIN_VOL;
+  val = Math.min(1, Math.max(MIN_VOL, val));
+  slider.value = val.toFixed(2);
+  if (display) display.textContent = val.toFixed(2);
+  setVolumeOnTargets(type, val);
+}
 
-      if (!window.segments || !window.segments.length) {
-        console.warn("⚠️ No segments loaded yet");
-        return;
-      }
+// --- adjustVolume: called by + / − buttons ---
+function adjustVolume(type, delta) {
+  const slider = getSlider(type);
+  if (!slider) return;
+  let newVal = parseFloat(slider.value) + delta;
+  if (!Number.isFinite(newVal)) newVal = DEFAULTS[type] ?? MIN_VOL;
+  newVal = Math.min(1, Math.max(MIN_VOL, newVal));
+  slider.value = newVal.toFixed(2);
+  syncDisplayAndVolume(type);
+}
+window.adjustVolume = adjustVolume;
 
-      // Always start from the first segment on Play
-      const first = window.segments[0];
-      window.playSegment(first.start, first.end, 0);
-    });
-  }
+// --- Initialize sliders and event listeners ---
+function initAudioControls() {
+  ["vocal", "accomp"].forEach(type => {
+    const slider = getSlider(type);
+    const display = getDisplay(type);
+    if (!slider) return;
+    let startVal = parseFloat(slider.value);
+    if (!Number.isFinite(startVal)) startVal = DEFAULTS[type] ?? MIN_VOL;
+    startVal = Math.min(1, Math.max(MIN_VOL, startVal));
+    slider.value = startVal.toFixed(2);
+    slider.addEventListener("input", () => syncDisplayAndVolume(type));
+    slider.addEventListener("change", () => syncDisplayAndVolume(type));
+    if (display) display.textContent = slider.value;
+    syncDisplayAndVolume(type);
+  });
+}
 
-  if (pauseBtn) {
-    pauseBtn.addEventListener("click", () => {
-      if (window.vocalAudio) window.vocalAudio.pause();
-      if (window.accompAudio) window.accompAudio.pause();
-      console.log("⏸️ Paused both tracks");
-    });
-  }
+// --- Run when DOM is ready ---
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAudioControls, { once: true });
+} else {
+  initAudioControls();
+}
 
-  console.log("✅ Non-invasive 2s priming overlay installed (separate muted warmers).");
+// --- Set initial volumes on load ---
+window.addEventListener("load", () => {
+  const defaults = { vocal: 0.0027, accomp: 0.03 };
+  ["vocal", "accomp"].forEach(type => {
+    const slider = getSlider(type);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+    if (slider && audio) {
+      slider.value = defaults[type].toFixed(2);
+      audio.volume = defaults[type];
+      slider.dispatchEvent(new Event("input"));
+    }
+  });
 });
 
-console.log("✅ loopPlayer.js fully loaded and boost-safe.");
+
+// =======================================================
+//  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
+//  🎨 Gold → Blue Glow Theme, Duplicate-Safe
+// =======================================================
+(function () {
+  if (window.__VOCAL_VITALITY_BUILTIN__) return;
+  window.__VOCAL_VITALITY_BUILTIN__ = true;
+
+  const BOOST_AMOUNT = 0.02;
+  const HOLD_TIME = 5000;
+  const END_RAISE_WINDOW = 4.0;
+  const CHECK_INTERVAL = 100;
+  const BOOST_DELAY = 100;
+  const labelEl = document.querySelector('label[for="vocalVolume"]');
+
+  // ✨ Glow style
+  function setGlow(mode) {
+    if (!labelEl) return;
+    labelEl.style.transition = "box-shadow 0.4s ease, background 0.4s ease";
+    labelEl.style.borderRadius = "8px";
+    if (mode === "start") {
+      labelEl.style.boxShadow = "0 0 20px 6px rgba(255,213,79,0.9)";
+      labelEl.style.background = "linear-gradient(to right,#fffde7,#fff59d)";
+    } else if (mode === "end") {
+      labelEl.style.boxShadow = "0 0 20px 6px rgba(100,181,246,0.9)";
+      labelEl.style.background = "linear-gradient(to right,#e3f2fd,#bbdefb)";
+    } else {
+      labelEl.style.boxShadow = "";
+      labelEl.style.background = "";
+    }
+  }
+
+  // --- Helper: Clear old boost watchers before starting new ones ---
+  function clearExistingBoostWatchers() {
+    const list = window.__VOCAL_BOOST_WATCHERS__ || [];
+    list.forEach(id => { try { clearInterval(id); } catch(e) {} });
+    window.__VOCAL_BOOST_WATCHERS__ = [];
+  }
+
+  function scheduleBoosts() {
+    // 🧹 Clean any leftover watchers
+    clearExistingBoostWatchers();
+
+    if (window.__VOCAL_BOOST_ACTIVE__) {
+      console.warn("⚠️ Duplicate boost logic suppressed");
+      return;
+    }
+    window.__VOCAL_BOOST_ACTIVE__ = true;
+
+    if (!window.vocalAudio || !Array.isArray(window.segments)) return;
+    const a = window.vocalAudio;
+    const s = document.getElementById("vocalVolume");
+
+    if (s) {
+      const initialVal = parseFloat(s.value) || (DEFAULTS.vocal ?? MIN_VOL);
+      setVolumeOnTargets("vocal", initialVal);
+      console.log("🔄 Vocal volume initialized to", initialVal);
+    }
+
+    console.log("🎵 Built-in Vocal Vitality Boost active...");
+
+    window.__VOCAL_BOOST_WATCHERS__ = [];
+
+    window.segments.forEach((seg, i) => {
+      seg._boosted = seg._fadedUp = seg._reset = false;
+      const fadeUpTime = seg.end - END_RAISE_WINDOW;
+
+      const watcher = setInterval(() => {
+        if (!a || a.paused) return;
+        const cur = a.currentTime;
+        const currentSlider = document.getElementById("vocalVolume");
+        let base = parseFloat(currentSlider?.value) || 0.0;
+        let boosted = (base <= 0.003) ? 0.02 : base * 1.25;
+        boosted = Math.min(1, boosted);
+
+        // stop old watcher safely
+        if (cur > seg.end + 0.5) {
+          seg._reset = seg._boosted = seg._fadedUp = true;
+          clearInterval(watcher);
+          return;
+        }
+
+        // 🚀 Boost
+        if (cur >= seg.start && cur < seg.start + 1.0 && !seg._boosted && cur < seg.end - 1.0) {
+          seg._boosted = true;
+          console.log(`🚀 Segment ${i + 1} boost (base=${base.toFixed(4)}, boosted=${boosted.toFixed(4)})`);
+          setTimeout(() => {
+            setVolumeOnTargets("vocal", boosted);
+            setGlow("start");
+          }, BOOST_DELAY);
+
+          setTimeout(() => {
+            if (a.paused) return;
+            setVolumeOnTargets("vocal", base);
+            setGlow(null);
+          }, HOLD_TIME + BOOST_DELAY);
+        }
+
+        // 🔄 End raise
+        if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
+          seg._fadedUp = true;
+          setVolumeOnTargets("vocal", boosted);
+          setGlow("end");
+          setTimeout(() => {
+            setVolumeOnTargets("vocal", base);
+            setGlow(null);
+          }, 400);
+        }
+
+        // ⏹️ Reset at end
+        if (cur >= seg.end && !seg._reset) {
+          seg._reset = true;
+          setVolumeOnTargets("vocal", base);
+          setGlow(null);
+          clearInterval(watcher);
+        }
+
+        if (cur - seg.start > 2.0 && !seg._boosted) seg._boosted = true;
+      }, CHECK_INTERVAL);
+
+      window.__VOCAL_BOOST_WATCHERS__.push(watcher);
+    });
+  }
+
+  // --- Hook boost scheduling to playback start ---
+  document.addEventListener("DOMContentLoaded", () => {
+    const ensureAudio = setInterval(() => {
+      if (window.vocalAudio && window.vocalAudio.addEventListener) {
+        clearInterval(ensureAudio);
+        window.vocalAudio.addEventListener("play", scheduleBoosts);
+      }
+    }, 200);
+  });
+
+  console.log("🎤 Built-in Vocal Vitality Boost logic — strict start/end synced (gold→blue).");
+})();
