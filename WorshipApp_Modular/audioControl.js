@@ -310,6 +310,7 @@ boosted = Math.min(1, boosted);
 
 */
 
+
 console.log("🎵 Built-in Vocal Vitality Boost active...");
 
 // For each segment, use live base (reads current slider each time)
@@ -390,7 +391,7 @@ window.segments.forEach((seg, i) => {
 
 
 
-
+/*
 
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
@@ -461,6 +462,8 @@ window.segments.forEach((seg, i) => {
       }, CHECK_INTERVAL);
     });
   }
+
+  */
 
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
