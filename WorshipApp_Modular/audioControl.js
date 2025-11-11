@@ -639,3 +639,39 @@ console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end syn
     }
   });
 })();
+
+// --- Ensure Vocal Boost logic attaches to the real vocalAudio after replacement ---
+(function ensureBoostBinding() {
+  const bindBoost = () => {
+    if (!window.vocalAudio) return;
+
+    // Prevent rebinding multiple times
+    if (window.vocalAudio.__boostBound) return;
+    window.vocalAudio.__boostBound = true;
+
+    // Attach play listener safely
+    window.vocalAudio.addEventListener("play", () => {
+      try {
+        if (typeof scheduleBoosts === "function") {
+          scheduleBoosts();
+        } else if (
+          window.__VOCAL_VITALITY_BUILTIN__ &&
+          typeof window.__VOCAL_VITALITY_BUILTIN__.scheduleBoosts === "function"
+        ) {
+          window.__VOCAL_VITALITY_BUILTIN__.scheduleBoosts();
+        }
+      } catch (err) {
+        console.warn("⚠️ Boost listener error:", err);
+      }
+    });
+
+    console.log("🎤 Boost listener attached to current vocalAudio");
+  };
+
+  // Watch for any DOM or audio changes (new vocalAudio creation)
+  const observer = new MutationObserver(() => bindBoost());
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Also check periodically (handles replacements via songLoader.js)
+  const checkInterval = setInterval(bindBoost, 500);
+})();
