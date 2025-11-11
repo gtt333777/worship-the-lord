@@ -261,7 +261,23 @@ window.addEventListener("load", () => {
     const a = window.vocalAudio;
     const s = document.getElementById("vocalVolume");
     const base = parseFloat(s?.value) || 0.0;
-    const boosted = Math.min(1, base + BOOST_AMOUNT);
+    //const boosted = Math.min(1, base + BOOST_AMOUNT);
+
+    // --- Determine adaptive boost ---
+// If base is around default (Bluetooth mode), go to absolute 0.02.
+// Otherwise (user-adjusted), boost by +25% relative to base.
+let boosted;
+if (base <= 0.003) {
+  boosted = 0.02;
+  console.log("📻 Bluetooth mode → fixed boost to 0.02");
+} else {
+  boosted = base * 1.25;
+  console.log(`📱 User mode → +25% boost = ${boosted.toFixed(4)}`);
+}
+boosted = Math.min(1, boosted);
+
+
+
 
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
