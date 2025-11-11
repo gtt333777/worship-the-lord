@@ -98,9 +98,13 @@ window.addEventListener("load", () => {
     const slider = getSlider(type);
     const audio = (type === "vocal" ? vocalAudio : accompAudio);
     if (slider && audio) {
-      slider.value = defaults[type].toFixed(2);
+      //slider.value = defaults[type].toFixed(2);
+        slider.value = defaults[type].toFixed(3);
+
       audio.volume = defaults[type];
       slider.dispatchEvent(new Event("input"));
+      setVolumeOnTargets(type, parseFloat(slider.value));
+
     }
   });
 });
