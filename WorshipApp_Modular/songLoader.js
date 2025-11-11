@@ -1,8 +1,14 @@
 ﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
 
-// 🎵 Global audio players
-window.vocalAudio = new Audio();
-window.accompAudio = new Audio();
+// 🎵 Global audio players  ✅ Reuse shared ones from audioControl.js
+window.vocalAudio =
+  window.vocalAudio ||
+  document.querySelector('audio[data-role="vocal"]') ||
+  new Audio();
+window.accompAudio =
+  window.accompAudio ||
+  document.querySelector('audio[data-role="accomp"]') ||
+  new Audio();
 
 // === Load selected song ===
 async function loadSelectedSong(songName) {
@@ -21,6 +27,19 @@ async function loadSelectedSong(songName) {
 
   window.vocalAudio.preload = "auto";
   window.accompAudio.preload = "auto";
+
+  // ✅ Immediately apply correct slider volumes after src assignment
+  try {
+    const vSlider = document.getElementById("vocalVolume");
+    const aSlider = document.getElementById("accompVolume");
+    const vVal = parseFloat(vSlider?.value) || (DEFAULTS.vocal ?? MIN_VOL);
+    const aVal = parseFloat(aSlider?.value) || (DEFAULTS.accomp ?? MIN_VOL);
+    window.vocalAudio.volume = vVal;
+    window.accompAudio.volume = aVal;
+    console.log(`🎚️ Applied after src: vocal=${vVal}, accomp=${aVal}`);
+  } catch (err) {
+    console.warn("⚠️ Volume reapply failed:", err);
+  }
 
   // === Load lyrics ===
   const lyricsFile = `lyrics/${songName}.txt`;
