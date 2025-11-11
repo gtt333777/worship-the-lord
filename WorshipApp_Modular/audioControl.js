@@ -310,7 +310,6 @@ boosted = Math.min(1, boosted);
 
 */
 
-
 console.log("🎵 Built-in Vocal Vitality Boost active...");
 
 // For each segment, use live base (reads current slider each time)
@@ -391,7 +390,7 @@ window.segments.forEach((seg, i) => {
 
 
 
-/*
+
 
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
@@ -463,8 +462,6 @@ window.segments.forEach((seg, i) => {
     });
   }
 
-  */
-
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
       if (window.vocalAudio && window.vocalAudio.addEventListener) {
@@ -474,204 +471,5 @@ window.segments.forEach((seg, i) => {
     }, 200);
   });
 
-
-  /*
-    // --- Safety: ensure actual vocal & accomp audio volumes follow sliders once sources are ready ---
-  window.addEventListener("load", () => {
-    const vocalSlider = document.getElementById("vocalVolume");
-    const accompSlider = document.getElementById("accompVolume");
-
-    if (window.vocalAudio && vocalSlider) {
-      const vVal = parseFloat(vocalSlider.value) || (DEFAULTS.vocal ?? MIN_VOL);
-      setVolumeOnTargets("vocal", vVal);
-      console.log("🔄 Post-load vocal volume applied:", vVal);
-    }
-
-    if (window.accompAudio && accompSlider) {
-      const aVal = parseFloat(accompSlider.value) || (DEFAULTS.accomp ?? MIN_VOL);
-      setVolumeOnTargets("accomp", aVal);
-      console.log("🔄 Post-load accomp volume applied:", aVal);
-    }
-  });
-  */
-
-  /*
-  // --- Final Fix: Apply initial volumes when audio metadata is ready ---
-function ensureAccurateInitialVolumes() {
-  const applyVolume = (type, audioEl, sliderEl) => {
-    if (!audioEl || !sliderEl) return;
-    const val = parseFloat(sliderEl.value) || (DEFAULTS[type] ?? MIN_VOL);
-    audioEl.volume = val;
-    console.log(`✅ ${type} initial volume applied after metadata:`, val);
-  };
-
-  // vocal
-  if (window.vocalAudio) {
-    const vocalSlider = document.getElementById("vocalVolume");
-    window.vocalAudio.addEventListener("loadedmetadata", () =>
-      applyVolume("vocal", window.vocalAudio, vocalSlider)
-    );
-  }
-
-  // accomp
-  if (window.accompAudio) {
-    const accompSlider = document.getElementById("accompVolume");
-    window.accompAudio.addEventListener("loadedmetadata", () =>
-      applyVolume("accomp", window.accompAudio, accompSlider)
-    );
-  }
-}
-
-// Run after DOM ready
-document.addEventListener("DOMContentLoaded", ensureAccurateInitialVolumes);
-*/
-
-/*
-// --- Ultimate safeguard: enforce slider volume exactly at play time ---
-function enforceSliderVolumeAtPlay() {
-  const enforce = (type, audioEl, sliderId) => {
-    if (!audioEl) return;
-    const slider = document.getElementById(sliderId);
-    audioEl.addEventListener("play", () => {
-      const v = parseFloat(slider?.value) || (DEFAULTS[type] ?? MIN_VOL);
-      audioEl.volume = v;
-      console.log(`🎧 ${type} volume re-applied at play:`, v);
-    });
-  };
-
-  enforce("vocal", window.vocalAudio, "vocalVolume");
-  enforce("accomp", window.accompAudio, "accompVolume");
-}
-
-document.addEventListener("DOMContentLoaded", enforceSliderVolumeAtPlay);
-*/
-
-// --- Final foolproof volume enforcer (handles dynamic audio replacements) ---
-(function () {
-  function applySliderVolumesToAllAudios() {
-    const vocalSlider = document.getElementById("vocalVolume");
-    const accompSlider = document.getElementById("accompVolume");
-
-    const vocalVal = parseFloat(vocalSlider?.value) || (DEFAULTS.vocal ?? MIN_VOL);
-    const accompVal = parseFloat(accompSlider?.value) || (DEFAULTS.accomp ?? MIN_VOL);
-
-    document.querySelectorAll("audio").forEach(a => {
-      const role = (a.getAttribute("data-role") || "").toLowerCase();
-      if (role.includes("vocal")) {
-        a.volume = vocalVal;
-      } else if (role.includes("accomp")) {
-        a.volume = accompVal;
-      }
-    });
-
-    console.log(`🎚️ Volumes enforced → vocal=${vocalVal}, accomp=${accompVal}`);
-  }
-
-  // Apply when anything changes in the DOM (new <audio> appears or is replaced)
-  const observer = new MutationObserver(() => {
-    applySliderVolumesToAllAudios();
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Also reapply right before playback
-  document.body.addEventListener("play", e => {
-    if (e.target.tagName === "AUDIO") applySliderVolumesToAllAudios();
-  }, true);
-
-  // Initial run
-  window.addEventListener("load", applySliderVolumesToAllAudios);
-})();
-
-
-console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
-
-
-
-
-// --- Catch any Audio() created dynamically and auto-set volume ---
-(function interceptNewAudio() {
-  const originalAudio = window.Audio;
-  window.Audio = function (...args) {
-    const a = new originalAudio(...args);
-    try {
-      const roleGuess = (args[0] || "").toLowerCase().includes("vocal")
-        ? "vocal"
-        : (args[0] || "").toLowerCase().includes("acc")
-        ? "accomp"
-        : null;
-
-      if (roleGuess) {
-        const slider = document.getElementById(roleGuess + "Volume");
-        const val = parseFloat(slider?.value) || (DEFAULTS[roleGuess] ?? MIN_VOL);
-        a.volume = val;
-        console.log(`🎧 Intercepted new ${roleGuess} Audio() → volume set to`, val);
-      }
-    } catch (e) {}
-    return a;
-  };
-})();
-
-// --- Intercept .src assignment on any <audio> and reapply correct volume ---
-(function interceptAudioSrcChange() {
-  const proto = HTMLMediaElement.prototype;
-  const origSrc = Object.getOwnPropertyDescriptor(proto, "src");
-  if (!origSrc) return;
-
-  Object.defineProperty(proto, "src", {
-    get: origSrc.get,
-    set: function (newSrc) {
-      origSrc.set.call(this, newSrc);
-      try {
-        const lower = (newSrc || "").toLowerCase();
-        const roleGuess = lower.includes("vocal")
-          ? "vocal"
-          : lower.includes("acc")
-          ? "accomp"
-          : null;
-        if (roleGuess) {
-          const slider = document.getElementById(roleGuess + "Volume");
-          const val = parseFloat(slider?.value) || (DEFAULTS[roleGuess] ?? MIN_VOL);
-          this.volume = val;
-          console.log(`🎧 src reassigned for ${roleGuess}, volume re-applied →`, val);
-        }
-      } catch (e) {}
-    }
-  });
-})();
-
-// --- Ensure Vocal Boost logic attaches to the real vocalAudio after replacement ---
-(function ensureBoostBinding() {
-  const bindBoost = () => {
-    if (!window.vocalAudio) return;
-
-    // Prevent rebinding multiple times
-    if (window.vocalAudio.__boostBound) return;
-    window.vocalAudio.__boostBound = true;
-
-    // Attach play listener safely
-    window.vocalAudio.addEventListener("play", () => {
-      try {
-        if (typeof scheduleBoosts === "function") {
-          scheduleBoosts();
-        } else if (
-          window.__VOCAL_VITALITY_BUILTIN__ &&
-          typeof window.__VOCAL_VITALITY_BUILTIN__.scheduleBoosts === "function"
-        ) {
-          window.__VOCAL_VITALITY_BUILTIN__.scheduleBoosts();
-        }
-      } catch (err) {
-        console.warn("⚠️ Boost listener error:", err);
-      }
-    });
-
-    console.log("🎤 Boost listener attached to current vocalAudio");
-  };
-
-  // Watch for any DOM or audio changes (new vocalAudio creation)
-  const observer = new MutationObserver(() => bindBoost());
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Also check periodically (handles replacements via songLoader.js)
-  const checkInterval = setInterval(bindBoost, 500);
+  console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
 })();
