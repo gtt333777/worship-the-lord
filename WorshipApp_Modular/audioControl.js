@@ -495,6 +495,7 @@ window.segments.forEach((seg, i) => {
   });
   */
 
+  /*
   // --- Final Fix: Apply initial volumes when audio metadata is ready ---
 function ensureAccurateInitialVolumes() {
   const applyVolume = (type, audioEl, sliderEl) => {
@@ -523,8 +524,25 @@ function ensureAccurateInitialVolumes() {
 
 // Run after DOM ready
 document.addEventListener("DOMContentLoaded", ensureAccurateInitialVolumes);
+*/
 
+// --- Ultimate safeguard: enforce slider volume exactly at play time ---
+function enforceSliderVolumeAtPlay() {
+  const enforce = (type, audioEl, sliderId) => {
+    if (!audioEl) return;
+    const slider = document.getElementById(sliderId);
+    audioEl.addEventListener("play", () => {
+      const v = parseFloat(slider?.value) || (DEFAULTS[type] ?? MIN_VOL);
+      audioEl.volume = v;
+      console.log(`🎧 ${type} volume re-applied at play:`, v);
+    });
+  };
 
+  enforce("vocal", window.vocalAudio, "vocalVolume");
+  enforce("accomp", window.accompAudio, "accompVolume");
+}
+
+document.addEventListener("DOMContentLoaded", enforceSliderVolumeAtPlay);
 
 
   console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
