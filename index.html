@@ -351,16 +351,30 @@
 <div class="volume-control">
   <label for="accompVolume">🏛️ Accompaniment Volume:</label>
   <button onclick="adjustVolume('accomp', -0.01)">-</button>
+  <!--
   <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
+  -->
+  <input type="range" id="accompVolume" min="0.001" max="1" step="0.01" value="0.03">
+  <!--
   <span id="accompVolumeDisplay">1.00</span>
+  -->
+   <span id="accompVolumeDisplay">0.03</span>
+
   <button onclick="adjustVolume('accomp', 0.01)">+</button>
 </div>
+
 
 <div class="volume-control">
   <label for="vocalVolume">🎤 Vocal Volume:</label>
   <button onclick="adjustVolume('vocal', -0.01)">-</button>
-  <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
-  <span id="vocalVolumeDisplay">1.00</span>
+<!--  
+<input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
+-->
+<input type="range" id="vocalVolume" min="0.001" max="1" step="0.01" value="0.0027">
+<!--
+<span id="vocalVolumeDisplay">1.00</span>
+-->
+  <span id="vocalVolumeDisplay">0.0027</span>
   <button onclick="adjustVolume('vocal', 0.01)">+</button>
 </div>
 
