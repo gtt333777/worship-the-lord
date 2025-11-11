@@ -256,6 +256,7 @@ window.addEventListener("load", () => {
     }
   }
 
+  /*
   function scheduleBoosts() {
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
@@ -277,9 +278,94 @@ if (base <= 0.003) {
 boosted = Math.min(1, boosted);
 
 
-
-
     console.log("🎵 Built-in Vocal Vitality Boost active...");
+    */
+
+    function scheduleBoosts() {
+  if (!window.vocalAudio || !Array.isArray(window.segments)) return;
+  const a = window.vocalAudio;
+
+  console.log("🎵 Built-in Vocal Vitality Boost active (dynamic base)...");
+
+  window.segments.forEach((seg, i) => {
+    seg._boosted = seg._fadedUp = seg._reset = false;
+    const fadeUpTime = seg.end - END_RAISE_WINDOW;
+
+    const watcher = setInterval(() => {
+      if (!a || a.paused) return;
+      const cur = a.currentTime;
+
+      // --- Safety: mark done if past segment ---
+      if (cur > seg.end + 0.5) {
+        seg._reset = seg._boosted = seg._fadedUp = true;
+        clearInterval(watcher);
+        return;
+      }
+
+      // 🔁 Read the latest base volume dynamically each time
+      const s = document.getElementById("vocalVolume");
+      const base = parseFloat(s?.value) || 0.0;
+
+      // --- Determine adaptive boost ---
+      let boosted;
+      if (base <= 0.003) {
+        boosted = 0.02;
+        console.log(`📻 [Seg ${i + 1}] Bluetooth mode → fixed boost 0.02`);
+      } else {
+        boosted = base * 1.25;
+        console.log(`📱 [Seg ${i + 1}] User mode → +25% boost = ${boosted.toFixed(4)}`);
+      }
+      boosted = Math.min(1, boosted);
+
+      // 🚀 Boost at start (strict 0–1 s window)
+      if (
+        cur >= seg.start &&
+        cur < seg.start + 1.0 &&
+        !seg._boosted &&
+        cur < seg.end - 1.0
+      ) {
+        seg._boosted = true;
+        setTimeout(() => {
+          setVolumeOnTargets("vocal", boosted);
+          setGlow("start");
+        }, BOOST_DELAY);
+
+        setTimeout(() => {
+          if (a.paused) return;
+          setVolumeOnTargets("vocal", base);
+          setGlow(null);
+        }, HOLD_TIME + BOOST_DELAY);
+      }
+
+      // 🔄 Raise again near end
+      if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
+        seg._fadedUp = true;
+        setVolumeOnTargets("vocal", boosted);
+        setGlow("end");
+
+        setTimeout(() => {
+          setVolumeOnTargets("vocal", base);
+          setGlow(null);
+        }, 400);
+      }
+
+      // ⏹️ Reset at end
+      if (cur >= seg.end && !seg._reset) {
+        seg._reset = true;
+        setVolumeOnTargets("vocal", base);
+        setGlow(null);
+        clearInterval(watcher);
+      }
+
+      if (cur - seg.start > 2.0 && !seg._boosted) seg._boosted = true;
+    }, CHECK_INTERVAL);
+  });
+}
+
+
+
+
+
 
     window.segments.forEach((seg, i) => {
       seg._boosted = seg._fadedUp = seg._reset = false;
