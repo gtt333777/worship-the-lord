@@ -280,6 +280,7 @@ window.addEventListener("load", () => {
     const boosted = Math.min(1, base + BOOST_AMOUNT);
     */
 
+    /*
     // --- Determine base & boosted dynamically ---
 let base = parseFloat(s?.value) || 0.0;
 
@@ -296,6 +297,87 @@ if (base <= 0.003) {
 
 // Keep within valid range
 boosted = Math.min(1, boosted);
+
+*/
+
+console.log("🎵 Built-in Vocal Vitality Boost active...");
+
+// For each segment, use live base (reads current slider each time)
+window.segments.forEach((seg, i) => {
+  seg._boosted = seg._fadedUp = seg._reset = false;
+  const fadeUpTime = seg.end - END_RAISE_WINDOW;
+
+  const watcher = setInterval(() => {
+    if (!a || a.paused) return;
+    const cur = a.currentTime;
+
+    // 🧮 Recalculate base and boosted each cycle
+    const currentSlider = document.getElementById("vocalVolume");
+    let base = parseFloat(currentSlider?.value) || 0.0;
+    let boosted;
+
+    if (base <= 0.003) {
+      boosted = 0.02;
+    } else {
+      boosted = base * 1.25;
+    }
+    boosted = Math.min(1, boosted);
+
+    // --- Safety: mark done if past segment ---
+    if (cur > seg.end + 0.5) {
+      seg._reset = seg._boosted = seg._fadedUp = true;
+      clearInterval(watcher);
+      return;
+    }
+
+    // 🚀 Boost at start
+    if (
+      cur >= seg.start &&
+      cur < seg.start + 1.0 &&
+      !seg._boosted &&
+      cur < seg.end - 1.0
+    ) {
+      seg._boosted = true;
+      console.log(`🚀 Segment ${i + 1} boost (base=${base.toFixed(4)}, boosted=${boosted.toFixed(4)})`);
+      setTimeout(() => {
+        setVolumeOnTargets("vocal", boosted);
+        setGlow("start");
+      }, BOOST_DELAY);
+
+      setTimeout(() => {
+        if (a.paused) return;
+        console.log(`⬇️ Segment ${i + 1} reset`);
+        setVolumeOnTargets("vocal", base);
+        setGlow(null);
+      }, HOLD_TIME + BOOST_DELAY);
+    }
+
+    // 🔄 Raise again near end
+    if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
+      seg._fadedUp = true;
+      console.log(`🔄 Segment ${i + 1} end raise (boosted=${boosted.toFixed(4)})`);
+      setVolumeOnTargets("vocal", boosted);
+      setGlow("end");
+
+      setTimeout(() => {
+        setVolumeOnTargets("vocal", base);
+        setGlow(null);
+      }, 400);
+    }
+
+    // ⏹️ Reset at end
+    if (cur >= seg.end && !seg._reset) {
+      seg._reset = true;
+      console.log(`⏹️ Segment ${i + 1} end reset`);
+      setVolumeOnTargets("vocal", base);
+      setGlow(null);
+      clearInterval(watcher);
+    }
+
+    if (cur - seg.start > 2.0 && !seg._boosted) seg._boosted = true;
+  }, CHECK_INTERVAL);
+});
+
 
 
 
