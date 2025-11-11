@@ -474,5 +474,28 @@ window.segments.forEach((seg, i) => {
     }, 200);
   });
 
+
+
+    // --- Safety: ensure actual vocal & accomp audio volumes follow sliders once sources are ready ---
+  window.addEventListener("load", () => {
+    const vocalSlider = document.getElementById("vocalVolume");
+    const accompSlider = document.getElementById("accompVolume");
+
+    if (window.vocalAudio && vocalSlider) {
+      const vVal = parseFloat(vocalSlider.value) || (DEFAULTS.vocal ?? MIN_VOL);
+      setVolumeOnTargets("vocal", vVal);
+      console.log("🔄 Post-load vocal volume applied:", vVal);
+    }
+
+    if (window.accompAudio && accompSlider) {
+      const aVal = parseFloat(accompSlider.value) || (DEFAULTS.accomp ?? MIN_VOL);
+      setVolumeOnTargets("accomp", aVal);
+      console.log("🔄 Post-load accomp volume applied:", aVal);
+    }
+  });
+
+
+
+
   console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue).");
 })();
