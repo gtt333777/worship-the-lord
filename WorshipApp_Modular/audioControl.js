@@ -1,4 +1,31 @@
-﻿// =======================================================
+﻿/* ============================================================
+   Worship The Lord — audioControl.js
+   🟩 FINAL STABLE BUILD  — Verified 2025-11-12
+
+   🔹 Purpose:
+       Global audio volume control + Vocal Vitality Boost system
+       (Glow / Boost / Drop with peaceful blue–gold theme)
+
+   🔹 Highlights:
+       • Duplicate loop permanently removed ✅
+       • Volume sync on startup restored (cleanly)
+       • Boost logic dynamically adapts to slider value
+       • Manual & automatic segment playback supported
+       • Fully non-juggling — no overlapping watchers
+       • Compatible with songLoader.js, loopPlayer.js, etc.
+       • Classic modular structure (no imports/exports)
+
+   🔹 Maintenance Tips:
+       • To test glow/boost, watch console for:
+         🚀 boost → ⬇️ reset → 🔄 end raise → ⏹️ end reset
+       • If future edits reintroduce segment watchers,
+         ensure only one window.segments.forEach() block exists.
+
+   — GTG-333 verified build (11-Nov-2025, India time)
+   ============================================================ */
+
+
+// =======================================================
 //  audioControl.js — FINAL FOOLPROOF + VOCAL BOOST VERSION
 //  🎨 With Warm Gold → Peaceful Blue Glow Theme
 // =======================================================
