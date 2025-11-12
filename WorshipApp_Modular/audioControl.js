@@ -275,16 +275,6 @@ window.addEventListener("load", () => {
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
     const s = document.getElementById("vocalVolume");
-
-    // --- Ensure vocal slider and actual audio are in sync at start ---
-if (s) {
-  const initialVal = parseFloat(s.value) || (DEFAULTS.vocal ?? MIN_VOL);
-  setVolumeOnTargets("vocal", initialVal);
-  console.log("🔄 Vocal volume initialized to", initialVal);
-}
-
-
-
     /*
     const base = parseFloat(s?.value) || 0.0;
     const boosted = Math.min(1, base + BOOST_AMOUNT);
@@ -391,7 +381,7 @@ window.segments.forEach((seg, i) => {
 
 
 
-
+/*
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
     window.segments.forEach((seg, i) => {
@@ -461,6 +451,9 @@ window.segments.forEach((seg, i) => {
       }, CHECK_INTERVAL);
     });
   }
+
+  */
+
 
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
