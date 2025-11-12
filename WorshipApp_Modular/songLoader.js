@@ -52,6 +52,7 @@ function stopAndUnloadAudio() {
 
   // ✅ Reset boost guard for next playback session
   window.__VOCAL_BOOST_ACTIVE__ = false;
+  window.__BOOST_WATCHERS_ACTIVE__ = false;
 }
 
 // === Play the first segment ===
