@@ -271,14 +271,14 @@ window.addEventListener("load", () => {
     }
   }
 
-  /*
+  
   function scheduleBoosts() {
     if (!window.vocalAudio || !Array.isArray(window.segments)) return;
     const a = window.vocalAudio;
     const s = document.getElementById("vocalVolume");
-    */
-
-    function scheduleBoosts() {
+    
+    /*
+        function scheduleBoosts() {
   // 🛡️ Prevent duplicate watchers on repeated playback
   if (window.__BOOST_WATCHERS_ACTIVE__) return;
   window.__BOOST_WATCHERS_ACTIVE__ = true;
@@ -287,8 +287,7 @@ window.addEventListener("load", () => {
   const a = window.vocalAudio;
   const s = document.getElementById("vocalVolume");
 
-
-
+    */
 
 
 
