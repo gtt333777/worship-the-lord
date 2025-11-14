@@ -155,6 +155,7 @@ function toggleMute(type) {
   const audio = (type === "vocal") ? window.vocalAudio : window.accompAudio;
   const slider = getSlider(type);
   const display = getDisplay(type);
+  const btn = document.getElementById(type + "MuteBtn"); // button id: 'vocalMuteBtn' or 'accompMuteBtn'
 
   if (!audio || !slider) return;
 
@@ -163,6 +164,7 @@ function toggleMute(type) {
     audio.volume = 0;
     slider.value = "0.00";
     if (display) display.textContent = "0.00";
+    if (btn) btn.textContent = "🔇";
     return;
   }
 
@@ -170,6 +172,7 @@ function toggleMute(type) {
   slider.value = window._muteMemory[type].toFixed(3);
   if (display) display.textContent = window._muteMemory[type].toFixed(3);
   window._muteMemory[type] = null;
+  if (btn) btn.textContent = "🔊";
 }
 window.toggleMute = toggleMute;
 
@@ -185,6 +188,14 @@ if (document.getElementById("vocalVolume"))
   document.getElementById("vocalVolume").value = "0.00";
 if (document.getElementById("vocalVolumeDisplay"))
   document.getElementById("vocalVolumeDisplay").textContent = "0.00";
+
+// set initial icon states if buttons exist
+if (document.getElementById("vocalMuteBtn")) {
+  document.getElementById("vocalMuteBtn").textContent = "🔇";
+}
+if (document.getElementById("accompMuteBtn")) {
+  document.getElementById("accompMuteBtn").textContent = "🔊";
+}
 
 
 
