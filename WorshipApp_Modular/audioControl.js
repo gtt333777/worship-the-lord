@@ -320,7 +320,7 @@ if (document.getElementById("accompMuteBtn")) {
 
 
  /* =======================================================
-   🔇 Silent-Boost Patch (Option C)
+   🔇 Silent-Boost Patch (Option C) — FIXED VERSION
    If Vocal is muted -> boost logic still runs,
    but actual audio volume stays 0.00
    ======================================================= */
@@ -329,26 +329,28 @@ if (document.getElementById("accompMuteBtn")) {
   const origSetVolume = window.setVolumeOnTargets;
 
   window.setVolumeOnTargets = function(type, numericValue) {
-    // If vocal muted → force remain silent even during boost
+
+    // If vocal is muted (button contains 🔇 anywhere)
     if (type === "vocal") {
       const btn = document.getElementById("vocalMuteBtn");
-      const isMuted = btn && btn.textContent === "🔇";
+      const isMuted = btn && btn.textContent.includes("🔇");
 
       if (isMuted) {
-        // Update slider + display as usual
+        // Keep display + slider at zero
         const slider = document.getElementById("vocalVolume");
         const display = document.getElementById("vocalVolumeDisplay");
+
         if (slider) slider.value = "0.00";
         if (display) display.textContent = "0.00";
 
-        // Force audio silent
+        // Force actual audio silent
         if (window.vocalAudio) window.vocalAudio.volume = 0;
 
-        return; // Do NOT pass boosted volume to original function
+        return; // DO NOT allow boosted volume
       }
     }
 
-    // Default behavior for non-muted state
+    // Normal behaviour when not muted
     origSetVolume(type, numericValue);
   };
 })();
