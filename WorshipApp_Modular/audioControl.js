@@ -144,6 +144,50 @@ window.addEventListener("load", () => {
   });
 });
 
+
+
+// =======================================================
+// 🔇 Mute / Unmute system (added safely here)
+// =======================================================
+function toggleMute(type) {
+  if (!window._muteMemory) window._muteMemory = {};
+
+  const audio = (type === "vocal") ? window.vocalAudio : window.accompAudio;
+  const slider = getSlider(type);
+  const display = getDisplay(type);
+
+  if (!audio || !slider) return;
+
+  if (!window._muteMemory[type]) {
+    window._muteMemory[type] = audio.volume;
+    audio.volume = 0;
+    slider.value = "0.00";
+    if (display) display.textContent = "0.00";
+    return;
+  }
+
+  audio.volume = window._muteMemory[type];
+  slider.value = window._muteMemory[type].toFixed(3);
+  if (display) display.textContent = window._muteMemory[type].toFixed(3);
+  window._muteMemory[type] = null;
+}
+window.toggleMute = toggleMute;
+
+
+// =======================================================
+// 🔇 Make Vocal muted by default (outside load-block)
+// =======================================================
+window._muteMemory = window._muteMemory || {};
+window._muteMemory.vocal = 0.002;
+
+if (window.vocalAudio) window.vocalAudio.volume = 0;
+if (document.getElementById("vocalVolume"))
+  document.getElementById("vocalVolume").value = "0.00";
+if (document.getElementById("vocalVolumeDisplay"))
+  document.getElementById("vocalVolumeDisplay").textContent = "0.00";
+
+
+
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
 //  🎨 Warm Gold → Peaceful Blue Glow Theme
@@ -153,14 +197,13 @@ window.addEventListener("load", () => {
   if (window.__VOCAL_VITALITY_BUILTIN__) return;
   window.__VOCAL_VITALITY_BUILTIN__ = true;
 
-  const HOLD_TIME = 3000;          // hold 5s
-  const END_RAISE_WINDOW = 1.0;    // seconds before end
-  const CHECK_INTERVAL = 100;      // check rate
-  const BOOST_DELAY = 100;         // small delay for smooth start
+  const HOLD_TIME = 3000;
+  const END_RAISE_WINDOW = 1.0;
+  const CHECK_INTERVAL = 100;
+  const BOOST_DELAY = 100;
 
   const labelEl = document.querySelector('label[for="vocalVolume"]');
 
-  // ✨ Dual-color glow
   function setGlow(mode) {
     if (!labelEl) return;
     labelEl.style.transition = "box-shadow 0.4s ease, background 0.4s ease";
@@ -184,7 +227,6 @@ window.addEventListener("load", () => {
 
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
-    // ✅ For each segment, use live base and boosted from current slider value
     window.segments.forEach((seg, i) => {
       seg._boosted = seg._fadedUp = seg._reset = false;
       const fadeUpTime = seg.end - END_RAISE_WINDOW;
@@ -193,21 +235,16 @@ window.addEventListener("load", () => {
         if (!a || a.paused) return;
         const cur = a.currentTime;
 
-        // --- Recalculate base and boosted dynamically
         const currentSlider = document.getElementById("vocalVolume");
         let base = parseFloat(currentSlider?.value) || 0.0;
-       // let boosted = base <= 0.003  ? 0.02 :   Math.min(1, base * 1.25);
-       // let boosted = base <= 0.02   ? 0.0227 : Math.min(1, base * 1.25);
-          let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
+        let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
 
-        // --- Safety cutoff
         if (cur > seg.end + 0.5) {
           seg._reset = seg._boosted = seg._fadedUp = true;
           clearInterval(watcher);
           return;
         }
 
-        // 🚀 Boost at start
         if (
           cur >= seg.start &&
           cur < seg.start + 1.0 &&
@@ -229,7 +266,6 @@ window.addEventListener("load", () => {
           }, HOLD_TIME + BOOST_DELAY);
         }
 
-        // 🔄 Raise near end
         if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
           seg._fadedUp = true;
           console.log(`🔄 Segment ${i + 1} end raise (boosted=${boosted.toFixed(4)})`);
@@ -242,7 +278,6 @@ window.addEventListener("load", () => {
           }, 400);
         }
 
-        // ⏹️ Reset at end
         if (cur >= seg.end && !seg._reset) {
           seg._reset = true;
           console.log(`⏹️ Segment ${i + 1} end reset`);
@@ -256,7 +291,6 @@ window.addEventListener("load", () => {
     });
   }
 
-  // --- Hook boost scheduling to playback start ---
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
       if (window.vocalAudio && window.vocalAudio.addEventListener) {
