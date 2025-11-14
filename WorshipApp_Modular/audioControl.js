@@ -313,3 +313,42 @@ if (document.getElementById("accompMuteBtn")) {
  
    console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue, no duplicate loop).");
  })();
+
+
+
+
+
+
+ /* =======================================================
+   🔇 Silent-Boost Patch (Option C)
+   If Vocal is muted -> boost logic still runs,
+   but actual audio volume stays 0.00
+   ======================================================= */
+
+(function () {
+  const origSetVolume = window.setVolumeOnTargets;
+
+  window.setVolumeOnTargets = function(type, numericValue) {
+    // If vocal muted → force remain silent even during boost
+    if (type === "vocal") {
+      const btn = document.getElementById("vocalMuteBtn");
+      const isMuted = btn && btn.textContent === "🔇";
+
+      if (isMuted) {
+        // Update slider + display as usual
+        const slider = document.getElementById("vocalVolume");
+        const display = document.getElementById("vocalVolumeDisplay");
+        if (slider) slider.value = "0.00";
+        if (display) display.textContent = "0.00";
+
+        // Force audio silent
+        if (window.vocalAudio) window.vocalAudio.volume = 0;
+
+        return; // Do NOT pass boosted volume to original function
+      }
+    }
+
+    // Default behavior for non-muted state
+    origSetVolume(type, numericValue);
+  };
+})();
