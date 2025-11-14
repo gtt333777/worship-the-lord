@@ -196,8 +196,9 @@ window.addEventListener("load", () => {
         // --- Recalculate base and boosted dynamically
         const currentSlider = document.getElementById("vocalVolume");
         let base = parseFloat(currentSlider?.value) || 0.0;
-       // let boosted = base <= 0.003 ? 0.02 : Math.min(1, base * 1.25);
-        let boosted = base <= 0.02 ? 0.0227 : Math.min(1, base * 1.25);
+       // let boosted = base <= 0.003  ? 0.02 :   Math.min(1, base * 1.25);
+       // let boosted = base <= 0.02   ? 0.0227 : Math.min(1, base * 1.25);
+          let boosted = base <= 0.0127 ? 0.0127 : Math.min(1, base * 1.25);
 
         // --- Safety cutoff
         if (cur > seg.end + 0.5) {
