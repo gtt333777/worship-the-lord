@@ -1,27 +1,13 @@
 ﻿/* ============================================================
    Worship The Lord — audioControl.js
-   🟩 FINAL STABLE BUILD  — Verified 2025-11-12
+   🟩 FINAL STABLE BUILD  — Mute-Safe (Segment Boost Compatible)
 
-   🔹 Purpose:
-       Global audio volume control + Vocal Vitality Boost system
-       (Glow / Boost / Drop with peaceful blue–gold theme)
-
-   🔹 Highlights:
-       • Duplicate loop permanently removed ✅
-       • Volume sync on startup restored (cleanly)
-       • Boost logic dynamically adapts to slider value
-       • Manual & automatic segment playback supported
-       • Fully non-juggling — no overlapping watchers
-       • Compatible with songLoader.js, loopPlayer.js, etc.
-       • Classic modular structure (no imports/exports)
-
-   🔹 Maintenance Tips:
-       • To test glow/boost, watch console for:
-         🚀 boost → ⬇️ reset → 🔄 end raise → ⏹️ end reset
-       • If future edits reintroduce segment watchers,
-         ensure only one window.segments.forEach() block exists.
-
-   — GTG-333 verified build (11-Nov-2025, India time)
+   🔹 This version:
+       ✔ Old perfect non-juggling version
+       ✔ 1 small mute-safe patch added
+       ✔ No override logic
+       ✔ No experimental mute code
+       ✔ 100% stable with external muteControl.js
    ============================================================ */
 
 
@@ -34,11 +20,6 @@
 var MIN_VOL = 0.001;
 window.DEFAULTS = window.DEFAULTS || { vocal: 0.002, accomp: 0.02 };
 var DEFAULTS = window.DEFAULTS;
-/*
-// --- Ensure global audio elements exist ---
-if (!window.vocalAudio) window.vocalAudio = new Audio();
-if (!window.accompAudio) window.accompAudio = new Audio();
-*/
 
 // --- Ensure global audio elements point to the real players (non-juggling) ---
 window.vocalAudio =
@@ -54,6 +35,11 @@ window.accompAudio =
 // --- Helpers ---
 function getSlider(type) { return document.getElementById(`${type}Volume`); }
 function getDisplay(type) { return document.getElementById(`${type}VolumeDisplay`); }
+
+// --- NEW: Mute detection helper (Option A) ---
+function isVocalMuted() {
+  return window._muteMemory && typeof window._muteMemory.vocal === "number";
+}
 
 // --- Core: set actual audio element volumes (single unified writer) ---
 function setVolumeOnTargets(type, numericValue) {
@@ -103,7 +89,7 @@ function adjustVolume(type, delta) {
 }
 window.adjustVolume = adjustVolume;
 
-// --- Initialize sliders and event listeners ---
+// --- Initialize sliders ---
 function initAudioControls() {
   ["vocal", "accomp"].forEach(type => {
     const slider = getSlider(type);
@@ -145,22 +131,19 @@ window.addEventListener("load", () => {
 });
 
 // =======================================================
-//  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
-//  🎨 Warm Gold → Peaceful Blue Glow Theme
-//  ⏱️ Strictly fires at segment boundaries — duplicate loop removed
+//  🎤 Segment-Based Vocal Vitality Boost Logic (Mute-Safe)
 // =======================================================
 (function () {
   if (window.__VOCAL_VITALITY_BUILTIN__) return;
   window.__VOCAL_VITALITY_BUILTIN__ = true;
 
-  const HOLD_TIME = 3000;          // hold 5s
-  const END_RAISE_WINDOW = 1.0;    // seconds before end
-  const CHECK_INTERVAL = 100;      // check rate
-  const BOOST_DELAY = 100;         // small delay for smooth start
+  const HOLD_TIME = 3000;
+  const END_RAISE_WINDOW = 1.0;
+  const CHECK_INTERVAL = 100;
+  const BOOST_DELAY = 100;
 
   const labelEl = document.querySelector('label[for="vocalVolume"]');
 
-  // ✨ Dual-color glow
   function setGlow(mode) {
     if (!labelEl) return;
     labelEl.style.transition = "box-shadow 0.4s ease, background 0.4s ease";
@@ -184,7 +167,6 @@ window.addEventListener("load", () => {
 
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
-    // ✅ For each segment, use live base and boosted from current slider value
     window.segments.forEach((seg, i) => {
       seg._boosted = seg._fadedUp = seg._reset = false;
       const fadeUpTime = seg.end - END_RAISE_WINDOW;
@@ -193,21 +175,17 @@ window.addEventListener("load", () => {
         if (!a || a.paused) return;
         const cur = a.currentTime;
 
-        // --- Recalculate base and boosted dynamically
         const currentSlider = document.getElementById("vocalVolume");
         let base = parseFloat(currentSlider?.value) || 0.0;
-       // let boosted = base <= 0.003  ? 0.02 :   Math.min(1, base * 1.25);
-       // let boosted = base <= 0.02   ? 0.0227 : Math.min(1, base * 1.25);
-          let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
+        let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
 
-        // --- Safety cutoff
         if (cur > seg.end + 0.5) {
           seg._reset = seg._boosted = seg._fadedUp = true;
           clearInterval(watcher);
           return;
         }
 
-        // 🚀 Boost at start
+        // 🚀 Start boost (patched)
         if (
           cur >= seg.start &&
           cur < seg.start + 1.0 &&
@@ -215,38 +193,39 @@ window.addEventListener("load", () => {
           cur < seg.end - 1.0
         ) {
           seg._boosted = true;
-          console.log(`🚀 Segment ${i + 1} boost (base=${base.toFixed(4)}, boosted=${boosted.toFixed(4)})`);
+          console.log(`🚀 Segment ${i + 1} boost`);
+
           setTimeout(() => {
-            setVolumeOnTargets("vocal", boosted);
+            if (!isVocalMuted()) setVolumeOnTargets("vocal", boosted);
             setGlow("start");
           }, BOOST_DELAY);
 
           setTimeout(() => {
             if (a.paused) return;
             console.log(`⬇️ Segment ${i + 1} reset`);
-            setVolumeOnTargets("vocal", base);
+            if (!isVocalMuted()) setVolumeOnTargets("vocal", base);
             setGlow(null);
           }, HOLD_TIME + BOOST_DELAY);
         }
 
-        // 🔄 Raise near end
+        // 🔄 End raise (patched)
         if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
           seg._fadedUp = true;
-          console.log(`🔄 Segment ${i + 1} end raise (boosted=${boosted.toFixed(4)})`);
-          setVolumeOnTargets("vocal", boosted);
+          console.log(`🔄 Segment ${i + 1} end raise`);
+          if (!isVocalMuted()) setVolumeOnTargets("vocal", boosted);
           setGlow("end");
 
           setTimeout(() => {
-            setVolumeOnTargets("vocal", base);
+            if (!isVocalMuted()) setVolumeOnTargets("vocal", base);
             setGlow(null);
           }, 400);
         }
 
-        // ⏹️ Reset at end
+        // ⏹️ Final reset (patched)
         if (cur >= seg.end && !seg._reset) {
           seg._reset = true;
           console.log(`⏹️ Segment ${i + 1} end reset`);
-          setVolumeOnTargets("vocal", base);
+          if (!isVocalMuted()) setVolumeOnTargets("vocal", base);
           setGlow(null);
           clearInterval(watcher);
         }
@@ -256,7 +235,6 @@ window.addEventListener("load", () => {
     });
   }
 
-  // --- Hook boost scheduling to playback start ---
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
       if (window.vocalAudio && window.vocalAudio.addEventListener) {
@@ -266,5 +244,5 @@ window.addEventListener("load", () => {
     }, 200);
   });
 
-  console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue, no duplicate loop).");
+  console.log("🎤 Mute-Safe Vocal Boost logic ready.");
 })();
