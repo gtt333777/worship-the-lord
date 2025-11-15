@@ -113,9 +113,25 @@ function adjustVolume(type, delta) {
   // (B) If vocal is muted → STOP updating *real* audio
   // Real audio will stay at MIN_VOL thanks to setVolumeOnTargets logic,
   // but to avoid extra writes we bail here for vocal when muted.
+  
+  /*
   if (type === "vocal" && isVocalMuted()) {
     return;   // real vocal audio stays silent (0.001)
   }
+  */
+
+  if (type === "vocal") {
+    if (isVocalMuted()) {
+        // muted → no real volume change
+        return;
+    }
+    // unmuted → force real vocal audio to match slider
+    setVolumeOnTargets("vocal", newVal);
+    return;
+}
+
+
+
 
   // (C) If not muted → normal real volume update
   setVolumeOnTargets(type, newVal);
