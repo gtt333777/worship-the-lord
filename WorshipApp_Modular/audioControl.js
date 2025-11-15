@@ -168,8 +168,8 @@ if (document.readyState === "loading") {
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
 
-  // 🔥 Ensure we start with true muted state (prevents startup boost)
-  window._vocalIsMuted = true;
+  
+  window._vocalIsMuted = false; // vocal NOT muted at startup
 
   const defaults = { vocal: 0.002, accomp: 0.02 };
 
@@ -182,7 +182,9 @@ window.addEventListener("load", () => {
   }
 
   // Real audio must start muted (0.001)
-  if (window.vocalAudio) window.vocalAudio.volume = MIN_VOL;
+  //if (window.vocalAudio) window.vocalAudio.volume = MIN_VOL;
+    if (window.vocalAudio) window.vocalAudio.volume = defaults.vocal;
+
 
   // ACCOMP
   const accSlider = getSlider("accomp");
