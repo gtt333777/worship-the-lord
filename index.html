@@ -257,7 +257,52 @@
         text-align: left;
       }
     }
-  </style>
+
+
+
+
+
+
+    /* 🎤 Premium Vocal Mute Button */
+button#vocalMuteBtn {
+  background: linear-gradient(to bottom right, #ff7043, #e64a19) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 26px !important;
+  font-size: 1.25rem !important;
+  font-weight: bold !important;
+  border-radius: 14px !important;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: all 0.25s ease-in-out;
+}
+
+button#vocalMuteBtn:hover {
+  transform: scale(1.07);
+  background: linear-gradient(to bottom right, #ff8a65, #f4511e) !important;
+}
+
+button#vocalMuteBtn:active {
+  transform: scale(0.95);
+}
+
+/* 🎤 When vocal is MUTED → Special gray style */
+button#vocalMuteBtn.vocal-muted {
+  background: linear-gradient(to bottom right, #9e9e9e, #616161) !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2) !important;
+}
+
+
+
+
+
+</style>
+
+
+
+
+
+
 </head>
 
 <body>
