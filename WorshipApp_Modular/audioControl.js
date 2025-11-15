@@ -43,31 +43,36 @@ function isVocalMuted() {
 }
 */
 
-
 function isVocalMuted() {
   return !!window._vocalIsMuted;   // true = muted, false = not muted
 }
 
-
-
-
-
-
-
-
 // --- Core: set actual audio element volumes (single unified writer) ---
 function setVolumeOnTargets(type, numericValue) {
+  // Clamp/round requested numeric value (for UI)
   numericValue = Math.min(1, Math.max(MIN_VOL, parseFloat(numericValue.toFixed(2))));
 
-  const targetAudio = (type === "vocal" ? window.vocalAudio : window.accompAudio);
-  if (targetAudio && typeof targetAudio.volume === "number") targetAudio.volume = numericValue;
+  // Decide what *real* numeric we write to audio elements:
+  // - If vocal is muted, force the real audio to MIN_VOL (silent)
+  // - But keep the slider/display showing numericValue (visual)
+  var realNumeric = numericValue;
+  if (type === "vocal" && isVocalMuted()) {
+    realNumeric = MIN_VOL;
+  }
 
+  // Apply to main known target (vocal or accomp)
+  const targetAudio = (type === "vocal" ? window.vocalAudio : window.accompAudio);
+  if (targetAudio && typeof targetAudio.volume === "number") targetAudio.volume = realNumeric;
+
+  // Apply to any audio elements that match id or data-role
   document.querySelectorAll("audio").forEach(a => {
     const id = (a.id || "").toLowerCase();
     const role = (a.getAttribute("data-role") || "").toLowerCase();
-    if (id.includes(type) || role.includes(type)) a.volume = numericValue;
+    if (id.includes(type) || role.includes(type)) a.volume = realNumeric;
   });
 
+  // IMPORTANT: update UI to show the requested numericValue (visual)
+  // This keeps the slider showing what the user expects while audio stays silent when muted.
   const slider = getSlider(type);
   const display = getDisplay(type);
   if (slider) slider.value = numericValue.toFixed(2);
@@ -86,29 +91,10 @@ function syncDisplayAndVolume(type) {
 
   slider.value = val.toFixed(2);
   if (display) display.textContent = val.toFixed(2);
+
+  // Use setVolumeOnTargets which now respects mute for real audio writes
   setVolumeOnTargets(type, val);
 }
-
-/*
-
-// --- adjustVolume: called by + / − buttons ---
-function adjustVolume(type, delta) {
-  const slider = getSlider(type);
-  if (!slider) return;
-
-  let newVal = parseFloat(slider.value) + delta;
-  if (!Number.isFinite(newVal)) newVal = DEFAULTS[type] ?? MIN_VOL;
-  newVal = Math.min(1, Math.max(MIN_VOL, newVal));
-
-  slider.value = newVal.toFixed(2);
-  syncDisplayAndVolume(type);
-}
-window.adjustVolume = adjustVolume;
-
-
-*/
-
-
 
 // --- adjustVolume: called by + / − buttons ---
 function adjustVolume(type, delta) {
@@ -124,18 +110,17 @@ function adjustVolume(type, delta) {
   slider.value = newVal.toFixed(2);
   if (display) display.textContent = newVal.toFixed(2);
 
-  // (B) If vocal is muted → STOP. Do NOT update real audio.
+  // (B) If vocal is muted → STOP updating *real* audio
+  // Real audio will stay at MIN_VOL thanks to setVolumeOnTargets logic,
+  // but to avoid extra writes we bail here for vocal when muted.
   if (type === "vocal" && isVocalMuted()) {
-    return;   // real vocal audio stays at 0.001
+    return;   // real vocal audio stays silent (0.001)
   }
 
   // (C) If not muted → normal real volume update
   setVolumeOnTargets(type, newVal);
 }
-
 window.adjustVolume = adjustVolume;
-
-
 
 // --- Initialize sliders ---
 function initAudioControls() {
@@ -164,61 +149,24 @@ if (document.readyState === "loading") {
   initAudioControls();
 }
 
-
-/*
-// --- Set initial volumes on load ---
-window.addEventListener("load", () => {
-  const defaults = { vocal: 0.002, accomp: 0.02 };
-  ["vocal", "accomp"].forEach(type => {
-    const slider = getSlider(type);
-    const audio = (type === "vocal" ? vocalAudio : accompAudio);
-    if (slider && audio) {
-      slider.value = defaults[type].toFixed(2);
-      audio.volume = defaults[type];
-      slider.dispatchEvent(new Event("input"));
-    }
-  });
-});
-*/
-
-
-/*
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
 
-  // 🔥 Important: Prevent boost audio at startup
-  window._vocalIsMuted = true;
-
-  const defaults = { vocal: 0.002, accomp: 0.02 };
-  ["vocal", "accomp"].forEach(type => {
-    const slider = getSlider(type);
-    const audio = (type === "vocal" ? vocalAudio : accompAudio);
-    if (slider && audio) {
-      slider.value = defaults[type].toFixed(2);
-      audio.volume = defaults[type];
-      slider.dispatchEvent(new Event("input"));
-    }
-  });
-});
-*/
-
-window.addEventListener("load", () => {
-
-  // 🔥 Set TRUE muted state before song starts
+  // 🔥 Ensure we start with true muted state (prevents startup boost)
   window._vocalIsMuted = true;
 
   const defaults = { vocal: 0.002, accomp: 0.02 };
 
-  // VOCAL
+  // VOCAL: show default visually
   const vocalSlider = getSlider("vocal");
   const vocalDisplay = getDisplay("vocal");
   if (vocalSlider) {
-    vocalSlider.value = defaults.vocal.toFixed(2);   // slider shows 0.002
+    vocalSlider.value = defaults.vocal.toFixed(2);
     if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(2);
   }
 
   // Real audio must start muted (0.001)
-  if (window.vocalAudio) window.vocalAudio.volume = 0.001;
+  if (window.vocalAudio) window.vocalAudio.volume = MIN_VOL;
 
   // ACCOMP
   const accSlider = getSlider("accomp");
@@ -228,10 +176,6 @@ window.addEventListener("load", () => {
     window.accompAudio.volume = defaults.accomp;
   }
 });
-
-
-
-
 
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Mute-Safe)
@@ -288,7 +232,7 @@ window.addEventListener("load", () => {
           return;
         }
 
-        // 🚀 Start boost (patched)
+        // 🚀 Start boost (mute-safe)
         if (
           cur >= seg.start &&
           cur < seg.start + 1.0 &&
@@ -311,7 +255,7 @@ window.addEventListener("load", () => {
           }, HOLD_TIME + BOOST_DELAY);
         }
 
-        // 🔄 End raise (patched)
+        // 🔄 End raise (mute-safe)
         if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
           seg._fadedUp = true;
           console.log(`🔄 Segment ${i + 1} end raise`);
@@ -324,7 +268,7 @@ window.addEventListener("load", () => {
           }, 400);
         }
 
-        // ⏹️ Final reset (patched)
+        // ⏹️ Final reset (mute-safe)
         if (cur >= seg.end && !seg._reset) {
           seg._reset = true;
           console.log(`⏹️ Segment ${i + 1} end reset`);
