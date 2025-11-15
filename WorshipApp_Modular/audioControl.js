@@ -174,6 +174,9 @@ window.addEventListener("load", () => {
 });
 
 */
+
+
+/*
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
 
@@ -188,10 +191,6 @@ if (vocalSlider) {
     if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(2);
 }
 
-
-
-
-
   window._savedVocalVolume = defaults.vocal; // correct real restore value
   window._vocalIsMuted = true;
   if (window.vocalAudio) window.vocalAudio.volume = 0.001;
@@ -204,6 +203,39 @@ if (vocalSlider) {
     window.accompAudio.volume = defaults.accomp;
   }
 });
+
+*/
+
+window.addEventListener("load", () => {
+  const defaults = { vocal: 0.002, accomp: 0.02 };
+
+  // VOCAL — start muted, but visually show default
+  const vocalSlider = getSlider("vocal");
+  const vocalDisplay = getDisplay("vocal");
+
+  if (vocalSlider) {
+      vocalSlider.value = defaults.vocal.toFixed(2);
+
+      // Show default text
+      if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(2);
+  }
+
+  // Real audio mute
+  window._savedVocalVolume = defaults.vocal;
+  window._vocalIsMuted = true;
+  if (window.vocalAudio) window.vocalAudio.volume = 0.001;
+
+  // ACCOMP — normal
+  const accSlider = getSlider("accomp");
+  if (accSlider && window.accompAudio) {
+    accSlider.value = defaults.accomp.toFixed(2);
+    accSlider.dispatchEvent(new Event("input"));
+    window.accompAudio.volume = defaults.accomp;
+  }
+});
+
+
+
 
 
 
