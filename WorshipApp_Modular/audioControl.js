@@ -36,10 +36,24 @@ window.accompAudio =
 function getSlider(type) { return document.getElementById(`${type}Volume`); }
 function getDisplay(type) { return document.getElementById(`${type}VolumeDisplay`); }
 
+/*
 // --- NEW: Mute detection helper (Option A) ---
 function isVocalMuted() {
   return window._muteMemory && typeof window._muteMemory.vocal === "number";
 }
+*/
+
+
+function isVocalMuted() {
+  return !!window._vocalIsMuted;   // true = muted, false = not muted
+}
+
+
+
+
+
+
+
 
 // --- Core: set actual audio element volumes (single unified writer) ---
 function setVolumeOnTargets(type, numericValue) {
