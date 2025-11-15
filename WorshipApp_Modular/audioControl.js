@@ -15,6 +15,22 @@
        • Compatible with songLoader.js, loopPlayer.js, etc.
        • Classic modular structure (no imports/exports)
 
+   🔹 MUTE BEHAVIOUR NOTES (2025-11 final)
+       • When muted -> UI slider & display show 0.001 (NOT 0.00).
+         This matches MIN_VOL (0.001) and prevents boost/min-clamp
+         "juggling" while appearing effectively silent to users.
+       • Actual audio element is forced to 0.0 while muted (true silence).
+       • We store the user's last non-zero volume in window._muteMemory[type]
+         as the restore value. On unmute we restore that value.
+         - On fresh startup the stored restore value is initialized to 0.002.
+         - If the last meaningful value was <= MIN_VOL, we fall back to DEFAULTS[type] (0.002).
+       • Boost logic still runs (timers, glow, logs) but audible output is blocked during mute.
+       • Boost formula is unchanged:
+           let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
+         (this remains intact and is applied only when NOT muted)
+       • All mute/unmute state is determined by window._muteMemory[type] (numeric = muted).
+         This is robust and not tied to button text.
+
    🔹 Maintenance Tips:
        • To test glow/boost, watch console for:
          🚀 boost → ⬇️ reset → 🔄 end raise → ⏹️ end reset
@@ -25,10 +41,10 @@
    ============================================================ */
 
 
-// =======================================================
-//  audioControl.js — FINAL FOOLPROOF + VOCAL BOOST VERSION
-//  🎨 With Warm Gold → Peaceful Blue Glow Theme
-// =======================================================
+/* =======================================================
+   audioControl.js — FINAL FOOLPROOF + VOCAL BOOST VERSION
+   🎨 With Warm Gold → Peaceful Blue Glow Theme
+   ======================================================= */
 
 // --- Configuration ---
 var MIN_VOL = 0.001;
@@ -145,9 +161,8 @@ window.addEventListener("load", () => {
 });
 
 
-
 // =======================================================
-// 🔇 Mute / Unmute system (added safely here)
+// 🔇 Mute / Unmute system (robust — uses _muteMemory)
 // =======================================================
 function toggleMute(type) {
   if (!window._muteMemory) window._muteMemory = {};
@@ -159,20 +174,46 @@ function toggleMute(type) {
 
   if (!audio || !slider) return;
 
-  if (!window._muteMemory[type]) {
-    window._muteMemory[type] = audio.volume;
-    audio.volume = 0;
-    slider.value = "0.00";
-    if (display) display.textContent = "0.00";
-    if (btn) btn.textContent = "🔇 Unmute";
+  // If currently muted: _muteMemory[type] is a number (restore value)
+  if (typeof window._muteMemory[type] === "number") {
+    // Unmute: restore saved non-zero value (or DEFAULTS[type] fallback)
+    let restore = window._muteMemory[type];
+    if (!Number.isFinite(restore) || restore <= MIN_VOL) {
+      restore = DEFAULTS[type] ?? MIN_VOL;
+    }
+
+    audio.volume = restore;
+    slider.value = restore.toFixed(2);
+    if (display) display.textContent = restore.toFixed(2);
+
+    // mark as unmuted
+    window._muteMemory[type] = null;
+
+    if (btn) btn.textContent = "🔊 Mute";
     return;
   }
 
-  audio.volume = window._muteMemory[type];
-  slider.value = window._muteMemory[type].toFixed(3);
-  if (display) display.textContent = window._muteMemory[type].toFixed(3);
-  window._muteMemory[type] = null;
-  if (btn) btn.textContent = "🔊 Mute";
+  // Else: currently unmuted — mute now and save meaningful restore value
+  // Prefer current slider value (if > MIN_VOL), else audio.volume, else DEFAULTS[type]
+  let saveVal = DEFAULTS[type] ?? MIN_VOL;
+  const sliderVal = parseFloat(slider.value);
+  if (Number.isFinite(sliderVal) && sliderVal > MIN_VOL) {
+    saveVal = Math.max(MIN_VOL, parseFloat(sliderVal.toFixed(3)));
+  } else if (typeof audio.volume === "number" && audio.volume > MIN_VOL) {
+    saveVal = Math.max(MIN_VOL, parseFloat(audio.volume.toFixed(3)));
+  } else {
+    saveVal = DEFAULTS[type] ?? MIN_VOL;
+  }
+
+  // store the restore value (number) to mark muted state
+  window._muteMemory[type] = saveVal;
+
+  // Apply actual silence (audio = 0.0), but show 0.001 in UI to avoid juggling
+  audio.volume = 0;
+  slider.value = "0.001";
+  if (display) display.textContent = "0.001";
+
+  if (btn) btn.textContent = "🔇 Unmute";
 }
 window.toggleMute = toggleMute;
 
@@ -181,13 +222,15 @@ window.toggleMute = toggleMute;
 // 🔇 Make Vocal muted by default (outside load-block)
 // =======================================================
 window._muteMemory = window._muteMemory || {};
+// initial restore value (first-time); actual audio forced to 0 below
 window._muteMemory.vocal = 0.002;
 
+// Force actual audio silent on startup; show 0.001 in UI so no juggling
 if (window.vocalAudio) window.vocalAudio.volume = 0;
 if (document.getElementById("vocalVolume"))
-  document.getElementById("vocalVolume").value = "0.00";
+  document.getElementById("vocalVolume").value = "0.001";
 if (document.getElementById("vocalVolumeDisplay"))
-  document.getElementById("vocalVolumeDisplay").textContent = "0.00";
+  document.getElementById("vocalVolumeDisplay").textContent = "0.001";
 
 // set initial icon + text states if buttons exist
 if (document.getElementById("vocalMuteBtn")) {
@@ -196,7 +239,6 @@ if (document.getElementById("vocalMuteBtn")) {
 if (document.getElementById("accompMuteBtn")) {
   document.getElementById("accompMuteBtn").textContent = "🔊 Mute";
 }
-
 
 
  // =======================================================
@@ -315,42 +357,36 @@ if (document.getElementById("accompMuteBtn")) {
  })();
 
 
-
-
-
-
- /* =======================================================
-   🔇 Silent-Boost Patch (Option C) — FIXED VERSION
-   If Vocal is muted -> boost logic still runs,
-   but actual audio volume stays 0.00
+/* =======================================================
+   Silent-Boost wrapper (uses internal mute state)
+   - Prevents boosted volume from being applied audibly while muted
+   - Uses window._muteMemory.vocal as source-of-truth
+   - Leaves boost timers, glow and logging intact
+   Place/keep this at the END of audioControl.js
    ======================================================= */
-
 (function () {
   const origSetVolume = window.setVolumeOnTargets;
 
   window.setVolumeOnTargets = function(type, numericValue) {
-
-    // If vocal is muted (button contains 🔇 anywhere)
+    // intervene only for vocal
     if (type === "vocal") {
-      const btn = document.getElementById("vocalMuteBtn");
-      const isMuted = btn && btn.textContent.includes("🔇");
+      // If _muteMemory[type] is a number => track is considered MUTED (we saved restore)
+      const isMutedInternal = window._muteMemory && typeof window._muteMemory.vocal === "number";
 
-      if (isMuted) {
-        // Keep display + slider at zero
+      if (isMutedInternal) {
+        // Keep slider/display at 0.001 and force audio element silent
         const slider = document.getElementById("vocalVolume");
         const display = document.getElementById("vocalVolumeDisplay");
-
-        if (slider) slider.value = "0.00";
-        if (display) display.textContent = "0.00";
-
-        // Force actual audio silent
+        if (slider) slider.value = "0.001";
+        if (display) display.textContent = "0.001";
         if (window.vocalAudio) window.vocalAudio.volume = 0;
 
-        return; // DO NOT allow boosted volume
+        // Do NOT pass boosted volume to original function
+        return;
       }
     }
 
-    // Normal behaviour when not muted
-    origSetVolume(type, numericValue);
+    // default behaviour for accompaniment and unmuted vocal
+    return origSetVolume(type, numericValue);
   };
 })();
