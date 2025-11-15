@@ -147,6 +147,7 @@ window.addEventListener("load", () => {
   });
 });
 */
+
 /*
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
@@ -176,12 +177,20 @@ window.addEventListener("load", () => {
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
 
-  // VOCAL — start muted but keep slider visual at default
+
   const vocalSlider = getSlider("vocal");
-  if (vocalSlider) {
+const vocalDisplay = getDisplay("vocal");
+if (vocalSlider) {
+    // ✔ Show default visually
     vocalSlider.value = defaults.vocal.toFixed(2);
-    vocalSlider.dispatchEvent(new Event("input"));
-  }
+
+    // ✔ Update the display text only
+    if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(2);
+}
+
+
+
+
 
   window._savedVocalVolume = defaults.vocal; // correct real restore value
   window._vocalIsMuted = true;
