@@ -10,7 +10,7 @@
   // ------------------------------------------------------------
   //  Startup default mute alignment
   // ------------------------------------------------------------
-  window._savedVocalVolume  = 0.002;   // your default vocal value
+  window._savedVocalVolume  = null;    // vocal starts unmuted (important!)
   window._savedAccompVolume = null;    // accomp starts unmuted
   window._vocalIsMuted      = false;    // audioControl.js checks this
   // ------------------------------------------------------------
