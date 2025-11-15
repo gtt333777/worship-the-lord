@@ -1,8 +1,7 @@
 ﻿/* ============================================================
    muteControl.js — FINAL NON-JUGGLING MUTE SYSTEM
    🔇 Uses slider-based mute (old-proven design)
-   🔇 Mute flag added for boost suppression
-   🔇 No interference with boost/glow logic otherwise
+   🔇 No memory, no wrappers, no interference with boost logic
    🔇 Fully stable on mobile
    ============================================================ */
 
@@ -20,48 +19,32 @@
 
     if (!slider) return;
 
-    // which memory slot to use
     let savedSlot = (type === "vocal") ? "_savedVocalVolume" : "_savedAccompVolume";
 
-    // ============================================================
-    //                 UNMUTE
-    // ============================================================
+    // -------- Unmute --------
     if (window[savedSlot] !== null) {
 
       const restore = window[savedSlot];
 
-      // Restore slider & display
       slider.value = restore.toFixed(3);
       if (display) display.textContent = restore.toFixed(3);
 
-      // Restore actual audio volume
       setVolumeOnTargets(type, restore);
 
-      // Clear saved memory
       window[savedSlot] = null;
-
-      // Clear mute flag ONLY for vocal
-      if (type === "vocal") window._vocalIsMuted = false;
 
       if (btn) btn.textContent = "🔊 Mute";
       return;
     }
 
-    // ============================================================
-    //                 MUTE
-    // ============================================================
+    // -------- Mute --------
     const current = parseFloat(slider.value);
     window[savedSlot] = current;  // save real value
 
-    // Force slider visually to muted level
     slider.value = "0.001";
     if (display) display.textContent = "0.001";
 
-    // Force actual audio volume to silent
     setVolumeOnTargets(type, 0.001);
-
-    // Set mute flag ONLY for vocal
-    if (type === "vocal") window._vocalIsMuted = true;
 
     if (btn) btn.textContent = "🔇 Unmute";
   };
