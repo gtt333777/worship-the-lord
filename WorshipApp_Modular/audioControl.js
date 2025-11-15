@@ -36,10 +36,25 @@ window.accompAudio =
 function getSlider(type) { return document.getElementById(`${type}Volume`); }
 function getDisplay(type) { return document.getElementById(`${type}VolumeDisplay`); }
 
+
+/*
 // --- NEW: Mute detection helper (Option A) ---
 function isVocalMuted() {
   return window._muteMemory && typeof window._muteMemory.vocal === "number";
 }
+*/
+
+// --- NEW: Mute detection helper (flag-based, foolproof) ---
+function isVocalMuted() {
+  // Primary source of truth: explicit global boolean set by muteControl.js
+  // Use !! to ensure it returns a boolean even if undefined.
+  return !!window._vocalIsMuted;
+}
+
+
+
+
+
 
 // --- Core: set actual audio element volumes (single unified writer) ---
 function setVolumeOnTargets(type, numericValue) {
