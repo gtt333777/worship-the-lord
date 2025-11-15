@@ -36,17 +36,13 @@ window.accompAudio =
 function getSlider(type) { return document.getElementById(`${type}Volume`); }
 function getDisplay(type) { return document.getElementById(`${type}VolumeDisplay`); }
 
-
-// --- NEW: Mute detection helper (flag-based, foolproof) ---
+// --- NEW: Mute detection helper (Option A) ---
 function isVocalMuted() {
-  // Primary source of truth: explicit global boolean set by muteControl.js
-  // Use !! to ensure it returns a boolean even if undefined.
-  return !!window._vocalIsMuted;
+  return window._muteMemory && typeof window._muteMemory.vocal === "number";
 }
 
 // --- Core: set actual audio element volumes (single unified writer) ---
 function setVolumeOnTargets(type, numericValue) {
-  // Keep audio clamping/rounding behavior for actual audio writes.
   numericValue = Math.min(1, Math.max(MIN_VOL, parseFloat(numericValue.toFixed(2))));
 
   const targetAudio = (type === "vocal" ? window.vocalAudio : window.accompAudio);
@@ -58,11 +54,10 @@ function setVolumeOnTargets(type, numericValue) {
     if (id.includes(type) || role.includes(type)) a.volume = numericValue;
   });
 
-  // --- IMPORTANT UI: keep 3 decimals for slider/display so 0.001/0.002 are visible ---
   const slider = getSlider(type);
   const display = getDisplay(type);
-  if (slider) slider.value = numericValue.toFixed(3);
-  if (display) display.textContent = numericValue.toFixed(3);
+  if (slider) slider.value = numericValue.toFixed(2);
+  if (display) display.textContent = numericValue.toFixed(2);
 }
 
 // --- Core: sync slider → display → audio volume ---
@@ -75,9 +70,8 @@ function syncDisplayAndVolume(type) {
   if (!Number.isFinite(val)) val = DEFAULTS[type] ?? MIN_VOL;
   val = Math.min(1, Math.max(MIN_VOL, val));
 
-  // Show 3 decimals in UI (prevents rounding to 0.00 for tiny values)
-  slider.value = val.toFixed(3);
-  if (display) display.textContent = val.toFixed(3);
+  slider.value = val.toFixed(2);
+  if (display) display.textContent = val.toFixed(2);
   setVolumeOnTargets(type, val);
 }
 
@@ -90,8 +84,7 @@ function adjustVolume(type, delta) {
   if (!Number.isFinite(newVal)) newVal = DEFAULTS[type] ?? MIN_VOL;
   newVal = Math.min(1, Math.max(MIN_VOL, newVal));
 
-  // Preserve 3-decimal UI precision
-  slider.value = newVal.toFixed(3);
+  slider.value = newVal.toFixed(2);
   syncDisplayAndVolume(type);
 }
 window.adjustVolume = adjustVolume;
@@ -106,7 +99,7 @@ function initAudioControls() {
     let startVal = parseFloat(slider.value);
     if (!Number.isFinite(startVal)) startVal = DEFAULTS[type] ?? MIN_VOL;
     startVal = Math.min(1, Math.max(MIN_VOL, startVal));
-    slider.value = startVal.toFixed(3);
+    slider.value = startVal.toFixed(2);
 
     slider.addEventListener("input", () => syncDisplayAndVolume(type));
     slider.addEventListener("change", () => syncDisplayAndVolume(type));
@@ -123,35 +116,18 @@ if (document.readyState === "loading") {
   initAudioControls();
 }
 
-/*
-  Note: we intentionally avoid heavy startup input/change events for vocal because
-  the mute system manages real audio state separately. Below load handler shows
-  default slider visually while keeping the real audio muted if startup expects that.
-*/
-
+// --- Set initial volumes on load ---
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
-
-  // VOCAL — start muted, but visually show default (3 decimals)
-  const vocalSlider = getSlider("vocal");
-  const vocalDisplay = getDisplay("vocal");
-  if (vocalSlider) {
-    vocalSlider.value = defaults.vocal.toFixed(3);
-    if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(3);
-  }
-
-  // Real audio mute state / saved restore value
-  window._savedVocalVolume = defaults.vocal;
-  window._vocalIsMuted = true;
-  if (window.vocalAudio) window.vocalAudio.volume = 0.001;
-
-  // ACCOMP — normal
-  const accSlider = getSlider("accomp");
-  if (accSlider && window.accompAudio) {
-    accSlider.value = defaults.accomp.toFixed(3);
-    accSlider.dispatchEvent(new Event("input"));
-    window.accompAudio.volume = defaults.accomp;
-  }
+  ["vocal", "accomp"].forEach(type => {
+    const slider = getSlider(type);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+    if (slider && audio) {
+      slider.value = defaults[type].toFixed(2);
+      audio.volume = defaults[type];
+      slider.dispatchEvent(new Event("input"));
+    }
+  });
 });
 
 // =======================================================
@@ -209,7 +185,7 @@ window.addEventListener("load", () => {
           return;
         }
 
-        // 🚀 Start boost (mute-safe)
+        // 🚀 Start boost (patched)
         if (
           cur >= seg.start &&
           cur < seg.start + 1.0 &&
@@ -232,7 +208,7 @@ window.addEventListener("load", () => {
           }, HOLD_TIME + BOOST_DELAY);
         }
 
-        // 🔄 End raise (mute-safe)
+        // 🔄 End raise (patched)
         if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
           seg._fadedUp = true;
           console.log(`🔄 Segment ${i + 1} end raise`);
@@ -245,7 +221,7 @@ window.addEventListener("load", () => {
           }, 400);
         }
 
-        // ⏹️ Final reset (mute-safe)
+        // ⏹️ Final reset (patched)
         if (cur >= seg.end && !seg._reset) {
           seg._reset = true;
           console.log(`⏹️ Segment ${i + 1} end reset`);
