@@ -131,6 +131,8 @@ if (document.readyState === "loading") {
   initAudioControls();
 }
 
+
+/*
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
@@ -144,6 +146,38 @@ window.addEventListener("load", () => {
     }
   });
 });
+*/
+
+window.addEventListener("load", () => {
+  const defaults = { vocal: 0.002, accomp: 0.02 };
+
+  ["vocal", "accomp"].forEach(type => {
+    const slider = getSlider(type);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+    if (!slider || !audio) return;
+
+    // Keep slider visual defaults
+    slider.value = defaults[type].toFixed(2);
+    slider.dispatchEvent(new Event("input"));
+
+    if (type === "vocal") {
+      // 🎤 Start completely muted
+      window._savedVocalVolume = defaults.vocal; // saved for unmute
+      window._vocalIsMuted = true;              // muted world
+      audio.volume = 0.001;                     // real silence
+    } else {
+      // accompaniment normal
+      audio.volume = defaults[type];
+    }
+  });
+});
+
+
+
+
+
+
+
 
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Mute-Safe)
