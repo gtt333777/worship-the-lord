@@ -12,7 +12,7 @@
   // ------------------------------------------------------------
   window._savedVocalVolume  = 0.002;   // your default vocal value
   window._savedAccompVolume = null;    // accomp starts unmuted
-  window._vocalIsMuted      = true;    // audioControl.js checks this
+  window._vocalIsMuted      = false;    // audioControl.js checks this
   // ------------------------------------------------------------
 
   window.toggleMute = function(type) {
