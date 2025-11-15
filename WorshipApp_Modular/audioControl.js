@@ -1,7 +1,13 @@
 ﻿/* ============================================================
    Worship The Lord — audioControl.js
    🟩 FINAL STABLE BUILD  — Mute-Safe (Segment Boost Compatible)
-   🔧 Startup ordering fixed: apply startup mute BEFORE slider init
+
+   🔹 This version:
+       ✔ Old perfect non-juggling version
+       ✔ 1 small mute-safe patch added
+       ✔ No override logic
+       ✔ No experimental mute code
+       ✔ 100% stable with external muteControl.js
    ============================================================ */
 
 
@@ -31,13 +37,6 @@ function getSlider(type) { return document.getElementById(`${type}Volume`); }
 function getDisplay(type) { return document.getElementById(`${type}VolumeDisplay`); }
 
 
-/*
- // --- OLD: alternate mute detection (kept for reference) ---
- function isVocalMuted() {
-   return window._muteMemory && typeof window._muteMemory.vocal === "number";
- }
-*/
-
 // --- NEW: Mute detection helper (flag-based, foolproof) ---
 function isVocalMuted() {
   // Primary source of truth: explicit global boolean set by muteControl.js
@@ -45,9 +44,9 @@ function isVocalMuted() {
   return !!window._vocalIsMuted;
 }
 
-
 // --- Core: set actual audio element volumes (single unified writer) ---
 function setVolumeOnTargets(type, numericValue) {
+  // Keep audio clamping/rounding behavior for actual audio writes.
   numericValue = Math.min(1, Math.max(MIN_VOL, parseFloat(numericValue.toFixed(2))));
 
   const targetAudio = (type === "vocal" ? window.vocalAudio : window.accompAudio);
@@ -59,10 +58,11 @@ function setVolumeOnTargets(type, numericValue) {
     if (id.includes(type) || role.includes(type)) a.volume = numericValue;
   });
 
+  // --- IMPORTANT UI: keep 3 decimals for slider/display so 0.001/0.002 are visible ---
   const slider = getSlider(type);
   const display = getDisplay(type);
-  if (slider) slider.value = numericValue.toFixed(2);
-  if (display) display.textContent = numericValue.toFixed(2);
+  if (slider) slider.value = numericValue.toFixed(3);
+  if (display) display.textContent = numericValue.toFixed(3);
 }
 
 // --- Core: sync slider → display → audio volume ---
@@ -75,8 +75,9 @@ function syncDisplayAndVolume(type) {
   if (!Number.isFinite(val)) val = DEFAULTS[type] ?? MIN_VOL;
   val = Math.min(1, Math.max(MIN_VOL, val));
 
-  slider.value = val.toFixed(2);
-  if (display) display.textContent = val.toFixed(2);
+  // Show 3 decimals in UI (prevents rounding to 0.00 for tiny values)
+  slider.value = val.toFixed(3);
+  if (display) display.textContent = val.toFixed(3);
   setVolumeOnTargets(type, val);
 }
 
@@ -89,7 +90,8 @@ function adjustVolume(type, delta) {
   if (!Number.isFinite(newVal)) newVal = DEFAULTS[type] ?? MIN_VOL;
   newVal = Math.min(1, Math.max(MIN_VOL, newVal));
 
-  slider.value = newVal.toFixed(2);
+  // Preserve 3-decimal UI precision
+  slider.value = newVal.toFixed(3);
   syncDisplayAndVolume(type);
 }
 window.adjustVolume = adjustVolume;
@@ -104,7 +106,7 @@ function initAudioControls() {
     let startVal = parseFloat(slider.value);
     if (!Number.isFinite(startVal)) startVal = DEFAULTS[type] ?? MIN_VOL;
     startVal = Math.min(1, Math.max(MIN_VOL, startVal));
-    slider.value = startVal.toFixed(2);
+    slider.value = startVal.toFixed(3);
 
     slider.addEventListener("input", () => syncDisplayAndVolume(type));
     slider.addEventListener("change", () => syncDisplayAndVolume(type));
@@ -114,52 +116,43 @@ function initAudioControls() {
   });
 }
 
+// --- Run when DOM is ready ---
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAudioControls, { once: true });
+} else {
+  initAudioControls();
+}
 
-// =======================================================
-//  ⚠️ EDIT: applyStartupMuteState + DOMContentLoaded ordering
-//  We MUST apply the startup muted *state* before initializing sliders.
-//  This avoids sliders or slider event handlers causing audible juggling.
-// =======================================================
+/*
+  Note: we intentionally avoid heavy startup input/change events for vocal because
+  the mute system manages real audio state separately. Below load handler shows
+  default slider visually while keeping the real audio muted if startup expects that.
+*/
 
-function applyStartupMuteState() {
+window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
 
-  // VOCAL — show default visually but keep real audio silent
+  // VOCAL — start muted, but visually show default (3 decimals)
   const vocalSlider = getSlider("vocal");
   const vocalDisplay = getDisplay("vocal");
   if (vocalSlider) {
-    // Show the user's default visually (so the UI appears at default)
-    vocalSlider.value = defaults.vocal.toFixed(2);
-    if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(2);
+    vocalSlider.value = defaults.vocal.toFixed(3);
+    if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(3);
   }
 
-  // Set the internal saved/flag values and ensure real audio is silent
-  window._savedVocalVolume = defaults.vocal; // will be restored on unmute
-  window._vocalIsMuted = true;               // world: muted
-  if (window.vocalAudio) {
-    // Keep actual audio element effectively silent (tiny nonzero prevents some mobile edge cases)
-    // Use 0.001 for UI consistency; setVolumeOnTargets would overwrite UI — we set element directly.
-    window.vocalAudio.volume = 0.001;
-  }
+  // Real audio mute state / saved restore value
+  window._savedVocalVolume = defaults.vocal;
+  window._vocalIsMuted = true;
+  if (window.vocalAudio) window.vocalAudio.volume = 0.001;
 
-  // ACCOMP — set normal default (no mute)
+  // ACCOMP — normal
   const accSlider = getSlider("accomp");
   if (accSlider && window.accompAudio) {
-    accSlider.value = defaults.accomp.toFixed(2);
-    // we don't emit input here — initAudioControls will attach events and sync cleanly
+    accSlider.value = defaults.accomp.toFixed(3);
+    accSlider.dispatchEvent(new Event("input"));
     window.accompAudio.volume = defaults.accomp;
   }
-}
-
-
-// Run applyStartupMuteState before initializing sliders and event listeners.
-document.addEventListener("DOMContentLoaded", () => {
-  // 1) Apply startup mute state (visual slider set, real audio muted, flags saved)
-  applyStartupMuteState();
-
-  // 2) Now initialize sliders and attach handlers — safe because audio is already set
-  initAudioControls();
-}, { once: true });
+});
 
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Mute-Safe)
@@ -227,9 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
           console.log(`🚀 Segment ${i + 1} boost`);
 
           setTimeout(() => {
-            // Apply boosted audio *only if not muted*
             if (!isVocalMuted()) setVolumeOnTargets("vocal", boosted);
-            // Glow still runs regardless of mute
             setGlow("start");
           }, BOOST_DELAY);
 
@@ -268,7 +259,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Hook boost scheduling to audio play (keep as-is)
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
       if (window.vocalAudio && window.vocalAudio.addEventListener) {
