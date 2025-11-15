@@ -130,6 +130,8 @@ if (document.readyState === "loading") {
   initAudioControls();
 }
 
+
+/*
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
@@ -143,6 +145,27 @@ window.addEventListener("load", () => {
     }
   });
 });
+*/
+
+// --- Set initial volumes on load ---
+window.addEventListener("load", () => {
+
+  // 🔥 Important: Prevent boost audio at startup
+  window._vocalIsMuted = true;
+
+  const defaults = { vocal: 0.002, accomp: 0.02 };
+  ["vocal", "accomp"].forEach(type => {
+    const slider = getSlider(type);
+    const audio = (type === "vocal" ? vocalAudio : accompAudio);
+    if (slider && audio) {
+      slider.value = defaults[type].toFixed(2);
+      audio.volume = defaults[type];
+      slider.dispatchEvent(new Event("input"));
+    }
+  });
+});
+
+
 
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Mute-Safe)
