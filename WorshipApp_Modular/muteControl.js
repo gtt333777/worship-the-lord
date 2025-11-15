@@ -1,16 +1,15 @@
-﻿
-/* ============================================================
+﻿/* ============================================================
    muteControl.js — FINAL NON-JUGGLING MUTE SYSTEM
    🔇 Uses slider-based mute (old-proven design)
-   🔇 Mute flag added (for audioControl.js boost suppression)
-   🔇 Fully stable on mobile
+   🔇 Safe with audioControl.js boost logic
+   🔇 Prevents double-press problem
+   🔇 Prevents overwriting saved volume when already muted
    ============================================================ */
 
 (function(){
 
   // ------------------------------------------------------------
   //  Startup default mute alignment
-  //  (Prevents double-press and prevents startup vocal boost)
   // ------------------------------------------------------------
   window._savedVocalVolume  = 0.002;   // your default vocal value
   window._savedAccompVolume = null;    // accomp starts unmuted
@@ -25,17 +24,18 @@
 
     if (!slider) return;
 
-    let savedSlot = (type === "vocal") ? "_savedVocalVolume"
-                                       : "_savedAccompVolume";
+    let savedSlot = (type === "vocal")
+          ? "_savedVocalVolume"
+          : "_savedAccompVolume";
 
     // ============================================================
-    //                        UNMUTE
+    //                          UNMUTE
     // ============================================================
     if (window[savedSlot] !== null) {
 
       const restore = window[savedSlot];
 
-      // Restore slider & display
+      // Restore slider + display
       slider.value = restore.toFixed(3);
       if (display) display.textContent = restore.toFixed(3);
 
@@ -45,7 +45,7 @@
       // Clear saved memory
       window[savedSlot] = null;
 
-      // Clear mute flag (vocal only)
+      // Clear mute flag for vocal
       if (type === "vocal") window._vocalIsMuted = false;
 
       if (btn) btn.textContent = "🔊 Mute";
@@ -53,24 +53,25 @@
     }
 
     // ============================================================
-    //                        MUTE
+    //                           MUTE
     // ============================================================
+
     const current = parseFloat(slider.value);
 
-    // ✨ IMPORTANT FIX:
-    // Do NOT overwrite saved volume if already muted
+    // ⭐ IMPORTANT FIX ⭐
+    // Do NOT overwrite saved volume again if already muted
     if (!(type === "vocal" && window._vocalIsMuted)) {
-      window[savedSlot] = current; // save real value ONLY first time
+      window[savedSlot] = current;   // save real value ONLY first time
     }
 
-    // Force slider visually to muted level
+    // Slider visually goes to muted level
     slider.value = "0.001";
     if (display) display.textContent = "0.001";
 
-    // Force actual audio volume to silent
+    // Real audio volume becomes silent
     setVolumeOnTargets(type, 0.001);
 
-    // Set mute flag (vocal only)
+    // Mark vocal as muted
     if (type === "vocal") window._vocalIsMuted = true;
 
     if (btn) btn.textContent = "🔇 Unmute";
