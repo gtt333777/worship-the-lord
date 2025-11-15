@@ -147,7 +147,7 @@ window.addEventListener("load", () => {
   });
 });
 */
-
+/*
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
 
@@ -172,7 +172,29 @@ window.addEventListener("load", () => {
   });
 });
 
+*/
+window.addEventListener("load", () => {
+  const defaults = { vocal: 0.002, accomp: 0.02 };
 
+  // VOCAL — start muted but keep slider visual at default
+  const vocalSlider = getSlider("vocal");
+  if (vocalSlider) {
+    vocalSlider.value = defaults.vocal.toFixed(2);
+    vocalSlider.dispatchEvent(new Event("input"));
+  }
+
+  window._savedVocalVolume = defaults.vocal; // correct real restore value
+  window._vocalIsMuted = true;
+  if (window.vocalAudio) window.vocalAudio.volume = 0.001;
+
+  // ACCOMP — normal
+  const accSlider = getSlider("accomp");
+  if (accSlider && window.accompAudio) {
+    accSlider.value = defaults.accomp.toFixed(2);
+    accSlider.dispatchEvent(new Event("input"));
+    window.accompAudio.volume = defaults.accomp;
+  }
+});
 
 
 
