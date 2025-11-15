@@ -1,45 +1,11 @@
 ﻿/* ============================================================
    Worship The Lord — audioControl.js
-   🟩 FINAL STABLE BUILD  — Verified 2025-11-12
+   🟩 MERGED: Old stable core + Mute/Unmute integration (no juggling)
+   Verified merge — 2025-11-15
 
-   🔹 Purpose:
-       Global audio volume control + Vocal Vitality Boost system
-       (Glow / Boost / Drop with peaceful blue–gold theme)
-
-   🔹 Highlights:
-       • Duplicate loop permanently removed ✅
-       • Volume sync on startup restored (cleanly)
-       • Boost logic dynamically adapts to slider value
-       • Manual & automatic segment playback supported
-       • Fully non-juggling — no overlapping watchers
-       • Compatible with songLoader.js, loopPlayer.js, etc.
-       • Classic modular structure (no imports/exports)
-
-   🔹 MUTE BEHAVIOUR NOTES (2025-11 final)
-       • When muted -> UI slider & display show 0.001 (NOT 0.00).
-         This matches MIN_VOL (0.001) and prevents boost/min-clamp
-         "juggling" while appearing effectively silent to users.
-       • Actual audio element is forced to 0.0 while muted (true silence).
-       • We store the user's last non-zero volume in window._muteMemory[type]
-         as the restore value. On unmute we restore that value.
-         - On fresh startup the stored restore value is initialized to 0.002.
-         - If the last meaningful value was <= MIN_VOL, we fall back to DEFAULTS[type] (0.002).
-       • Boost logic still runs (timers, glow, logs) but audible output is blocked during mute.
-       • Boost formula is unchanged:
-           let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
-         (this remains intact and is applied only when NOT muted)
-       • All mute/unmute state is determined by window._muteMemory[type] (numeric = muted).
-         This is robust and not tied to button text.
-
-   🔹 Maintenance Tips:
-       • To test glow/boost, watch console for:
-         🚀 boost → ⬇️ reset → 🔄 end raise → ⏹️ end reset
-       • If future edits reintroduce segment watchers,
-         ensure only one window.segments.forEach() block exists.
-
-   — GTG-333 verified build (11-Nov-2025, India time)
+   🔹 This file preserves the OLD stable implementation and
+      integrates the Mute/Unmute system safely (no juggling).
    ============================================================ */
-
 
 /* =======================================================
    audioControl.js — FINAL FOOLPROOF + VOCAL BOOST VERSION
@@ -50,13 +16,8 @@
 var MIN_VOL = 0.001;
 window.DEFAULTS = window.DEFAULTS || { vocal: 0.002, accomp: 0.02 };
 var DEFAULTS = window.DEFAULTS;
-/*
-// --- Ensure global audio elements exist ---
-if (!window.vocalAudio) window.vocalAudio = new Audio();
-if (!window.accompAudio) window.accompAudio = new Audio();
-*/
 
-// --- Ensure global audio elements point to the real players (non-juggling) ---
+/* --- Ensure global audio elements point to the real players (non-juggling) --- */
 window.vocalAudio =
   document.querySelector('audio[data-role="vocal"]') ||
   window.vocalAudio ||
@@ -89,6 +50,7 @@ function setVolumeOnTargets(type, numericValue) {
   if (slider) slider.value = numericValue.toFixed(2);
   if (display) display.textContent = numericValue.toFixed(2);
 }
+window.setVolumeOnTargets = setVolumeOnTargets; // keep global reference
 
 // --- Core: sync slider → display → audio volume ---
 function syncDisplayAndVolume(type) {
@@ -137,31 +99,6 @@ function initAudioControls() {
     if (display) display.textContent = slider.value;
     syncDisplayAndVolume(type);
   });
-
-  // === BEGIN: Vocal startup mute initialization (moved inside initAudioControls)
-  // Ensure _muteMemory exists
-  window._muteMemory = window._muteMemory || {};
-
-  // If not already initialized (first run), set default restore value
-  if (typeof window._muteMemory.vocal === "undefined") {
-    window._muteMemory.vocal = DEFAULTS.vocal ?? MIN_VOL; // 0.002 on first run
-  }
-
-  // If we're "muted" (internal numeric present) ensure UI + actual audio reflect it
-  if (typeof window._muteMemory.vocal === "number") {
-    // actual audio silent
-    if (window.vocalAudio) window.vocalAudio.volume = 0;
-    // show tiny nonzero in UI to avoid juggling
-    const vSlider = document.getElementById("vocalVolume");
-    const vDisplay = document.getElementById("vocalVolumeDisplay");
-    if (vSlider) vSlider.value = "0.001";
-    if (vDisplay) vDisplay.textContent = "0.001";
-
-    // ensure mute button label consistent if present
-    const vBtn = document.getElementById("vocalMuteBtn");
-    if (vBtn) vBtn.textContent = "🔇 Unmute";
-  }
-  // === END: Vocal startup mute initialization
 }
 
 // --- Run when DOM is ready ---
@@ -171,7 +108,7 @@ if (document.readyState === "loading") {
   initAudioControls();
 }
 
-// --- Set initial volumes on load ---
+// --- Set initial volumes on load (keeps old stable behaviour) ---
 window.addEventListener("load", () => {
   const defaults = { vocal: 0.002, accomp: 0.02 };
   ["vocal", "accomp"].forEach(type => {
@@ -183,17 +120,24 @@ window.addEventListener("load", () => {
       slider.dispatchEvent(new Event("input"));
     }
   });
-});
 
+  // After initial slider sync and audio defaults have been applied,
+  // ensure any saved mute state is reflected in UI and real audio.
+  applyStartupMuteState();
+});
 
 // =======================================================
 // 🔇 Mute / Unmute system (robust — uses _muteMemory + debounce)
+//   - toggleMute(type) globally available
 // =======================================================
 (function(){
   // simple debounce guard (ms)
   const TOGGLE_DEBOUNCE_MS = 300;
 
-  // store last toggle timestamp globally to avoid rapid juggling
+  // ensure global _muteMemory exists
+  window._muteMemory = window._muteMemory || {};
+
+  // store last toggle timestamp globally to avoid rapid toggles
   if (!window._lastMuteToggleAt) window._lastMuteToggleAt = 0;
 
   window.toggleMute = function(type) {
@@ -210,7 +154,7 @@ window.addEventListener("load", () => {
     const audio = (type === "vocal") ? window.vocalAudio : window.accompAudio;
     const slider = getSlider(type);
     const display = getDisplay(type);
-    const btn = document.getElementById(type + "MuteBtn"); // button id: 'vocalMuteBtn' or 'accompMuteBtn'
+    const btn = document.getElementById(type + "MuteBtn"); // expects 'vocalMuteBtn' or 'accompMuteBtn'
 
     if (!audio || !slider) return;
 
@@ -222,6 +166,7 @@ window.addEventListener("load", () => {
         restore = DEFAULTS[type] ?? MIN_VOL;
       }
 
+      // Apply restore
       audio.volume = restore;
       slider.value = restore.toFixed(2);
       if (display) display.textContent = restore.toFixed(2);
@@ -257,11 +202,42 @@ window.addEventListener("load", () => {
   };
 })();
 
-
 // =======================================================
-// NOTE: removed external startup mute manipulations — they are now inside initAudioControls()
+// Startup helper: apply saved mute state after init (safe)
+// - Keeps UI at tiny nonzero (0.001) while real audio is silent (0.0)
+// - Runs after load (so slider elements and event listeners exist)
 // =======================================================
+function applyStartupMuteState() {
+  try {
+    if (!window._muteMemory) window._muteMemory = {};
 
+    // Vocal
+    if (typeof window._muteMemory.vocal === "number") {
+      const vSlider = document.getElementById("vocalVolume");
+      const vDisplay = document.getElementById("vocalVolumeDisplay");
+      const vBtn = document.getElementById("vocalMuteBtn");
+
+      if (window.vocalAudio) window.vocalAudio.volume = 0;
+      if (vSlider) vSlider.value = "0.001";
+      if (vDisplay) vDisplay.textContent = "0.001";
+      if (vBtn) vBtn.textContent = "🔇 Unmute";
+    }
+
+    // Accompaniment (if you want to support accompan. mute on startup)
+    if (typeof window._muteMemory.accomp === "number") {
+      const aSlider = document.getElementById("accompVolume");
+      const aDisplay = document.getElementById("accompVolumeDisplay");
+      const aBtn = document.getElementById("accompMuteBtn");
+
+      if (window.accompAudio) window.accompAudio.volume = 0;
+      if (aSlider) aSlider.value = "0.001";
+      if (aDisplay) aDisplay.textContent = "0.001";
+      if (aBtn) aBtn.textContent = "🔇 Unmute";
+    }
+  } catch (e) {
+    console.warn("applyStartupMuteState failed:", e);
+  }
+}
 
 // =======================================================
 //  🎤 Segment-Based Vocal Vitality Boost Logic (Non-Juggling)
@@ -272,13 +248,14 @@ window.addEventListener("load", () => {
   if (window.__VOCAL_VITALITY_BUILTIN__) return;
   window.__VOCAL_VITALITY_BUILTIN__ = true;
 
-  const HOLD_TIME = 3000;
-  const END_RAISE_WINDOW = 1.0;
-  const CHECK_INTERVAL = 100;
-  const BOOST_DELAY = 100;
+  const HOLD_TIME = 3000;          // hold 3s
+  const END_RAISE_WINDOW = 1.0;    // seconds before end
+  const CHECK_INTERVAL = 100;      // check rate
+  const BOOST_DELAY = 100;         // small delay for smooth start
 
   const labelEl = document.querySelector('label[for="vocalVolume"]');
 
+  // ✨ Dual-color glow
   function setGlow(mode) {
     if (!labelEl) return;
     labelEl.style.transition = "box-shadow 0.4s ease, background 0.4s ease";
@@ -302,6 +279,7 @@ window.addEventListener("load", () => {
 
     console.log("🎵 Built-in Vocal Vitality Boost active...");
 
+    // ✅ For each segment, use live base and boosted from current slider value
     window.segments.forEach((seg, i) => {
       seg._boosted = seg._fadedUp = seg._reset = false;
       const fadeUpTime = seg.end - END_RAISE_WINDOW;
@@ -310,16 +288,19 @@ window.addEventListener("load", () => {
         if (!a || a.paused) return;
         const cur = a.currentTime;
 
+        // --- Recalculate base and boosted dynamically
         const currentSlider = document.getElementById("vocalVolume");
         let base = parseFloat(currentSlider?.value) || 0.0;
         let boosted = base <= 0.012 ? 0.012 : Math.min(1, base * 1.25);
 
+        // --- Safety cutoff
         if (cur > seg.end + 0.5) {
           seg._reset = seg._boosted = seg._fadedUp = true;
           clearInterval(watcher);
           return;
         }
 
+        // 🚀 Boost at start
         if (
           cur >= seg.start &&
           cur < seg.start + 1.0 &&
@@ -341,6 +322,7 @@ window.addEventListener("load", () => {
           }, HOLD_TIME + BOOST_DELAY);
         }
 
+        // 🔄 Raise near end
         if (cur >= fadeUpTime && cur < seg.end && !seg._fadedUp) {
           seg._fadedUp = true;
           console.log(`🔄 Segment ${i + 1} end raise (boosted=${boosted.toFixed(4)})`);
@@ -353,6 +335,7 @@ window.addEventListener("load", () => {
           }, 400);
         }
 
+        // ⏹️ Reset at end
         if (cur >= seg.end && !seg._reset) {
           seg._reset = true;
           console.log(`⏹️ Segment ${i + 1} end reset`);
@@ -366,6 +349,7 @@ window.addEventListener("load", () => {
     });
   }
 
+  // --- Hook boost scheduling to playback start ---
   document.addEventListener("DOMContentLoaded", () => {
     const ensureAudio = setInterval(() => {
       if (window.vocalAudio && window.vocalAudio.addEventListener) {
@@ -378,37 +362,46 @@ window.addEventListener("load", () => {
   console.log("🎤 Built-in Vocal Vitality Boost logic — strictly start/end synced (gold→blue, no duplicate loop).");
 })();
 
-
 /* =======================================================
    Silent-Boost wrapper (uses internal mute state)
    - Prevents boosted volume from being applied audibly while muted
    - Uses window._muteMemory.vocal as source-of-truth
-   - Leaves boost timers, glow and logging intact
-   Place/keep this at the END of audioControl.js
+   - Minimal, safe override placed at end
    ======================================================= */
 (function () {
+  // keep reference to original
   const origSetVolume = window.setVolumeOnTargets;
 
   window.setVolumeOnTargets = function(type, numericValue) {
-    // intervene only for vocal
-    if (type === "vocal") {
-      // If _muteMemory[type] is a number => track is considered MUTED (we saved restore)
-      const isMutedInternal = window._muteMemory && typeof window._muteMemory.vocal === "number";
+    try {
+      // intervene only for vocal
+      if (type === "vocal") {
+        const isMutedInternal = window._muteMemory && typeof window._muteMemory.vocal === "number";
 
-      if (isMutedInternal) {
-        // Keep slider/display at 0.001 and force audio element silent
-        const slider = document.getElementById("vocalVolume");
-        const display = document.getElementById("vocalVolumeDisplay");
-        if (slider) slider.value = "0.001";
-        if (display) display.textContent = "0.001";
-        if (window.vocalAudio) window.vocalAudio.volume = 0;
+        if (isMutedInternal) {
+          // Keep slider/display at 0.001 and force audio element silent (real silence)
+          const slider = document.getElementById("vocalVolume");
+          const display = document.getElementById("vocalVolumeDisplay");
+          if (slider) slider.value = "0.001";
+          if (display) display.textContent = "0.001";
+          if (window.vocalAudio) window.vocalAudio.volume = 0;
 
-        // Do NOT pass boosted volume to original function
-        return;
+          // Do NOT pass boosted volume to original function
+          return;
+        }
       }
+    } catch (e) {
+      // If anything goes wrong, fallback to default behaviour below
+      console.warn("Silent-Boost wrapper encountered error:", e);
     }
 
     // default behaviour for accompaniment and unmuted vocal
     return origSetVolume(type, numericValue);
   };
 })();
+
+/* =======================================================
+   End of file
+   - No duplicate loops, no racing initialization.
+   - Mute state applied AFTER initial slider sync (applyStartupMuteState).
+   ======================================================= */
