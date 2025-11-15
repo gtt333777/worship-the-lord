@@ -7,9 +7,14 @@
 
 (function(){
 
-  // store last slider value temporarily
-  window._savedVocalVolume = null;
-  window._savedAccompVolume = null;
+  // ------------------------------------------------------------
+  //  Startup default mute alignment
+  //  (Prevents double-press and prevents startup vocal boost)
+  // ------------------------------------------------------------
+  window._savedVocalVolume  = 0.002;   // your default vocal value
+  window._savedAccompVolume = null;    // accomp starts unmuted
+  window._vocalIsMuted      = true;    // audioControl.js checks this
+  // ------------------------------------------------------------
 
   window.toggleMute = function(type) {
 
@@ -39,7 +44,7 @@
       // Clear saved memory
       window[savedSlot] = null;
 
-      // NEW: Clear mute flag (vocal only)
+      // Clear mute flag (vocal only)
       if (type === "vocal") window._vocalIsMuted = false;
 
       if (btn) btn.textContent = "🔊 Mute";
@@ -59,7 +64,7 @@
     // Force actual audio volume to silent
     setVolumeOnTargets(type, 0.001);
 
-    // NEW: Set mute flag (vocal only)
+    // Set mute flag (vocal only)
     if (type === "vocal") window._vocalIsMuted = true;
 
     if (btn) btn.textContent = "🔇 Unmute";

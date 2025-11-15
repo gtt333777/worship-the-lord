@@ -147,6 +147,8 @@ window.addEventListener("load", () => {
 });
 */
 
+
+/*
 // --- Set initial volumes on load ---
 window.addEventListener("load", () => {
 
@@ -164,6 +166,36 @@ window.addEventListener("load", () => {
     }
   });
 });
+*/
+
+window.addEventListener("load", () => {
+
+  // 🔥 Set TRUE muted state before song starts
+  window._vocalIsMuted = true;
+
+  const defaults = { vocal: 0.002, accomp: 0.02 };
+
+  // VOCAL
+  const vocalSlider = getSlider("vocal");
+  const vocalDisplay = getDisplay("vocal");
+  if (vocalSlider) {
+    vocalSlider.value = defaults.vocal.toFixed(2);   // slider shows 0.002
+    if (vocalDisplay) vocalDisplay.textContent = defaults.vocal.toFixed(2);
+  }
+
+  // Real audio must start muted (0.001)
+  if (window.vocalAudio) window.vocalAudio.volume = 0.001;
+
+  // ACCOMP
+  const accSlider = getSlider("accomp");
+  if (accSlider && window.accompAudio) {
+    accSlider.value = defaults.accomp.toFixed(2);
+    accSlider.dispatchEvent(new Event("input"));
+    window.accompAudio.volume = defaults.accomp;
+  }
+});
+
+
 
 
 
