@@ -89,6 +89,8 @@ function syncDisplayAndVolume(type) {
   setVolumeOnTargets(type, val);
 }
 
+/*
+
 // --- adjustVolume: called by + / − buttons ---
 function adjustVolume(type, delta) {
   const slider = getSlider(type);
@@ -102,6 +104,38 @@ function adjustVolume(type, delta) {
   syncDisplayAndVolume(type);
 }
 window.adjustVolume = adjustVolume;
+
+
+*/
+
+
+
+// --- adjustVolume: called by + / − buttons ---
+function adjustVolume(type, delta) {
+  const slider  = getSlider(type);
+  const display = getDisplay(type);
+  if (!slider) return;
+
+  let newVal = parseFloat(slider.value) + delta;
+  if (!Number.isFinite(newVal)) newVal = DEFAULTS[type] ?? MIN_VOL;
+  newVal = Math.min(1, Math.max(MIN_VOL, newVal));
+
+  // (A) Slider & display always update visually
+  slider.value = newVal.toFixed(2);
+  if (display) display.textContent = newVal.toFixed(2);
+
+  // (B) If vocal is muted → STOP. Do NOT update real audio.
+  if (type === "vocal" && isVocalMuted()) {
+    return;   // real vocal audio stays at 0.001
+  }
+
+  // (C) If not muted → normal real volume update
+  setVolumeOnTargets(type, newVal);
+}
+
+window.adjustVolume = adjustVolume;
+
+
 
 // --- Initialize sliders ---
 function initAudioControls() {

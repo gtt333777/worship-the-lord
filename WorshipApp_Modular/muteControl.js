@@ -1,4 +1,5 @@
-﻿/* ============================================================
+﻿
+/* ============================================================
    muteControl.js — FINAL NON-JUGGLING MUTE SYSTEM
    🔇 Uses slider-based mute (old-proven design)
    🔇 Mute flag added (for audioControl.js boost suppression)
@@ -55,7 +56,12 @@
     //                        MUTE
     // ============================================================
     const current = parseFloat(slider.value);
-    window[savedSlot] = current;  // save real value
+
+    // ✨ IMPORTANT FIX:
+    // Do NOT overwrite saved volume if already muted
+    if (!(type === "vocal" && window._vocalIsMuted)) {
+      window[savedSlot] = current; // save real value ONLY first time
+    }
 
     // Force slider visually to muted level
     slider.value = "0.001";
