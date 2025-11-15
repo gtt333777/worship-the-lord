@@ -293,6 +293,14 @@ button#vocalMuteBtn.vocal-muted {
 }
 
 
+/* 🔊 Bigger + / - Volume Buttons */
+.volume-control button.volume-adjust {
+  padding: 10px 16px !important;
+  font-size: 1.25rem !important;
+  font-weight: bold;
+  border-radius: 10px;
+  min-width: 48px;
+}
 
 
 
@@ -395,7 +403,9 @@ button#vocalMuteBtn.vocal-muted {
   <!-- ✅ Volume Controls -->
 <div class="volume-control">
   <label for="accompVolume">🏛️ Accompaniment Volume:</label>
-  <button onclick="adjustVolume('accomp', -0.01)">-</button>
+<!-- <button onclick="adjustVolume('accomp', -0.01)">-</button>  -->
+     <button class="volume-adjust" onclick="adjustVolume('accomp', -0.01)">−</button>
+
   <!--
   <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
   -->
@@ -407,7 +417,9 @@ button#vocalMuteBtn.vocal-muted {
 
    <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
 
-  <button onclick="adjustVolume('accomp', 0.01)">+</button>
+  <!-- <button onclick="adjustVolume('accomp', 0.01)">+</button>  -->
+  <button class="volume-adjust" onclick="adjustVolume('accomp', 0.01)">+</button>
+
   <!--
   <button onclick="toggleMute('accomp')" style="margin-left:30px;">Mute</button>
   -->
@@ -419,7 +431,9 @@ button#vocalMuteBtn.vocal-muted {
 
 <div class="volume-control">
   <label for="vocalVolume">🎤 Vocal Volume:</label>
-  <button onclick="adjustVolume('vocal', -0.01)">-</button>
+<!--  <button onclick="adjustVolume('vocal', -0.01)">-</button> -->
+<button class="volume-adjust" onclick="adjustVolume('vocal', -0.01)">−</button>
+
 <!--  
 <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
 -->
@@ -431,7 +445,9 @@ button#vocalMuteBtn.vocal-muted {
 
   <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
 
-  <button onclick="adjustVolume('vocal', 0.01)">+</button>
+<!--  <button onclick="adjustVolume('vocal', 0.01)">+</button>  -->
+<button class="volume-adjust" onclick="adjustVolume('vocal', 0.01)">+</button>
+
   <!--
   <button onclick="toggleMute('vocal')" style="margin-left:30px;">Mute</button>
   -->
