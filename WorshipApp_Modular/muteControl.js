@@ -47,7 +47,12 @@
       // Clear saved memory
       window[savedSlot] = null;
 
-      if (btn) btn.textContent = "🔊 Mute";
+      //if (btn) btn.textContent = "🔊 Mute";
+      if (btn) {
+   btn.textContent = "🔊 Mute";
+   btn.classList.remove("vocal-muted");
+}
+
       return;
     }
 
@@ -71,7 +76,16 @@
     // Set mute flag
     if (type === "vocal") window._vocalIsMuted = true;
 
-    if (btn) btn.textContent = "🔇 Unmute";
+    //if (btn) btn.textContent = "🔇 Unmute";
+
+
+    if (btn) {
+   btn.textContent = "🔇 Unmute";
+   if (type === "vocal") btn.classList.add("vocal-muted");
+}
+
+
+
   };
 
 })();
