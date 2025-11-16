@@ -58,6 +58,13 @@ async function loadSelectedSong(songName) {
     const json = await res.json();
     console.log("📘 JSON lyrics loaded:", json);
 
+    // -------------------------
+    // ⭐ Minimal-safe fix:
+    // Ensure window.segments contains the tamilSegments array
+    // so playFirstSegment() and other code can read it.
+    // -------------------------
+    window.segments = json.tamilSegments || [];
+
     if (window.loadLyricsFromJSON) {
       window.loadLyricsFromJSON(json);
     } else {
