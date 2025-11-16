@@ -1,8 +1,10 @@
 ﻿// ===============================================================
-//  lyricsViewer.js  (FINAL — JSON BASED)
+//  lyricsViewer.js  (FINAL — JSON BASED + Smooth Highlight)
 //  Renders:
 //   ✔ Tamil timed segments (progressive highlight)
 //   ✔ English plain text (no highlight)
+//   ✔ Smooth fade highlight
+//   ✔ Auto scroll highlighted line into center
 //  Works with: lyrics/<songName>.json
 // ===============================================================
 
@@ -14,7 +16,6 @@ window.currentLineIndex = -1;
 
 // ===============================================================
 // 1. Load JSON lyrics for a song
-// Called from: songLoader.js  → loadLyricsFromJSON(jsonData);
 // ===============================================================
 window.loadLyricsFromJSON = function (jsonData) {
   console.log("📘 Lyrics loaded:", jsonData);
@@ -55,6 +56,9 @@ function renderTamilLyrics() {
       lineEl.textContent = line;
       lineEl.style.padding = "2px 0";
 
+      // ⭐ NEW: smooth fade class
+      lineEl.classList.add("highlight-fade");
+
       // store reference for live highlight
       window.tamilRendered.push({
         segIndex,
@@ -83,8 +87,19 @@ function renderEnglishLyrics() {
 }
 
 // ===============================================================
+// ⭐ Auto-scroll helper (smooth center scroll)
+// ===============================================================
+function scrollHighlightedIntoView(el) {
+  if (!el || typeof el.scrollIntoView !== "function") return;
+
+  el.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+
+// ===============================================================
 // 4. Highlight Tamil line based on audio time
-// Called from: songLoader.js and loopPlayer.js
 // ===============================================================
 window.updateLyricsHighlight = function (currentTime) {
   if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
@@ -114,6 +129,7 @@ window.updateLyricsHighlight = function (currentTime) {
   const numLines = seg.lyrics.length;
   if (numLines === 0) return;
 
+  // ⭐ DEFAULT: line-based timing
   const perLine = duration / numLines;
 
   let lineIndex = Math.floor(elapsed / perLine);
@@ -123,23 +139,33 @@ window.updateLyricsHighlight = function (currentTime) {
 };
 
 // ===============================================================
-// Helper: Apply highlight
+// ⭐ Apply highlight + smooth scroll + fade
 // ===============================================================
 function applyHighlight(segIndex, lineIndex) {
   window.tamilRendered.forEach(item => {
     if (item.segIndex === segIndex && item.lineIndex === lineIndex) {
       item.el.style.background = "rgba(255, 255, 0, 0.35)";
+      item.el.style.fontWeight = "bold";
+      item.el.style.color = "#000";
+
+      // ⭐ Auto scroll into view
+      scrollHighlightedIntoView(item.el);
+
     } else {
       item.el.style.background = "transparent";
+      item.el.style.fontWeight = "normal";
+      item.el.style.color = "#333";
     }
   });
 }
 
 // ===============================================================
-// Helper: Clear highlight
+//  Clear highlight
 // ===============================================================
 function clearAllHighlights() {
   window.tamilRendered.forEach(item => {
     item.el.style.background = "transparent";
+    item.el.style.fontWeight = "normal";
+    item.el.style.color = "#333";
   });
 }
