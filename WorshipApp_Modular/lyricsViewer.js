@@ -1,11 +1,10 @@
 ﻿// ===============================================================
-//  lyricsViewer.js  (FINAL — JSON BASED + Smooth Highlight)
+//  lyricsViewer.js  (FINAL — Smooth, Smart Scroll, Cooldown)
 //  Renders:
 //   ✔ Tamil timed segments (progressive highlight)
 //   ✔ English plain text (no highlight)
-//   ✔ Smooth fade highlight
-//   ✔ Auto scroll highlighted line into center
-//  Works with: lyrics/<songName>.json
+//   ✔ Fade + Bold highlight
+//   ✔ Smart auto-scroll (with cooldown + future-lines)
 // ===============================================================
 
 // global storage
@@ -13,6 +12,24 @@ window.lyricsData = null;
 window.tamilRendered = [];
 window.currentSegIndex = -1;
 window.currentLineIndex = -1;
+
+// ===============================================================
+// MANUAL SCROLL COOLDOWN (5 seconds)
+// ===============================================================
+let userIsScrolling = false;
+let scrollCooldownTimer = null;
+
+// detect user scroll (touch, drag, swipe, wheel)
+window.addEventListener("scroll", () => {
+  userIsScrolling = true;
+
+  // reset timer if still scrolling
+  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
+
+  scrollCooldownTimer = setTimeout(() => {
+    userIsScrolling = false;
+  }, 5000); // 5 sec cooldown
+});
 
 // ===============================================================
 // 1. Load JSON lyrics for a song
@@ -39,27 +56,22 @@ function renderTamilLyrics() {
   if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
 
   window.lyricsData.tamilSegments.forEach((seg, segIndex) => {
-    // segment wrapper
+
     const segDiv = document.createElement("div");
     segDiv.style.marginBottom = "16px";
 
-    // header
     const title = document.createElement("div");
     title.textContent = `Segment ${segIndex + 1}`;
     title.style.fontWeight = "bold";
     title.style.marginBottom = "6px";
     segDiv.appendChild(title);
 
-    // lines inside the segment
     seg.lyrics.forEach((line, lineIndex) => {
       const lineEl = document.createElement("div");
       lineEl.textContent = line;
       lineEl.style.padding = "2px 0";
-
-      // ⭐ NEW: smooth fade class
       lineEl.classList.add("highlight-fade");
 
-      // store reference for live highlight
       window.tamilRendered.push({
         segIndex,
         lineIndex,
@@ -74,7 +86,7 @@ function renderTamilLyrics() {
 }
 
 // ===============================================================
-// 3. Render English Lyrics (plain text only)
+// 3. Render English Lyrics
 // ===============================================================
 function renderEnglishLyrics() {
   const box = document.getElementById("englishLyricsBox");
@@ -82,16 +94,34 @@ function renderEnglishLyrics() {
 
   if (!window.lyricsData || !window.lyricsData.englishLyrics) return;
 
-  // Simply show full English as plain text
   box.textContent = window.lyricsData.englishLyrics.join("\n");
 }
 
 // ===============================================================
-// ⭐ Auto-scroll helper (smooth center scroll)
+// SMART AUTO-SCROLL FUNCTION
 // ===============================================================
-function scrollHighlightedIntoView(el) {
-  if (!el || typeof el.scrollIntoView !== "function") return;
+function smartScroll(el) {
+  if (!el) return;
 
+  // If user scrolled manually → do NOT auto-scroll
+  if (userIsScrolling) return;
+
+  const rect = el.getBoundingClientRect();
+  const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  const bottomLimit = viewHeight * 0.85; // 85% of screen
+
+  // CASE 1: Fully visible → do nothing
+  if (rect.top >= 0 && rect.bottom <= viewHeight) {
+
+    // BUT if it is too close to bottom → scroll slightly to show future lines
+    if (rect.bottom > bottomLimit) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    return;
+  }
+
+  // CASE 2: Not visible → scroll to center
   el.scrollIntoView({
     behavior: "smooth",
     block: "center"
@@ -106,8 +136,8 @@ window.updateLyricsHighlight = function (currentTime) {
 
   const segments = window.lyricsData.tamilSegments;
 
-  // find the active segment
   let segIndex = -1;
+
   for (let i = 0; i < segments.length; i++) {
     if (currentTime >= segments[i].start &&
         currentTime <= segments[i].end) {
@@ -116,7 +146,6 @@ window.updateLyricsHighlight = function (currentTime) {
     }
   }
 
-  // not in any tamil segment
   if (segIndex === -1) {
     clearAllHighlights();
     return;
@@ -129,7 +158,6 @@ window.updateLyricsHighlight = function (currentTime) {
   const numLines = seg.lyrics.length;
   if (numLines === 0) return;
 
-  // ⭐ DEFAULT: line-based timing
   const perLine = duration / numLines;
 
   let lineIndex = Math.floor(elapsed / perLine);
@@ -139,7 +167,7 @@ window.updateLyricsHighlight = function (currentTime) {
 };
 
 // ===============================================================
-// ⭐ Apply highlight + smooth scroll + fade
+// Apply highlight + fade + bold + smart scroll
 // ===============================================================
 function applyHighlight(segIndex, lineIndex) {
   window.tamilRendered.forEach(item => {
@@ -148,8 +176,8 @@ function applyHighlight(segIndex, lineIndex) {
       item.el.style.fontWeight = "bold";
       item.el.style.color = "#000";
 
-      // ⭐ Auto scroll into view
-      scrollHighlightedIntoView(item.el);
+      // SMART SCROLL HERE
+      smartScroll(item.el);
 
     } else {
       item.el.style.background = "transparent";
@@ -160,7 +188,7 @@ function applyHighlight(segIndex, lineIndex) {
 }
 
 // ===============================================================
-//  Clear highlight
+// Clear highlight
 // ===============================================================
 function clearAllHighlights() {
   window.tamilRendered.forEach(item => {
