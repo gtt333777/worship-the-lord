@@ -1,91 +1,71 @@
 ﻿/* ============================================================
-   muteControl.js — FINAL NON-JUGGLING MUTE SYSTEM
-   🔇 Uses slider-based mute (old-proven design)
-   🔇 Mute flag added (for audioControl.js boost suppression)
-   🔇 Fully stable on mobile
+   muteControl.js — NON-JUGGLING MUTE SYSTEM (v3, persistence-ready)
    ============================================================ */
 
 (function() {
 
-  // ------------------------------------------------------------
-  //  Startup default mute alignment
-  // ------------------------------------------------------------
-  window._savedVocalVolume  = null;    // vocal starts unmuted (important!)
-  window._savedAccompVolume = null;    // accomp starts unmuted
-  window._vocalIsMuted      = false;    // audioControl.js checks this
-  // ------------------------------------------------------------
+  window._savedVocalVolume  = window._savedVocalVolume  ?? null;
+  window._savedAccompVolume = window._savedAccompVolume ?? null;
+
+  window._vocalIsMuted = window._vocalIsMuted ?? false;
 
   window.toggleMute = function(type) {
 
     const slider  = document.getElementById(type + "Volume");
     const display = document.getElementById(type + "VolumeDisplay");
     const btn     = document.getElementById(type + "MuteBtn");
-
     if (!slider) return;
 
     let savedSlot = (type === "vocal") ? "_savedVocalVolume"
                                        : "_savedAccompVolume";
 
-    // ============================================================
-    //                        UNMUTE
-    // ============================================================
+    // --------------------------- UNMUTE ---------------------------
     if (window[savedSlot] !== null) {
 
-      const restore = window[savedSlot];
+      const restore = parseFloat(window[savedSlot]);
 
-      // Restore slider visually
-      slider.value = restore.toFixed(3);
-      if (display) display.textContent = restore.toFixed(3);
-
-      // *** FIXED ORDER ***
-      // 1) Clear mute flag FIRST
       if (type === "vocal") window._vocalIsMuted = false;
 
-      // 2) Now restore real audio volume
-      setVolumeOnTargets(type, restore);
+      slider.value = restore.toFixed(2);
+      if (display) display.textContent = restore.toFixed(2);
 
-      // Clear saved memory
+      if (typeof setVolumeOnTargets === "function") {
+        setVolumeOnTargets(type, restore);
+      }
+
       window[savedSlot] = null;
 
-      //if (btn) btn.textContent = "🔊 Mute";
       if (btn) {
-   btn.textContent = "🔊 Mute";
-   btn.classList.remove("vocal-muted");
-}
-
+        btn.textContent = "🔊 Mute";
+        if (type === "vocal") btn.classList.remove("vocal-muted");
+      }
       return;
     }
 
-    // ============================================================
-    //                        MUTE
-    // ============================================================
-    const current = parseFloat(slider.value);
+    // ---------------------------- MUTE ----------------------------
+    const current = parseFloat(slider.value) || 0.0;
 
-    // Do NOT overwrite saved value if already muted
     if (!(type === "vocal" && window._vocalIsMuted)) {
       window[savedSlot] = current;
+
+      // 🔒 persist mute saved value
+      if (type === "vocal")  localStorage.setItem("vocalVolume",  current);
+      if (type === "accomp") localStorage.setItem("accompVolume", current);
     }
 
-    // Force slider visually to muted level
     slider.value = "0.001";
     if (display) display.textContent = "0.001";
 
-    // Force real audio silent
-    setVolumeOnTargets(type, 0.001);
+    if (typeof setVolumeOnTargets === "function") {
+      setVolumeOnTargets(type, 0.001);
+    }
 
-    // Set mute flag
     if (type === "vocal") window._vocalIsMuted = true;
 
-    //if (btn) btn.textContent = "🔇 Unmute";
-
-
     if (btn) {
-   btn.textContent = "🔇 Unmute";
-   if (type === "vocal") btn.classList.add("vocal-muted");
-}
-
-
-
+      btn.textContent = "🔇 Unmute";
+      if (type === "vocal") btn.classList.add("vocal-muted");
+    }
   };
 
 })();

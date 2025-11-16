@@ -1,4 +1,9 @@
-﻿console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
+﻿/* ============================================================
+   Worship The Lord — songLoader.js
+   🟩 FINAL STABLE BUILD  — Verified 2025-11-12
+   ============================================================ */
+
+console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
 
 // 🎵 Global audio players
 window.vocalAudio = new Audio();
@@ -8,6 +13,21 @@ window.accompAudio = new Audio();
 async function loadSelectedSong(songName) {
   console.log(`🎵 Song selected -> ${songName}`);
 
+  // ------------------------------------------------------------
+  // 🆕 NEW: Remember current song globally (for per-song memory)
+  // ------------------------------------------------------------
+  window.currentSongName = songName;
+
+  // ------------------------------------------------------------
+  // 🆕 NEW: Apply per-song stored volumes (if available)
+  // ------------------------------------------------------------
+  if (window.perSongVolumeMemory &&
+      typeof window.perSongVolumeMemory.applyStoredVolumesForSong === "function") {
+    window.perSongVolumeMemory.applyStoredVolumesForSong(songName);
+    console.log("🎚️ Per-song volumes applied for", songName);
+  }
+
+  // ------------------------------------------------------------
   const entry = window.songURLs[songName];
   if (!entry) return console.error("❌ No entry for", songName);
 
@@ -52,7 +72,6 @@ function stopAndUnloadAudio() {
 
   // ✅ Reset boost guard for next playback session
   window.__VOCAL_BOOST_ACTIVE__ = false;
-  //window.__BOOST_WATCHERS_ACTIVE__ = false;
 }
 
 // === Play the first segment ===
