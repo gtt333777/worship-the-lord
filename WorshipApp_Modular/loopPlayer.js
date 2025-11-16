@@ -465,7 +465,7 @@ let the playing present segment play smoothly till end
   if (typeof basePlay !== "function") return;
 
   // Tunables
-  var LOOKAHEAD_S = 2.0;   // when to prime before boundary
+  var LOOKAHEAD_S = 0.35;   // when to prime before boundary
   var WARM_MS     = 120;   // how long to "play" the warmers (muted)
   var TICK_MS     = 40;    // watcher cadence
   var SEEK_NUDGE  = 0.001; // avoid exact-edge rounding
