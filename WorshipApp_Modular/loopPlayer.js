@@ -70,6 +70,14 @@ function playSegment(startTime, endTime, index = 0) {
         window.accompAudio.currentTime = window.vocalAudio.currentTime;
       }
 
+         /* ⭐ ADD THIS ⭐ */
+    window.updateLyricsHighlight(window.vocalAudio.currentTime);
+    /* ⭐ END ⭐ */
+
+
+
+
+
       // End of segment?
       if (window.vocalAudio.currentTime >= endTime - EPS) {
         clearInterval(window.activeSegmentInterval);
