@@ -49,9 +49,6 @@
       background-color: #eef;
     }
 
-
-
-
     #manualInstallDiv button, #shareAppDiv button {
   min-width: 150px;
 }
@@ -84,8 +81,6 @@
   background: linear-gradient(to bottom right, #ffb74d, #fb8c00);
   transform: scale(1.05);
 }
-
-
 
     /* ✅ Install prompt area cleanup */
     #installPrompt, #manualInstallDiv {
@@ -258,11 +253,6 @@
       }
     }
 
-
-
-
-
-
     /* 🎤 Premium Vocal Mute Button */
 button#vocalMuteBtn {
   background: linear-gradient(to bottom right, #ff7043, #e64a19) !important;
@@ -292,7 +282,6 @@ button#vocalMuteBtn.vocal-muted {
   box-shadow: 0 3px 6px rgba(0,0,0,0.2) !important;
 }
 
-
 /* 🔊 Bigger + / - Volume Buttons */
 .volume-control button.volume-adjust {
   padding: 10px 16px !important;
@@ -302,15 +291,7 @@ button#vocalMuteBtn.vocal-muted {
   min-width: 48px;
 }
 
-
-
-</style>
-
-
-
-
-
-
+  </style>
 </head>
 
 <body>
@@ -334,7 +315,6 @@ button#vocalMuteBtn.vocal-muted {
   </div>
 </header>
 
-
   <!-- ✅ Song selector -->
   <div>
     <label for="songSelect" 
@@ -346,10 +326,7 @@ button#vocalMuteBtn.vocal-muted {
 
     <!-- 🔹 Reinserted dropdown -->
   <select id="songSelect"></select>
-
-
   </div>
-
 
   <!-- ⭐ Bookmark Controls -->
   <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
@@ -361,10 +338,6 @@ button#vocalMuteBtn.vocal-muted {
       onclick="toggleBookmarkView()"
       style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">🎯 Show Bookmarked</button>
   </div>
-
-
-
-
 
   <!-- ✅ Player Controls -->
   <div style="margin-top:10px;">
@@ -382,89 +355,33 @@ button#vocalMuteBtn.vocal-muted {
     <button onclick="clearAllSongCache()">🔥 Clear All Songs</button>
   </div>
 
-  <!-- ✅ Volume Controls --
-  <div class="volume-control">
-    <label for="vocalVolume">🎤 Vocal Volume:</label>
-    <button onclick="adjustVolume('vocal', -0.01)">-</button>
-    <input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
-    <span id="vocalVolumeDisplay">1.00</span>
-    <button onclick="adjustVolume('vocal', 0.01)">+</button>
-  </div>
-
-  <div class="volume-control">
-    <label for="accompVolume">🏛️ Accompaniment Volume:</label>
-    <button onclick="adjustVolume('accomp', -0.01)">-</button>
-    <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
-    <span id="accompVolumeDisplay">1.00</span>
-    <button onclick="adjustVolume('accomp', 0.01)">+</button>
-  </div>
-  -->
-
   <!-- ✅ Volume Controls -->
 <div class="volume-control">
   <label for="accompVolume">🏛️ Accompaniment Volume:</label>
-<!-- <button onclick="adjustVolume('accomp', -0.01)">-</button>  -->
      <button class="volume-adjust" onclick="adjustVolume('accomp', -0.01)">−</button>
-
-  <!--
-  <input type="range" id="accompVolume" min="0" max="1" step="0.01" value="1" />
-  -->
   <input type="range" id="accompVolume" min="0.001" max="1" step="0.01" value="0.02">
-  <!--
-  <span id="accompVolumeDisplay">1.00</span>
-  -->
    <span id="accompVolumeDisplay">0.02</span>
-
    <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
-
-  <!-- <button onclick="adjustVolume('accomp', 0.01)">+</button>  -->
   <button class="volume-adjust" onclick="adjustVolume('accomp', 0.01)">+</button>
-
-  <!--
-  <button onclick="toggleMute('accomp')" style="margin-left:30px;">Mute</button>
-  -->
   <button onclick="toggleMute('accomp')" id="accompMuteBtn" style="margin-left:30px;">🔊 Mute</button>
-
 </div>
 </div>
-
 
 <div class="volume-control">
   <label for="vocalVolume">🎤 Vocal Volume:</label>
-<!--  <button onclick="adjustVolume('vocal', -0.01)">-</button> -->
 <button class="volume-adjust" onclick="adjustVolume('vocal', -0.01)">−</button>
-
-<!--  
-<input type="range" id="vocalVolume" min="0" max="1" step="0.01" value="1" />
--->
 <input type="range" id="vocalVolume" min="0.001" max="1" step="0.01" value="0.002">
-<!--
-<span id="vocalVolumeDisplay">1.00</span>
--->
   <span id="vocalVolumeDisplay">0.002</span>
-
   <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
-
-<!--  <button onclick="adjustVolume('vocal', 0.01)">+</button>  -->
 <button class="volume-adjust" onclick="adjustVolume('vocal', 0.01)">+</button>
-
-  <!--
-  <button onclick="toggleMute('vocal')" style="margin-left:30px;">Mute</button>
-  -->
-  
   <button onclick="toggleMute('vocal')" id="vocalMuteBtn" style="margin-left:30px;">🔊 Mute</button>
-
-
 </div>
 </div>
-
-
 
   <!-- 🔁 Segment Buttons -->
   <div id="loopButtonsContainer"
     style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
   </div>
-
 
   <!-- ============================
      LYRICS VIEWER AREA
@@ -492,13 +409,9 @@ button#vocalMuteBtn.vocal-muted {
 
 </div>
 
-
-
-
   <!-- ✅ Modular Scripts (untouched) -->
   <script src="WorshipApp_Modular/star.js" defer></script>
   <script src="WorshipApp_Modular/songNamesLoader.js" defer></script>
-  <script src="WorshipApp_Modular/lyricsLoader.js" defer></script>
   <script src="WorshipApp_Modular/perSongVolumeMemory.js" defer></script>
   <script src="WorshipApp_Modular/muteControl.js" defer></script>
   <script src="WorshipApp_Modular/audioControl.js" defer></script>
@@ -511,7 +424,6 @@ button#vocalMuteBtn.vocal-muted {
   <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
   <script src="WorshipApp_Modular/lyricsViewer.js" defer></script>
 
-  
   <!-- ✅ Service Worker -->
   <script defer>
     if ('serviceWorker' in navigator) {
@@ -546,14 +458,16 @@ button#vocalMuteBtn.vocal-muted {
       }
 
       const select = document.getElementById("songSelect");
-      if (select && typeof loadLyricsForSelectedSong === "function") {
-        loadLyricsForSelectedSong(select);
-        select.addEventListener("change", () => loadLyricsForSelectedSong(select));
+      if (select) {
+        select.addEventListener("change", () => {
+          const song = select.value;
+          if (song && typeof loadSelectedSong === "function") {
+            loadSelectedSong(song);
+          }
+        });
       }
     });
   </script>
-
-
 
   <!-- ✅ App version label -->
 <div id="appVersionLabel" style="
@@ -563,44 +477,6 @@ button#vocalMuteBtn.vocal-muted {
   text-align: center;
   font-family: system-ui, sans-serif;
 "></div>
-
-
-
-
-
-<!-- ✅ Auto-update version check + visible version label -->
-
-
-<!--
-<script>
-(async () => {
-  try {
-    const resp = await fetch("version.json?cachebust=" + Date.now(), { cache: "no-store" });
-    const data = await resp.json();
-    const latest = data.version;
-    const current = localStorage.getItem("appVersion");
-
-    console.log(`🪄 Worship The Lord - App Version: ${latest}`);
-
-    // 🏷️ Show version in the footer label
-    const label = document.getElementById("appVersionLabel");
-    if (label) label.textContent = "🎵 Worship The Lord — v" + latest;
-
-    if (current && current !== latest) {
-      console.log("🔁 New app version detected:", latest);
-      localStorage.setItem("appVersion", latest);
-      // Force reload to get the newest HTML + JS
-      window.location.reload(true);
-    } else if (!current) {
-      localStorage.setItem("appVersion", latest);
-    }
-  } catch (e) {
-    console.warn("⚠️ Version check failed:", e);
-  }
-})();
-</script>
-
--->
 
 <script>
 (async () => {
@@ -638,9 +514,6 @@ button#vocalMuteBtn.vocal-muted {
   }
 })();
 </script>
-
-
-
 
 <script>
 /* ✅ Highlight and animate only the currently active segment */
@@ -689,44 +562,6 @@ if (window.playSegment) {
 
 requestAnimationFrame(updateProgressBar);
 </script>
-
-
-
-
-<!--
-
-<script>
-/* 🔍 Enlarge the entire page slightly for first-time users */
-/*
-const zoomLevel = 1.15;
-Examples:
-1.05 → +5% (subtle)
-1.10 → +10% (good balance)
-1.20 → +20% (more visible for new users)
-*/
-
-
-(function() {
-  // Choose a starting zoom level (try 1.1 = 110%)
-  const zoomLevel = 1.79;  
-
-  // Apply scaling to the entire body
-  document.body.style.transform = `scale(${zoomLevel})`;
-  document.body.style.transformOrigin = "top center";
-
-  // Adjust spacing so content doesn’t get cut off
-  document.body.style.marginTop = (zoomLevel - 1) * 100 + "px";
-
-  // Optional: Store a flag so repeat visitors keep their manual zoom
-  if (!localStorage.getItem("userZoomSet")) {
-    localStorage.setItem("userZoomSet", "yes");
-  }
-})();
-</script>
-
--->
-
-
 
 </body>
 </html>
