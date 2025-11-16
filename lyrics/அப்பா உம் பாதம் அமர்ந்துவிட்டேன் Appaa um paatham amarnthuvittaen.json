@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 32.967,
+      "end": 107.211,
+      "lyrics": [
+        "அப்பா உம் பாதம் அமர்ந்துவிட்டேன்",
+        "அன்பின் தகப்பன் நீர்தானைய்யா",
+        "செய்த பாவங்கள் கண்முன்னே",
+        "வருந்துகிறேன் நான் கண்ணீரோடு       2",
+        "என்னைக் கழுவி கழுவி தூய்மையாக்கும்",
+        "கல்வாரி இரத்தத்தாலே",
+        "நான் பனியைப் போல வெண்மையாவேன்",
+        "முற்றிலும் வெண்மையாவேன்",
+        "இயேசையா(4)"
+      ]
+    },
+    {
+      "start": 128.947,
+      "end": 203.208,
+      "lyrics": [
+        "துணிகரமாய் நான் தவறு செய்தேன்",
+        "துணிந்து பாவம் செய்தேன்         2",
+        "நோக்கிப் பார்க்க பெலனில்லையே 2",
+        "தூக்கி நிறுத்தும் என் தெய்வமே –   2 என்னைக்"
+      ]
+    },
+    {
+      "start": 227.707,
+      "end": 301.748,
+      "lyrics": [
+        "கிழக்கு மேற்கு உள்ள தூரம்",
+        "உந்தன் இரக்கம் உயர்ந்ததையா       2",
+        "இல்லையே எல்லை உம் அன்பிற்கு     2",
+        "இரக்கத்தின் செல்வந்தர் நீர்தானைய்யா 2"
+      ]
+    },
+    {
+      "start": 331.384,
+      "end": 406.156,
+      "lyrics": [
+        "என் குற்றங்கள் நீர் நினைவு கூர்ந்தால்",
+        "உம்முன்னே நிற்க முடியாதையா       2",
+        "தகப்பன் மகனை மன்னிப்பதுபோல்    2",
+        "மன்னிக்கும் தெய்வம் நீர்தானையா    2"
+      ]
+    },
+    {
+      "start": 427.595,
+      "end": 546.876,
+      "lyrics": [
+        "முள்முடி கிரீடம் பார்க்கின்றேன்",
+        "முகமெல்லாம் இரத்தம் காண்கின்றேன் 2",
+        "ஜீவன் தந்தல்லோ மீட்டீரையா          2",
+        "தேவனே நான் என்ன சொல்வேன்       2",
+        "அப்பா உம் பாதம் அமர்ந்துவிட்டேன்",
+        "அன்பின் தகப்பன் நீர்தானையா",
+        "கிருபையின்படியே மனமிரங்கி",
+        "மீட்பின் மகிழ்ச்சி தந்தீரையா",
+        "இயேசையா நன்றி(4)"
+      ]
+    }
+  ],
+  "englishLyrics": [
+    "Segment 1",
+    "appaa um paatham amarnthuvittaen",
+    "anpin thakappan neerthaanaiyyaa",
+    "seytha paavangal kannmunnae",
+    "varunthukiraen naan kannnneerodu",
+    "ennaik kaluvi kaluvi thooymaiyaakkum",
+    "kalvaari iraththaththaalae",
+    "naan paniyaip pola vennmaiyaavaen",
+    "muttilum vennmaiyaavaen",
+    "iyaesaiyaa(4)",
+    "Segment 2",
+    "thunnikaramaay naan thavatru seythaen",
+    "thunninthu paavam seythaen",
+    "Nnokkip paarkka pelanillaiyae",
+    "thookki niruththum en theyvamae – ennaik",
+    "Segment 3",
+    "kilakku maerku ulla thooram",
+    "unthan irakkam uyarnthathaiyaa",
+    "illaiyae ellai um anpirku",
+    "irakkaththin selvanthar neerthaanaiyyaa",
+    "Segment 4",
+    "en kuttangal neer ninaivu koornthaal",
+    "ummunnae nirka mutiyaathaiyaa",
+    "thakappan makanai mannippathupol",
+    "mannikkum theyvam neerthaanaiyaa",
+    "Segment 5",
+    "mulmuti kireedam paarkkinten",
+    "mukamellaam iraththam kaannkinten",
+    "jeevan thanthallo meettiraiyaa",
+    "thaevanae naan enna solvaen",
+    "appaa um paatham amarnthuvittaen",
+    "anpin thakappan neerthaanaiyaa",
+    "kirupaiyinpatiyae manamirangi",
+    "meetpin makilchchi thantheeraiyaa",
+    "iyaesaiyaa nanti(4)"
+  ]
+}
