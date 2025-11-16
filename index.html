@@ -465,8 +465,35 @@ button#vocalMuteBtn.vocal-muted {
     style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
   </div>
 
-  <!-- ✅ Lyrics display -->
-  <textarea id="lyricsArea" readonly></textarea>
+
+  <!-- ============================
+     LYRICS VIEWER AREA
+============================ -->
+<div id="lyricsViewer" style="padding: 10px; margin-top:20px;">
+
+  <!-- Tamil timed lyrics -->
+  <div id="tamilLyricsBox"
+       style="
+         margin-bottom: 20px;
+         font-size: 18px;
+         line-height: 1.6;
+         text-align:left;
+         white-space:pre-wrap;">
+  </div>
+
+  <!-- English plain lyrics -->
+  <div id="englishLyricsBox"
+       style="
+         margin-top: 20px;
+         font-size: 16px;
+         white-space: pre-wrap;
+         text-align:left;">
+  </div>
+
+</div>
+
+
+
 
   <!-- ✅ Modular Scripts (untouched) -->
   <script src="WorshipApp_Modular/star.js" defer></script>
@@ -482,7 +509,7 @@ button#vocalMuteBtn.vocal-muted {
   <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
   <script src="WorshipApp_Modular/segmentProgressVisualizer.js" defer></script>
   <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
-
+  <script src="WorshipApp_Modular/lyricsViewer.js" defer></script>
 
   
   <!-- ✅ Service Worker -->
