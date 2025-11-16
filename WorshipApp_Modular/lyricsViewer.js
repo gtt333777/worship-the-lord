@@ -1,5 +1,5 @@
 ﻿// ===============================================================
-//  lyricsViewer.js  (FINAL — Center Scroll + Two-Line Highlight)
+//  lyricsViewer.js  (FINAL — 3-lines-from-top + Two-line highlight)
 // ===============================================================
 
 // global storage
@@ -39,7 +39,7 @@ window.loadLyricsFromJSON = function (jsonData) {
 };
 
 // ===============================================================
-// 2. Render Tamil lyrics (timed segments)
+// 2. Render Tamil lyrics
 // ===============================================================
 function renderTamilLyrics() {
   const box = document.getElementById("tamilLyricsBox");
@@ -61,7 +61,7 @@ function renderTamilLyrics() {
     seg.lyrics.forEach((line, lineIndex) => {
       const lineEl = document.createElement("div");
       lineEl.textContent = line;
-      lineEl.style.padding = "2px 0";
+      lineEl.style.padding = "4px 0";
       lineEl.classList.add("highlight-fade");
 
       window.tamilRendered.push({
@@ -90,16 +90,30 @@ function renderEnglishLyrics() {
 }
 
 // ===============================================================
-// ALWAYS CENTER SCROLL (ONLY if user not scrolling)
+// POSITION HIGHLIGHTED LINE 3 LINES BELOW TOP
 // ===============================================================
-function centerScroll(el) {
+function scrollToThreeLinesBelowTop(el) {
   if (!el) return;
 
+  // respect manual scroll cooldown
   if (userIsScrolling) return;
 
-  el.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
+  const rect = el.getBoundingClientRect();
+  const lineHeight = 28; // approximate (adjust if needed)
+  const offset = lineHeight * 3; // 3 lines
+
+  // Move highlighted line to this position:
+  // top of screen + 3 line heights
+  const targetTop = offset;
+
+  const currentTop = rect.top;
+
+  const scrollAmount = currentTop - targetTop;
+
+  window.scrollBy({
+    top: scrollAmount,
+    left: 0,
+    behavior: "smooth"
   });
 }
 
@@ -110,7 +124,6 @@ window.updateLyricsHighlight = function (currentTime) {
   if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
 
   const segments = window.lyricsData.tamilSegments;
-
   let segIndex = -1;
 
   for (let i = 0; i < segments.length; i++) {
@@ -142,7 +155,7 @@ window.updateLyricsHighlight = function (currentTime) {
 };
 
 // ===============================================================
-// 5. Apply highlight (two lines: current + next)
+// 5. Two-line highlight + scrolling
 // ===============================================================
 function applyHighlight(segIndex, lineIndex) {
   window.tamilRendered.forEach(item => {
@@ -154,8 +167,9 @@ function applyHighlight(segIndex, lineIndex) {
       item.el.style.fontWeight = "bold";
       item.el.style.color = "#000";
 
+      // Only scroll on CURRENT line (not next line)
       if (isCurrent) {
-        centerScroll(item.el);
+        scrollToThreeLinesBelowTop(item.el);
       }
 
     } else {
