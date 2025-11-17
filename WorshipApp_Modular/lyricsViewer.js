@@ -154,6 +154,8 @@ window.updateLyricsHighlight = function (currentTime) {
   applyHighlight(segIndex, lineIndex);
 };
 
+
+/*
 // ===============================================================
 // 5. Two-line highlight + scrolling
 // ===============================================================
@@ -179,6 +181,41 @@ function applyHighlight(segIndex, lineIndex) {
     }
   });
 }
+*/
+
+// ===============================================================
+// 5. THREE-line highlight + scrolling (previous, current, next)
+// ===============================================================
+function applyHighlight(segIndex, lineIndex) {
+
+  window.tamilRendered.forEach(item => {
+
+    const isPrev = (item.segIndex === segIndex && item.lineIndex === lineIndex - 1);
+    const isCurrent = (item.segIndex === segIndex && item.lineIndex === lineIndex);
+    const isNext = (item.segIndex === segIndex && item.lineIndex === lineIndex + 1);
+
+    if (isPrev || isCurrent || isNext) {
+      // SAME styling as before (no distraction)
+      item.el.style.background = "rgba(255, 255, 0, 0.35)";
+      item.el.style.fontWeight = "bold";
+      item.el.style.color = "#000";
+
+      // Only scroll on the CURRENT line (middle one)
+      if (isCurrent) {
+        scrollToThreeLinesBelowTop(item.el);
+      }
+
+    } else {
+      // non-highlight lines
+      item.el.style.background = "transparent";
+      item.el.style.fontWeight = "normal";
+      item.el.style.color = "#333";
+    }
+  });
+}
+
+
+
 
 // ===============================================================
 // 6. Clear highlight
