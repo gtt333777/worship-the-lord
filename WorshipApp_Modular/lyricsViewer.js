@@ -159,7 +159,7 @@ function insertAdjustButtons(){
 
 */
 
-
+/*
 // -------------------------
 // Insert buttons (▲ ▼ ⟳) at **bottom-right** of tamilLyricsBox
 // Small white bar, minimal footprint
@@ -221,6 +221,69 @@ function insertAdjustButtons(){
   box.appendChild(btnBar);
 }
 
+*/
+
+// -------------------------
+// Insert buttons (▲ ▼ ⟳) at bottom-right (minimal bar)
+// -------------------------
+function insertAdjustButtons(){
+  const box = document.getElementById('tamilLyricsBox');
+  if (!box) return;
+
+  // remove old bar if any
+  const old = document.getElementById('lyricsAdjustButtons');
+  if (old) old.remove();
+
+  // box must be positioned
+  box.style.position = 'relative';
+
+  // create bar
+  const btnBar = document.createElement('div');
+  btnBar.id = 'lyricsAdjustButtons';
+
+  // ⭐ CORRECT POSITIONING (small, bottom-right, no stretching)
+  btnBar.style.position = 'absolute';
+  btnBar.style.bottom = '4px';
+  btnBar.style.right = '4px';
+
+  btnBar.style.display = 'flex';
+  btnBar.style.gap = '4px';
+  btnBar.style.zIndex = '9999';
+
+  // small white background
+  btnBar.style.background = 'rgba(255,255,255,0.9)';
+  btnBar.style.padding = '3px 4px';
+  btnBar.style.border = '1px solid #ccc';
+  btnBar.style.borderRadius = '6px';
+  btnBar.style.boxShadow = '0 1px 4px rgba(0,0,0,0.15)';
+
+  function makeBtn(label, handler){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', label);
+    b.textContent = label;
+    b.style.fontSize = '12px';
+    b.style.padding = '2px 6px';
+    b.style.border = '1px solid #bbb';
+    b.style.borderRadius = '4px';
+    b.style.background = 'white';
+    b.style.cursor = 'pointer';
+
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      try { handler(); } catch(err) { console.error('adjust button handler error', err); }
+    });
+
+    return b;
+  }
+
+  btnBar.appendChild(makeBtn('▲', () => { highlightUp(); showOffsetTooltip(); }));
+  btnBar.appendChild(makeBtn('▼', () => { highlightDown(); showOffsetTooltip(); }));
+  btnBar.appendChild(makeBtn('⟳', () => { highlightReset(); showOffsetTooltip(); }));
+
+  box.appendChild(btnBar);
+}
 
 
 
