@@ -516,8 +516,9 @@ button#vocalMuteBtn.vocal-muted {
 })();
 </script>
 
+
 <script>
-/* ✅ Highlight and animate only the currently active segment */
+// 🔹 Highlight only the active segment
 function markActiveSegment(index) {
   const buttons = document.querySelectorAll('.segment-button');
   buttons.forEach((btn, i) => {
@@ -525,7 +526,7 @@ function markActiveSegment(index) {
   });
 }
 
-/* ✅ Update only one progress bar for current segment */
+// 🔹 Progress bar animation
 function updateProgressBar() {
   const audio = window.vocalAudio || window.currentVocal || document.querySelector('audio');
   const buttons = document.querySelectorAll('.segment-button');
@@ -541,8 +542,10 @@ function updateProgressBar() {
     const pb = activeBtn.querySelector('.progress-bar');
     const currentTime = audio.currentTime;
     const activeSegment = segments.find(s => currentTime >= s.start && currentTime <= s.end);
+
     if (activeSegment && pb) {
-      const percent = ((currentTime - activeSegment.start) / (activeSegment.end - activeSegment.start)) * 100;
+      const percent = ((currentTime - activeSegment.start) /
+                       (activeSegment.end - activeSegment.start)) * 100;
       pb.style.left = `${percent}%`;
     }
   }
@@ -550,19 +553,42 @@ function updateProgressBar() {
   requestAnimationFrame(updateProgressBar);
 }
 
-/* ✅ Hook into loopPlayer to trigger highlight */
-if (window.playSegment) {
-  const originalPlaySegment = window.playSegment;
-  window.playSegment = function(start, end, index) {
-    markActiveSegment(index);
-    return originalPlaySegment(start, end, index);
-  };
-} else {
-  console.warn("⚠️ playSegment() not found — will retry later.");
+// ----------------------------------------------------
+// 🟢 FIXED LOGIC — WAIT UNTIL playSegment EXISTS
+// ----------------------------------------------------
+
+function hookPlaySegment() {
+  if (typeof window.playSegment === "function") {
+    console.log("✅ playSegment() available — hooking highlight logic.");
+
+    const original = window.playSegment;
+
+    window.playSegment = function(start, end, index) {
+      markActiveSegment(index);
+      return original(start, end, index);
+    };
+
+    return true;
+  }
+  return false;
 }
 
+// 🔁 Keep checking every 200ms until lyricsViewer.js defines playSegment
+(function waitForPlaySegment() {
+  if (!hookPlaySegment()) {
+    console.warn("⏳ Waiting for playSegment()...");
+    setTimeout(waitForPlaySegment, 200);
+  }
+})();
+
+// Start progress bar loop
 requestAnimationFrame(updateProgressBar);
 </script>
+
+
+
+
+
 
 </body>
 </html>
