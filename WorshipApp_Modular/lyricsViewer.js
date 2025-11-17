@@ -129,24 +129,35 @@ function insertAdjustButtons(){
   btnBar.style.right = '4px';
   btnBar.style.display = 'flex';
   btnBar.style.gap = '4px';
-  btnBar.style.zIndex = '5';
+  btnBar.style.zIndex = '9999';
+  btnBar.style.pointerEvents = 'auto';
 
   function makeBtn(label, handler){
     const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', label);
     b.textContent = label;
     b.style.fontSize = '12px';
     b.style.padding = '2px 6px';
     b.style.border = '1px solid #bbb';
     b.style.borderRadius = '4px';
-    b.style.background = 'rgba(255,255,255,0.8)';
+    b.style.background = 'rgba(255,255,255,0.9)';
     b.style.cursor = 'pointer';
-    b.onclick = handler;
+    b.style.pointerEvents = 'auto';
+    b.style.zIndex = '10000';
+
+    // use addEventListener and stop propagation so clicks reach handler even if nested
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      try { handler(); } catch(err) { console.error('adjust button handler error', err); }
+    });
     return b;
   }
 
-  btnBar.appendChild(makeBtn('▲', () => { highlightUp(); showOffsetTooltip(); }));
-  btnBar.appendChild(makeBtn('▼', () => { highlightDown(); showOffsetTooltip(); }));
-  btnBar.appendChild(makeBtn('⟳', () => { highlightReset(); showOffsetTooltip(); }));
+  btnBar.appendChild(makeBtn('▲', () => { console.log('▲ clicked'); highlightUp(); showOffsetTooltip(); }));
+  btnBar.appendChild(makeBtn('▼', () => { console.log('▼ clicked'); highlightDown(); showOffsetTooltip(); }));
+  btnBar.appendChild(makeBtn('⟳', () => { console.log('⟳ clicked'); highlightReset(); showOffsetTooltip(); }));
 
   box.appendChild(btnBar);
 }
