@@ -334,5 +334,63 @@ window.setHighlightMode = function (mode) {
 };
 
 // -------------------------
+// Keyboard shortcuts (↑ ↓ R) — minimal mode
+// -------------------------
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') {
+    highlightUp();
+    showOffsetTooltip();
+    e.preventDefault();
+  } else if (e.key === 'ArrowDown') {
+    highlightDown();
+    showOffsetTooltip();
+    e.preventDefault();
+  } else if (e.key.toLowerCase() === 'r') {
+    highlightReset();
+    showOffsetTooltip();
+  }
+});
+
+// -------------------------
+// Tooltip for manual offset (minimal, fades after 2 sec)
+// -------------------------
+let offsetTooltipEl = null;
+let offsetTooltipTimer = null;
+
+function showOffsetTooltip() {
+  const box = document.getElementById('tamilLyricsBox');
+  if (!box) return;
+
+  // Create tooltip element if missing
+  if (!offsetTooltipEl) {
+    offsetTooltipEl = document.createElement('div');
+    offsetTooltipEl.style.position = 'absolute';
+    offsetTooltipEl.style.top = '4px';
+    offsetTooltipEl.style.right = '8px';
+    offsetTooltipEl.style.fontSize = '12px';
+    offsetTooltipEl.style.color = '#555';
+    offsetTooltipEl.style.background = 'rgba(255,255,255,0.7)';
+    offsetTooltipEl.style.padding = '2px 6px';
+    offsetTooltipEl.style.borderRadius = '4px';
+    offsetTooltipEl.style.pointerEvents = 'none';
+    offsetTooltipEl.style.transition = 'opacity 0.4s';
+    offsetTooltipEl.style.opacity = '1';
+    box.style.position = 'relative';
+    box.appendChild(offsetTooltipEl);
+  }
+
+  // Update text
+  const off = window.manualOffset || 0;
+  offsetTooltipEl.textContent = off === 0 ? 'Offset: 0 (Sync)' : `Offset: ${off > 0 ? '+'+off : off}`;
+  offsetTooltipEl.style.opacity = '1';
+
+  // Fade out after 2 seconds
+  if (offsetTooltipTimer) clearTimeout(offsetTooltipTimer);
+  offsetTooltipTimer = setTimeout(() => {
+    if (offsetTooltipEl) offsetTooltipEl.style.opacity = '0';
+  }, 2000);
+}
+
+// -------------------------
 // End of file
 // -------------------------
