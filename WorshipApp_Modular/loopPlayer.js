@@ -132,6 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // ⭐ JSON FIX — use tamilSegments array
         window.segments = loopData.tamilSegments || [];
 
+        // ⭐ CRITICAL FIX — the missing assignments
+        window.loadedSegments = window.segments;
+        window.currentSegments = window.segments;
+        console.log("🎯 loopPlayer.js: Segments bridged →", window.segments.length, "segments loaded.");
+
         // Clear existing buttons
         loopButtonsDiv.innerHTML = "";
 
@@ -321,11 +326,10 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
 
 
 
-
 /*
 I feel that it is only priming issue. segments handsoff are good even without seamless v3 hence I 
 removed V3 seamless codes. Now I want to focus on priming next segment that is segment 2 starting 
-has to be primed when segment 1 plays like that next next segments. Segment 1 should not be 
+onwards. Segment 1 should not be 
 touched it is good. Can you give code for 2 seconds before, for priming from segment 2 starting 
 onwards. At the same time because of this priming the segments should not juggle. I have pasted 
 below loopPlayer.js without v3
@@ -613,42 +617,11 @@ Tweak if needed
 •	If you want earlier prep, increase LOOKAHEAD_S to 2.5–3.0.
 •	If a platform dislikes removing nodes, omit el.remove() and just keep a small pool (but this version cleans up to stay light).
 This approach keeps your current segment buttery smooth and still primes the next one right on time.
+*/
 
-
-
-I think the long battle for segments buttery smooth in Airtel Network has solved. Thankyou. 
-I feel your above latest code has worked amazingly well.
-
-Safety helper (optional): add this tiny line anywhere after the overlay to make sure any warmers stop when the app is backgrounded:
-
+/* Optional safety helper to stop warmers when app backgrounded:
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && window.__prime2sStop) window.__prime2sStop();
 });
-
-
-If anything odd shows up (rare pops, missed first note of the next segment, etc.), 
-tell me the segment length and device—I'll tune those two constants for you. 
-So happy this is finally buttery smooth.
 */
 
-
-
-
-// Put this once, anywhere AFTER the priming overlay is defined
-/*
-(function(){
-  if (window.__PRIME2S_VIS_GUARD__) return;
-  window.__PRIME2S_VIS_GUARD__ = true;
-
-  function stopPrimers(){
-    if (typeof window.__prime2sStop === 'function') window.__prime2sStop();
-  }
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stopPrimers();
-  });
-
-  // iOS/Safari sometimes skips visibilitychange → use pagehide too
-  window.addEventListener('pagehide', stopPrimers);
-})();
-*/
