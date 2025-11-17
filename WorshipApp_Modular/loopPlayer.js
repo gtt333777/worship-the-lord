@@ -7,11 +7,25 @@ window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play
 window.activeSegmentInterval = null;  // watchdog interval (new)
 window.playRunId = 0;                 // cancels older overlapping plays (new)
 
+
+/*
 function playSegment(startTime, endTime, index = 0) {
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
     return;
   }
+
+  */
+
+  function playSegment(startTime, endTime, index = 0) {
+  window.currentPlayingSegmentIndex = index;   // ⭐ FIX ADDED HERE
+
+  if (!window.vocalAudio || !window.accompAudio) {
+    console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
+    return;
+  }
+
+
 
   // Cancel any previous timers/intervals from older plays
   if (window.activeSegmentTimeout) {
