@@ -291,6 +291,30 @@ button#vocalMuteBtn.vocal-muted {
   min-width: 48px;
 }
 
+/* ============================
+   🎵 LYRICS SCROLL BOX
+============================ */
+#lyricsScrollBox {
+  width: 95%;
+  max-width: 600px;
+  height: 55vh;               /* Box height (adjustable) */
+  margin: 15px auto;
+  padding: 12px;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  overflow-y: auto;           /* ⭐ Scroll INSIDE the box */
+  overflow-x: hidden;
+  text-align: left;
+}
+
+
+
+
+
+
+
+
   </style>
 </head>
 
@@ -383,31 +407,26 @@ button#vocalMuteBtn.vocal-muted {
     style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
   </div>
 
+
+
   <!-- ============================
-     LYRICS VIEWER AREA
+     LYRICS VIEWER AREA (NEW)
 ============================ -->
-<div id="lyricsViewer" style="padding: 10px; margin-top:20px;">
+<div id="lyricsScrollBox">
 
   <!-- Tamil timed lyrics -->
   <div id="tamilLyricsBox"
-       style="
-         margin-bottom: 20px;
-         font-size: 18px;
-         line-height: 1.6;
-         text-align:left;
-         white-space:pre-wrap;">
+       style="font-size: 18px; line-height: 1.6; white-space: pre-wrap;">
   </div>
 
   <!-- English plain lyrics -->
   <div id="englishLyricsBox"
-       style="
-         margin-top: 20px;
-         font-size: 16px;
-         white-space: pre-wrap;
-         text-align:left;">
+       style="font-size: 16px; white-space: pre-wrap; margin-top:20px;">
   </div>
 
 </div>
+
+
 
   <!-- ✅ Modular Scripts (untouched) -->
   <script src="WorshipApp_Modular/star.js" defer></script>
