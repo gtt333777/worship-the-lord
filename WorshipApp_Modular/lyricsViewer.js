@@ -274,8 +274,10 @@ window.updateLyricsHighlight = function (currentTime) {
     if (lineIndex >= numLines) lineIndex = numLines - 1;
 
     window.currentSegIndex = segIndex;
-    window.currentLineIndex = lineIndex;
-    applyHighlight(segIndex, lineIndex);
+  // APPLY MANUAL OFFSET
+  const finalIndex = Math.max(0, Math.min(lineIndex + (window.manualOffset||0), numLines - 1));
+  window.currentLineIndex = finalIndex;
+  applyHighlight(segIndex, finalIndex);(segIndex, lineIndex);
     return;
   }
 
@@ -311,6 +313,14 @@ window.updateLyricsHighlight = function (currentTime) {
 };
 
 // -------------------------
+// Manual offset globals
+window.manualOffset = 0;
+
+// Manual shift controls
+window.highlightUp = function(){ window.manualOffset = (window.manualOffset||0) - 1; };
+window.highlightDown = function(){ window.manualOffset = (window.manualOffset||0) + 1; };
+window.highlightReset = function(){ window.manualOffset = 0; };
+
 // Expose small API for runtime changes (safe)
 // -------------------------
 window.setHighlightLines = function (n) {
