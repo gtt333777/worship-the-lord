@@ -554,9 +554,8 @@ function updateProgressBar() {
 }
 
 // ----------------------------------------------------
-// 🟢 FIXED LOGIC — WAIT UNTIL playSegment EXISTS
+// 🟢 SAFE HOOK — prevents null → null playSegment calls
 // ----------------------------------------------------
-
 function hookPlaySegment() {
   if (typeof window.playSegment === "function") {
     console.log("✅ playSegment() available — hooking highlight logic.");
@@ -564,7 +563,16 @@ function hookPlaySegment() {
     const original = window.playSegment;
 
     window.playSegment = function(start, end, index) {
+      // 🚫 Ignore invalid calls completely
+      if (typeof start !== "number" || typeof end !== "number" ||
+          isNaN(start) || isNaN(end)) {
+        console.warn("⛔ Ignoring invalid playSegment:", start, end, index);
+        return;
+      }
+
+      // ✔️ Highlight only valid segments
       markActiveSegment(index);
+
       return original(start, end, index);
     };
 
@@ -573,7 +581,7 @@ function hookPlaySegment() {
   return false;
 }
 
-// 🔁 Keep checking every 200ms until lyricsViewer.js defines playSegment
+// 🔁 Keep checking until loopPlayer.js defines playSegment()
 (function waitForPlaySegment() {
   if (!hookPlaySegment()) {
     console.warn("⏳ Waiting for playSegment()...");
@@ -584,8 +592,6 @@ function hookPlaySegment() {
 // Start progress bar loop
 requestAnimationFrame(updateProgressBar);
 </script>
-
-
 
 
 
