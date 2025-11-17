@@ -38,14 +38,7 @@ function cleanTamilLine(line) {
   // Normalize whitespace
   line = line.trim();
 
-  // Remove obvious English markers like "1st time", "2nd time", "tine" etc.
-  // A simple approach: strip any trailing Latin letters/digits after two or more spaces or tab
-  // But we will more robustly remove all characters outside Tamil unicode block and spaces
-
-  // Tamil Unicode block: \u0B80 - \u0BFF
-  // We'll allow Tamil chars and the common Tamil vowel signs/diacritics in that block.
-  // Also allow regular space (\u0020) and NBSP just in case.
-
+  // Allow Tamil block \u0B80-\u0BFF and normal space and NBSP
   const allowed = /[\u0B80-\u0BFF\u00A0\u0020]/g;
   const matches = line.match(allowed);
   if (!matches) return '';
@@ -71,7 +64,6 @@ function processLyricsData(raw) {
     const totalChars = charCounts.reduce((s, v) => s + (v || 0), 0);
 
     // Build cumulative boundaries (startCharIndex inclusive, endCharIndex exclusive)
-    // We'll index chars from 0..totalChars-1 across the segment
     const cumulative = []; // array of {start, end} per line
     let cursor = 0;
     for (let i = 0; i < charCounts.length; i++) {
@@ -104,6 +96,7 @@ window.loadLyricsFromJSON = function (jsonData) {
   window._lyricsProcessed = processLyricsData(jsonData);
   window.currentSegIndex = -1;
   window.currentLineIndex = -1;
+  window.manualOffset = 0;
 
   renderTamilLyrics();
   insertAdjustButtons();
@@ -326,11 +319,11 @@ window.updateLyricsHighlight = function (currentTime) {
     let lineIndex = Math.floor(elapsed / perLine);
     if (lineIndex >= numLines) lineIndex = numLines - 1;
 
+    // APPLY MANUAL OFFSET
+    const finalIndex = Math.max(0, Math.min(lineIndex + (window.manualOffset||0), numLines - 1));
     window.currentSegIndex = segIndex;
-  // APPLY MANUAL OFFSET
-  const finalIndex = Math.max(0, Math.min(lineIndex + (window.manualOffset||0), numLines - 1));
-  window.currentLineIndex = finalIndex;
-  applyHighlight(segIndex, finalIndex);(segIndex, lineIndex);
+    window.currentLineIndex = finalIndex;
+    applyHighlight(segIndex, finalIndex);
     return;
   }
 
@@ -342,7 +335,7 @@ window.updateLyricsHighlight = function (currentTime) {
   let lineIndex = 0;
   for (let i = 0; i < seg.cumulative.length; i++) {
     const b = seg.cumulative[i];
-    // treat empty lines (start===end) as skip
+    // treat empty lines (start===end) as skip - if charsElapsed falls into empty line, we still pick it
     if (b.start <= charsElapsed && charsElapsed < b.end) {
       lineIndex = i;
       break;
@@ -359,43 +352,56 @@ window.updateLyricsHighlight = function (currentTime) {
   if (lineIndex < 0) lineIndex = 0;
   if (lineIndex >= numLines) lineIndex = numLines - 1;
 
+  // APPLY MANUAL OFFSET (clamped)
+  const requested = lineIndex + (window.manualOffset||0);
+  const finalIndex = Math.max(0, Math.min(requested, numLines - 1));
+
   // store and apply
   window.currentSegIndex = segIndex;
-  window.currentLineIndex = lineIndex;
-  applyHighlight(segIndex, lineIndex);
+  window.currentLineIndex = finalIndex;
+  applyHighlight(segIndex, finalIndex);
 };
 
 // -------------------------
 // Manual offset globals
 window.manualOffset = 0;
 
-// Manual shift controls
+// Manual shift controls (Option B: show boundary tooltip when limit reached)
 window.highlightUp = function(){
   const seg = (window.lyricsData && window.lyricsData.tamilSegments && window.currentSegIndex>=0)
     ? window.lyricsData.tamilSegments[window.currentSegIndex]
     : null;
-  if (!seg) { window.manualOffset--; return; }
+  if (!seg) {
+    window.manualOffset = (window.manualOffset||0) - 1;
+    return;
+  }
+  // autoIndex = the line index that would be computed automatically right now (without manual offset)
   const autoIndex = window.currentLineIndex - (window.manualOffset||0);
   const minOffset = -autoIndex;
   if ((window.manualOffset||0) <= minOffset) {
     showBoundaryTooltip('Top reached');
     return;
   }
-  window.manualOffset--;
-};(){ window.manualOffset = (window.manualOffset||0) - 1; };
+  window.manualOffset = (window.manualOffset||0) - 1;
+};
+
 window.highlightDown = function(){
   const seg = (window.lyricsData && window.lyricsData.tamilSegments && window.currentSegIndex>=0)
     ? window.lyricsData.tamilSegments[window.currentSegIndex]
     : null;
-  if (!seg) { window.manualOffset++; return; }
+  if (!seg) {
+    window.manualOffset = (window.manualOffset||0) + 1;
+    return;
+  }
   const autoIndex = window.currentLineIndex - (window.manualOffset||0);
   const maxOffset = seg.lyrics.length - 1 - autoIndex;
   if ((window.manualOffset||0) >= maxOffset) {
     showBoundaryTooltip('End of segment');
     return;
   }
-  window.manualOffset++;
-};(){ window.manualOffset = (window.manualOffset||0) + 1; };
+  window.manualOffset = (window.manualOffset||0) + 1;
+};
+
 window.highlightReset = function(){ window.manualOffset = 0; };
 
 // Expose small API for runtime changes (safe)
@@ -434,7 +440,7 @@ window.addEventListener('keydown', (e) => {
 let offsetTooltipEl = null;
 let offsetTooltipTimer = null;
 
-function showOffsetTooltip // modified to allow coexistence with boundary tooltips() {
+function showOffsetTooltip() {
   const box = document.getElementById('tamilLyricsBox');
   if (!box) return;
 
