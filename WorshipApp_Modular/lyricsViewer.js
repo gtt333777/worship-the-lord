@@ -370,8 +370,32 @@ window.updateLyricsHighlight = function (currentTime) {
 window.manualOffset = 0;
 
 // Manual shift controls
-window.highlightUp = function(){ window.manualOffset = (window.manualOffset||0) - 1; };
-window.highlightDown = function(){ window.manualOffset = (window.manualOffset||0) + 1; };
+window.highlightUp = function(){
+  const seg = (window.lyricsData && window.lyricsData.tamilSegments && window.currentSegIndex>=0)
+    ? window.lyricsData.tamilSegments[window.currentSegIndex]
+    : null;
+  if (!seg) { window.manualOffset--; return; }
+  const autoIndex = window.currentLineIndex - (window.manualOffset||0);
+  const minOffset = -autoIndex;
+  if ((window.manualOffset||0) <= minOffset) {
+    showBoundaryTooltip('Top reached');
+    return;
+  }
+  window.manualOffset--;
+};(){ window.manualOffset = (window.manualOffset||0) - 1; };
+window.highlightDown = function(){
+  const seg = (window.lyricsData && window.lyricsData.tamilSegments && window.currentSegIndex>=0)
+    ? window.lyricsData.tamilSegments[window.currentSegIndex]
+    : null;
+  if (!seg) { window.manualOffset++; return; }
+  const autoIndex = window.currentLineIndex - (window.manualOffset||0);
+  const maxOffset = seg.lyrics.length - 1 - autoIndex;
+  if ((window.manualOffset||0) >= maxOffset) {
+    showBoundaryTooltip('End of segment');
+    return;
+  }
+  window.manualOffset++;
+};(){ window.manualOffset = (window.manualOffset||0) + 1; };
 window.highlightReset = function(){ window.manualOffset = 0; };
 
 // Expose small API for runtime changes (safe)
@@ -405,12 +429,12 @@ window.addEventListener('keydown', (e) => {
 });
 
 // -------------------------
-// Tooltip for manual offset (minimal, fades after 2 sec)
+// Tooltip for manual offset + boundary alerts (minimal, fades after 2 sec)
 // -------------------------
 let offsetTooltipEl = null;
 let offsetTooltipTimer = null;
 
-function showOffsetTooltip() {
+function showOffsetTooltip // modified to allow coexistence with boundary tooltips() {
   const box = document.getElementById('tamilLyricsBox');
   if (!box) return;
 
@@ -445,5 +469,29 @@ function showOffsetTooltip() {
 }
 
 // -------------------------
+function showBoundaryTooltip(msg){
+  const box = document.getElementById('tamilLyricsBox');
+  if (!box) return;
+  if (!offsetTooltipEl) {
+    offsetTooltipEl = document.createElement('div');
+    offsetTooltipEl.style.position = 'absolute';
+    offsetTooltipEl.style.top = '4px';
+    offsetTooltipEl.style.right = '8px';
+    offsetTooltipEl.style.fontSize = '12px';
+    offsetTooltipEl.style.color = '#a00';
+    offsetTooltipEl.style.background = 'rgba(255,230,230,0.9)';
+    offsetTooltipEl.style.padding = '2px 6px';
+    offsetTooltipEl.style.borderRadius = '4px';
+    offsetTooltipEl.style.pointerEvents = 'none';
+    offsetTooltipEl.style.transition = 'opacity 0.4s';
+    box.style.position = 'relative';
+    box.appendChild(offsetTooltipEl);
+  }
+  offsetTooltipEl.textContent = msg;
+  offsetTooltipEl.style.opacity = '1';
+  if (offsetTooltipTimer) clearTimeout(offsetTooltipTimer);
+  offsetTooltipTimer = setTimeout(() => { if (offsetTooltipEl) offsetTooltipEl.style.opacity = '0'; }, 2000);
+}
+
 // End of file
 // -------------------------
