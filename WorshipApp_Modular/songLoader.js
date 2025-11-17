@@ -103,6 +103,8 @@ function stopAndUnloadAudio() {
   window.__VOCAL_BOOST_ACTIVE__ = false;
 }
 
+
+/*
 // ============================================================
 // Play first segment
 // ============================================================
@@ -120,6 +122,45 @@ async function playFirstSegment() {
 
   playSegment(segment.start, segment.end, 0);
 }
+*/
+
+
+async function playFirstSegment() {
+  const select = document.getElementById("songSelect");
+  if (!select) return;
+
+  const songName = select.value;
+  if (!songName) {
+    console.warn("⚠️ No song selected");
+    return;
+  }
+
+  // Load the song (audio + JSON lyrics)
+  await loadSelectedSong(songName);
+
+  // 🟢 NEW: Wait until segments are available
+  let tries = 0;
+  while ((!window.segments || window.segments.length === 0) && tries < 30) {
+    await new Promise(res => setTimeout(res, 100));
+    tries++;
+  }
+
+  if (!window.segments || window.segments.length === 0) {
+    console.error("❌ First segment not found after waiting.");
+    return;
+  }
+
+  const first = window.segments[0];
+  if (!first || typeof first.start !== "number" || typeof first.end !== "number") {
+    console.error("❌ First segment invalid:", first);
+    return;
+  }
+
+  // 🟢 Only now safe to call
+  playSegment(first.start, first.end, 0);
+}
+
+
 
 // ============================================================
 // Segment playback
