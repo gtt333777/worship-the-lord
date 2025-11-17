@@ -110,6 +110,41 @@ window.loadLyricsFromJSON = function (jsonData) {
 };
 
 // -------------------------
+// Insert A1 buttons (▲ ▼ ⟳) in top-right corner of tamilLyricsBox
+(function(){
+  const box = document.getElementById('tamilLyricsBox');
+  if (box) {
+    box.style.position = 'relative';
+    const btnBar = document.createElement('div');
+    btnBar.id = 'lyricsAdjustButtons';
+    btnBar.style.position = 'absolute';
+    btnBar.style.top = '4px';
+    btnBar.style.right = '4px';
+    btnBar.style.display = 'flex';
+    btnBar.style.gap = '4px';
+    btnBar.style.zIndex = '5';
+
+    function makeBtn(label, handler){
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.style.fontSize = '12px';
+      b.style.padding = '2px 6px';
+      b.style.border = '1px solid #bbb';
+      b.style.borderRadius = '4px';
+      b.style.background = 'rgba(255,255,255,0.8)';
+      b.style.cursor = 'pointer';
+      b.onclick = handler;
+      return b;
+    }
+
+    btnBar.appendChild(makeBtn('▲', () => { highlightUp(); showOffsetTooltip(); }));
+    btnBar.appendChild(makeBtn('▼', () => { highlightDown(); showOffsetTooltip(); }));
+    btnBar.appendChild(makeBtn('⟳', () => { highlightReset(); showOffsetTooltip(); }));
+
+    box.appendChild(btnBar);
+  }
+})();
+
 // Render Tamil lyrics into the #tamilLyricsBox
 // We'll create a clean DOM structure and also store element refs
 // -------------------------
