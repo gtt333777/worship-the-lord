@@ -103,129 +103,11 @@ window.loadLyricsFromJSON = function (jsonData) {
   renderEnglishLyrics();
 };
 
-/*
-
-// -------------------------
-// Insert A1 buttons (▲ ▼ ⟳) in top-right corner of tamilLyricsBox
-// A1 buttons will be inserted AFTER Tamil lyrics are rendered
-function insertAdjustButtons(){
-  const box = document.getElementById('tamilLyricsBox');
-  if (!box) return;
-
-  // remove old bar if any
-  const old = document.getElementById('lyricsAdjustButtons');
-  if (old) old.remove();
-
-  box.style.position = 'relative';
-  const btnBar = document.createElement('div');
-  btnBar.id = 'lyricsAdjustButtons';
-  btnBar.style.position = 'absolute';
-  btnBar.style.top = '4px';
-  btnBar.style.right = '4px';
-  btnBar.style.display = 'flex';
-  btnBar.style.gap = '4px';
-  btnBar.style.zIndex = '9999';
-  btnBar.style.pointerEvents = 'auto';
-
-  function makeBtn(label, handler){
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.setAttribute('aria-label', label);
-    b.textContent = label;
-    b.style.fontSize = '12px';
-    b.style.padding = '2px 6px';
-    b.style.border = '1px solid #bbb';
-    b.style.borderRadius = '4px';
-    b.style.background = 'rgba(255,255,255,0.9)';
-    b.style.cursor = 'pointer';
-    b.style.pointerEvents = 'auto';
-    b.style.zIndex = '10000';
-
-    // use addEventListener and stop propagation so clicks reach handler even if nested
-    b.addEventListener('click', function(e){
-      e.stopPropagation();
-      e.preventDefault();
-      try { handler(); } catch(err) { console.error('adjust button handler error', err); }
-    });
-    return b;
-  }
-
-  btnBar.appendChild(makeBtn('▲', () => { console.log('▲ clicked'); highlightUp(); showOffsetTooltip(); }));
-  btnBar.appendChild(makeBtn('▼', () => { console.log('▼ clicked'); highlightDown(); showOffsetTooltip(); }));
-  btnBar.appendChild(makeBtn('⟳', () => { console.log('⟳ clicked'); highlightReset(); showOffsetTooltip(); }));
-
-  box.appendChild(btnBar);
-}
-
-*/
-
-/*
-// -------------------------
-// Insert buttons (▲ ▼ ⟳) at **bottom-right** of tamilLyricsBox
-// Small white bar, minimal footprint
-// -------------------------
-function insertAdjustButtons(){
-  const box = document.getElementById('tamilLyricsBox');
-  if (!box) return;
-
-  // remove old bar if any
-  const old = document.getElementById('lyricsAdjustButtons');
-  if (old) old.remove();
-
-  // ensure the box can position children
-  box.style.position = 'relative';
-
-  // create new bar
-  const btnBar = document.createElement('div');
-  btnBar.id = 'lyricsAdjustButtons';
-  btnBar.style.position = 'sticky';
-  btnBar.style.bottom = '4px';
-  btnBar.style.right = '4px';
-  btnBar.style.display = 'flex';
-  btnBar.style.gap = '4px';
-  btnBar.style.zIndex = '9999';
-  btnBar.style.marginLeft = 'auto'; // <-- correct way to push right
-
-  // small white background container
-  btnBar.style.background = 'rgba(255,255,255,0.9)';
-  btnBar.style.padding = '3px 4px';
-  btnBar.style.border = '1px solid #ccc';
-  btnBar.style.borderRadius = '6px';
-  btnBar.style.boxShadow = '0 1px 4px rgba(0,0,0,0.15)';
-
-  function makeBtn(label, handler){
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.setAttribute('aria-label', label);
-    b.textContent = label;
-    b.style.fontSize = '12px';
-    b.style.padding = '2px 6px';
-    b.style.border = '1px solid #bbb';
-    b.style.borderRadius = '4px';
-    b.style.background = 'white';
-    b.style.cursor = 'pointer';
-
-    b.addEventListener('click', function(e){
-      e.stopPropagation();
-      e.preventDefault();
-      try { handler(); } catch(err) { console.error('adjust button handler error', err); }
-    });
-    return b;
-  }
-
-  btnBar.appendChild(makeBtn('▲', () => { console.log('▲ clicked'); highlightUp(); showOffsetTooltip(); }));
-  btnBar.appendChild(makeBtn('▼', () => { console.log('▼ clicked'); highlightDown(); showOffsetTooltip(); }));
-  btnBar.appendChild(makeBtn('⟳', () => { console.log('⟳ clicked'); highlightReset(); showOffsetTooltip(); }));
-
-  // append to box (bottom area)
-  box.appendChild(btnBar);
-}
-
-*/
 
 // -------------------------
 // Insert buttons (▲ ▼ ⟳) at bottom-right (minimal bar)
 // -------------------------
+
 function insertAdjustButtons(){
   const box = document.getElementById('tamilLyricsBox');
   if (!box) return;
@@ -234,23 +116,23 @@ function insertAdjustButtons(){
   const old = document.getElementById('lyricsAdjustButtons');
   if (old) old.remove();
 
-  // box must be positioned
+  // IMPORTANT: container must be flex/column for sticky alignment
+  box.style.display = 'flex';
+  box.style.flexDirection = 'column';
   box.style.position = 'relative';
 
-  // create bar
   const btnBar = document.createElement('div');
   btnBar.id = 'lyricsAdjustButtons';
 
-  // ⭐ CORRECT POSITIONING (small, bottom-right, no stretching)
-  btnBar.style.position = 'absolute';
+  // ⭐ Magic combination — always visible at bottom-right
+  btnBar.style.position = 'sticky';
   btnBar.style.bottom = '4px';
-  btnBar.style.right = '4px';
+  btnBar.style.alignSelf = 'flex-end';
 
   btnBar.style.display = 'flex';
   btnBar.style.gap = '4px';
   btnBar.style.zIndex = '9999';
 
-  // small white background
   btnBar.style.background = 'rgba(255,255,255,0.9)';
   btnBar.style.padding = '3px 4px';
   btnBar.style.border = '1px solid #ccc';
@@ -260,7 +142,6 @@ function insertAdjustButtons(){
   function makeBtn(label, handler){
     const b = document.createElement('button');
     b.type = 'button';
-    b.setAttribute('aria-label', label);
     b.textContent = label;
     b.style.fontSize = '12px';
     b.style.padding = '2px 6px';
@@ -268,13 +149,11 @@ function insertAdjustButtons(){
     b.style.borderRadius = '4px';
     b.style.background = 'white';
     b.style.cursor = 'pointer';
-
-    b.addEventListener('click', function(e){
-      e.stopPropagation();
+    b.addEventListener('click', e => {
       e.preventDefault();
-      try { handler(); } catch(err) { console.error('adjust button handler error', err); }
+      e.stopPropagation();
+      handler();
     });
-
     return b;
   }
 
@@ -284,6 +163,7 @@ function insertAdjustButtons(){
 
   box.appendChild(btnBar);
 }
+
 
 
 
