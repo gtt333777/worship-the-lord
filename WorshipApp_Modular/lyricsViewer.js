@@ -1,16 +1,11 @@
 ﻿// ===============================================================
 // lyricsViewer.js  —  Character-weighted timing + whole-line highlight
-//  - Auto-split by characters (adaptive) — high accuracy
-//  - Dynamic time-lead system (4s → 0s) to fix lag
+//  - Auto-split by characters (adaptive) — optimized for smoothness
+//  - Dynamic time-lead system (3.5s → 0s) to fix lag
 //  - Counts Tamil chars + spaces (ignores English labels like "1st time")
 //  - Default: 1-line highlight (bold + yellow background)
 //  - Clean, distraction-free (no fades, no glows)
 //  - Auto-scroll positions current line 3 lines below top
-
-//  - highlightTimeLead  - Around number 349
-//  - highlightTimeLead = Math.max  - Around line 364
-
-
 // ===============================================================
 
 // --------- PUBLIC / GLOBALS ----------
@@ -27,12 +22,12 @@ window.highlightLines = 1;
 window.manualOffset = 0;
 
 // === Time-lead Fix Globals (NEW) ===
-// Push highlight earlier: 4s → 0s
+// Will be set to 3.5 on new segment (optimized)
 let highlightTimeLead = 0;
 
-// === Auto-split Tunables ===
-let targetCharsPerSplit = 20;
-let maxPartsLimit = 16;
+// === Auto-split Tunables (optimized) ===
+let targetCharsPerSplit = 35;   // optimized for smoothness & accuracy
+let maxPartsLimit = 10;         // optimized cap
 
 // Expose tunables
 window.setTargetCharsPerSplit = function(n){
@@ -346,7 +341,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Reset lead if new segment
   if (segIndex !== window.currentSegIndex) {
-    highlightTimeLead = 25.0;  
+    highlightTimeLead = 3.5;  // ⭐ optimized start value
   }
 
   if (segIndex === -1) {
@@ -359,7 +354,7 @@ window.updateLyricsHighlight = function (currentTime) {
   const seg = segments[segIndex];
   const duration = seg.duration;
 
-  // Apply dynamic lead: 4.0 → 0.0
+  // Apply dynamic lead: 3.5 → 0.0 in steps of 0.5
   let elapsed = (currentTime - seg.start) + highlightTimeLead;
   highlightTimeLead = Math.max(0, highlightTimeLead - 0.5);
 
