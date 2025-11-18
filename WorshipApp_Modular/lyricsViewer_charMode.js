@@ -5,7 +5,7 @@
 // CONFIG
 window.charMode = window.charMode || {};
 window.charMode.countSpaces = true;
-window.charMode.stepChars = 50;
+window.charMode.stepChars = 5;
 window.charMode.highlightStyle = {
   background: 'rgba(255,255,0,0.35)',
   fontWeight: 'bold',
@@ -220,6 +220,7 @@ function applyCharHighlight(finalCountIndex) {
 // --------------------------------------------------------------
 // Scroll support
 // --------------------------------------------------------------
+
 function scrollToCharIndex(finalCountIndex) {
   if (!window._charRenderedSpans) return;
 
@@ -239,11 +240,18 @@ function scrollToCharIndex(finalCountIndex) {
   const rect = lastSpan.getBoundingClientRect();
   const offset = 28 * 3;
 
-  window.scrollBy({
-    top: rect.top - offset,
-    behavior: 'smooth'
-  });
-}
+  // compute scroll difference
+  const scrollAmount = rect.top - offset;
+
+  // scroll only the Tamil lyrics box
+  const box = document.getElementById('tamilLyricsBox');
+  if (box) {
+    box.scrollTop += scrollAmount;
+  }
+
+
+
+
 
 // --------------------------------------------------------------
 // FINAL PATCH #2 — on CHAR toggle, jump to exact correct index
