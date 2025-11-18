@@ -1,24 +1,40 @@
 ﻿// ===============================================================
 // lyricsViewer.js  —  Character-weighted timing + whole-line highlight
+//  - Auto-split by characters (adaptive) — high accuracy
 //  - Counts Tamil chars + spaces (ignores English labels like "1st time")
 //  - Default: 1-line highlight (bold + yellow background)
 //  - Clean, distraction-free (no fades, no glows)
 //  - Auto-scroll positions current line 3 lines below top
 // ===============================================================
 
-// GLOBALS (easy-to-change)
+// --------- PUBLIC / GLOBALS (easy-to-change / exposed) ----------
 window.lyricsData = null;              // original JSON
 window._lyricsProcessed = null;       // processed per-segment metadata
 window.currentSegIndex = -1;
 window.currentLineIndex = -1;
 
 // Highlight controls
-// mode: "lines" (whole-line highlight) — reserved for future "chars" mode
-window.highlightMode = "lines";
-// number of lines to highlight overall (centered on current). For "lines" mode.
+window.highlightMode = "lines"; // reserved for future "chars" mode
 window.highlightLines = 1; // default 1 (only current line). change to 3 or 5 if needed
 
-// Scroll control
+// Manual offset globals (unchanged behavior)
+window.manualOffset = 0;
+
+// Tunables for auto-split (Gold-standard defaults)
+let targetCharsPerSplit = 20;   // smaller -> finer splits -> more accuracy (default tuned for your long segments)
+let maxPartsLimit = 16;         // safe hard cap to avoid too many parts
+
+// Expose tunables for runtime experimentation
+window.setTargetCharsPerSplit = function(n){
+  const v = parseInt(n, 10);
+  if (!isNaN(v) && v > 0) targetCharsPerSplit = v;
+};
+window.setMaxPartsLimit = function(n){
+  const v = parseInt(n, 10);
+  if (!isNaN(v) && v > 0) maxPartsLimit = v;
+};
+
+// Scroll control (preserve existing)
 let userIsScrolling = false;
 let scrollCooldownTimer = null;
 window.addEventListener("scroll", () => {
@@ -49,22 +65,20 @@ function cleanTamilLine(line) {
 }
 
 // -------------------------
-// Compute processed metadata for each segment
-// Creates per-segment arrays: cleanedLines, charCounts, cumulativeCharBounds
+// Compute processed metadata for each segment (enhanced: auto-split by chars)
+// Creates per-segment arrays: cleanedLines, charCounts, cumulativeCharBounds, parts
 // -------------------------
 function processLyricsData(raw) {
   if (!raw || !Array.isArray(raw.tamilSegments)) return null;
 
   const processed = raw.tamilSegments.map(seg => {
     const cleanedLines = (seg.lyrics || []).map(l => cleanTamilLine(l));
-
-    // Count characters: include spaces as requested
-    const charCounts = cleanedLines.map(l => l.length);
-
+    const charCounts = cleanedLines.map(l => l.length || 0);
     const totalChars = charCounts.reduce((s, v) => s + (v || 0), 0);
+    const duration = (typeof seg.end === 'number' && typeof seg.start === 'number') ? (seg.end - seg.start) : 0;
 
     // Build cumulative boundaries (startCharIndex inclusive, endCharIndex exclusive)
-    const cumulative = []; // array of {start, end} per line
+    const cumulative = [];
     let cursor = 0;
     for (let i = 0; i < charCounts.length; i++) {
       const c = charCounts[i] || 0;
@@ -72,15 +86,61 @@ function processLyricsData(raw) {
       cursor += c;
     }
 
+    // --- AUTO-SPLIT LOGIC (adaptive by totalChars) ---
+    let parts = [];
+    if (totalChars <= 0 || duration <= 0) {
+      // fallback: single part equal to whole segment
+      parts = [{
+        index: 0,
+        charStart: 0,
+        charEnd: Math.max(0, totalChars),
+        charsInPart: Math.max(0, totalChars),
+        timeStart: seg.start,
+        timeEnd: seg.end,
+        duration: duration,
+        perChar: (totalChars > 0) ? (duration / totalChars) : duration // fallback
+      }];
+    } else {
+      // Decide how many parts based on totalChars
+      let partsCount = Math.ceil(totalChars / targetCharsPerSplit);
+      partsCount = Math.max(1, Math.min(partsCount, Math.min(maxPartsLimit, totalChars))); // clamp to sensible limits
+
+      const durationPart = duration / partsCount;
+
+      // Determine char index ranges per part by evenly slicing the global char index range.
+      // This evenly assigns *character-index ranges* across parts; each time window is equal-duration.
+      for (let i = 0; i < partsCount; i++) {
+        const cs = Math.floor(totalChars * i / partsCount);
+        const ce = (i === partsCount - 1) ? totalChars : Math.floor(totalChars * (i + 1) / partsCount);
+        const charsInPart = Math.max(0, ce - cs);
+
+        const tStart = seg.start + i * durationPart;
+        const tEnd = seg.start + (i + 1) * durationPart;
+        const perChar = (charsInPart > 0) ? (durationPart / charsInPart) : durationPart; // if zero chars, fallback
+
+        parts.push({
+          index: i,
+          charStart: cs,
+          charEnd: ce,
+          charsInPart,
+          timeStart: tStart,
+          timeEnd: tEnd,
+          duration: durationPart,
+          perChar
+        });
+      }
+    }
+
     return {
       start: seg.start,
       end: seg.end,
-      duration: seg.end - seg.start,
+      duration,
       rawLines: seg.lyrics || [],
       cleanedLines,
       charCounts,
       totalChars,
-      cumulative
+      cumulative,
+      parts
     };
   });
 
@@ -103,11 +163,9 @@ window.loadLyricsFromJSON = function (jsonData) {
   renderEnglishLyrics();
 };
 
-
 // -------------------------
 // Insert buttons (▲ ▼ ⟳) at bottom-right (minimal bar)
 // -------------------------
-
 function insertAdjustButtons(){
   const box = document.getElementById('tamilLyricsBox');
   if (!box) return;
@@ -164,9 +222,7 @@ function insertAdjustButtons(){
   box.appendChild(btnBar);
 }
 
-
-
-
+// -------------------------
 // Render Tamil lyrics into the #tamilLyricsBox
 // We'll create a clean DOM structure and also store element refs
 // -------------------------
@@ -295,8 +351,7 @@ function applyHighlight(segIndex, lineIndex) {
 }
 
 // -------------------------
-// Update highlight using character-weighted timing (whole-line highlight)
-// This is the replacement for your old per-line-even timing
+// Update highlight using multi-part character-weighted timing (auto-split by chars)
 // -------------------------
 window.updateLyricsHighlight = function (currentTime) {
   if (!window._lyricsProcessed || !Array.isArray(window._lyricsProcessed)) return;
@@ -338,21 +393,42 @@ window.updateLyricsHighlight = function (currentTime) {
     return;
   }
 
-  // character-based calculation
-  const perChar = duration / seg.totalChars; // seconds per character
-  const charsElapsed = elapsed / perChar; // how many character positions into segment
+  // Multi-part approach
+  const parts = seg.parts && seg.parts.length ? seg.parts : [{ index: 0, timeStart: seg.start, timeEnd: seg.end, duration: seg.duration, charStart: 0, charEnd: seg.totalChars, charsInPart: seg.totalChars, perChar: seg.duration / seg.totalChars }];
 
-  // find which line contains this character index (use cumulative bounds)
+  // determine part index by elapsed time (falls into equal-duration windows)
+  let partIndex = Math.floor(elapsed / (parts[0].duration || seg.duration));
+  if (partIndex < 0) partIndex = 0;
+  if (partIndex >= parts.length) partIndex = parts.length - 1;
+
+  const part = parts[partIndex];
+  // elapsedWithinPart = currentTime - part.timeStart (more robust for floating point)
+  const elapsedWithinPart = currentTime - part.timeStart;
+
+  // avoid division by zero
+  let charsElapsedWithinPart;
+  if (part.charsInPart > 0) {
+    charsElapsedWithinPart = elapsedWithinPart / part.perChar;
+  } else {
+    // If this part has zero characters, push to start of next part (or clamp)
+    charsElapsedWithinPart = 0;
+  }
+
+  // compute global character index inside the segment
+  let globalCharIndex = part.charStart + charsElapsedWithinPart;
+  if (globalCharIndex < 0) globalCharIndex = 0;
+  if (globalCharIndex >= seg.totalChars) globalCharIndex = seg.totalChars - 1;
+
+  // find which line contains this globalCharIndex using cumulative
   let lineIndex = 0;
   for (let i = 0; i < seg.cumulative.length; i++) {
     const b = seg.cumulative[i];
-    // treat empty lines (start===end) as skip - if charsElapsed falls into empty line, we still pick it
-    if (b.start <= charsElapsed && charsElapsed < b.end) {
+    if (b.start <= globalCharIndex && globalCharIndex < b.end) {
       lineIndex = i;
       break;
     }
-    // if charsElapsed is beyond last char, clamp to last line
-    if (i === seg.cumulative.length - 1 && charsElapsed >= b.end) {
+    // if beyond last char, clamp to last line
+    if (i === seg.cumulative.length - 1 && globalCharIndex >= b.end) {
       lineIndex = i;
       break;
     }
@@ -374,9 +450,6 @@ window.updateLyricsHighlight = function (currentTime) {
 };
 
 // -------------------------
-// Manual offset globals
-window.manualOffset = 0;
-
 // Manual shift controls (Option B: show boundary tooltip when limit reached)
 window.highlightUp = function(){
   const seg = (window.lyricsData && window.lyricsData.tamilSegments && window.currentSegIndex>=0)
@@ -415,21 +488,8 @@ window.highlightDown = function(){
 
 window.highlightReset = function(){ window.manualOffset = 0; };
 
-// Expose small API for runtime changes (safe)
-// -------------------------
-window.setHighlightLines = function (n) {
-  const parsed = parseInt(n, 10) || 1;
-  window.highlightLines = Math.max(1, parsed);
-};
-
-window.setHighlightMode = function (mode) {
-  // only "lines" supported now — placeholder for future
-  if (mode === 'lines' || mode === 'chars') window.highlightMode = mode;
-};
-
 // -------------------------
 // Keyboard shortcuts (↑ ↓ R) — minimal mode
-// -------------------------
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp') {
     highlightUp();
@@ -485,7 +545,6 @@ function showOffsetTooltip() {
   }, 2000);
 }
 
-// -------------------------
 function showBoundaryTooltip(msg){
   const box = document.getElementById('tamilLyricsBox');
   if (!box) return;
