@@ -129,7 +129,7 @@ function processLyricsData(raw) {
           duration: durationPart,
         //perChar: (charsInPart > 0) ? (durationPart / charsInPart) : durationPart
 
-          perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.85 : durationPart
+          perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.90 : durationPart
 
         });
       }
