@@ -8,7 +8,8 @@
 //  - Auto-scroll positions current line 3 lines below top
 
 
-
+//  - highlightTimeLead  - Around number 349
+//  - highlightTimeLead = Math.max  - Around line 364
 
 
 // ===============================================================
@@ -361,7 +362,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Apply dynamic lead: 3.5 → 0.0 in steps of 0.5
   let elapsed = (currentTime - seg.start) + highlightTimeLead;
-  highlightTimeLead = Math.max(0, highlightTimeLead - 0.5);
+  highlightTimeLead = Math.max(0, highlightTimeLead - 0.1);
 
   if (!seg.totalChars || seg.totalChars <= 0 || duration <= 0) {
     const numLines = (seg.cleanedLines || []).length || 1;
