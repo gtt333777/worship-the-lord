@@ -249,7 +249,7 @@ function scrollToCharIndex(finalCountIndex) {
     box.scrollTop += scrollAmount;
   }
 
-
+}
 
 
 
