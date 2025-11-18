@@ -347,7 +347,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Reset lead if new segment
   if (segIndex !== window.currentSegIndex) {
-    highlightTimeLead = 10.0;  // ⭐ optimized start value
+    highlightTimeLead = 3.50;  // ⭐ optimized start value
   }
 
   if (segIndex === -1) {
@@ -362,7 +362,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Apply dynamic lead: 3.5 → 0.0 in steps of 0.5
   let elapsed = (currentTime - seg.start) + highlightTimeLead;
-  highlightTimeLead = Math.max(0, highlightTimeLead - 0.1);
+  highlightTimeLead = Math.max(0, highlightTimeLead - 0.5);
 
   if (!seg.totalChars || seg.totalChars <= 0 || duration <= 0) {
     const numLines = (seg.cleanedLines || []).length || 1;
