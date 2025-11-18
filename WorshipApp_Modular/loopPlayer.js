@@ -84,11 +84,21 @@ function playSegment(startTime, endTime, index = 0) {
         window.accompAudio.currentTime = window.vocalAudio.currentTime;
       }
 
-         /* ⭐ ADD THIS ⭐ */
-    window.updateLyricsHighlight(window.vocalAudio.currentTime);
-    /* ⭐ END ⭐ */
 
+      /* ⭐ HIGHLIGHTER ROUTING ⭐ */
+var t = window.vocalAudio.currentTime;
+window.currentAudioTime = t;      // store for buttons
 
+if (window.charModeEnabled) {
+    if (typeof window.updateCharModeHighlight === "function") {
+        window.updateCharModeHighlight(t);
+    }
+} else {
+    if (typeof window.updateLyricsHighlight === "function") {
+        window.updateLyricsHighlight(t);
+    }
+}
+/* ⭐ END ⭐ */
 
 
 
