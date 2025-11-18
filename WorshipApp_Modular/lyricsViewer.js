@@ -6,6 +6,11 @@
 //  - Default: 1-line highlight (bold + yellow background)
 //  - Clean, distraction-free (no fades, no glows)
 //  - Auto-scroll positions current line 3 lines below top
+
+
+
+
+
 // ===============================================================
 
 // --------- PUBLIC / GLOBALS ----------
@@ -341,7 +346,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Reset lead if new segment
   if (segIndex !== window.currentSegIndex) {
-    highlightTimeLead = 5.0;  // ⭐ optimized start value
+    highlightTimeLead = 7.0;  // ⭐ optimized start value
   }
 
   if (segIndex === -1) {
