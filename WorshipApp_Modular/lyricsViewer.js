@@ -6,6 +6,11 @@
 //  - Default: 1-line highlight (bold + yellow background)
 //  - Clean, distraction-free (no fades, no glows)
 //  - Auto-scroll positions current line 3 lines below top
+
+//  - highlightTimeLead  - Around number 349
+//  - highlightTimeLead = Math.max  - Around line 364
+
+
 // ===============================================================
 
 // --------- PUBLIC / GLOBALS ----------
@@ -341,7 +346,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Reset lead if new segment
   if (segIndex !== window.currentSegIndex) {
-    highlightTimeLead = 4.0;  
+    highlightTimeLead = 7.0;  
   }
 
   if (segIndex === -1) {
