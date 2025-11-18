@@ -346,7 +346,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Reset lead if new segment
   if (segIndex !== window.currentSegIndex) {
-    highlightTimeLead = 7.0;  // ⭐ optimized start value
+    highlightTimeLead = 10.0;  // ⭐ optimized start value
   }
 
   if (segIndex === -1) {
