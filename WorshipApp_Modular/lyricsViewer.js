@@ -11,6 +11,12 @@
 //  - highlightTimeLead  - Around number 349
 //  - highlightTimeLead = Math.max  - Around line 364
 
+// If you want more speed, try:
+// targetCharsPerSplit = 50
+// maxPartsLimit = 8
+// ✔ Very safe method:  perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.85 : durationPart
+
+
 
 // ===============================================================
 
@@ -32,7 +38,8 @@ window.manualOffset = 0;
 let highlightTimeLead = 0;
 
 // === Auto-split Tunables (optimized) ===
-let targetCharsPerSplit = 35;   // optimized for smoothness & accuracy
+//let targetCharsPerSplit = 35;   // optimized for smoothness & accuracy
+  let targetCharsPerSplit = 50;   // optimized for smoothness & accuracy
 let maxPartsLimit = 10;         // optimized cap
 
 // Expose tunables
@@ -120,7 +127,10 @@ function processLyricsData(raw) {
           timeStart: tStart,
           timeEnd: tEnd,
           duration: durationPart,
-          perChar: (charsInPart > 0) ? (durationPart / charsInPart) : durationPart
+        //perChar: (charsInPart > 0) ? (durationPart / charsInPart) : durationPart
+
+          perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.85 : durationPart
+
         });
       }
     }
