@@ -269,16 +269,33 @@ function scrollToCharIndex(finalCountIndex) {
 // Public: enable character mode
 // This will build arrays and re-render tamil box in char-mode
 // -------------------------
+
 window.enableCharacterMode = function () {
   window.charModeEnabled = true;
+
+  // Build global arrays
   buildGlobalCharArray();
+
+  // Render Tamil lyrics in char-mode
   renderTamilLyricsCharMode();
-  // cache spans
-  const box = document.getElementById('tamilLyricsBox');
+
+  // ⭐ FIX: Start highlight at first character
+  window.globalCharIndex = 0;
+  window.manualCharOffsetChars = 0; // reset manual offset too
+  window.applyCharHighlight(0);
+
+  // ⭐ FIX: Scroll to top
+  const box = document.getElementById("tamilLyricsBox");
+  if (box) box.scrollTop = 0;
+
+  // cache spans AFTER render
   if (box) window._charRenderedSpans = box.querySelectorAll('span');
-  // create control buttons (bottom-right) if missing
+
+  // Add CHAR/LINE / ▲▼⟳ buttons
   _char_insertAdjustButtons();
 };
+
+
 
 // -------------------------
 // Public: disable character mode (restore your original render)
@@ -298,6 +315,9 @@ window.disableCharacterMode = function () {
     if (box) box.innerHTML = '';
   }
 };
+
+
+
 
 // -------------------------
 // Main updater: call this from your audio loop in place of updateLyricsHighlight
