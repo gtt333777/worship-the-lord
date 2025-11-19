@@ -655,6 +655,42 @@ requestAnimationFrame(updateProgressBar);
 </script>
 
 
+<script>
+/* =======================================================
+   ⭐ Absolute Flicker-Free Segment Highlighter (Time-based)
+   ======================================================= */
+
+function updateActiveSegmentByTime() {
+  const audio = window.vocalAudio;
+  const segs  = window.currentSegments || window.loadedSegments || [];
+
+  if (!audio || !segs.length) {
+    requestAnimationFrame(updateActiveSegmentByTime);
+    return;
+  }
+
+  const t = audio.currentTime;
+  let activeIndex = -1;
+
+  // 🔍 Find segment based on time
+  for (let i = 0; i < segs.length; i++) {
+    if (t >= segs[i].start && t <= segs[i].end) {
+      activeIndex = i;
+      break;
+    }
+  }
+
+  // 🔥 Always highlight correct segment (no flicker)
+  markActiveSegment(activeIndex);
+
+  requestAnimationFrame(updateActiveSegmentByTime);
+}
+
+// 🚀 Start the zero-flicker highlighter
+requestAnimationFrame(updateActiveSegmentByTime);
+</script>
+
+
 
 
 </body>
