@@ -217,31 +217,28 @@
     }
 
 
-    /* 🌟 GLOWING GOLD NEEDLE (Segment Progress Bar) */
+    /* ⭐ OLD NEEDLE (inside button, gold version) */
 .progress-bar {
   position: absolute;
-  top: -14px;                /* extend ABOVE button */
-  bottom: -14px;             /* extend BELOW button */
+  top: 0;
+  bottom: 0;
   left: 0;
-  width: 2px;                /* ultra-thin needle */
-  background-color: #ffeb3b; /* soft gold-yellow core */
-  box-shadow:
-      0 0 6px #ffeb3b,
-      0 0 12px #ffeb3b,
-      0 0 18px rgba(255, 235, 59, 0.7);
-  border-radius: 2px;
-  
-  opacity: 0;                /* ⭐ hidden without flicker */
-  transition: 
-      left 0.05s linear,
-      opacity 0.12s linear;  /* ⭐ smooth fade */
 
-  pointer-events: none;
+  width: 3px;
+  background-color: #ffeb3b;
+
+  /* soft glow */
+  box-shadow:
+      0 0 4px #ffeb3b,
+      0 0 8px rgba(255, 235, 59, 0.7);
+
+  transition: left 0.05s linear;
+  display: none;
 }
 
-/* ⭐ Active state – smooth fade-in, no flicker */
+/* show only when active */
 .segment-button.active .progress-bar {
-  opacity: 1;
+  display: block;
 }
 
 
@@ -689,142 +686,6 @@ function updateActiveSegmentByTime() {
 // 🚀 Start the zero-flicker highlighter
 requestAnimationFrame(updateActiveSegmentByTime);
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<script>
-(function() {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.get("testNeedle")) return;   // normal mode
-
-    console.warn("🟡 NEEDLE TEST MODE ENABLED");
-
-    // Clear real loop buttons
-    const realContainer = document.getElementById("loopButtonsContainer");
-    if (realContainer) realContainer.style.display = "none";
-
-    // Create test environment
-    const testWrap = document.createElement("div");
-    testWrap.style.marginTop = "40px";
-    testWrap.innerHTML = `
-        <div style="
-            background:#dbe9ff;
-            padding:20px;
-            margin:20px auto;
-            width:90%;
-            font-weight:bold;
-            text-align:center;
-        ">TOP TEST BOX (Should NOT hide needle)</div>
-
-        <div id="needleTestButtons"
-             style="display:flex; justify-content:center; gap:40px; margin:40px 0;">
-        </div>
-
-        <div style="
-            background:#dbe9ff;
-            padding:20px;
-            margin:20px auto;
-            width:90%;
-            font-weight:bold;
-            text-align:center;
-        ">BOTTOM TEST BOX (Should NOT hide needle)</div>
-    `;
-    document.body.appendChild(testWrap);
-
-    // Create S1–S5 buttons
-    const btnRow = document.getElementById("needleTestButtons");
-    const segments = [];
-    for (let i = 0; i < 5; i++) {
-        segments.push({ start: i, end: i + 1 });
-        const btn = document.createElement("button");
-        btn.className = "segment-button";
-        btn.textContent = "S" + (i + 1);
-        btnRow.appendChild(btn);
-    }
-
-    // Create needles
-    const bars = [];
-    document.querySelectorAll(".segment-button").forEach(btn => {
-        const bar = document.createElement("div");
-        bar.className = "progress-bar";
-        btn.appendChild(bar);
-        bars.push(bar);
-    });
-
-    // Fake audio timer
-    let t = 0;
-    function tick() {
-        t += 0.016; // 60fps
-        if (t > 5) t = 0;
-
-        // Determine active segment
-        let activeIndex = -1;
-        for (let i = 0; i < segments.length; i++) {
-            if (t >= segments[i].start && t <= segments[i].end) {
-                activeIndex = i;
-                break;
-            }
-        }
-
-        // Highlight correct button
-        document.querySelectorAll(".segment-button").forEach((btn, i) => {
-            btn.classList.toggle("active", i === activeIndex);
-        });
-
-        // Move correct needle
-        if (activeIndex >= 0) {
-            const seg = segments[activeIndex];
-            const pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
-            bars[activeIndex].style.left = pct + "%";
-            bars[activeIndex].style.opacity = 1;
-        }
-
-        // Hide other needles
-        bars.forEach((bar, i) => {
-            if (i !== activeIndex) bar.style.opacity = 0;
-        });
-
-        requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-})();
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
