@@ -1,15 +1,20 @@
-﻿// segmentProgressVisualizer.js (patched — zero flicker)
+﻿// segmentProgressVisualizer.js
 console.log("segmentProgressVisualizer.js: Starting...");
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("segmentProgressVisualizer.js: DOMContentLoaded...");
 });
 
+/**
+ * 🎵 startSegmentProgressVisualizer()
+ * Creates and updates ONE visible green vertical bar
+ * that moves only on the currently active segment.
+ */
 function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer) {
   console.log("segmentProgressVisualizer.js: startSegmentProgressVisualizer() called");
 
   if (!segments || !vocalAudio || !loopButtonsContainer) {
-    console.warn("⚠️ segmentProgressVisualizer.js: Missing required items.");
+    console.warn("⚠️ segmentProgressVisualizer.js: Missing segments, vocalAudio, or loopButtonsContainer.");
     return;
   }
 
@@ -17,45 +22,55 @@ function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContain
 
   segments.forEach((segment, i) => {
     const btn = loopButtonsContainer.children[i];
-    if (!btn) return;
+    if (!btn) {
+      console.warn(`⚠️ segmentProgressVisualizer.js: No button found for segment ${i}`);
+      return;
+    }
 
-    // ensure button
-    btn.classList.add("segment-button");
+    try {
+      btn.classList.add("segment-button");
 
-    // remove old bar
-    const old = btn.querySelector(".progress-bar");
-    if (old) old.remove();
+      // Remove any old progress bar if already present
+      const existingBar = btn.querySelector(".progress-bar");
+      if (existingBar) existingBar.remove();
 
-    // create new bar
-    const bar = document.createElement("div");
-    bar.classList.add("progress-bar");
+      // Create and append new progress bar
+      const progressBar = document.createElement("div");
+      progressBar.classList.add("progress-bar");
+      progressBar.style.display = "none"; // hidden until active
+      btn.appendChild(progressBar);
 
-    // ⭐ ALWAYS visible, never opacity hidden
-    bar.style.left = "-5px";
-
-    btn.appendChild(bar);
-
-    progressBars.push({
-      bar,
-      start: segment.start,
-      end: segment.end
-    });
+      progressBars.push({
+        bar: progressBar,
+        start: segment.start,
+        end: segment.end
+      });
+    } catch (e) {
+      console.error(`❌ segmentProgressVisualizer.js: Error processing segment ${i}`, e);
+    }
   });
 
+  // ✅ Update progress bar in real-time — show only one active
   function updateProgress() {
-    const t = vocalAudio.currentTime;
+    const currentTime = vocalAudio.currentTime;
+    let activeFound = false;
 
     progressBars.forEach(pb => {
       const { bar, start, end } = pb;
-
-      if (t >= start && t <= end) {
-        const pct = ((t - start) / (end - start)) * 100;
-        bar.style.left = pct + "%";
+      if (currentTime >= start && currentTime <= end) {
+        const percent = ((currentTime - start) / (end - start)) * 100;
+        bar.style.left = `${percent}%`;
+        bar.style.display = "block";  // show only the active one
+        activeFound = true;
       } else {
-        // old-style hide (no removal, no opacity)
-        bar.style.left = "-5px";
+        bar.style.display = "none";   // hide all others
       }
     });
+
+    // If song stopped or between segments, hide all bars
+    if (!activeFound) {
+      progressBars.forEach(pb => pb.bar.style.display = "none");
+    }
 
     requestAnimationFrame(updateProgress);
   }
