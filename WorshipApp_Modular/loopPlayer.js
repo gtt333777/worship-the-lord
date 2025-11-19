@@ -101,6 +101,44 @@ if (window.charModeEnabled) {
 /* ⭐ END ⭐ */
 
 
+      /* =====================================================
+         ⭐ LIVE SEGMENT COUNTDOWN ON BUTTON (S1 - 15s)
+         - Minimal & clean, updates visually once per second (using ceiling)
+         - Non-invasive: only updates text content of the active button
+         - Stores original label in dataset.originalLabel (first time)
+         ===================================================== */
+      try {
+        // Guard: we need the buttons and a valid index
+        const buttons = document.querySelectorAll(".segment-button");
+        if (buttons && buttons.length && typeof index === "number") {
+          const activeBtn = buttons[index];
+          if (activeBtn) {
+            // Store original once
+            if (!activeBtn.dataset.originalLabel) {
+              activeBtn.dataset.originalLabel = activeBtn.textContent.trim();
+            }
+
+            // Compute remaining seconds (ceil so singer sees whole seconds left)
+            const remainingRaw = endTime - window.vocalAudio.currentTime;
+            const remaining = (remainingRaw > 0) ? Math.ceil(remainingRaw) : 0;
+
+            // Only show countdown while this segment is the current playing segment
+            if (window.currentPlayingSegmentIndex === index && window.currentlyPlaying) {
+              // Keep it minimal & clean: "S1 - 15s"
+              activeBtn.textContent = `S${index + 1} - ${remaining}s`;
+            } else {
+              // If not playing, ensure label resets to original
+              if (activeBtn.dataset.originalLabel) {
+                activeBtn.textContent = activeBtn.dataset.originalLabel;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Non-fatal: don't disturb playback if UI update fails
+        // console.warn("Countdown update error:", e);
+      }
+
 
       // End of segment?
       if (window.vocalAudio.currentTime >= endTime - EPS) {
@@ -110,6 +148,17 @@ if (window.charModeEnabled) {
         window.vocalAudio.pause();
         window.accompAudio.pause();
         window.currentlyPlaying = false;
+
+        // Restore original label of the segment that just ended
+        try {
+          const btns = document.querySelectorAll(".segment-button");
+          const endBtn = (btns && btns.length) ? btns[index] : null;
+          if (endBtn && endBtn.dataset && endBtn.dataset.originalLabel) {
+            endBtn.textContent = endBtn.dataset.originalLabel;
+          }
+        } catch (e) {
+          // ignore UI restore errors
+        }
 
         // Auto-advance from here (no setTimeout drift)
         if (index < window.segments.length - 1) {
@@ -171,6 +220,17 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.textContent = `Segment ${index + 1}`;
 
           btn.addEventListener("click", () => {
+            // Reset all button labels when user switches segment
+            try {
+              document.querySelectorAll(".segment-button").forEach(b => {
+                if (b.dataset && b.dataset.originalLabel) {
+                  b.textContent = b.dataset.originalLabel;
+                }
+              });
+            } catch (e) {
+              // ignore
+            }
+
             const isReady = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
             if (!isReady) {
               console.warn("⏳ Audio not ready yet, using segment-ready helper...");
@@ -648,4 +708,3 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden && window.__prime2sStop) window.__prime2sStop();
 });
 */
-
