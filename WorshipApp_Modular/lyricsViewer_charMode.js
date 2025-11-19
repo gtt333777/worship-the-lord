@@ -1,28 +1,25 @@
 ﻿// ===============================================================
-// lyricsViewer_charMode.js  (FINAL — SEGMENT-WISE + MID-SEGMENT CHUNKS)
+// lyricsViewer_charMode.js  (GOLD — Optimized: chunks=5 + smoothing + RAF)
 // ---------------------------------------------------------------
-// ⭐ Gold Standard Version — 10-character timing chunks
-// - Per-segment timing with chunking
-// - Continuous global gidx mapping retained (no DOM/render changes)
-// - Clamp to segment end until next segment starts (B1 behavior)
-// - Keeps all UI, DOM, buttons, and global structure unchanged
+// - Per-segment timing with mid-segment chunks (5 chars)
+// - Optional curvature smoothing (smoothingFactor)
+// - requestAnimationFrame update loop (smooth 60fps updates)
+// - Precomputed spanByGidx for O(1) lookups
+// - Dirty-range style updates (only changed spans are written)
+// - CSS class toggling injected (fast style changes)
+// - Lazy scrolling (scroll every N chars moved)
+// - Keeps DOM, span mapping, buttons, IDs unchanged
 // ===============================================================
 
 // CONFIG
 window.charMode = window.charMode || {};
 window.charMode.countSpaces = true;
 window.charMode.stepChars = 5;
-window.charMode.chunkSize = 10; // 10 characters per timing chunk (recommended)
-window.charMode.highlightStyle = {
-  background: 'rgba(255,255,0,0.35)',
-  fontWeight: 'bold',
-  color: '#000'
-};
-window.charMode.normalStyle = {
-  background: 'transparent',
-  fontWeight: 'normal',
-  color: '#333'
-};
+window.charMode.chunkSize = 5; // higher resolution
+window.charMode.smoothingFactor = 0.85; // <1 slows start, >1 speeds start; 0.85 recommended
+window.charMode.scrollThreshold = 3; // scroll only when highlighted index moved by >= this
+window.charMode.highlightClass = 'charmode-highlight';
+window.charMode.normalClass = 'charmode-normal';
 
 // STATE
 window.charModeEnabled = false;
@@ -30,13 +27,37 @@ window.manualCharOffsetChars = 0;
 window._charRenderedSpans = null;
 window._charTooltipEl = null;
 window._charTooltipTimer = null;
-
 window._charGlobal = {
   chars: [],
   totalChars: 0,
   totalLyricsSeconds: 0,
-  segments: [] // each segment: { start, end, duration, startGidx, totalChars, chunks: [...] , lineBounds: [...] }
+  segments: []
 };
+
+// PERF caches
+window._charSpanByGidx = null; // array mapping gidx -> span (or null)
+window._charPrevHighlightedIndex = 0;
+window._charRAFId = null;
+
+// inject fast CSS classes once
+(function _ensureCharModeStyles() {
+  if (document.getElementById('charModeInjectedStyles')) return;
+  const style = document.createElement('style');
+  style.id = 'charModeInjectedStyles';
+  style.textContent = `
+    .${window.charMode.highlightClass} {
+      background: rgba(255,255,0,0.35) !important;
+      color: #000 !important;
+      font-weight: bold !important;
+    }
+    .${window.charMode.normalClass} {
+      background: transparent !important;
+      color: #333 !important;
+      font-weight: normal !important;
+    }
+  `;
+  document.head && document.head.appendChild(style);
+})();
 
 // --------------------------------------------------------------
 // Clean Tamil line (preserve Tamil range + NBSP + space)
@@ -63,7 +84,6 @@ function buildGlobalCharArray() {
   const segments = [];
   let gCounted = 0;
 
-  // global start/end across segments (if present)
   const firstStart = raw.tamilSegments.length ? raw.tamilSegments[0].start : 0;
   const lastEnd = raw.tamilSegments.length ? raw.tamilSegments[raw.tamilSegments.length - 1].end : firstStart;
   const totalLyricsSeconds = Math.max(0, lastEnd - firstStart);
@@ -103,14 +123,14 @@ function buildGlobalCharArray() {
         if (counts) gCounted++;
       }
 
-      const endG = gCounted; // after processing this line
+      const endG = gCounted;
       segEntry.lineBounds.push({ segIndex, lineIndex, startGidx: startG, endGidx: endG, cleaned });
     });
 
     segEntry.totalChars = gCounted - segEntry.startGidx;
 
-    // Create chunks of fixed character-size (last chunk may be smaller)
-    const chunkSize = Math.max(1, parseInt(window.charMode.chunkSize || 10, 10));
+    // chunking by character count (fixed-size chunks)
+    const chunkSize = Math.max(1, parseInt(window.charMode.chunkSize || 5, 10));
     const total = segEntry.totalChars;
     const numChunks = total > 0 ? Math.max(1, Math.ceil(total / chunkSize)) : 1;
     const baseChunkDuration = numChunks > 0 ? (segEntry.duration / numChunks) : Infinity;
@@ -121,36 +141,30 @@ function buildGlobalCharArray() {
       const cChars = Math.max(0, cEnd - cStart);
       const cDur = baseChunkDuration;
       const secondsPerChar = cChars > 0 ? (cDur / cChars) : Infinity;
-
-      segEntry.chunks.push({
-        startGidx: cStart,
-        endGidx: cEnd,
-        totalChars: cChars,
-        duration: cDur,
-        secondsPerChar
-      });
+      segEntry.chunks.push({ startGidx: cStart, endGidx: cEnd, totalChars: cChars, duration: cDur, secondsPerChar });
     }
 
     segments.push(segEntry);
   });
 
-  window._charGlobal = {
-    chars,
-    totalChars: gCounted,
-    totalLyricsSeconds,
-    segments
-  };
+  window._charGlobal = { chars, totalChars: gCounted, totalLyricsSeconds, segments };
+
+  // build fast spanByGidx cache placeholder (filled after render)
+  window._charSpanByGidx = new Array(Math.max(0, gCounted));
+  for (let i = 0; i < window._charSpanByGidx.length; i++) window._charSpanByGidx[i] = null;
 }
 
 // --------------------------------------------------------------
 // Render Tamil lyrics with each character wrapped in spans
 // (DOM mapping unchanged — keep data-gidx global)
+// After render, build spanByGidx cache for O(1) access
 // --------------------------------------------------------------
 function renderTamilLyricsCharMode() {
   const box = document.getElementById("tamilLyricsBox");
   if (!box) return;
   box.innerHTML = "";
   window._charRenderedSpans = null;
+  window._charSpanByGidx = window._charSpanByGidx || [];
 
   const raw = window.lyricsData;
   if (!raw || !Array.isArray(raw.tamilSegments)) return;
@@ -177,7 +191,7 @@ function renderTamilLyricsCharMode() {
         const span = document.createElement('span');
         span.textContent = cleaned[i];
         span.setAttribute('data-gidx', '');
-        span.style.background = 'transparent';
+        span.classList.add(window.charMode.normalClass || 'charmode-normal');
         lineEl.appendChild(span);
       }
 
@@ -187,7 +201,7 @@ function renderTamilLyricsCharMode() {
     box.appendChild(segDiv);
   });
 
-  // map chars -> spans (preserve existing mapping behavior)
+  // map chars -> spans (preserve mapping behavior)
   const spanList = box.querySelectorAll('span');
   let cursor = 0;
   const gchars = window._charGlobal.chars || [];
@@ -203,75 +217,221 @@ function renderTamilLyricsCharMode() {
         continue;
       }
       if (entry.countsTowardsTotal) {
-        s.setAttribute('data-gidx', String(entry.countedIndex));
+        const gidx = String(entry.countedIndex);
+        s.setAttribute('data-gidx', gidx);
+        // cache into spanByGidx
+        if (entry.countedIndex !== null && typeof entry.countedIndex === 'number') {
+          window._charSpanByGidx[entry.countedIndex] = s;
+        }
       }
       cursor++;
       break;
     }
   }
 
-  window._charRenderedSpans = box.querySelectorAll('span');
+  // Safety: ensure spanByGidx length matches totalChars
+  if (Array.isArray(window._charSpanByGidx) && window._charSpanByGidx.length !== window._charGlobal.totalChars) {
+    const old = window._charSpanByGidx;
+    window._charSpanByGidx = new Array(Math.max(0, window._charGlobal.totalChars));
+    for (let i = 0; i < window._charSpanByGidx.length; i++) window._charSpanByGidx[i] = old[i] || null;
+  }
+
+  window._charRenderedSpans = spanList;
 }
 
 // --------------------------------------------------------------
-// Highlight up to index (unchanged behavior)
+// Apply highlight changes — optimized to update only changed spans
 // --------------------------------------------------------------
-function applyCharHighlight(finalCountIndex) {
-  if (!window._charRenderedSpans) return;
+function applyCharHighlightOptimized(newIndex) {
+  // newIndex is integer target; prevIndex may be fractional stored as prev floor
+  const prev = Math.floor(window._charPrevHighlightedIndex || 0);
+  const cur = Math.floor(newIndex);
 
+  if (prev === cur) return; // nothing changed
+
+  const spanByGidx = window._charSpanByGidx || [];
+  // determine dirty range (min..max exclusive of upper bound)
+  const start = Math.min(prev, cur);
+  const end = Math.max(prev, cur);
+
+  // If highlight moved forward, mark newly highlighted spans
+  if (cur > prev) {
+    for (let i = start; i < end; i++) {
+      const sp = spanByGidx[i];
+      if (!sp) continue;
+      // only update if not already highlighted
+      if (!sp.classList.contains(window.charMode.highlightClass)) {
+        sp.classList.remove(window.charMode.normalClass);
+        sp.classList.add(window.charMode.highlightClass);
+      }
+    }
+  } else {
+    // moved backward: un-highlight spans in [cur, prev)
+    for (let i = start; i < end; i++) {
+      const sp = spanByGidx[i];
+      if (!sp) continue;
+      if (!sp.classList.contains(window.charMode.normalClass)) {
+        sp.classList.remove(window.charMode.highlightClass);
+        sp.classList.add(window.charMode.normalClass);
+      }
+    }
+  }
+
+  window._charPrevHighlightedIndex = cur;
+}
+
+// Fallback for older code paths (keeps external contract)
+function applyCharHighlight(finalCountIndex) {
+  // Use optimized path if cache available
+  if (Array.isArray(window._charSpanByGidx) && window._charSpanByGidx.length) {
+    applyCharHighlightOptimized(finalCountIndex);
+    return;
+  }
+
+  // otherwise full scan (legacy)
+  if (!window._charRenderedSpans) return;
   for (const s of window._charRenderedSpans) {
     const v = s.getAttribute('data-gidx');
     if (!v) {
-      s.style.background = window.charMode.normalStyle.background;
-      s.style.color = window.charMode.normalStyle.color;
-      s.style.fontWeight = window.charMode.normalStyle.fontWeight;
+      s.classList.remove(window.charMode.highlightClass);
+      s.classList.add(window.charMode.normalClass);
       continue;
     }
-
     const gidx = parseInt(v, 10);
     if (gidx < finalCountIndex) {
-      s.style.background = window.charMode.highlightStyle.background;
-      s.style.color = window.charMode.highlightStyle.color;
-      s.style.fontWeight = window.charMode.highlightStyle.fontWeight;
+      s.classList.remove(window.charMode.normalClass);
+      s.classList.add(window.charMode.highlightClass);
     } else {
-      s.style.background = window.charMode.normalStyle.background;
-      s.style.color = window.charMode.normalStyle.color;
-      s.style.fontWeight = window.charMode.normalStyle.fontWeight;
+      s.classList.remove(window.charMode.highlightClass);
+      s.classList.add(window.charMode.normalClass);
     }
   }
 }
 
 // --------------------------------------------------------------
-// Scroll support (unchanged)
+// Scroll support — lazy scrolling (only when moved enough)
 // --------------------------------------------------------------
-function scrollToCharIndex(finalCountIndex) {
+function scrollToCharIndexLazy(finalCountIndex) {
   if (!window._charRenderedSpans) return;
 
-  let lastSpan = null;
-  for (let i = window._charRenderedSpans.length - 1; i >= 0; i--) {
-    const s = window._charRenderedSpans[i];
-    const v = s.getAttribute('data-gidx');
-    if (!v) continue;
-    const gi = parseInt(v, 10);
-    if (gi < finalCountIndex) {
-      lastSpan = s;
-      break;
-    }
+  const prev = Math.floor(window._charPrevScrollIndex || 0);
+  const cur = Math.floor(finalCountIndex);
+  const threshold = window.charMode.scrollThreshold || 3;
+  if (Math.abs(cur - prev) < threshold) {
+    // do not scroll
+    return;
   }
-  if (!lastSpan) return;
 
-  const rect = lastSpan.getBoundingClientRect();
+  // find the last highlighted span (cur - 1)
+  const targetIdx = Math.max(0, cur - 1);
+  const sp = (window._charSpanByGidx && window._charSpanByGidx[targetIdx]) || null;
+  if (!sp) return;
+
+  const rect = sp.getBoundingClientRect();
   const offset = 28 * 3;
   const scrollAmount = rect.top - offset;
 
   const box = document.getElementById('tamilLyricsBox');
   if (box) {
     box.scrollTop += scrollAmount;
+    window._charPrevScrollIndex = cur;
   }
 }
 
 // --------------------------------------------------------------
-// Enable / Disable
+// Main per-frame engine (uses smoothing, chunks, clamp B1)
+// --------------------------------------------------------------
+function _computeGlobalIndexFromTime(currentTime) {
+  const g = window._charGlobal;
+  if (!g || !Array.isArray(g.segments) || g.segments.length === 0) return 0;
+  if (typeof g.totalChars !== 'number') g.totalChars = (g.chars || []).reduce((acc, e) => acc + (e.countsTowardsTotal ? 1 : 0), 0);
+
+  const segments = g.segments;
+  // find last segment whose start <= currentTime
+  let segIndex = -1;
+  for (let i = 0; i < segments.length; i++) {
+    if (currentTime >= segments[i].start) segIndex = i;
+    else break;
+  }
+  if (segIndex === -1) return 0;
+
+  const seg = segments[segIndex];
+  const segStart = seg.start;
+  const segEnd = seg.end;
+
+  if (!seg.totalChars || seg.totalChars <= 0) return seg.startGidx;
+
+  // If time beyond segment end: clamp to last char of this segment (B1)
+  if (currentTime > segEnd) {
+    return seg.startGidx + seg.totalChars;
+  }
+
+  // inside segment -> map to chunk
+  const rel = Math.max(0, currentTime - segStart);
+  const numChunks = Math.max(1, seg.chunks.length);
+  const chunkDuration = seg.duration / numChunks;
+
+  // chunk index
+  let chunkIndex = Math.floor(rel / (chunkDuration || 1e-9));
+  if (chunkIndex < 0) chunkIndex = 0;
+  if (chunkIndex >= numChunks) chunkIndex = numChunks - 1;
+
+  const chunk = seg.chunks[chunkIndex];
+  const chunkStartTime = chunkIndex * chunkDuration;
+  const relInChunk = Math.max(0, rel - chunkStartTime);
+
+  // base local index inside chunk using secondsPerChar
+  let baseLocal = 0;
+  if (!isFinite(chunk.secondsPerChar) || chunk.secondsPerChar <= 0) {
+    baseLocal = 0;
+  } else {
+    baseLocal = relInChunk / chunk.secondsPerChar;
+  }
+
+  // apply curvature smoothing per-segment optionally
+  const smoothing = typeof window.charMode.smoothingFactor === 'number' ? window.charMode.smoothingFactor : 1.0;
+  // smoothing acts on normalized progress within the chunk (0..1)
+  let normalized = 0;
+  if (chunk.totalChars > 0) {
+    normalized = Math.max(0, Math.min(1, baseLocal / chunk.totalChars));
+    // apply power curve, keep result in [0,1]
+    if (smoothing > 0 && smoothing !== 1) {
+      normalized = Math.pow(normalized, smoothing);
+    }
+    baseLocal = normalized * chunk.totalChars;
+  }
+
+  const localClamped = Math.max(0, Math.min(baseLocal, chunk.totalChars));
+  const globalIndex = chunk.startGidx + Math.floor(localClamped);
+  return globalIndex;
+}
+
+// RAF loop
+function _charModeFrameLoop() {
+  if (!window.charModeEnabled) {
+    window._charRAFId = null;
+    return;
+  }
+
+  const ct = (window.vocalAudio && typeof window.vocalAudio.currentTime === 'number') ? window.vocalAudio.currentTime : 0;
+  // compute raw global index
+  const rawIndex = _computeGlobalIndexFromTime(ct);
+  // apply manual offset
+  const offsetApplied = rawIndex + (window.manualCharOffsetChars || 0);
+  // clamp
+  const limited = Math.max(0, Math.min(offsetApplied, (window._charGlobal.totalChars || 0)));
+
+  // optimized apply
+  applyCharHighlightOptimized(Math.floor(limited));
+  scrollToCharIndexLazy(Math.floor(limited));
+  window.currentGlobalCharIndex = limited;
+
+  // schedule next frame
+  window._charRAFId = window.requestAnimationFrame(_charModeFrameLoop);
+}
+
+// --------------------------------------------------------------
+// Enable / Disable (start / stop RAF loop)
 // --------------------------------------------------------------
 window.enableCharacterMode = function () {
   window.charModeEnabled = true;
@@ -283,101 +443,32 @@ window.enableCharacterMode = function () {
   const box = document.getElementById("tamilLyricsBox");
   if (box) window._charRenderedSpans = box.querySelectorAll('span');
 
-  // compute start index from audio clock using new per-segment+chunk logic
-  const ct = window.vocalAudio?.currentTime || 0;
-  updateCharModeHighlight(ct);
+  // reset caches/state
+  window._charPrevHighlightedIndex = 0;
+  window._charPrevScrollIndex = 0;
 
-  if (box) box.scrollTop = 0;
+  // start RAF loop
+  if (!window._charRAFId) {
+    window._charRAFId = window.requestAnimationFrame(_charModeFrameLoop);
+  }
 
+  // show controls
   _char_insertAdjustButtons();
 };
 
 window.disableCharacterMode = function () {
   window.charModeEnabled = false;
+  if (window._charRAFId) {
+    window.cancelAnimationFrame(window._charRAFId);
+    window._charRAFId = null;
+  }
   const old = document.getElementById("charModeAdjustButtons");
   if (old) old.remove();
   if (typeof renderTamilLyrics === 'function') renderTamilLyrics();
 };
 
 // --------------------------------------------------------------
-// MAIN ENGINE — UPDATE PER FRAME WITH CHUNKS (B1 clamping)
-// --------------------------------------------------------------
-window.updateCharModeHighlight = function (currentTime) {
-  if (!window.charModeEnabled) return;
-
-  const g = window._charGlobal;
-  if (!g || !Array.isArray(g.segments) || g.segments.length === 0) return;
-
-  // ensure totalChars present
-  if (typeof g.totalChars !== 'number') g.totalChars = (g.chars || []).reduce((acc, e) => acc + (e.countsTowardsTotal ? 1 : 0), 0);
-
-  const segments = g.segments;
-
-  // find last segment whose start <= currentTime
-  let segIndex = -1;
-  for (let i = 0; i < segments.length; i++) {
-    if (currentTime >= segments[i].start) segIndex = i;
-    else break;
-  }
-
-  let finalGlobalIndex = 0;
-
-  if (segIndex === -1) {
-    // before first segment
-    finalGlobalIndex = 0;
-  } else {
-    const seg = segments[segIndex];
-    const segStart = seg.start;
-    const segEnd = seg.end;
-
-    // If the segment has no counted characters, simply clamp to start
-    if (!seg.totalChars || seg.totalChars <= 0) {
-      finalGlobalIndex = seg.startGidx;
-    } else if (currentTime > segEnd) {
-      // B1: clamp to last char of this segment until next segment starts
-      finalGlobalIndex = seg.startGidx + seg.totalChars;
-    } else {
-      // inside this segment: map time -> chunk -> local char index
-      const rel = Math.max(0, currentTime - segStart);
-      const numChunks = Math.max(1, seg.chunks.length);
-      const chunkDuration = seg.duration / numChunks;
-
-      // determine which chunk we're in (guard against edge)
-      let chunkIndex = Math.floor(rel / (chunkDuration || 1e-9));
-      if (chunkIndex < 0) chunkIndex = 0;
-      if (chunkIndex >= numChunks) chunkIndex = numChunks - 1;
-
-      const chunk = seg.chunks[chunkIndex];
-      const chunkStartTime = chunkIndex * chunkDuration;
-      const relInChunk = Math.max(0, rel - chunkStartTime);
-
-      // compute local progress inside chunk
-      let baseLocal = 0;
-      if (!isFinite(chunk.secondsPerChar) || chunk.secondsPerChar <= 0) {
-        baseLocal = 0;
-      } else {
-        baseLocal = relInChunk / chunk.secondsPerChar;
-      }
-
-      const localClamped = Math.max(0, Math.min(baseLocal, chunk.totalChars));
-      finalGlobalIndex = chunk.startGidx + Math.floor(localClamped);
-    }
-  }
-
-  // apply manual offset
-  const offsetApplied = finalGlobalIndex + (window.manualCharOffsetChars || 0);
-
-  // clamp to valid global range
-  const limited = Math.max(0, Math.min(offsetApplied, g.totalChars));
-
-  applyCharHighlight(Math.floor(limited));
-  scrollToCharIndex(Math.floor(limited));
-
-  window.currentGlobalCharIndex = limited;
-};
-
-// --------------------------------------------------------------
-// Controls (unchanged)
+// Controls (unchanged behavior)
 // --------------------------------------------------------------
 window.charStepForward = function () {
   window.manualCharOffsetChars += window.charMode.stepChars;
@@ -395,7 +486,7 @@ window.charStepReset = function () {
 };
 
 // --------------------------------------------------------------
-// Buttons (unchanged)
+// Buttons & Tooltip (unchanged, small cosmetics preserved)
 // --------------------------------------------------------------
 function _char_insertAdjustButtons() {
   const box = document.getElementById("tamilLyricsBox");
