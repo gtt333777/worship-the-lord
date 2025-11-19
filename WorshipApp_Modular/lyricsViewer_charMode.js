@@ -1,5 +1,8 @@
 ﻿// ===============================================================
-// lyricsViewer_charMode.js  (FINAL — WITH EXACT TIME → CHARACTER MATCH)
+// lyricsViewer_charMode.js  (FINAL — SEGMENT-WISE TIMING, SMOOTH SWEEP)
+// - Per-segment secondsPerChar
+// - Global gidx mapping retained (no DOM/render changes)
+// - Clamp to segment end until next segment starts (B1 behavior)
 // ===============================================================
 
 // CONFIG
@@ -25,11 +28,12 @@ window._charTooltipEl = null;
 window._charTooltipTimer = null;
 
 window._charGlobal = {
-  chars: [],
-  totalChars: 0,
-  totalSeconds: 0,
-  secondsPerChar: 0,
-  lineBounds: []
+  // old-style fields kept for compatibility
+  chars: [],            // global char entries (in order)
+  totalChars: 0,        // total counted characters global
+  totalLyricsSeconds: 0,
+  // new per-segment structure
+  segments: [],         // [{ start, end, startGidx, totalChars, secondsPerChar, lineBounds: [] }, ...]
 };
 
 // --------------------------------------------------------------
@@ -38,13 +42,15 @@ window._charGlobal = {
 function _char_cleanTamilLine(line) {
   if (typeof cleanTamilLine === 'function') return cleanTamilLine(line);
   if (!line || typeof line !== 'string') return '';
-  const matches = line.match(/[\u0B80-\u0BFF\u00A0\u0020]/g);
-  if (!matches) return '';
-  return matches.join('').replace(/\s+/g, ' ').trim();
+  const matches = line.match(/[[\u0B80-\u0BFF\u00A0\u0020]/g);
+  // NOTE: the original file used /[\u0B80-\u0BFF\u00A0\u0020]/g — keep that behavior
+  const m = line.match(/[\u0B80-\u0BFF\u00A0\u0020]/g);
+  if (!m) return '';
+  return m.join('').replace(/\s+/g, ' ').trim();
 }
 
 // --------------------------------------------------------------
-// Build global character array AND compute secondsPerChar
+// Build global character array AND compute per-segment secondsPerChar
 // --------------------------------------------------------------
 function buildGlobalCharArray() {
   const raw = window.lyricsData;
@@ -52,25 +58,35 @@ function buildGlobalCharArray() {
     window._charGlobal = {
       chars: [],
       totalChars: 0,
-      totalSeconds: 0,
-      secondsPerChar: 0,
-      lineBounds: []
+      totalLyricsSeconds: 0,
+      segments: []
     };
     return;
   }
 
-  const chars = [];
-  const lineBounds = [];
+  const chars = []; // global chars array
+  const segments = [];
   let gCountedIndex = 0;
-  let totalSeconds = 0;
+
+  // We'll compute global start and end across all segments
+  const firstStart = raw.tamilSegments[0].start;
+  const lastEnd = raw.tamilSegments[raw.tamilSegments.length - 1].end;
+  const totalLyricsSeconds = lastEnd - firstStart;
 
   raw.tamilSegments.forEach((seg, segIndex) => {
-    const segDuration = Math.max(0,
-      (typeof seg.end === 'number' && typeof seg.start === 'number')
-        ? seg.end - seg.start
-        : 0
-    );
-    totalSeconds += segDuration;
+    const segStart = (typeof seg.start === 'number') ? seg.start : 0;
+    const segEnd = (typeof seg.end === 'number') ? seg.end : segStart;
+    const segDuration = Math.max(0, segEnd - segStart);
+
+    const segEntry = {
+      start: segStart,
+      end: segEnd,
+      duration: segDuration,
+      startGidx: gCountedIndex, // first global counted index for this segment
+      totalChars: 0,
+      secondsPerChar: 0,
+      lineBounds: []
+    };
 
     (seg.lyrics || []).forEach((line, lineIndex) => {
       const cleaned = _char_cleanTamilLine(line) || '\u00A0';
@@ -92,35 +108,30 @@ function buildGlobalCharArray() {
         if (counts) gCountedIndex++;
       }
 
-      const endG = gCountedIndex;
-      lineBounds.push({ segIndex, lineIndex, startGidx: startG, endGidx: endG, cleaned });
+      const endG = gCountedIndex; // after processing this line
+      segEntry.lineBounds.push({ segIndex, lineIndex, startGidx: startG, endGidx: endG, cleaned });
     });
+
+    segEntry.totalChars = gCountedIndex - segEntry.startGidx;
+    // compute secondsPerChar for this segment (guard against div0)
+    segEntry.secondsPerChar = segEntry.totalChars > 0 ? (segEntry.duration / segEntry.totalChars) : Infinity;
+
+    segments.push(segEntry);
   });
 
   const totalChars = gCountedIndex;
-
-  // ***************************************************
-  // FINAL PATCH #1 — correct secondsPerChar
-  // ***************************************************
-  const firstStart = raw.tamilSegments[0].start;
-  const lastEnd = raw.tamilSegments[raw.tamilSegments.length - 1].end;
-  const totalLyricsSeconds = lastEnd - firstStart;
-
-  const secondsPerChar = totalChars > 0
-    ? (totalLyricsSeconds / totalChars)
-    : 0;
 
   window._charGlobal = {
     chars,
     totalChars,
     totalLyricsSeconds,
-    secondsPerChar,
-    lineBounds
+    segments
   };
 }
 
 // --------------------------------------------------------------
 // Render Tamil lyrics with each character wrapped in spans
+// (KEEP exactly the same mapping behavior so DOM remains unchanged)
 // --------------------------------------------------------------
 function renderTamilLyricsCharMode() {
   const box = document.getElementById("tamilLyricsBox");
@@ -164,7 +175,7 @@ function renderTamilLyricsCharMode() {
     box.appendChild(segDiv);
   });
 
-  // map chars → spans
+  // map chars → spans (same as before)
   const spanList = box.querySelectorAll('span');
   let cursor = 0;
   const gchars = window._charGlobal.chars;
@@ -191,7 +202,7 @@ function renderTamilLyricsCharMode() {
 }
 
 // --------------------------------------------------------------
-// Highlight up to index
+// Highlight up to index (unchanged)
 // --------------------------------------------------------------
 function applyCharHighlight(finalCountIndex) {
   if (!window._charRenderedSpans) return;
@@ -218,7 +229,7 @@ function applyCharHighlight(finalCountIndex) {
 }
 
 // --------------------------------------------------------------
-// Scroll support
+// Scroll support (unchanged)
 // --------------------------------------------------------------
 
 function scrollToCharIndex(finalCountIndex) {
@@ -251,10 +262,8 @@ function scrollToCharIndex(finalCountIndex) {
 
 }
 
-
-
 // --------------------------------------------------------------
-// FINAL PATCH #2 — on CHAR toggle, jump to exact correct index
+// Enable / Disable (small update: use updateCharModeHighlight for exact jump)
 // --------------------------------------------------------------
 window.enableCharacterMode = function () {
   window.charModeEnabled = true;
@@ -266,16 +275,9 @@ window.enableCharacterMode = function () {
   const box = document.getElementById("tamilLyricsBox");
   if (box) window._charRenderedSpans = box.querySelectorAll('span');
 
-  // compute start index from audio clock
-  const firstStart = window.lyricsData.tamilSegments[0].start;
+  // compute start index from audio clock using new per-segment logic
   const ct = window.vocalAudio?.currentTime || 0;
-  const lyricTime = Math.max(0, ct - firstStart);
-
-  const spc = window._charGlobal.secondsPerChar || 1;
-  const index = lyricTime / spc;
-
-  window.globalCharIndex = index;
-  applyCharHighlight(Math.floor(index));
+  updateCharModeHighlight(ct);
 
   if (box) box.scrollTop = 0;
 
@@ -290,21 +292,63 @@ window.disableCharacterMode = function () {
 };
 
 // --------------------------------------------------------------
-// FINAL PATCH #3 — audio loop update EXACT match
+// FINAL PATCH #3 — audio loop update: segment-wise timing + clamp (B1)
 // --------------------------------------------------------------
 window.updateCharModeHighlight = function (currentTime) {
   if (!window.charModeEnabled) return;
 
   const g = window._charGlobal;
-  if (!g.secondsPerChar || g.secondsPerChar <= 0) return;
+  if (!g || !Array.isArray(g.segments) || g.segments.length === 0) return;
 
-  const firstStart = window.lyricsData.tamilSegments[0].start;
-  const lyricTime = Math.max(0, currentTime - firstStart);
+  // if no counted chars globally, nothing to highlight
+  if (!g.totalChars && g.totalChars !== 0) g.totalChars = (g.chars || []).reduce((acc, e) => acc + (e.countsTowardsTotal ? 1 : 0), 0);
 
-  const base = lyricTime / g.secondsPerChar;
-  const finalIndex = base + (window.manualCharOffsetChars || 0);
+  const segments = g.segments;
 
-  const limited = Math.max(0, Math.min(finalIndex, g.totalChars));
+  // find last segment with start <= currentTime
+  let segIndex = -1;
+  for (let i = 0; i < segments.length; i++) {
+    if (currentTime >= segments[i].start) segIndex = i;
+    else break;
+  }
+
+  let finalGlobalIndex = 0;
+
+  if (segIndex === -1) {
+    // before first segment
+    finalGlobalIndex = 0;
+  } else {
+    const seg = segments[segIndex];
+    const segStart = seg.start;
+    const segEnd = seg.end;
+
+    if (currentTime <= segEnd) {
+      // inside this segment — compute local progress
+      const relative = Math.max(0, currentTime - segStart);
+      const spc = seg.secondsPerChar;
+      let baseLocal = 0;
+      if (!isFinite(spc) || spc <= 0) {
+        baseLocal = 0;
+      } else {
+        baseLocal = relative / spc;
+      }
+
+      // clamp local to [0, seg.totalChars]
+      const localClamped = Math.max(0, Math.min(baseLocal, seg.totalChars));
+
+      finalGlobalIndex = seg.startGidx + Math.floor(localClamped);
+    } else {
+      // currentTime > segEnd
+      // B1 behavior: clamp to last character of this segment until next segment.start
+      finalGlobalIndex = seg.startGidx + seg.totalChars;
+    }
+  }
+
+  // apply manual offset
+  const offsetApplied = finalGlobalIndex + (window.manualCharOffsetChars || 0);
+
+  // clamp to valid global range
+  const limited = Math.max(0, Math.min(offsetApplied, g.totalChars));
 
   applyCharHighlight(Math.floor(limited));
   scrollToCharIndex(Math.floor(limited));
@@ -313,7 +357,7 @@ window.updateCharModeHighlight = function (currentTime) {
 };
 
 // --------------------------------------------------------------
-// Controls
+// Controls (unchanged)
 // --------------------------------------------------------------
 window.charStepForward = function () {
   window.manualCharOffsetChars += window.charMode.stepChars;
@@ -331,7 +375,7 @@ window.charStepReset = function () {
 };
 
 // --------------------------------------------------------------
-// Buttons
+// Buttons (unchanged)
 // --------------------------------------------------------------
 function _char_insertAdjustButtons() {
   const box = document.getElementById("tamilLyricsBox");
