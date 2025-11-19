@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * 🎵 startSegmentProgressVisualizer()
- * Creates and updates ONE visible green vertical bar
+ * Creates and updates ONE visible green/gold vertical bar
  * that moves only on the currently active segment.
  */
 function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer) {
@@ -37,7 +37,10 @@ function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContain
       // Create and append new progress bar
       const progressBar = document.createElement("div");
       progressBar.classList.add("progress-bar");
-      progressBar.style.display = "none"; // hidden until active
+
+      // ⭐ Use opacity instead of display to avoid flicker
+      progressBar.style.opacity = "0";
+
       btn.appendChild(progressBar);
 
       progressBars.push({
@@ -57,20 +60,20 @@ function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContain
 
     progressBars.forEach(pb => {
       const { bar, start, end } = pb;
+
       if (currentTime >= start && currentTime <= end) {
         const percent = ((currentTime - start) / (end - start)) * 100;
         bar.style.left = `${percent}%`;
-        bar.style.display = "block";  // show only the active one
+
+        // ⭐ Smooth fade-in
+        bar.style.opacity = "1";
+
         activeFound = true;
       } else {
-        bar.style.display = "none";   // hide all others
+        // ⭐ Smooth fade-out instead of display:none (NO flicker)
+        bar.style.opacity = "0";
       }
     });
-
-    // If song stopped or between segments, hide all bars
-    if (!activeFound) {
-      progressBars.forEach(pb => pb.bar.style.display = "none");
-    }
 
     requestAnimationFrame(updateProgress);
   }
