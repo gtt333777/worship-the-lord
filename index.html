@@ -570,6 +570,9 @@ function markActiveSegment(index) {
   });
 }
 
+
+/*
+
 // 🔹 Progress bar animation
 function updateProgressBar() {
   const audio = window.vocalAudio || window.currentVocal || document.querySelector('audio');
@@ -581,6 +584,7 @@ function updateProgressBar() {
     return;
   }
 
+  
   const activeBtn = document.querySelector('.segment-button.active');
   if (activeBtn) {
     const pb = activeBtn.querySelector('.progress-bar');
@@ -596,6 +600,8 @@ function updateProgressBar() {
 
   requestAnimationFrame(updateProgressBar);
 }
+
+*/
 
 // ----------------------------------------------------
 // 🟢 SAFE HOOK — prevents null → null playSegment calls
