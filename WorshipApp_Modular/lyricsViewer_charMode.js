@@ -1,14 +1,18 @@
 ﻿// ===============================================================
-// lyricsViewer_charMode.js  (FINAL — SEGMENT-WISE TIMING, SMOOTH SWEEP)
-// - Per-segment secondsPerChar
-// - Global gidx mapping retained (no DOM/render changes)
+// lyricsViewer_charMode.js  (FINAL — SEGMENT-WISE + MID-SEGMENT CHUNKS)
+// ---------------------------------------------------------------
+// ⭐ Gold Standard Version — 10-character timing chunks
+// - Per-segment timing with chunking
+// - Continuous global gidx mapping retained (no DOM/render changes)
 // - Clamp to segment end until next segment starts (B1 behavior)
+// - Keeps all UI, DOM, buttons, and global structure unchanged
 // ===============================================================
 
 // CONFIG
 window.charMode = window.charMode || {};
 window.charMode.countSpaces = true;
 window.charMode.stepChars = 5;
+window.charMode.chunkSize = 10; // 10 characters per timing chunk (recommended)
 window.charMode.highlightStyle = {
   background: 'rgba(255,255,0,0.35)',
   fontWeight: 'bold',
@@ -28,50 +32,41 @@ window._charTooltipEl = null;
 window._charTooltipTimer = null;
 
 window._charGlobal = {
-  // old-style fields kept for compatibility
-  chars: [],            // global char entries (in order)
-  totalChars: 0,        // total counted characters global
+  chars: [],
+  totalChars: 0,
   totalLyricsSeconds: 0,
-  // new per-segment structure
-  segments: [],         // [{ start, end, startGidx, totalChars, secondsPerChar, lineBounds: [] }, ...]
+  segments: [] // each segment: { start, end, duration, startGidx, totalChars, chunks: [...] , lineBounds: [...] }
 };
 
 // --------------------------------------------------------------
-// Clean Tamil line
+// Clean Tamil line (preserve Tamil range + NBSP + space)
 // --------------------------------------------------------------
 function _char_cleanTamilLine(line) {
   if (typeof cleanTamilLine === 'function') return cleanTamilLine(line);
   if (!line || typeof line !== 'string') return '';
-  const matches = line.match(/[[\u0B80-\u0BFF\u00A0\u0020]/g);
-  // NOTE: the original file used /[\u0B80-\u0BFF\u00A0\u0020]/g — keep that behavior
   const m = line.match(/[\u0B80-\u0BFF\u00A0\u0020]/g);
   if (!m) return '';
   return m.join('').replace(/\s+/g, ' ').trim();
 }
 
 // --------------------------------------------------------------
-// Build global character array AND compute per-segment secondsPerChar
+// Build global character array AND compute per-segment chunks
 // --------------------------------------------------------------
 function buildGlobalCharArray() {
   const raw = window.lyricsData;
   if (!raw || !Array.isArray(raw.tamilSegments)) {
-    window._charGlobal = {
-      chars: [],
-      totalChars: 0,
-      totalLyricsSeconds: 0,
-      segments: []
-    };
+    window._charGlobal = { chars: [], totalChars: 0, totalLyricsSeconds: 0, segments: [] };
     return;
   }
 
-  const chars = []; // global chars array
+  const chars = [];
   const segments = [];
-  let gCountedIndex = 0;
+  let gCounted = 0;
 
-  // We'll compute global start and end across all segments
-  const firstStart = raw.tamilSegments[0].start;
-  const lastEnd = raw.tamilSegments[raw.tamilSegments.length - 1].end;
-  const totalLyricsSeconds = lastEnd - firstStart;
+  // global start/end across segments (if present)
+  const firstStart = raw.tamilSegments.length ? raw.tamilSegments[0].start : 0;
+  const lastEnd = raw.tamilSegments.length ? raw.tamilSegments[raw.tamilSegments.length - 1].end : firstStart;
+  const totalLyricsSeconds = Math.max(0, lastEnd - firstStart);
 
   raw.tamilSegments.forEach((seg, segIndex) => {
     const segStart = (typeof seg.start === 'number') ? seg.start : 0;
@@ -82,15 +77,15 @@ function buildGlobalCharArray() {
       start: segStart,
       end: segEnd,
       duration: segDuration,
-      startGidx: gCountedIndex, // first global counted index for this segment
+      startGidx: gCounted,
       totalChars: 0,
-      secondsPerChar: 0,
+      chunks: [],
       lineBounds: []
     };
 
     (seg.lyrics || []).forEach((line, lineIndex) => {
       const cleaned = _char_cleanTamilLine(line) || '\u00A0';
-      const startG = gCountedIndex;
+      const startG = gCounted;
 
       for (let li = 0; li < cleaned.length; li++) {
         const ch = cleaned[li];
@@ -101,29 +96,47 @@ function buildGlobalCharArray() {
           segIndex,
           lineIndex,
           localIndex: li,
-          countedIndex: counts ? gCountedIndex : null,
+          countedIndex: counts ? gCounted : null,
           countsTowardsTotal: counts
         });
 
-        if (counts) gCountedIndex++;
+        if (counts) gCounted++;
       }
 
-      const endG = gCountedIndex; // after processing this line
+      const endG = gCounted; // after processing this line
       segEntry.lineBounds.push({ segIndex, lineIndex, startGidx: startG, endGidx: endG, cleaned });
     });
 
-    segEntry.totalChars = gCountedIndex - segEntry.startGidx;
-    // compute secondsPerChar for this segment (guard against div0)
-    segEntry.secondsPerChar = segEntry.totalChars > 0 ? (segEntry.duration / segEntry.totalChars) : Infinity;
+    segEntry.totalChars = gCounted - segEntry.startGidx;
+
+    // Create chunks of fixed character-size (last chunk may be smaller)
+    const chunkSize = Math.max(1, parseInt(window.charMode.chunkSize || 10, 10));
+    const total = segEntry.totalChars;
+    const numChunks = total > 0 ? Math.max(1, Math.ceil(total / chunkSize)) : 1;
+    const baseChunkDuration = numChunks > 0 ? (segEntry.duration / numChunks) : Infinity;
+
+    for (let c = 0; c < numChunks; c++) {
+      const cStart = segEntry.startGidx + c * chunkSize;
+      const cEnd = Math.min(segEntry.startGidx + (c + 1) * chunkSize, segEntry.startGidx + total);
+      const cChars = Math.max(0, cEnd - cStart);
+      const cDur = baseChunkDuration;
+      const secondsPerChar = cChars > 0 ? (cDur / cChars) : Infinity;
+
+      segEntry.chunks.push({
+        startGidx: cStart,
+        endGidx: cEnd,
+        totalChars: cChars,
+        duration: cDur,
+        secondsPerChar
+      });
+    }
 
     segments.push(segEntry);
   });
 
-  const totalChars = gCountedIndex;
-
   window._charGlobal = {
     chars,
-    totalChars,
+    totalChars: gCounted,
     totalLyricsSeconds,
     segments
   };
@@ -131,7 +144,7 @@ function buildGlobalCharArray() {
 
 // --------------------------------------------------------------
 // Render Tamil lyrics with each character wrapped in spans
-// (KEEP exactly the same mapping behavior so DOM remains unchanged)
+// (DOM mapping unchanged — keep data-gidx global)
 // --------------------------------------------------------------
 function renderTamilLyricsCharMode() {
   const box = document.getElementById("tamilLyricsBox");
@@ -152,7 +165,7 @@ function renderTamilLyricsCharMode() {
     title.style.marginBottom = '6px';
     segDiv.appendChild(title);
 
-    (seg.lyrics || []).forEach((line, lineIndex) => {
+    (seg.lyrics || []).forEach((line) => {
       const lineEl = document.createElement('div');
       lineEl.style.padding = '4px 0';
       lineEl.style.whiteSpace = 'pre-wrap';
@@ -160,7 +173,6 @@ function renderTamilLyricsCharMode() {
       lineEl.style.color = '#333';
 
       const cleaned = _char_cleanTamilLine(line) || '\u00A0';
-
       for (let i = 0; i < cleaned.length; i++) {
         const span = document.createElement('span');
         span.textContent = cleaned[i];
@@ -175,10 +187,10 @@ function renderTamilLyricsCharMode() {
     box.appendChild(segDiv);
   });
 
-  // map chars → spans (same as before)
+  // map chars -> spans (preserve existing mapping behavior)
   const spanList = box.querySelectorAll('span');
   let cursor = 0;
-  const gchars = window._charGlobal.chars;
+  const gchars = window._charGlobal.chars || [];
 
   for (let ci = 0; ci < gchars.length; ci++) {
     const entry = gchars[ci];
@@ -202,7 +214,7 @@ function renderTamilLyricsCharMode() {
 }
 
 // --------------------------------------------------------------
-// Highlight up to index (unchanged)
+// Highlight up to index (unchanged behavior)
 // --------------------------------------------------------------
 function applyCharHighlight(finalCountIndex) {
   if (!window._charRenderedSpans) return;
@@ -212,6 +224,7 @@ function applyCharHighlight(finalCountIndex) {
     if (!v) {
       s.style.background = window.charMode.normalStyle.background;
       s.style.color = window.charMode.normalStyle.color;
+      s.style.fontWeight = window.charMode.normalStyle.fontWeight;
       continue;
     }
 
@@ -231,7 +244,6 @@ function applyCharHighlight(finalCountIndex) {
 // --------------------------------------------------------------
 // Scroll support (unchanged)
 // --------------------------------------------------------------
-
 function scrollToCharIndex(finalCountIndex) {
   if (!window._charRenderedSpans) return;
 
@@ -250,20 +262,16 @@ function scrollToCharIndex(finalCountIndex) {
 
   const rect = lastSpan.getBoundingClientRect();
   const offset = 28 * 3;
-
-  // compute scroll difference
   const scrollAmount = rect.top - offset;
 
-  // scroll only the Tamil lyrics box
   const box = document.getElementById('tamilLyricsBox');
   if (box) {
     box.scrollTop += scrollAmount;
   }
-
 }
 
 // --------------------------------------------------------------
-// Enable / Disable (small update: use updateCharModeHighlight for exact jump)
+// Enable / Disable
 // --------------------------------------------------------------
 window.enableCharacterMode = function () {
   window.charModeEnabled = true;
@@ -275,7 +283,7 @@ window.enableCharacterMode = function () {
   const box = document.getElementById("tamilLyricsBox");
   if (box) window._charRenderedSpans = box.querySelectorAll('span');
 
-  // compute start index from audio clock using new per-segment logic
+  // compute start index from audio clock using new per-segment+chunk logic
   const ct = window.vocalAudio?.currentTime || 0;
   updateCharModeHighlight(ct);
 
@@ -292,7 +300,7 @@ window.disableCharacterMode = function () {
 };
 
 // --------------------------------------------------------------
-// FINAL PATCH #3 — audio loop update: segment-wise timing + clamp (B1)
+// MAIN ENGINE — UPDATE PER FRAME WITH CHUNKS (B1 clamping)
 // --------------------------------------------------------------
 window.updateCharModeHighlight = function (currentTime) {
   if (!window.charModeEnabled) return;
@@ -300,12 +308,12 @@ window.updateCharModeHighlight = function (currentTime) {
   const g = window._charGlobal;
   if (!g || !Array.isArray(g.segments) || g.segments.length === 0) return;
 
-  // if no counted chars globally, nothing to highlight
-  if (!g.totalChars && g.totalChars !== 0) g.totalChars = (g.chars || []).reduce((acc, e) => acc + (e.countsTowardsTotal ? 1 : 0), 0);
+  // ensure totalChars present
+  if (typeof g.totalChars !== 'number') g.totalChars = (g.chars || []).reduce((acc, e) => acc + (e.countsTowardsTotal ? 1 : 0), 0);
 
   const segments = g.segments;
 
-  // find last segment with start <= currentTime
+  // find last segment whose start <= currentTime
   let segIndex = -1;
   for (let i = 0; i < segments.length; i++) {
     if (currentTime >= segments[i].start) segIndex = i;
@@ -322,25 +330,37 @@ window.updateCharModeHighlight = function (currentTime) {
     const segStart = seg.start;
     const segEnd = seg.end;
 
-    if (currentTime <= segEnd) {
-      // inside this segment — compute local progress
-      const relative = Math.max(0, currentTime - segStart);
-      const spc = seg.secondsPerChar;
+    // If the segment has no counted characters, simply clamp to start
+    if (!seg.totalChars || seg.totalChars <= 0) {
+      finalGlobalIndex = seg.startGidx;
+    } else if (currentTime > segEnd) {
+      // B1: clamp to last char of this segment until next segment starts
+      finalGlobalIndex = seg.startGidx + seg.totalChars;
+    } else {
+      // inside this segment: map time -> chunk -> local char index
+      const rel = Math.max(0, currentTime - segStart);
+      const numChunks = Math.max(1, seg.chunks.length);
+      const chunkDuration = seg.duration / numChunks;
+
+      // determine which chunk we're in (guard against edge)
+      let chunkIndex = Math.floor(rel / (chunkDuration || 1e-9));
+      if (chunkIndex < 0) chunkIndex = 0;
+      if (chunkIndex >= numChunks) chunkIndex = numChunks - 1;
+
+      const chunk = seg.chunks[chunkIndex];
+      const chunkStartTime = chunkIndex * chunkDuration;
+      const relInChunk = Math.max(0, rel - chunkStartTime);
+
+      // compute local progress inside chunk
       let baseLocal = 0;
-      if (!isFinite(spc) || spc <= 0) {
+      if (!isFinite(chunk.secondsPerChar) || chunk.secondsPerChar <= 0) {
         baseLocal = 0;
       } else {
-        baseLocal = relative / spc;
+        baseLocal = relInChunk / chunk.secondsPerChar;
       }
 
-      // clamp local to [0, seg.totalChars]
-      const localClamped = Math.max(0, Math.min(baseLocal, seg.totalChars));
-
-      finalGlobalIndex = seg.startGidx + Math.floor(localClamped);
-    } else {
-      // currentTime > segEnd
-      // B1 behavior: clamp to last character of this segment until next segment.start
-      finalGlobalIndex = seg.startGidx + seg.totalChars;
+      const localClamped = Math.max(0, Math.min(baseLocal, chunk.totalChars));
+      finalGlobalIndex = chunk.startGidx + Math.floor(localClamped);
     }
   }
 
