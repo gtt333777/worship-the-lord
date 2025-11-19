@@ -7,8 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * 🎵 startSegmentProgressVisualizer()
- * Creates and updates ONE visible green/gold vertical bar
- * that moves only on the currently active segment.
+ * Smooth golden needle — no flicker, no disappear
  */
 function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContainer) {
   console.log("segmentProgressVisualizer.js: startSegmentProgressVisualizer() called");
@@ -23,54 +22,56 @@ function startSegmentProgressVisualizer(segments, vocalAudio, loopButtonsContain
   segments.forEach((segment, i) => {
     const btn = loopButtonsContainer.children[i];
     if (!btn) {
-      console.warn(`⚠️ segmentProgressVisualizer.js: No button found for segment ${i}`);
+      console.warn(`⚠️ No button for segment ${i}`);
       return;
     }
 
     try {
       btn.classList.add("segment-button");
 
-      // Remove any old progress bar if already present
-      const existingBar = btn.querySelector(".progress-bar");
-      if (existingBar) existingBar.remove();
+      // Remove older bar
+      const old = btn.querySelector(".progress-bar");
+      if (old) old.remove();
 
-      // Create and append new progress bar
-      const progressBar = document.createElement("div");
-      progressBar.classList.add("progress-bar");
+      // Create new bar
+      const bar = document.createElement("div");
+      bar.classList.add("progress-bar");
 
-      // ⭐ Use opacity instead of display to avoid flicker
-      progressBar.style.opacity = "0";
+      // ⭐ Start fully transparent but present in DOM
+      bar.style.opacity = "0";
+      bar.style.left = "0%";
 
-      btn.appendChild(progressBar);
+      btn.appendChild(bar);
 
       progressBars.push({
-        bar: progressBar,
+        bar,
         start: segment.start,
         end: segment.end
       });
     } catch (e) {
-      console.error(`❌ segmentProgressVisualizer.js: Error processing segment ${i}`, e);
+      console.error(`❌ segmentProgressVisualizer.js: Error segment ${i}`, e);
     }
   });
 
-  // ✅ Update progress bar in real-time — show only one active
+  // ------------------------------------------------------
+  //  SMOOTH UPDATE LOOP — never removes element → NO FLICKER
+  // ------------------------------------------------------
   function updateProgress() {
-    const currentTime = vocalAudio.currentTime;
-    let activeFound = false;
+    const t = vocalAudio.currentTime;
+    let visibleFound = false;
 
     progressBars.forEach(pb => {
       const { bar, start, end } = pb;
 
-      if (currentTime >= start && currentTime <= end) {
-        const percent = ((currentTime - start) / (end - start)) * 100;
-        bar.style.left = `${percent}%`;
+      if (t >= start && t <= end) {
+        const pct = ((t - start) / (end - start)) * 100;
+        bar.style.left = pct + "%";
 
-        // ⭐ Smooth fade-in
+        // ⭐ Fade-in only when active
         bar.style.opacity = "1";
-
-        activeFound = true;
+        visibleFound = true;
       } else {
-        // ⭐ Smooth fade-out instead of display:none (NO flicker)
+        // ⭐ Fade-out but keep DOM alive (important!)
         bar.style.opacity = "0";
       }
     });
