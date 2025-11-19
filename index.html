@@ -217,29 +217,36 @@
     }
 
 
-
     /* 🌟 GLOWING GOLD NEEDLE (Segment Progress Bar) */
 .progress-bar {
   position: absolute;
-  top: -14px;               /* extend ABOVE button */
-  bottom: -14px;            /* extend BELOW button */
+  top: -14px;                /* extend ABOVE button */
+  bottom: -14px;             /* extend BELOW button */
   left: 0;
-  width: 2px;               /* ultra-thin needle */
-  background-color: #ffeb3b;   /* soft gold-yellow core */
-  box-shadow: 
+  width: 2px;                /* ultra-thin needle */
+  background-color: #ffeb3b; /* soft gold-yellow core */
+  box-shadow:
       0 0 6px #ffeb3b,
       0 0 12px #ffeb3b,
-      0 0 18px rgba(255, 235, 59, 0.7);  /* soft glow */
+      0 0 18px rgba(255, 235, 59, 0.7);
   border-radius: 2px;
-  display: none;            /* shown only when active */
-  transition: left 0.05s linear;
-  pointer-events: none;     /* prevents any click issue */
+  
+  opacity: 0;                /* ⭐ hidden without flicker */
+  transition: 
+      left 0.05s linear,
+      opacity 0.12s linear;  /* ⭐ smooth fade */
+
+  pointer-events: none;
+}
+
+/* ⭐ Active state – smooth fade-in, no flicker */
+.segment-button.active .progress-bar {
+  opacity: 1;
 }
 
 
-    .segment-button.active .progress-bar {
-      display: block;
-    }
+
+
 
     #installPrompt {
       display: none;
