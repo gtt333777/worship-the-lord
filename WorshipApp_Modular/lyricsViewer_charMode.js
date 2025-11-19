@@ -16,7 +16,7 @@ window.charMode = window.charMode || {};
 window.charMode.countSpaces = true;
 window.charMode.stepChars = 5;
 window.charMode.chunkSize = 5; // higher resolution
-window.charMode.smoothingFactor = 0.85; // <1 slows start, >1 speeds start; 0.85 recommended
+window.charMode.smoothingFactor = 0.90; // <1 slows start, >1 speeds start; 0.85 recommended
 window.charMode.scrollThreshold = 3; // scroll only when highlighted index moved by >= this
 window.charMode.highlightClass = 'charmode-highlight';
 window.charMode.normalClass = 'charmode-normal';
