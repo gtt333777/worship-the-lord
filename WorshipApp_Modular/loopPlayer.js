@@ -225,46 +225,61 @@ document.addEventListener("DOMContentLoaded", () => {
         window.currentSegments = window.segments;
         console.log("🎯 loopPlayer.js: Segments bridged →", window.segments.length, "segments loaded.");
 
-        // Clear existing buttons
-        loopButtonsDiv.innerHTML = "";
 
-        // ⭐ JSON FIX — iterate over window.segments (array)
-        (window.segments).forEach((segment, index) => {
-          const btn = document.createElement("button");
-          btn.className = "segment-button";
-          btn.textContent = `Segment ${index + 1}`;
 
-          btn.addEventListener("click", () => {
-            // Reset all button labels when user switches segment
-            try {
-              document.querySelectorAll(".segment-button").forEach(b => {
-                if (b.dataset && b.dataset.originalLabel) {
-                  b.textContent = b.dataset.originalLabel;
-                }
-              });
-            } catch (e) {
-              // ignore
-            }
+        
+/* -----------------------
+   BUTTON CREATION (NEW)
+   - each button stores its own data-start / data-end
+   - preserves original label in data-original-label
+   - independent for goldenIndicator.js or any other script
+   ----------------------- */
+loopButtonsDiv.innerHTML = "";
 
-            const isReady = window.vocalAudio?.readyState >= 2 && window.accompAudio?.readyState >= 2;
-            if (!isReady) {
-              console.warn("⏳ Audio not ready yet, using segment-ready helper...");
-              checkReadyAndPlaySegment(segment.start, segment.end, index);
-            } else {
-              playSegment(segment.start, segment.end, index);
+(window.segments || []).forEach((segment, index) => {
+  const btn = document.createElement("button");
+  btn.className = "segment-button";
+  btn.textContent = `Segment ${index + 1}`;
 
-              /*
-              setTimeout(() => playSegment(segment.start, segment.end, index), 70);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 140);
-              setTimeout(() => playSegment(segment.start, segment.end, index), 210);
-              */
-              
+  // ✳️ Independent data for other scripts (goldenIndicator.js)
+  //    These attributes let other files read times straight from DOM
+  btn.dataset.start = (typeof segment.start === "number") ? String(segment.start) : "";
+  btn.dataset.end   = (typeof segment.end   === "number") ? String(segment.end)   : "";
 
-            }
-          });
+  // store original label (safe)
+  btn.dataset.originalLabel = btn.textContent.trim();
 
-          loopButtonsDiv.appendChild(btn);
-        });
+  btn.addEventListener("click", () => {
+    // Reset all button labels when user switches segment
+    try {
+      document.querySelectorAll(".segment-button").forEach(b => {
+        if (b.dataset && b.dataset.originalLabel) {
+          b.textContent = b.dataset.originalLabel;
+        }
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    const isReady =
+      window.vocalAudio?.readyState >= 2 &&
+      window.accompAudio?.readyState >= 2;
+
+    if (!isReady) {
+      console.warn("⏳ Audio not ready yet, using segment-ready helper...");
+      checkReadyAndPlaySegment(segment.start, segment.end, index);
+    } else {
+      playSegment(segment.start, segment.end, index);
+    }
+  });
+
+  loopButtonsDiv.appendChild(btn);
+});
+
+
+
+
+
 
         /* ⭐ FINAL — Run Golden Indicator AFTER buttons are created */
 setTimeout(() => {
