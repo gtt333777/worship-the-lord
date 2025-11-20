@@ -321,24 +321,20 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-/* Golden Indicator Vertical Line */
-.segment-gold-line {
+
+/* gold indicator underline */
+.segment-gold-bar {
   position: absolute;
   left: 0;
-  top: 0;
-  width: 4px;
+  bottom: -4px;      /* places UNDER the button */
+  width: 0%;
+  height: 4px;
   background-color: gold;
-  height: 0%;            /* grows to 100% */
   border-radius: 2px;
-  opacity: 1;
+  transition: width 0.12s linear;
   pointer-events: none;
 }
 
-/* Allow golden line to overflow */
-.segment-button {
-  position: relative;
-  overflow: visible !important;
-}
 
 
 
@@ -346,14 +342,6 @@ button#vocalMuteBtn.vocal-muted {
   position: relative;
   overflow: visible !important;   /* ← THE FIX */
 }
-
-
-.segment-gold-line {
-  outline: 1px solid red; /* TEMPORARY DEBUG */
-}
-
-
-
 
 
   </style>
