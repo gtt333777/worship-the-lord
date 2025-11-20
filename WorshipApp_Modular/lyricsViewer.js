@@ -301,6 +301,9 @@ function clearAllHighlights() {
   });
 }
 
+
+/*
+
 // -------------------------
 // Apply highlight
 // -------------------------
@@ -338,6 +341,64 @@ function applyHighlight(segIndex, lineIndex) {
     }
   });
 }
+
+*/
+
+// ===== NEW FUNCTION — START =====
+function applyHighlight(segIndex, lineIndex) {
+  if (segIndex === -1) {
+    clearAllHighlights();
+    return;
+  }
+
+  // Define previous, current, next
+  const prev = lineIndex - 1;
+  const curr = lineIndex;
+  const next = lineIndex + 1;
+
+  window.tamilRendered.forEach(item => {
+    const el = item.el;
+
+    // Reset everything
+    el.style.background = 'transparent';
+    el.style.fontWeight = 'normal';
+    el.style.color = '#333';
+    el.style.marginTop = '0px';
+    el.style.marginBottom = '0px';
+
+    if (item.segIndex !== segIndex) return;
+
+    // CURRENT line → bold + yellow
+    if (item.lineIndex === curr) {
+      el.style.background = 'rgba(255,255,0,0.35)';
+      el.style.fontWeight = 'bold';
+      el.style.color = '#000';
+      scrollToThreeLinesBelowTop(el);
+    }
+
+    // PREVIOUS line → bold only + spacing above block
+    else if (item.lineIndex === prev) {
+      el.style.fontWeight = 'bold';
+      el.style.color = '#000';
+      el.style.marginTop = '12px';
+    }
+
+    // NEXT line → bold only + spacing below block
+    else if (item.lineIndex === next) {
+      el.style.fontWeight = 'bold';
+      el.style.color = '#000';
+      el.style.marginBottom = '12px';
+    }
+
+    // All others remain normal (already reset)
+  });
+}
+// ===== NEW FUNCTION — END =====
+
+
+
+
+
 
 // -------------------------
 // UPDATE HIGHLIGHT (Main logic)
