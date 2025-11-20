@@ -1,59 +1,67 @@
-﻿// ===============================================================
-// goldenIndicator.js — Vertical Golden Line for Active Segment
-// ===============================================================
+﻿console.log("GoldenIndicator.js: Loaded");
 
-console.log("GoldenIndicator.js: Loaded");
+/*
+  GLOBAL GOLDEN INDICATOR
+  Vertical golden line on the left side of the active segment button.
+  Updates smoothly based on audio currentTime.
+*/
 
 window.startGoldenIndicator = function (segments, vocalAudio, container) {
   console.log("GoldenIndicator.js: startGoldenIndicator called");
 
-  if (!segments || !vocalAudio || !container) {
-    console.warn("GoldenIndicator.js: Missing inputs.");
+  if (!segments || !segments.length) {
+    console.warn("GoldenIndicator.js: No segments provided");
+    return;
+  }
+  if (!vocalAudio) {
+    console.warn("GoldenIndicator.js: vocalAudio missing");
+    return;
+  }
+  if (!container) {
+    console.warn("GoldenIndicator.js: container missing");
     return;
   }
 
-  // Remove old indicators if any
-  container.querySelectorAll(".golden-line").forEach(el => el.remove());
+  // Remove all previous gold lines
+  document.querySelectorAll(".segment-gold-line").forEach(el => el.remove());
 
-  const indicators = [];
+  const buttons = container.querySelectorAll(".segment-button");
+  if (!buttons.length) {
+    console.warn("GoldenIndicator.js: No segment-button elements found");
+    return;
+  }
 
-  // Create 1 golden line DIV per segment
-  segments.forEach((segment, i) => {
-    const btn = container.children[i];
+  // Create gold lines for each segment
+  const goldLines = [];
+  segments.forEach((seg, i) => {
+    const btn = buttons[i];
     if (!btn) return;
 
     const line = document.createElement("div");
-    line.className = "golden-line";
-
-    // initial hidden state
-    line.style.opacity = "0";
-    line.style.transform = "scaleY(0)";
-
-    // attach
-    btn.style.position = "relative";
+    line.className = "segment-gold-line";
     btn.appendChild(line);
 
-    indicators.push({
-      line,
-      start: segment.start,
-      end: segment.end
+    goldLines.push({
+      line: line,
+      start: seg.start,
+      end: seg.end
     });
   });
 
-  // Animation loop
+  // Update loop
   function update() {
     const t = vocalAudio.currentTime;
 
-    indicators.forEach((ind, index) => {
-      const { line, start, end } = ind;
+    goldLines.forEach((g, i) => {
+      const { line, start, end } = g;
 
       if (t >= start && t <= end) {
-        const pct = (t - start) / (end - start);
-        line.style.opacity = "1";
-        line.style.transform = `scaleY(${pct})`;
+        // Segment active
+        const pct = ((t - start) / (end - start)) * 100;
+        line.style.height = pct + "%";
       } else {
-        line.style.opacity = "0";
-        line.style.transform = "scaleY(0)";
+        // Hide for inactive segments
+        line.style.height = "0%";
       }
     });
 
@@ -62,31 +70,3 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
 
   requestAnimationFrame(update);
 };
-
-// ===============================================================
-// Inject required CSS (auto-inserted)
-// ===============================================================
-
-(function addGoldenLineCSS() {
-  if (document.getElementById("golden-line-style")) return;
-
-  const css = `
-    .golden-line {
-      position: absolute;
-      left: 0px;
-      top: 3px;
-      bottom: 3px;
-      width: 4px;
-      background: linear-gradient(to bottom, #FFD700, #FFC300);
-      border-radius: 4px;
-      transform-origin: top;
-      transition: opacity 0.20s linear;
-      pointer-events: none;
-    }
-  `;
-
-  const style = document.createElement("style");
-  style.id = "golden-line-style";
-  style.textContent = css;
-  document.head.appendChild(style);
-})();
