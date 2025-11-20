@@ -1,73 +1,73 @@
-﻿console.log("GoldenIndicator.js: Loaded");
+﻿console.log("GoldenIndicator.js: Loaded (Underline Mode)");
 
 /*
-  GLOBAL GOLDEN INDICATOR (Bottom Underline)
-  Creates a gold underline below the active segment button.
-  Underline expands from 0% → 100% based on audio progress.
+   GOLD UNDERLINE INDICATOR
+   --------------------------------
+   • Adds one .segment-gold-bar below each segment button
+   • Bar grows LEFT → RIGHT during that segment
 */
 
 window.startGoldenIndicator = function (segments, vocalAudio, container) {
   console.log("GoldenIndicator.js: startGoldenIndicator called");
 
-  if (!segments || !segments.length) return console.warn("GoldenIndicator: No segments");
-  if (!vocalAudio) return console.warn("GoldenIndicator: vocalAudio missing");
-  if (!container) return console.warn("GoldenIndicator: container missing");
+  if (!segments || !segments.length) {
+    console.warn("GoldenIndicator.js: No segments provided");
+    return;
+  }
+  if (!vocalAudio) {
+    console.warn("GoldenIndicator.js: vocalAudio missing");
+    return;
+  }
+  if (!container) {
+    console.warn("GoldenIndicator.js: container missing");
+    return;
+  }
 
   const buttons = container.querySelectorAll(".segment-button");
-  if (!buttons.length) return console.warn("GoldenIndicator: No segment buttons found");
+  if (!buttons.length) {
+    console.warn("GoldenIndicator.js: No segment-button elements found");
+    return;
+  }
 
-  const goldLines = [];
+  const bars = [];
 
+  // -------------------------------------------------------------
+  // 1) Create underline bar for each segment button
+  // -------------------------------------------------------------
   buttons.forEach((btn, i) => {
-    let line = btn.querySelector(".segment-gold-line");
+    let bar = btn.querySelector(".segment-gold-bar");
 
-    if (!line) {
-      line = document.createElement("div");
-      line.className = "segment-gold-line";
-
-      // ⭐ Bottom underline styling applied by JS
-      Object.assign(line.style, {
-        position: "absolute",
-        left: "0",
-        bottom: "-4px",          // underline position
-        height: "4px",
-        width: "0%",             // start empty
-        backgroundColor: "gold",
-        borderRadius: "2px",
-        transition: "width 0.08s linear",
-        pointerEvents: "none",
-      });
-
-      btn.style.position = "relative";
-      btn.appendChild(line);
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "segment-gold-bar";   // underline bar
+      btn.appendChild(bar);
+      console.log("GoldenIndicator: gold-bar added to button", i + 1);
     }
 
     const seg = segments[i];
     if (seg) {
-      goldLines.push({
-        line,
+      bars.push({
+        bar,
         start: seg.start,
         end: seg.end
       });
     }
   });
 
-  // -------------------------------
-  // Animation Loop
-  // -------------------------------
+  // -------------------------------------------------------------
+  // 2) Animation Loop — update underline width
+  // -------------------------------------------------------------
   function update() {
     const t = vocalAudio.currentTime;
 
-    goldLines.forEach(g => {
-      const { line, start, end } = g;
+    bars.forEach(b => {
+      const { bar, start, end } = b;
 
       if (t >= start && t <= end) {
         const pct = ((t - start) / (end - start)) * 100;
-        line.style.width = pct + "%";   // underline expands
-        line.style.opacity = "1";
+        bar.style.width = pct + "%";
       } else {
-        line.style.width = "0%";
-        line.style.opacity = "0.25";    // faint when not active
+        bar.style.width = "0%";   // reset for inactive segments
       }
     });
 
