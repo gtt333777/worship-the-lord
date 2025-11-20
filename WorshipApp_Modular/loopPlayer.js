@@ -804,8 +804,7 @@ let the playing present segment play smoothly till end
 
     requestAnimationFrame(updateSafeProgressBar);
 
-
-
+    })();
 
 
 
