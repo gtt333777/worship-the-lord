@@ -260,11 +260,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         */
 
+        /*
         // ⭐ Activate Golden Running Indicator
 if (typeof window.startGoldenIndicator === "function") {
   const loopButtonsContainer = document.getElementById("loopButtonsContainer");
   window.startGoldenIndicator(window.segments, window.vocalAudio, loopButtonsContainer);
 }
+*/
+
+// ⭐ Activate Golden Running Indicator (AFTER AUDIO IS READY)
+const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+
+if (window.audioReadyPromise && typeof window.audioReadyPromise.then === "function") {
+  window.audioReadyPromise.then(() => {
+    console.log("GoldenIndicator: calling after audioReadyPromise");
+
+    if (typeof window.startGoldenIndicator === "function") {
+      window.startGoldenIndicator(window.segments, window.vocalAudio, loopButtonsContainer);
+    } else {
+      console.warn("GoldenIndicator: function NOT found");
+    }
+  });
+} else {
+  // fallback in rare cases
+  setTimeout(() => {
+    console.log("GoldenIndicator: fallback call");
+    if (typeof window.startGoldenIndicator === "function") {
+      window.startGoldenIndicator(window.segments, window.vocalAudio, loopButtonsContainer);
+    }
+  }, 500);
+}
+
 
 
 
