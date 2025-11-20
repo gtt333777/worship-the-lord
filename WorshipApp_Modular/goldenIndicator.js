@@ -2,7 +2,7 @@
 
 /*
   GLOBAL GOLDEN INDICATOR
-  Vertical golden line on the left side of the active segment button.
+  Vertical golden line on the left side of each segment button.
   Updates smoothly based on audio currentTime.
 */
 
@@ -22,16 +22,17 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
     return;
   }
 
-  // Remove all previous gold lines
+  // Remove old gold lines (if any)
   document.querySelectorAll(".segment-gold-line").forEach(el => el.remove());
 
+  // Get buttons
   const buttons = container.querySelectorAll(".segment-button");
   if (!buttons.length) {
     console.warn("GoldenIndicator.js: No segment-button elements found");
     return;
   }
 
-  // Create gold lines for each segment
+  // Create gold-line for each button
   const goldLines = [];
   segments.forEach((seg, i) => {
     const btn = buttons[i];
@@ -46,21 +47,26 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
       start: seg.start,
       end: seg.end
     });
+
+    console.log("GoldenIndicator: gold-line added to button", i + 1);
   });
 
-  // Update loop
+  /* ============================
+     Golden Progress Updater
+     Updates bar height continuously
+  ============================= */
   function update() {
     const t = vocalAudio.currentTime;
 
-    goldLines.forEach((g, i) => {
+    goldLines.forEach((g, index) => {
       const { line, start, end } = g;
 
       if (t >= start && t <= end) {
-        // Segment active
+        // Active
         const pct = ((t - start) / (end - start)) * 100;
         line.style.height = pct + "%";
       } else {
-        // Hide for inactive segments
+        // Inactive
         line.style.height = "0%";
       }
     });
