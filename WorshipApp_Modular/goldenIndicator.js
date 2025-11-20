@@ -1,35 +1,20 @@
 ﻿console.log("GoldenIndicator.js: Loaded");
 
 /*
-  GLOBAL GOLDEN INDICATOR
-  Vertical golden line on the left side of the active segment button.
-  Updates smoothly based on audio.currentTime.
+  GLOBAL GOLDEN INDICATOR (Bottom Underline)
+  Creates a gold underline below the active segment button.
+  Underline expands from 0% → 100% based on audio progress.
 */
 
 window.startGoldenIndicator = function (segments, vocalAudio, container) {
   console.log("GoldenIndicator.js: startGoldenIndicator called");
 
-  if (!segments || !segments.length) {
-    console.warn("GoldenIndicator.js: No segments provided");
-    return;
-  }
-  if (!vocalAudio) {
-    console.warn("GoldenIndicator.js: vocalAudio missing");
-    return;
-  }
-  if (!container) {
-    console.warn("GoldenIndicator.js: container missing");
-    return;
-  }
+  if (!segments || !segments.length) return console.warn("GoldenIndicator: No segments");
+  if (!vocalAudio) return console.warn("GoldenIndicator: vocalAudio missing");
+  if (!container) return console.warn("GoldenIndicator: container missing");
 
-  // -------------------------------------------------------------
-  // 1) Ensure every button has exactly ONE .segment-gold-line
-  // -------------------------------------------------------------
   const buttons = container.querySelectorAll(".segment-button");
-  if (!buttons.length) {
-    console.warn("GoldenIndicator.js: No segment-button elements found");
-    return;
-  }
+  if (!buttons.length) return console.warn("GoldenIndicator: No segment buttons found");
 
   const goldLines = [];
 
@@ -39,24 +24,37 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
     if (!line) {
       line = document.createElement("div");
       line.className = "segment-gold-line";
+
+      // ⭐ Bottom underline styling applied by JS
+      Object.assign(line.style, {
+        position: "absolute",
+        left: "0",
+        bottom: "-4px",          // underline position
+        height: "4px",
+        width: "0%",             // start empty
+        backgroundColor: "gold",
+        borderRadius: "2px",
+        transition: "width 0.08s linear",
+        pointerEvents: "none",
+      });
+
+      btn.style.position = "relative";
       btn.appendChild(line);
-      console.log("GoldenIndicator: gold-line added to button", i + 1);
     }
 
-    // Map segment range to this gold line
     const seg = segments[i];
     if (seg) {
       goldLines.push({
-        line: line,
+        line,
         start: seg.start,
         end: seg.end
       });
     }
   });
 
-  // -------------------------------------------------------------
-  // 2) Animation Loop — Updates the active gold-line smoothly
-  // -------------------------------------------------------------
+  // -------------------------------
+  // Animation Loop
+  // -------------------------------
   function update() {
     const t = vocalAudio.currentTime;
 
@@ -65,9 +63,11 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
 
       if (t >= start && t <= end) {
         const pct = ((t - start) / (end - start)) * 100;
-        line.style.height = pct + "%";
+        line.style.width = pct + "%";   // underline expands
+        line.style.opacity = "1";
       } else {
-        line.style.height = "0%";
+        line.style.width = "0%";
+        line.style.opacity = "0.25";    // faint when not active
       }
     });
 
