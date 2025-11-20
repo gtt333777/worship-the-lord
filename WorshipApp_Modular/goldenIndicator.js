@@ -2,8 +2,8 @@
 
 /*
   GLOBAL GOLDEN INDICATOR
-  Vertical golden line on the left side of each segment button.
-  Updates smoothly based on audio currentTime.
+  Vertical golden line on the left side of the active segment button.
+  Updates smoothly based on audio.currentTime.
 */
 
 window.startGoldenIndicator = function (segments, vocalAudio, container) {
@@ -22,51 +22,51 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
     return;
   }
 
-  // Remove old gold lines (if any)
-  document.querySelectorAll(".segment-gold-line").forEach(el => el.remove());
-
-  // Get buttons
+  // -------------------------------------------------------------
+  // 1) Ensure every button has exactly ONE .segment-gold-line
+  // -------------------------------------------------------------
   const buttons = container.querySelectorAll(".segment-button");
   if (!buttons.length) {
     console.warn("GoldenIndicator.js: No segment-button elements found");
     return;
   }
 
-  // Create gold-line for each button
   const goldLines = [];
-  segments.forEach((seg, i) => {
-    const btn = buttons[i];
-    if (!btn) return;
 
-    const line = document.createElement("div");
-    line.className = "segment-gold-line";
-    btn.appendChild(line);
+  buttons.forEach((btn, i) => {
+    let line = btn.querySelector(".segment-gold-line");
 
-    goldLines.push({
-      line: line,
-      start: seg.start,
-      end: seg.end
-    });
+    if (!line) {
+      line = document.createElement("div");
+      line.className = "segment-gold-line";
+      btn.appendChild(line);
+      console.log("GoldenIndicator: gold-line added to button", i + 1);
+    }
 
-    console.log("GoldenIndicator: gold-line added to button", i + 1);
+    // Map segment range to this gold line
+    const seg = segments[i];
+    if (seg) {
+      goldLines.push({
+        line: line,
+        start: seg.start,
+        end: seg.end
+      });
+    }
   });
 
-  /* ============================
-     Golden Progress Updater
-     Updates bar height continuously
-  ============================= */
+  // -------------------------------------------------------------
+  // 2) Animation Loop — Updates the active gold-line smoothly
+  // -------------------------------------------------------------
   function update() {
     const t = vocalAudio.currentTime;
 
-    goldLines.forEach((g, index) => {
+    goldLines.forEach(g => {
       const { line, start, end } = g;
 
       if (t >= start && t <= end) {
-        // Active
         const pct = ((t - start) / (end - start)) * 100;
         line.style.height = pct + "%";
       } else {
-        // Inactive
         line.style.height = "0%";
       }
     });
