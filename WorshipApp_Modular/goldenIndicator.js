@@ -1,10 +1,11 @@
 ﻿console.log("GoldenIndicator.js: Loaded (Underline Mode)");
 
 /*
-   GOLD UNDERLINE INDICATOR
-   --------------------------------
-   • Adds one .segment-gold-bar below each segment button
-   • Bar grows LEFT → RIGHT during that segment
+   GOLD UNDERLINE INDICATOR (FINAL WORKING VERSION)
+   -----------------------------------------------
+   • Underline sits INSIDE each button
+   • Grows left → right during active segment
+   • Safe even if styles override
 */
 
 window.startGoldenIndicator = function (segments, vocalAudio, container) {
@@ -32,17 +33,34 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
   const bars = [];
 
   // -------------------------------------------------------------
-  // 1) Create underline bar for each segment button
+  // 1) Create underline for each button (inside the button)
   // -------------------------------------------------------------
   buttons.forEach((btn, i) => {
-    let bar = btn.querySelector(".segment-gold-bar");
 
-    if (!bar) {
-      bar = document.createElement("div");
-      bar.className = "segment-gold-bar";   // underline bar
-      btn.appendChild(bar);
-      console.log("GoldenIndicator: gold-bar added to button", i + 1);
-    }
+    // ⭐ FORCE RELATIVE — required for underline to show correctly
+    btn.style.position = "relative";
+    btn.style.overflow = "visible";
+
+    // Remove any old underline (double-load protection)
+    btn.querySelectorAll(".segment-gold-bar").forEach(x => x.remove());
+
+    let bar = document.createElement("div");
+    bar.className = "segment-gold-bar";
+
+    // ⭐ FORCE POSITIONING INLINE
+    bar.style.position = "absolute";
+    bar.style.left = "0";
+    bar.style.bottom = "0";      // underline INSIDE the button
+    bar.style.width = "0%";
+    bar.style.height = "4px";
+    bar.style.backgroundColor = "gold";
+    bar.style.borderRadius = "2px";
+    bar.style.pointerEvents = "none";
+    bar.style.transition = "width 0.12s linear";
+
+    btn.appendChild(bar);
+
+    console.log("GoldenIndicator: gold-bar added to button", i + 1);
 
     const seg = segments[i];
     if (seg) {
@@ -55,7 +73,7 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
   });
 
   // -------------------------------------------------------------
-  // 2) Animation Loop — update underline width
+  // 2) Animation Loop — updates underline width
   // -------------------------------------------------------------
   function update() {
     const t = vocalAudio.currentTime;
@@ -67,7 +85,7 @@ window.startGoldenIndicator = function (segments, vocalAudio, container) {
         const pct = ((t - start) / (end - start)) * 100;
         bar.style.width = pct + "%";
       } else {
-        bar.style.width = "0%";   // reset for inactive segments
+        bar.style.width = "0%";
       }
     });
 
