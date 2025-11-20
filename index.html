@@ -319,25 +319,29 @@ button#vocalMuteBtn.vocal-muted {
 }
 
 
-/* ⭐ Segment button container settings */
-.segment-button {
-    position: relative !important;
-    overflow: visible !important;
-    padding-bottom: 8px !important; /* space for underline */
-}
 
-/* ⭐ Golden progress underline */
-.segment-gold-bar {
+
+/* ================================
+   🎵 Golden Underline (Independent)
+================================ */
+.gold-bar {
     position: absolute;
     left: 0;
-    bottom: 0;           /* inside the button */
-    width: 0%;           /* will expand dynamically */
+    bottom: 0;
     height: 4px;
+    width: 0%;
     background-color: gold;
     border-radius: 2px;
     pointer-events: none;
-    transition: width 0.12s linear;
+    transition: width 0.05s linear;
 }
+
+.segment-button {
+    position: relative;
+    overflow: visible !important;
+}
+
+
 
 /* 🔍 DEBUG MODE (optional) — uncomment to see clearly */
 
