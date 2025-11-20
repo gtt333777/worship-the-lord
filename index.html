@@ -350,16 +350,18 @@ button#vocalMuteBtn.vocal-muted {
 
 
 /* 🔥 DEBUG MODE — bright red underline */
+
 .segment-button .gold-bar {
     position: absolute;
     left: 0;
     bottom: 0;
-    height: 6px !important;
-    width: 100% !important;
-    background: red !important;
-    border-radius: 0 !important;
-    opacity: 1 !important;
-    z-index: 9999 !important;
+    height: 4px;
+    width: 0%;
+    background: red;   /* 🔥 solid red */
+    border-radius: 2px;
+    pointer-events: none;
+    transition: width 0.05s linear;
+    z-index: 10;
 }
 
 
