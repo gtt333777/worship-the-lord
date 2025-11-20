@@ -278,19 +278,26 @@ loopButtonsDiv.innerHTML = "";
 
 
 
-
-
-
-        /* ⭐ FINAL — Run Golden Indicator AFTER buttons are created */
+/* ⭐ FINAL — Run Golden Indicator AFTER buttons are created (reliable) */
 setTimeout(() => {
     try {
         const c = document.getElementById("loopButtonsContainer");
-        if (typeof window.startGoldenIndicator === "function") {
-            console.log("GoldenIndicator: Re-running after button rebuild");
+
+        // remove any leftover bars to avoid duplication
+        c.querySelectorAll(".gold-bar").forEach(e => e.remove());
+
+        if (typeof window.startGoldenIndicator === "function" &&
+            window.segments && window.vocalAudio) {
+
+            console.log("GoldenIndicator: Attached AFTER button rebuild");
             window.startGoldenIndicator(window.segments, window.vocalAudio, c);
         }
-    } catch (e) {}
-}, 150);
+    } catch (e) {
+        console.warn("GoldenIndicator restart error:", e);
+    }
+}, 300);
+
+
 
 
 
