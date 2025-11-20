@@ -251,11 +251,22 @@ document.addEventListener("DOMContentLoaded", () => {
           loopButtonsDiv.appendChild(btn);
         });
 
+        /*
+
         // ✅ Notify segmentProgressVisualizer.js
         if (typeof window.startSegmentProgressVisualizer === "function") {
           const loopButtonsContainer = document.getElementById("loopButtonsContainer");
           window.startSegmentProgressVisualizer(window.segments, window.vocalAudio, loopButtonsContainer);
         }
+        */
+
+        // ⭐ Activate Golden Running Indicator
+if (typeof window.startGoldenIndicator === "function") {
+  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
+  window.startGoldenIndicator(window.segments, window.vocalAudio, loopButtonsContainer);
+}
+
+
 
         // 🔁 Handshake: if user already pressed Play and wants Segment 1 auto-start
         if (window.wantAutoSegment1 && window.segments.length > 0) {
