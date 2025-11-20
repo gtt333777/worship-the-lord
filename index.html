@@ -343,18 +343,20 @@ button#vocalMuteBtn.vocal-muted {
   overflow: visible !important;   /* ← THE FIX */
 }
 
-/* FINAL underline mode CSS */
+
 .segment-button {
-  position: relative !important;
-  overflow: visible !important;
+    position: relative !important;
+    overflow: visible !important;
+    padding-bottom: 8px !important;   /* <-- add this ONLY */
 }
+
 
 .segment-gold-bar {
   position: absolute;
   left: 0;
-  bottom: -4px;      /* visible below button */
+  bottom: 0;          /* 👈 INSIDE the button */
   width: 0%;
-  height: 4px;
+  height: 4px;        /* underline thickness */
   background-color: gold;
   border-radius: 2px;
   transition: width 0.12s linear;
