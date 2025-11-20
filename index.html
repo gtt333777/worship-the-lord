@@ -319,8 +319,6 @@ button#vocalMuteBtn.vocal-muted {
 }
 
 
-
-
 /* Golden Indicator Vertical Line */
 .segment-gold-line {
   position: absolute;
@@ -330,16 +328,30 @@ button#vocalMuteBtn.vocal-muted {
   background-color: gold;
   height: 0%;
   border-radius: 2px;
-  opacity: 0.9;
-  transition: height 0.1s linear;
+  opacity: 1;
+  pointer-events: none;       /* ensure not clickable */
+  z-index: 10;                /* ensure visible above button */
+  transition: height 0.12s linear;
 }
 
-/* Ensure each segment button acts as container */
+/* Each segment button must NOT clip children */
 .segment-button {
   position: relative;
-  overflow: hidden;
+  overflow: visible !important;
 }
 
+
+
+
+.segment-button {
+  position: relative;
+  overflow: visible !important;   /* ← THE FIX */
+}
+
+
+.segment-gold-line {
+  outline: 1px solid red; /* TEMPORARY DEBUG */
+}
 
 
 
