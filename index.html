@@ -321,47 +321,20 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-/* ===============================================
-   🎵 Golden Underline for Segment Buttons
-   =============================================== */
-
-
-   .segment-button {
-    position: relative !important;
-    overflow: visible !important;
-    z-index: 5;         /* ⭐ REQUIRED */
+.segment-button::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 0;
+  height: 4px;
+  width: var(--progress, 0%);
+  background: linear-gradient(to right, gold, orange);
+  border-radius: 3px;
+  pointer-events: none;
+  transition: width 0.05s linear;
+  z-index: 9999;
 }
 
-
-
-
-.segment-button .gold-bar {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 4px;
-    width: 0%;
-    background: gold;
-    border-radius: 3px;
-    pointer-events: none;
-    transition: width 0.05s linear;
-    z-index: 10;      /* ⭐ makes it visible */
-}
-
-
-
-/* 🔥 DEBUG MODE — always visible red underline */
-.segment-button .gold-bar {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 6px;
-    width: 100%;
-    background: red;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 9999;
-}
 
 
 
@@ -503,9 +476,8 @@ button#vocalMuteBtn.vocal-muted {
   <script src="WorshipApp_Modular/lyricsViewer_charMode.js" defer></script>
   <script src="WorshipApp_Modular/loopPlayer.js" defer></script>
   <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
-  <script src="WorshipApp_Modular/segmentProgressVisualizer.js" defer></script>
   <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
-  <script src="WorshipApp_Modular/goldenIndicator.js" defer></script>
+  
 
 
   <!-- ✅ Service Worker -->
