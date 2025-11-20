@@ -64,6 +64,21 @@ function playSegment(startTime, endTime, index = 0) {
     if (myRun !== window.playRunId) return; // aborted by a newer play
 
     window.currentlyPlaying = true;
+
+    
+  /* 🔔 Golden Indicator Playback Hook */
+  try {
+    if (typeof window.__goldenIndicatorStarted === "undefined") {
+      window.__goldenIndicatorStarted = true;
+
+      const c = document.getElementById("loopButtonsContainer");
+      if (typeof window.startGoldenIndicator === "function") {
+        console.log("GoldenIndicator: Activating after real playback start.");
+        window.startGoldenIndicator(window.segments, window.vocalAudio, c);
+      }
+    }
+  } catch (e) {}
+
         
     // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
