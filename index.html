@@ -324,20 +324,22 @@ button#vocalMuteBtn.vocal-muted {
 /* ================================
    🎵 Golden Underline (Independent)
 ================================ */
+
 .gold-bar {
     position: absolute;
     left: 0;
-    bottom: 0;
-    height: 4px;
+    bottom: 0;         /* sits at bottom of the segment button */
+    height: 4px;       /* visible thickness */
+    background: gold;  /* golden color */
     width: 0%;
-    background-color: gold;
-    border-radius: 2px;
-    pointer-events: none;
     transition: width 0.05s linear;
+    border-radius: 50px;
+    pointer-events: none;
 }
 
-.segment-button {
-    position: relative;
+
+.loop-btn {
+    position: relative !important;
     overflow: visible !important;
 }
 
@@ -345,7 +347,7 @@ button#vocalMuteBtn.vocal-muted {
 
 /* 🔍 DEBUG MODE (optional) — uncomment to see clearly */
 
-.segment-gold-bar {
+.loop-btn .gold-bar {
     background-color: red !important;
     height: 6px !important;
     width: 100% !important;
