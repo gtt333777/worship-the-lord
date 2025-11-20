@@ -222,6 +222,8 @@ function insertAdjustButtons(){
   box.appendChild(btnBar);
 }
 
+/*
+
 // -------------------------
 // Render Tamil
 // -------------------------
@@ -236,6 +238,8 @@ function renderTamilLyrics() {
   if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
 
   window.lyricsData.tamilSegments.forEach((seg, segIndex) => {
+
+
     const segDiv = document.createElement('div');
     segDiv.style.marginBottom = '16px';
 
@@ -263,6 +267,54 @@ function renderTamilLyrics() {
     box.appendChild(segDiv);
   });
 }
+
+*/
+
+
+// -------------------------
+// Render Tamil
+// -------------------------
+window.tamilRendered = [];
+
+function renderTamilLyrics() {
+  const box = document.getElementById('tamilLyricsBox');
+  if (!box) return;
+  box.innerHTML = '';
+  window.tamilRendered = [];
+
+  if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
+
+  window.lyricsData.tamilSegments.forEach((seg, segIndex) => {
+
+
+  
+
+  // ---- Bible-style lyric card ----
+const segDiv = document.createElement('div');
+segDiv.className = "lyric-card";
+
+// ---- Number badge (Bible App style) ----
+const badge = document.createElement('span');
+badge.className = "lyric-number";
+badge.textContent = (segIndex + 1);
+segDiv.appendChild(badge);
+
+// ---- Lines inside card ----
+(seg.lyrics || []).forEach((line, lineIndex) => {
+  const lineEl = document.createElement('div');
+  lineEl.textContent = cleanTamilLine(line) || '\u00A0';
+  lineEl.className = "lyric-line";
+
+  window.tamilRendered.push({ segIndex, lineIndex, el: lineEl });
+  segDiv.appendChild(lineEl);
+});
+
+
+    box.appendChild(segDiv);
+  });
+}
+
+
 
 // -------------------------
 // Render English
