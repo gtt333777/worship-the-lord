@@ -320,6 +320,7 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
+
 /* Golden Indicator Vertical Line */
 .segment-gold-line {
   position: absolute;
@@ -327,19 +328,17 @@ button#vocalMuteBtn.vocal-muted {
   top: 0;
   width: 4px;
   background-color: gold;
-  height: 0%;
+  height: 0%;            /* grows to 100% */
   border-radius: 2px;
   opacity: 1;
-  pointer-events: none;   /* make sure clicks go through */
+  pointer-events: none;
 }
 
-/* Segment button must allow line to overflow */
+/* Allow golden line to overflow */
 .segment-button {
   position: relative;
   overflow: visible !important;
 }
-
-
 
 
 
