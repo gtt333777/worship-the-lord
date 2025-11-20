@@ -266,13 +266,16 @@ document.addEventListener("DOMContentLoaded", () => {
           loopButtonsDiv.appendChild(btn);
         });
 
-        // ⭐ Safe Golden Indicator Activation (AFTER buttons exist)
+        /* ⭐ FINAL — Run Golden Indicator AFTER buttons are created */
 setTimeout(() => {
-  const c = document.getElementById("loopButtonsContainer");
-  if (typeof window.startGoldenIndicator === "function") {
-    window.startGoldenIndicator(window.segments, window.vocalAudio, c);
-  }
-}, 200);
+    try {
+        const c = document.getElementById("loopButtonsContainer");
+        if (typeof window.startGoldenIndicator === "function") {
+            console.log("GoldenIndicator: Re-running after button rebuild");
+            window.startGoldenIndicator(window.segments, window.vocalAudio, c);
+        }
+    } catch (e) {}
+}, 150);
 
 
 
