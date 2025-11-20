@@ -296,7 +296,9 @@ segDiv.className = "lyric-card";
 // ---- Number badge (Bible App style) ----
 const badge = document.createElement('span');
 badge.className = "lyric-number";
-badge.textContent = (segIndex + 1);
+//badge.textContent = (segIndex + 1);
+badge.textContent = "Segment " + (segIndex + 1);
+
 segDiv.appendChild(badge);
 
 // ---- Lines inside card ----
