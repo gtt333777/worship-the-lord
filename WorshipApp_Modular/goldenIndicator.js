@@ -1,64 +1,72 @@
-﻿// ================================
-// 🎵 GoldenIndicator.js (Independent Mode)
-// Same architecture as segmentProgressVisualizer.js
-// ================================
+﻿/* ============================================================
+   ⭐ Golden Indicator — Stable, Independent, Non-Flickering
+   - Creates 1 gold bar per segment button
+   - Animates width smoothly
+   - Never duplicates bars
+   - Never disappears when clicking first segment
+   ============================================================ */
+
 console.log("GoldenIndicator.js: Independent mode loaded");
 
-// Called by loopPlayer.js AFTER buttons are created
-function startGoldenIndicator(segments, vocalAudio, loopButtonsContainer) {
-    console.log("GoldenIndicator.js: startGoldenIndicator called");
-
-    if (!segments || !vocalAudio || !loopButtonsContainer) {
-        console.warn("⚠️ GoldenIndicator: Missing inputs.");
-        return;
-    }
-
-    const bars = [];
-
-    // Build underline bar for each segment button
-    segments.forEach((seg, i) => {
-        const btn = loopButtonsContainer.children[i];
-        if (!btn) {
-            console.warn("⚠️ GoldenIndicator: No button for segment", i);
+window.startGoldenIndicator = function (segments, audio, container) {
+    try {
+        if (!segments || !audio || !container) {
+            console.warn("GoldenIndicator: Missing data");
             return;
         }
 
-        // Remove old bar if exists
-        const old = btn.querySelector(".gold-bar");
-        if (old) old.remove();
+        console.log("GoldenIndicator.js: startGoldenIndicator called");
 
-        // Create new underline bar
-        const bar = document.createElement("div");
-        bar.className = "gold-bar";
-        bar.style.width = "0%";
-        btn.appendChild(bar);
+        /* ----------------------------------------------------
+           1️⃣ Remove old bars completely to avoid duplicates
+        ---------------------------------------------------- */
+        const oldBars = container.querySelectorAll(".gold-bar");
+        oldBars.forEach(e => e.remove());
 
-        bars.push({ bar, start: seg.start, end: seg.end });
-    });
-
-    // Live update loop (like segmentProgressVisualizer)
-    function update() {
-        const t = vocalAudio.currentTime;
-        let active = false;
-
-        bars.forEach(entry => {
-            const { bar, start, end } = entry;
-
-            if (t >= start && t <= end) {
-                active = true;
-                const pct = ((t - start) / (end - start)) * 100;
-                bar.style.width = pct + "%";
-            } else {
-                bar.style.width = "0%"; // reset others
-            }
+        /* ----------------------------------------------------
+           2️⃣ Attach 1 fresh gold-bar to every segment button
+        ---------------------------------------------------- */
+        const buttons = container.querySelectorAll(".segment-button");
+        buttons.forEach(btn => {
+            const bar = document.createElement("div");
+            bar.className = "gold-bar";
+            bar.style.width = "0%";     // JST animation target
+            btn.appendChild(bar);
         });
 
-        if (!active) {
-            bars.forEach(entry => entry.bar.style.width = "0%");
+        /* ----------------------------------------------------
+           3️⃣ Animation loop — smooth and flicker-free
+        ---------------------------------------------------- */
+        function animateGoldenBar() {
+            const current = audio.currentTime;
+            let activeIndex = -1;
+
+            for (let i = 0; i < segments.length; i++) {
+                if (current >= segments[i].start && current <= segments[i].end) {
+                    activeIndex = i;
+                    break;
+                }
+            }
+
+            buttons.forEach((btn, index) => {
+                const bar = btn.querySelector(".gold-bar");
+                if (!bar) return;
+
+                if (index === activeIndex) {
+                    const seg = segments[index];
+                    const percent = ((current - seg.start) / (seg.end - seg.start)) * 100;
+                    bar.style.width = Math.max(0, Math.min(100, percent)) + "%";
+                } else {
+                    bar.style.width = "0%";
+                }
+            });
+
+            requestAnimationFrame(animateGoldenBar);
         }
 
-        requestAnimationFrame(update);
-    }
+        requestAnimationFrame(animateGoldenBar);
 
-    requestAnimationFrame(update);
-}
+    } catch (err) {
+        console.error("GoldenIndicator ERROR:", err);
+    }
+};
