@@ -683,5 +683,89 @@ requestAnimationFrame(updateActiveSegmentByTime);
 
 
 
+
+
+
+
+
+<script>
+/* ============================================================
+   ⭐ Golden Running Indicator for Active Segment (No Flicker)
+   ============================================================ */
+
+function startGoldenIndicator(segments, vocalAudio, loopButtonsContainer) {
+  if (!segments || !vocalAudio || !loopButtonsContainer) return;
+
+  // First remove any existing indicator bars
+  document.querySelectorAll(".gold-indicator").forEach(e => e.remove());
+
+  const indicators = [];
+
+  segments.forEach((segment, i) => {
+    const btn = loopButtonsContainer.children[i];
+    if (!btn) return;
+
+    // Create a small gold underline inside each button
+    const bar = document.createElement("div");
+    bar.className = "gold-indicator";
+
+    bar.style.position = "absolute";
+    bar.style.left = "0";
+    bar.style.bottom = "0";
+    bar.style.height = "4px";
+    bar.style.width = "20%";  // small size
+    bar.style.background = "#ffeb3b"; // gold
+    bar.style.borderRadius = "2px";
+    bar.style.opacity = "0"; // hidden initially
+    bar.style.transform = "translateX(0%)";
+    bar.style.transition = "opacity 0.15s linear";
+
+    btn.style.position = "relative";
+    btn.appendChild(bar);
+
+    indicators.push({
+      bar,
+      start: segment.start,
+      end: segment.end
+    });
+  });
+
+  function animate() {
+    const t = vocalAudio.currentTime;
+
+    indicators.forEach(item => {
+      const { bar, start, end } = item;
+
+      if (t >= start && t <= end) {
+        const pct = ((t - start) / (end - start)) * 100;
+
+        bar.style.opacity = "1";
+        bar.style.transform = `translateX(${pct}%)`;
+      } else {
+        bar.style.opacity = "0";
+      }
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
 </body>
 </html>
+
+
