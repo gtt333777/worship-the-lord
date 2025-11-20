@@ -320,22 +320,27 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-
-.segment-button::after {
-  content: "";
-  position: absolute;
-  top: -3px;
-  left: 0;
-  height: 4px;
-  width: var(--progress, 0%);
-  background: linear-gradient(to right, gold, orange);
-  border-radius: 3px;
-  pointer-events: none;
-  transition: width 0.05s linear;
-  z-index: 9999;
+/* =====================================
+   ⭐ SAFE PROGRESS BAR (Top Edge)
+   ===================================== */
+.segment-button {
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1;   /* <-- CRITICAL */
 }
 
-
+.segment-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: var(--seg-progress, 0%);
+  background: red;       /* test color */
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9999;         /* <-- ensures visible */
+}
 
 
   </style>
