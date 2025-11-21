@@ -110,6 +110,7 @@ function cleanTamilLine(line) {
 }
 */
 
+/*
 function cleanTamilLine(line) {
   if (!line || typeof line !== "string") return "";
 
@@ -127,6 +128,21 @@ function cleanTamilLine(line) {
       A-Za-z0-9
       .,!?\-()–—\u00A0\u0020
     ]/gx;
+
+  const matches = line.match(allowed);
+  if (!matches) return "";
+
+  return matches.join("").replace(/\s+/g, " ").trim();
+}
+*/
+
+function cleanTamilLine(line) {
+  if (!line || typeof line !== "string") return "";
+
+  line = line.trim();
+
+  // Valid JS regex — supports ALL Indic languages
+  const allowed = /[\u0B80-\u0BFF\u0900-\u097F\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7FA-Za-z0-9.,!?()\-–—\u00A0\u0020]/g;
 
   const matches = line.match(allowed);
   if (!matches) return "";
