@@ -76,6 +76,8 @@ function cleanTamilLine(line) {
 }
 */
 
+/*
+
 function cleanTamilLine(line) {
   if (!line || typeof line !== 'string') return '';
 
@@ -89,6 +91,50 @@ function cleanTamilLine(line) {
 
   return matches.join('').replace(/\s+/g, ' ').trim();
 }
+*/
+
+/*
+function cleanTamilLine(line) {
+  if (!line || typeof line !== 'string') return '';
+
+  line = line.trim();
+
+  // Allow Tamil, Telugu, Malayalam, Kannada, English, numbers, spaces
+  const allowed =
+    /[\u0B80-\u0BFF\u0C00-\u0C7F\u0D00-\u0D7F\u0C80-\u0CFFA-Za-z0-9\u00A0\u0020]/g;
+
+  const matches = line.match(allowed);
+  if (!matches) return '';
+
+  return matches.join('').replace(/\s+/g, ' ').trim();
+}
+*/
+
+function cleanTamilLine(line) {
+  if (!line || typeof line !== "string") return "";
+
+  line = line.trim();
+
+  // UNIVERSAL MULTI-LANGUAGE CLEANER
+  // Tamil, Hindi, Telugu, Kannada, Malayalam, English, numbers, spaces, punctuation
+  const allowed =
+    /[
+      \u0B80-\u0BFF     // Tamil
+      \u0900-\u097F     // Hindi (Devanagari)
+      \u0C00-\u0C7F     // Telugu
+      \u0C80-\u0CFF     // Kannada
+      \u0D00-\u0D7F     // Malayalam
+      A-Za-z0-9
+      .,!?\-()–—\u00A0\u0020
+    ]/gx;
+
+  const matches = line.match(allowed);
+  if (!matches) return "";
+
+  return matches.join("").replace(/\s+/g, " ").trim();
+}
+
+
 
 
 // -------------------------
