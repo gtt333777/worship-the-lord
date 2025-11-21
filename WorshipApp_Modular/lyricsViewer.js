@@ -679,6 +679,8 @@ function applyHighlight(segIndex, lineIndex) {
 */
 
 // ===== NEW FUNCTION — START (Tamil + English sync) =====
+
+
 function applyHighlight(segIndex, lineIndex) {
   if (segIndex === -1) {
     clearAllHighlights();
@@ -689,36 +691,40 @@ function applyHighlight(segIndex, lineIndex) {
   const curr = lineIndex;
   const next = lineIndex + 1;
 
-  // ---------- Tamil ----------
+  // ============================
+  // ⭐ TAMIL HIGHLIGHT
+  // ============================
   window.tamilRendered.forEach(item => {
     const el = item.el;
-    el.style.background = 'transparent';
-    el.style.fontWeight = 'normal';
-    el.style.color = '#333';
-    el.style.marginTop = '0px';
-    el.style.marginBottom = '0px';
+    el.style.background = "transparent";
+    el.style.fontWeight = "normal";
+    el.style.color = "#333";
+    el.style.marginTop = "0px";
+    el.style.marginBottom = "0px";
 
     if (item.segIndex !== segIndex) return;
 
     if (item.lineIndex === curr) {
-      el.style.background = 'rgba(255,255,0,0.35)';
-      el.style.fontWeight = 'bold';
-      el.style.color = '#000';
+      el.style.background = "rgba(255,255,0,0.35)";
+      el.style.fontWeight = "bold";
+      el.style.color = "#000";
       scrollToThreeLinesBelowTop(el);
-    } else if (item.lineIndex === prev) {
-      el.style.fontWeight = 'bold';
-      el.style.color = '#000';
-      el.style.marginTop = '12px';
-    } else if (item.lineIndex === next) {
-      el.style.fontWeight = 'bold';
-      el.style.color = '#000';
-      el.style.marginBottom = '12px';
+    }
+    else if (item.lineIndex === prev) {
+      el.style.fontWeight = "bold";
+      el.style.color = "#000";
+      el.style.marginTop = "12px";
+    }
+    else if (item.lineIndex === next) {
+      el.style.fontWeight = "bold";
+      el.style.color = "#000";
+      el.style.marginBottom = "12px";
     }
   });
 
-  /*
-
-  // ---------- English ----------
+  // ============================
+  // ⭐ ENGLISH HIGHLIGHT (NO MARGIN SHIFT — FIX SCREEN JUMP)
+  // ============================
   const engSeg = window._engProcessed ? window._engProcessed[segIndex] : null;
   if (!engSeg) return;
 
@@ -731,72 +737,34 @@ function applyHighlight(segIndex, lineIndex) {
 
   window.englishRendered.forEach(item => {
     const el = item.el;
-    el.style.background = 'transparent';
-    el.style.fontWeight = 'normal';
-    el.style.color = '#333';
-    el.style.marginTop = '0px';
-    el.style.marginBottom = '0px';
+
+    el.style.background = "transparent";
+    el.style.fontWeight = "normal";
+    el.style.color = "#333";
+    el.style.marginTop = "0px";
+    el.style.marginBottom = "0px";
 
     if (item.segIndex !== segIndex) return;
 
     if (item.lineIndex === eCurr) {
-      el.style.background = 'rgba(255,255,0,0.35)';
-      el.style.fontWeight = 'bold';
-      el.style.color = '#000';
-    } else if (item.lineIndex === ePrev) {
-      el.style.fontWeight = 'bold';
-      el.style.color = '#000';
-      el.style.marginTop = '12px';
-    } else if (item.lineIndex === eNext) {
-      el.style.fontWeight = 'bold';
-      el.style.color = '#000';
-      el.style.marginBottom = '12px';
+      el.style.background = "rgba(255,255,0,0.35)";
+      el.style.fontWeight = "bold";
+      el.style.color = "#000";
+    }
+    else if (item.lineIndex === ePrev) {
+      el.style.fontWeight = "bold";
+      el.style.color = "#000";
+    }
+    else if (item.lineIndex === eNext) {
+      el.style.fontWeight = "bold";
+      el.style.color = "#000";
     }
   });
 }
-// ===== NEW FUNCTION — END =====
-*/
 
-// ---------- English ----------
-const engSeg = window._engProcessed ? window._engProcessed[segIndex] : null;
-if (!engSeg) return;
 
-const totalEng = engSeg.cleanedLines.length;
-if (!totalEng) return;
 
-const eCurr = Math.min(lineIndex, totalEng - 1);
-const ePrev = eCurr - 1;
-const eNext = eCurr + 1;
 
-window.englishRendered.forEach(item => {
-  const el = item.el;
-  el.style.background = 'transparent';
-  el.style.fontWeight = 'normal';
-  el.style.color = '#333';
-
-  // ❗ MOST IMPORTANT — keep English spacing FIXED
-  el.style.marginTop = '0px';
-  el.style.marginBottom = '0px';
-
-  if (item.segIndex !== segIndex) return;
-
-  if (item.lineIndex === eCurr) {
-    el.style.background = 'rgba(255,255,0,0.35)';
-    el.style.fontWeight = 'bold';
-    el.style.color = '#000';
-  } 
-  else if (item.lineIndex === ePrev) {
-    el.style.fontWeight = 'bold';
-    el.style.color = '#000';
-    // ❗ NO EXTRA MARGIN — prevents screen from shifting
-  }
-  else if (item.lineIndex === eNext) {
-    el.style.fontWeight = 'bold';
-    el.style.color = '#000';
-    // ❗ NO EXTRA MARGIN — prevents screen from shifting
-  }
-});
-}
 
 
 // -------------------------
