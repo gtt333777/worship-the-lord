@@ -91,6 +91,86 @@ function cleanTamilLine(line) {
 }
 
 
+// -------------------------
+// Helper: Process arbitrary segments (used for both Tamil & English)
+// -------------------------
+function processSegments(segmentsArray) {
+  if (!segmentsArray || !Array.isArray(segmentsArray)) return [];
+
+  const processed = segmentsArray.map(seg => {
+    const cleanedLines = (seg.lyrics || []).map(l => cleanTamilLine(l));
+    const charCounts = cleanedLines.map(l => l.length || 0);
+    const totalChars = charCounts.reduce((s, v) => s + (v || 0), 0);
+    const duration = (seg.end - seg.start);
+
+    // Build cumulative
+    const cumulative = [];
+    let cursor = 0;
+    for (let c of charCounts) {
+      cumulative.push({ start: cursor, end: cursor + c });
+      cursor += c;
+    }
+
+    // Auto-split
+    let parts = [];
+    if (totalChars <= 0 || duration <= 0) {
+      parts = [{
+        index: 0,
+        charStart: 0,
+        charEnd: Math.max(0, totalChars),
+        charsInPart: Math.max(0, totalChars),
+        timeStart: seg.start,
+        timeEnd: seg.end,
+        duration: duration,
+        perChar: (totalChars > 0) ? duration / totalChars : duration
+      }];
+    } else {
+      let partsCount = Math.ceil(totalChars / targetCharsPerSplit);
+      partsCount = Math.max(1, Math.min(partsCount, Math.min(maxPartsLimit, totalChars)));
+
+      const durationPart = duration / partsCount;
+
+      for (let i = 0; i < partsCount; i++) {
+        const cs = Math.floor(totalChars * i / partsCount);
+        const ce = (i === partsCount - 1) ? totalChars : Math.floor(totalChars * (i + 1) / partsCount);
+        const charsInPart = Math.max(0, ce - cs);
+        const tStart = seg.start + i * durationPart;
+        const tEnd = seg.start + (i + 1) * durationPart;
+
+        parts.push({
+          index: i,
+          charStart: cs,
+          charEnd: ce,
+          charsInPart,
+          timeStart: tStart,
+          timeEnd: tEnd,
+          duration: durationPart,
+          perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.90 : durationPart
+        });
+      }
+    }
+
+    return {
+      start: seg.start,
+      end: seg.end,
+      duration,
+      rawLines: seg.lyrics || [],
+      cleanedLines,
+      charCounts,
+      totalChars,
+      cumulative,
+      parts
+    };
+  });
+
+  return processed;
+}
+
+
+
+
+
+
 
 // -------------------------
 // PROCESS LYRICS (Auto-Split)
