@@ -6,13 +6,23 @@
 //  - Default: 1-line highlight (bold + yellow background)
 //  - Clean, distraction-free (no fades, no glows)
 //  - Auto-scroll positions current line 3 lines below top
-//  - Stacked layout: Tamil (top) / English (bottom)
+
+
+//  - highlightTimeLead  - Around number 349
+//  - highlightTimeLead = Math.max  - Around line 364
+
+// If you want more speed, try:
+// targetCharsPerSplit = 50
+// maxPartsLimit = 8
+// ✔ Very safe method:  perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.85 : durationPart
+
+
+
 // ===============================================================
 
 // --------- PUBLIC / GLOBALS ----------
 window.lyricsData = null;              
-window._lyricsProcessed = null;       // processed TAMIL segments
-window._engProcessed = null;          // processed ENGLISH segments
+window._lyricsProcessed = null;       
 window.currentSegIndex = -1;
 window.currentLineIndex = -1;
 
@@ -28,6 +38,7 @@ window.manualOffset = 0;
 let highlightTimeLead = 0;
 
 // === Auto-split Tunables (optimized) ===
+//let targetCharsPerSplit = 35;   // optimized for smoothness & accuracy
   let targetCharsPerSplit = 50;   // optimized for smoothness & accuracy
 let maxPartsLimit = 10;         // optimized cap
 
@@ -51,16 +62,27 @@ window.addEventListener("scroll", () => {
 });
 
 
+/*
 // -------------------------
-// Utility: Clean a Tamil/English line
+// Utility: Clean a Tamil line
 // -------------------------
+function cleanTamilLine(line) {
+  if (!line || typeof line !== 'string') return '';
+  line = line.trim();
+  const allowed = /[\u0B80-\u0BFF\u00A0\u0020]/g;
+  const matches = line.match(allowed);
+  if (!matches) return '';
+  return matches.join('').replace(/\s+/g, ' ').trim();
+}
+*/
+
 function cleanTamilLine(line) {
   if (!line || typeof line !== 'string') return '';
 
   line = line.trim();
 
   // Allow Tamil + English + spaces
-  const allowed = /[\u0B80-\u0BFFA-Za-z0-9\u00A0\u0020]/g;
+  const allowed = /[\u0B80-\u0BFFA-Za-z\u00A0\u0020]/g;
 
   const matches = line.match(allowed);
   if (!matches) return '';
@@ -68,13 +90,15 @@ function cleanTamilLine(line) {
   return matches.join('').replace(/\s+/g, ' ').trim();
 }
 
-// -------------------------
-// Helper: Process arbitrary segments (used for both Tamil & English)
-// -------------------------
-function processSegments(segmentsArray) {
-  if (!segmentsArray || !Array.isArray(segmentsArray)) return [];
 
-  const processed = segmentsArray.map(seg => {
+
+// -------------------------
+// PROCESS LYRICS (Auto-Split)
+// -------------------------
+function processLyricsData(raw) {
+  if (!raw || !Array.isArray(raw.tamilSegments)) return null;
+
+  const processed = raw.tamilSegments.map(seg => {
     const cleanedLines = (seg.lyrics || []).map(l => cleanTamilLine(l));
     const charCounts = cleanedLines.map(l => l.length || 0);
     const totalChars = charCounts.reduce((s, v) => s + (v || 0), 0);
@@ -122,7 +146,10 @@ function processSegments(segmentsArray) {
           timeStart: tStart,
           timeEnd: tEnd,
           duration: durationPart,
+        //perChar: (charsInPart > 0) ? (durationPart / charsInPart) : durationPart
+
           perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.90 : durationPart
+
         });
       }
     }
@@ -143,23 +170,32 @@ function processSegments(segmentsArray) {
   return processed;
 }
 
-// -------------------------
-// PROCESS LYRICS (Auto-Split) — legacy function kept for compatibility
-// -------------------------
-function processLyricsData(raw) {
-  if (!raw || !Array.isArray(raw.tamilSegments)) return null;
-  return processSegments(raw.tamilSegments);
-}
-
+/*
 // -------------------------
 // LOAD JSON
 // -------------------------
 window.loadLyricsFromJSON = function (jsonData) {
   console.log('📘 Lyrics loaded:', jsonData);
   window.lyricsData = jsonData;
-  // Process both Tamil and English segments (Option A: English segment-wise)
+  window._lyricsProcessed = processLyricsData(jsonData);
+  window.currentSegIndex = -1;
+  window.currentLineIndex = -1;
+  window.manualOffset = 0;
+  highlightTimeLead = 0;
+
+  renderTamilLyrics();
+  insertAdjustButtons();
+  renderEnglishLyrics();
+};
+*/
+
+window.loadLyricsFromJSON = function (jsonData) {
+  console.log('📘 Lyrics loaded:', jsonData);
+  window.lyricsData = jsonData;
+
+  // Process Tamil + English segments separately
   window._lyricsProcessed = processSegments(jsonData.tamilSegments || []);
-  window._engProcessed = processSegments(jsonData.englishSegments || []);
+  window._engProcessed    = processSegments(jsonData.englishSegments || []);
 
   window.currentSegIndex = -1;
   window.currentLineIndex = -1;
@@ -170,6 +206,10 @@ window.loadLyricsFromJSON = function (jsonData) {
   insertAdjustButtons();
   renderEnglishLyrics();
 };
+
+
+
+
 
 // -------------------------
 // Insert offset buttons
@@ -225,6 +265,8 @@ function insertAdjustButtons(){
   box.appendChild(btnBar);
 }
 
+/*
+
 // -------------------------
 // Render Tamil
 // -------------------------
@@ -239,18 +281,27 @@ function renderTamilLyrics() {
   if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
 
   window.lyricsData.tamilSegments.forEach((seg, segIndex) => {
-    const segDiv = document.createElement('div');
-    segDiv.className = "lyric-card";
 
-    const badge = document.createElement('span');
-    badge.className = "lyric-number";
-    badge.textContent = "Segment " + (segIndex + 1);
-    segDiv.appendChild(badge);
+
+    const segDiv = document.createElement('div');
+    segDiv.style.marginBottom = '16px';
+
+    const title = document.createElement('div');
+    title.textContent = `Segment ${segIndex + 1}`;
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '6px';
+    segDiv.appendChild(title);
 
     (seg.lyrics || []).forEach((line, lineIndex) => {
       const lineEl = document.createElement('div');
       lineEl.textContent = cleanTamilLine(line) || '\u00A0';
-      lineEl.className = "lyric-line";
+      lineEl.style.padding = '4px 0';
+      lineEl.style.transition = 'none';
+      lineEl.style.whiteSpace = 'pre-wrap';
+      lineEl.style.fontSize = '16px';
+      lineEl.style.fontWeight = 'normal';
+      lineEl.style.color = '#333';
+      lineEl.style.background = 'transparent';
 
       window.tamilRendered.push({ segIndex, lineIndex, el: lineEl });
       segDiv.appendChild(lineEl);
@@ -260,8 +311,71 @@ function renderTamilLyrics() {
   });
 }
 
+*/
+
+
 // -------------------------
-// Render English (STACKED below Tamil)
+// Render Tamil
+// -------------------------
+window.tamilRendered = [];
+
+function renderTamilLyrics() {
+  const box = document.getElementById('tamilLyricsBox');
+  if (!box) return;
+  box.innerHTML = '';
+  window.tamilRendered = [];
+
+  if (!window.lyricsData || !window.lyricsData.tamilSegments) return;
+
+  window.lyricsData.tamilSegments.forEach((seg, segIndex) => {
+
+
+  
+
+  // ---- Bible-style lyric card ----
+const segDiv = document.createElement('div');
+segDiv.className = "lyric-card";
+
+// ---- Number badge (Bible App style) ----
+const badge = document.createElement('span');
+badge.className = "lyric-number";
+//badge.textContent = (segIndex + 1);
+badge.textContent = "Segment " + (segIndex + 1);
+
+segDiv.appendChild(badge);
+
+// ---- Lines inside card ----
+(seg.lyrics || []).forEach((line, lineIndex) => {
+  const lineEl = document.createElement('div');
+  lineEl.textContent = cleanTamilLine(line) || '\u00A0';
+  lineEl.className = "lyric-line";
+
+  window.tamilRendered.push({ segIndex, lineIndex, el: lineEl });
+  segDiv.appendChild(lineEl);
+});
+
+
+    box.appendChild(segDiv);
+  });
+}
+
+/*
+
+// -------------------------
+// Render English
+// -------------------------
+function renderEnglishLyrics() {
+  const box = document.getElementById('englishLyricsBox');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!window.lyricsData || !window.lyricsData.englishLyrics) return;
+  box.textContent = window.lyricsData.englishLyrics.join('\n');
+}
+
+*/
+
+// -------------------------
+// Render English (Bible-style cards, same as Tamil)
 // -------------------------
 window.englishRendered = [];
 
@@ -274,6 +388,7 @@ function renderEnglishLyrics() {
   if (!window.lyricsData || !window.lyricsData.englishSegments) return;
 
   window.lyricsData.englishSegments.forEach((seg, segIndex) => {
+
     const segDiv = document.createElement('div');
     segDiv.className = "lyric-card english-card";
 
@@ -295,6 +410,7 @@ function renderEnglishLyrics() {
   });
 }
 
+
 // -------------------------
 // Scroll target line 3 lines below top
 // -------------------------
@@ -311,24 +427,60 @@ function scrollToThreeLinesBelowTop(el) {
 }
 
 // -------------------------
-// Clear highlights (both Tamil + English)
+// Clear highlights
 // -------------------------
 function clearAllHighlights() {
   window.tamilRendered.forEach(item => {
     item.el.style.background = 'transparent';
     item.el.style.fontWeight = 'normal';
     item.el.style.color = '#333';
-    item.el.style.marginTop = '0px';
-    item.el.style.marginBottom = '0px';
-  });
-  window.englishRendered.forEach(item => {
-    item.el.style.background = 'transparent';
-    item.el.style.fontWeight = 'normal';
-    item.el.style.color = '#333';
-    item.el.style.marginTop = '0px';
-    item.el.style.marginBottom = '0px';
   });
 }
+
+
+/*
+
+// -------------------------
+// Apply highlight
+// -------------------------
+function applyHighlight(segIndex, lineIndex) {
+  if (segIndex === -1) {
+    clearAllHighlights();
+    return;
+  }
+
+  const half = Math.floor(window.highlightLines / 2);
+
+  window.tamilRendered.forEach(item => {
+    if (item.segIndex !== segIndex) {
+      item.el.style.background = 'transparent';
+      item.el.style.fontWeight = 'normal';
+      item.el.style.color = '#333';
+      return;
+    }
+
+    const rel = item.lineIndex - lineIndex;
+    const within = (window.highlightLines % 2 === 1)
+      ? Math.abs(rel) <= half
+      : (rel >= 0 && rel < window.highlightLines);
+
+    if (within) {
+      item.el.style.background = 'rgba(255,255,0,0.35)';
+      item.el.style.fontWeight = 'bold';
+      item.el.style.color = '#000';
+
+      if (rel === 0) scrollToThreeLinesBelowTop(item.el);
+    } else {
+      item.el.style.background = 'transparent';
+      item.el.style.fontWeight = 'normal';
+      item.el.style.color = '#333';
+    }
+  });
+}
+
+*/
+
+/*
 
 // ===== NEW FUNCTION — START =====
 function applyHighlight(segIndex, lineIndex) {
@@ -337,16 +489,67 @@ function applyHighlight(segIndex, lineIndex) {
     return;
   }
 
-  // Define previous, current, next for Tamil
+  // Define previous, current, next
   const prev = lineIndex - 1;
   const curr = lineIndex;
   const next = lineIndex + 1;
 
-  // Apply to Tamil
   window.tamilRendered.forEach(item => {
     const el = item.el;
 
     // Reset everything
+    el.style.background = 'transparent';
+    el.style.fontWeight = 'normal';
+    el.style.color = '#333';
+    el.style.marginTop = '0px';
+    el.style.marginBottom = '0px';
+
+    if (item.segIndex !== segIndex) return;
+
+    // CURRENT line → bold + yellow
+    if (item.lineIndex === curr) {
+      el.style.background = 'rgba(255,255,0,0.35)';
+      el.style.fontWeight = 'bold';
+      el.style.color = '#000';
+      scrollToThreeLinesBelowTop(el);
+    }
+
+    // PREVIOUS line → bold only + spacing above block
+    else if (item.lineIndex === prev) {
+      el.style.fontWeight = 'bold';
+      el.style.color = '#000';
+      el.style.marginTop = '12px';
+    }
+
+    // NEXT line → bold only + spacing below block
+    else if (item.lineIndex === next) {
+      el.style.fontWeight = 'bold';
+      el.style.color = '#000';
+      el.style.marginBottom = '12px';
+    }
+
+    // All others remain normal (already reset)
+  });
+}
+// ===== NEW FUNCTION — END =====
+
+
+*/
+
+// ===== NEW FUNCTION — START (Tamil + English sync) =====
+function applyHighlight(segIndex, lineIndex) {
+  if (segIndex === -1) {
+    clearAllHighlights();
+    return;
+  }
+
+  const prev = lineIndex - 1;
+  const curr = lineIndex;
+  const next = lineIndex + 1;
+
+  // ---------- Tamil ----------
+  window.tamilRendered.forEach(item => {
+    const el = item.el;
     el.style.background = 'transparent';
     el.style.fontWeight = 'normal';
     el.style.color = '#333';
@@ -371,11 +574,19 @@ function applyHighlight(segIndex, lineIndex) {
     }
   });
 
-  // Apply to English — map using same segIndex but clamp lineIndex to available lines
+  // ---------- English ----------
+  const engSeg = window._engProcessed ? window._engProcessed[segIndex] : null;
+  if (!engSeg) return;
+
+  const totalEng = engSeg.cleanedLines.length;
+  if (!totalEng) return;
+
+  const eCurr = Math.min(lineIndex, totalEng - 1);
+  const ePrev = eCurr - 1;
+  const eNext = eCurr + 1;
+
   window.englishRendered.forEach(item => {
     const el = item.el;
-
-    // Reset
     el.style.background = 'transparent';
     el.style.fontWeight = 'normal';
     el.style.color = '#333';
@@ -384,28 +595,15 @@ function applyHighlight(segIndex, lineIndex) {
 
     if (item.segIndex !== segIndex) return;
 
-    const engSeg = (window._engProcessed && window._engProcessed[segIndex]) ? window._engProcessed[segIndex] : null;
-    const engNumLines = (engSeg && engSeg.cleanedLines) ? engSeg.cleanedLines.length : 0;
-
-    // If English has no lines, nothing to do
-    if (!engNumLines) return;
-
-    // Decide english current index: try to use same lineIndex but clamp
-    const engCurr = Math.max(0, Math.min(lineIndex, engNumLines - 1));
-    const engPrev = engCurr - 1;
-    const engNext = engCurr + 1;
-
-    if (item.lineIndex === engCurr) {
+    if (item.lineIndex === eCurr) {
       el.style.background = 'rgba(255,255,0,0.35)';
       el.style.fontWeight = 'bold';
       el.style.color = '#000';
-      // Scroll English as well (use its element)
-      scrollToThreeLinesBelowTop(el);
-    } else if (item.lineIndex === engPrev) {
+    } else if (item.lineIndex === ePrev) {
       el.style.fontWeight = 'bold';
       el.style.color = '#000';
       el.style.marginTop = '12px';
-    } else if (item.lineIndex === engNext) {
+    } else if (item.lineIndex === eNext) {
       el.style.fontWeight = 'bold';
       el.style.color = '#000';
       el.style.marginBottom = '12px';
@@ -413,6 +611,8 @@ function applyHighlight(segIndex, lineIndex) {
   });
 }
 // ===== NEW FUNCTION — END =====
+
+
 
 // -------------------------
 // UPDATE HIGHLIGHT (Main logic)
@@ -432,6 +632,7 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Reset lead if new segment
   if (segIndex !== window.currentSegIndex) {
+ // highlightTimeLead = 3.50;  // ⭐ optimized start value
     highlightTimeLead = 5.00;  // ⭐ optimized start value
   }
 
@@ -447,7 +648,9 @@ window.updateLyricsHighlight = function (currentTime) {
 
   // Apply dynamic lead: 3.5 → 0.0 in steps of 0.5
   let elapsed = (currentTime - seg.start) + highlightTimeLead;
-  highlightTimeLead = Math.max(0, highlightTimeLead - 0.1);
+ // highlightTimeLead = Math.max(0, highlightTimeLead - 0.5);
+    highlightTimeLead = Math.max(0, highlightTimeLead - 0.1);
+
 
   if (!seg.totalChars || seg.totalChars <= 0 || duration <= 0) {
     const numLines = (seg.cleanedLines || []).length || 1;
@@ -482,7 +685,7 @@ window.updateLyricsHighlight = function (currentTime) {
   if (globalCharIndex < 0) globalCharIndex = 0;
   if (globalCharIndex >= seg.totalChars) globalCharIndex = seg.totalChars - 1;
 
-  // Map char index → line (Tamil)
+  // Map char index → line
   let lineIndex = 0;
   for (let i = 0; i < seg.cumulative.length; i++) {
     const b = seg.cumulative[i];
