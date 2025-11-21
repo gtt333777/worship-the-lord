@@ -189,6 +189,7 @@ window.loadLyricsFromJSON = function (jsonData) {
 };
 */
 
+
 window.loadLyricsFromJSON = function (jsonData) {
   console.log('📘 Lyrics loaded:', jsonData);
   window.lyricsData = jsonData;
@@ -206,6 +207,7 @@ window.loadLyricsFromJSON = function (jsonData) {
   insertAdjustButtons();
   renderEnglishLyrics();
 };
+
 
 
 
@@ -409,6 +411,8 @@ function renderEnglishLyrics() {
     box.appendChild(segDiv);
   });
 }
+
+
 
 
 // -------------------------
