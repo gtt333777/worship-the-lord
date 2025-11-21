@@ -796,7 +796,7 @@ window.englishRendered.forEach(item => {
     // ❗ NO EXTRA MARGIN — prevents screen from shifting
   }
 });
-
+}
 
 
 // -------------------------
