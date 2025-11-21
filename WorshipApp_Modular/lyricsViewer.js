@@ -250,28 +250,22 @@ function processLyricsData(raw) {
   return processed;
 }
 
-/*
-// -------------------------
-// LOAD JSON
-// -------------------------
-window.loadLyricsFromJSON = function (jsonData) {
-  console.log('📘 Lyrics loaded:', jsonData);
-  window.lyricsData = jsonData;
-  window._lyricsProcessed = processLyricsData(jsonData);
-  window.currentSegIndex = -1;
-  window.currentLineIndex = -1;
-  window.manualOffset = 0;
-  highlightTimeLead = 0;
 
-  renderTamilLyrics();
-  insertAdjustButtons();
-  renderEnglishLyrics();
-};
-*/
+
 
 
 window.loadLyricsFromJSON = function (jsonData) {
   console.log('📘 Lyrics loaded:', jsonData);
+
+  // ⭐ Fallback: Convert old englishLyrics → englishSegments
+  if (!jsonData.englishSegments && jsonData.englishLyrics) {
+    jsonData.englishSegments = [{
+      start: 0,
+      end: 9999,
+      lyrics: jsonData.englishLyrics
+    }];
+  }
+
   window.lyricsData = jsonData;
 
   // Process Tamil + English segments separately
@@ -287,6 +281,7 @@ window.loadLyricsFromJSON = function (jsonData) {
   insertAdjustButtons();
   renderEnglishLyrics();
 };
+
 
 
 
