@@ -16,7 +16,8 @@
 // maxPartsLimit = 8
 // ✔ Very safe method:  perChar: (charsInPart > 0) ? (durationPart / charsInPart) * 0.85 : durationPart
 
-
+// To further increase by 1 or 2 second:
+// const charsEarly = 1.0 / avgPerChar;      // characters equal to 1 second
 
 // ===============================================================
 
@@ -715,6 +716,8 @@ function applyHighlight(segIndex, lineIndex) {
     }
   });
 
+  /*
+
   // ---------- English ----------
   const engSeg = window._engProcessed ? window._engProcessed[segIndex] : null;
   if (!engSeg) return;
@@ -752,6 +755,47 @@ function applyHighlight(segIndex, lineIndex) {
   });
 }
 // ===== NEW FUNCTION — END =====
+*/
+
+// ---------- English ----------
+const engSeg = window._engProcessed ? window._engProcessed[segIndex] : null;
+if (!engSeg) return;
+
+const totalEng = engSeg.cleanedLines.length;
+if (!totalEng) return;
+
+const eCurr = Math.min(lineIndex, totalEng - 1);
+const ePrev = eCurr - 1;
+const eNext = eCurr + 1;
+
+window.englishRendered.forEach(item => {
+  const el = item.el;
+  el.style.background = 'transparent';
+  el.style.fontWeight = 'normal';
+  el.style.color = '#333';
+
+  // ❗ MOST IMPORTANT — keep English spacing FIXED
+  el.style.marginTop = '0px';
+  el.style.marginBottom = '0px';
+
+  if (item.segIndex !== segIndex) return;
+
+  if (item.lineIndex === eCurr) {
+    el.style.background = 'rgba(255,255,0,0.35)';
+    el.style.fontWeight = 'bold';
+    el.style.color = '#000';
+  } 
+  else if (item.lineIndex === ePrev) {
+    el.style.fontWeight = 'bold';
+    el.style.color = '#000';
+    // ❗ NO EXTRA MARGIN — prevents screen from shifting
+  }
+  else if (item.lineIndex === eNext) {
+    el.style.fontWeight = 'bold';
+    el.style.color = '#000';
+    // ❗ NO EXTRA MARGIN — prevents screen from shifting
+  }
+});
 
 
 
@@ -840,12 +884,53 @@ window.updateLyricsHighlight = function (currentTime) {
   }
 
   const numLines = seg.cumulative.length;
+
+  /*
   const requested = lineIndex + window.manualOffset;
   const finalIndex = Math.max(0, Math.min(requested, numLines - 1));
 
   window.currentSegIndex = segIndex;
   window.currentLineIndex = finalIndex;
   applyHighlight(segIndex, finalIndex);
+  */
+
+  // ----- SHIFT TAMIL ONE SECOND EARLY -----
+let earlyLineIndex = lineIndex;
+
+// add +1s worth of characters into progression
+// convert 1 second into "characters" using average perChar
+if (seg.parts && seg.parts.length > 0) {
+    // estimate average perChar from first part (safe)
+    const avgPerChar = seg.parts[0].perChar || 0;
+
+    if (avgPerChar > 0) {
+        const charsEarly = 1.0 / avgPerChar;      // characters equal to 1 second
+        let newCharPos = globalCharIndex + charsEarly;
+
+        // clamp inside total chars
+        if (newCharPos >= seg.totalChars) newCharPos = seg.totalChars - 1;
+
+        // map back to line index (same method as earlier)
+        for (let i = 0; i < seg.cumulative.length; i++) {
+            const b = seg.cumulative[i];
+            if (b.start <= newCharPos && newCharPos < b.end) {
+                earlyLineIndex = i;
+                break;
+            }
+        }
+    }
+}
+
+// manual offset (still works)
+const requested = earlyLineIndex + window.manualOffset;
+const finalIndex = Math.max(0, Math.min(requested, numLines - 1));
+
+window.currentSegIndex = segIndex;
+window.currentLineIndex = finalIndex;
+applyHighlight(segIndex, finalIndex);
+
+
+
 };
 
 // -------------------------
