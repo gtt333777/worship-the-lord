@@ -106,41 +106,66 @@
       ]
     }
   ],
-  "englishLyrics": [
-    "Segment 1",
-    "appaa um paatham amarnthuvittaen",
-    "anpin thakappan neerthaanaiyyaa",
-    "seytha paavangal kannmunnae",
-    "varunthukiraen naan kannnneerodu",
-    "ennaik kaluvi kaluvi thooymaiyaakkum",
-    "kalvaari iraththaththaalae",
-    "naan paniyaip pola vennmaiyaavaen",
-    "muttilum vennmaiyaavaen",
-    "iyaesaiyaa(4)",
-    "Segment 2",
-    "thunnikaramaay naan thavatru seythaen",
-    "thunninthu paavam seythaen",
-    "Nnokkip paarkka pelanillaiyae",
-    "thookki niruththum en theyvamae – ennaik",
-    "Segment 3",
-    "kilakku maerku ulla thooram",
-    "unthan irakkam uyarnthathaiyaa",
-    "illaiyae ellai um anpirku",
-    "irakkaththin selvanthar neerthaanaiyyaa",
-    "Segment 4",
-    "en kuttangal neer ninaivu koornthaal",
-    "ummunnae nirka mutiyaathaiyaa",
-    "thakappan makanai mannippathupol",
-    "mannikkum theyvam neerthaanaiyaa",
-    "Segment 5",
-    "mulmuti kireedam paarkkinten",
-    "mukamellaam iraththam kaannkinten",
-    "jeevan thanthallo meettiraiyaa",
-    "thaevanae naan enna solvaen",
-    "appaa um paatham amarnthuvittaen",
-    "anpin thakappan neerthaanaiyaa",
-    "kirupaiyinpatiyae manamirangi",
-    "meetpin makilchchi thantheeraiyaa",
-    "iyaesaiyaa nanti(4)"
+  "englishSegments": [
+    {
+      "start": 32.967,
+      "end": 107.211,
+      "lyrics": [
+        "appaa um paatham amarnthuvittaen",
+        "anpin thakappan neerthaanaiyyaa",
+        "seytha paavangal kannmunnae",
+        "varunthukiraen naan kannnneerodu",
+        "ennaik kaluvi kaluvi thooymaiyaakkum",
+        "kalvaari iraththaththaalae",
+        "naan paniyaip pola vennmaiyaavaen",
+        "muttilum vennmaiyaavaen",
+        "iyaesaiyaa(4)"
+      ]
+    },
+    {
+      "start": 128.947,
+      "end": 203.208,
+      "lyrics": [
+        "thunnikaramaay naan thavatru seythaen",
+        "thunninthu paavam seythaen",
+        "Nnokkip paarkka pelanillaiyae",
+        "thookki niruththum en theyvamae – ennaik"
+      ]
+    },
+    {
+      "start": 227.707,
+      "end": 301.748,
+      "lyrics": [
+        "kilakku maerku ulla thooram",
+        "unthan irakkam uyarnthathaiyaa",
+        "illaiyae ellai um anpirku",
+        "irakkaththin selvanthar neerthaanaiyyaa"
+      ]
+    },
+    {
+      "start": 331.384,
+      "end": 406.156,
+      "lyrics": [
+        "en kuttangal neer ninaivu koornthaal",
+        "ummunnae nirka mutiyaathaiyaa",
+        "thakappan makanai mannippathupol",
+        "mannikkum theyvam neerthaanaiyaa"
+      ]
+    },
+    {
+      "start": 427.595,
+      "end": 546.876,
+      "lyrics": [
+        "mulmuti kireedam paarkkinten",
+        "mukamellaam iraththam kaannkinten",
+        "jeevan thanthallo meettiraiyaa",
+        "thaevanae naan enna solvaen",
+        "appaa um paatham amarnthuvittaen",
+        "anpin thakappan neerthaanaiyaa",
+        "kirupaiyinpatiyae manamirangi",
+        "meetpin makilchchi thantheeraiyaa",
+        "iyaesaiyaa nanti(4)"
+      ]
+    }
   ]
 }
