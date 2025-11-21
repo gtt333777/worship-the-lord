@@ -5,8 +5,8 @@
   },
   "tamilSegments": [
     {
-      "start": 50.151,
-      "end": 143.382,
+      "start": null,
+      "end": null,
       "lyrics": [
         "1 இரத்தமே சிந்தப்பட்ட இரத்தமே",
         "விலையேறப்பெற்ற வல்ல இரத்தமே",
@@ -28,8 +28,8 @@
       ]
     },
     {
-      "start": 179.439,
-      "end": 295.191,
+      "start": null,
+      "end": null,
       "lyrics": [
         "2 பாவங்கள் யாவையும் கழுவி என்னை",
         "பரிசுத்தமாக்கின வல்ல இரத்தமே",
@@ -55,8 +55,8 @@
       ]
     },
     {
-      "start": 334.678,
-      "end": 450.395,
+      "start": null,
+      "end": null,
       "lyrics": [
         "3 தூரமான புற ஜாதி எனக்கு",
         "சொந்தமென்ற உறவை தந்த இரத்தமே",
@@ -82,8 +82,8 @@
       ]
     },
     {
-      "start": 475.126,
-      "end": 590.806,
+      "start": null,
+      "end": null,
       "lyrics": [
         "4 நித்திய மீட்பை எனக்குத்தர",
         "எதிர்க்கும் சாத்தான் மேல், ஜெயம் பெற",
@@ -109,31 +109,51 @@
       ]
     }
   ],
-  "englishLyrics": [
-    "Segment 1",
-    "1 Rathamae Sinthapatta Rathamae Lyrics in English",
-    "iraththamae sinthappatta iraththamae",
-    "vilaiyaerappetta valla iraththamae",
-    "Yesu kiristhuvin iraththamae",
-    "(enakku) vilaiyaaka sinthappattathae – 2",
-    "iraththamae sinthappatta iraththamae",
-    "vilaiyaerappetta valla iraththamae",
-    "iraththamae sinthappatta iraththamae",
-    "(enakku) vilaiyaaka sinthappattathae",
-    "Segment 2",
-    "2 paavangal yaavaiyum kaluvi ennai",
-    "parisuththamaakina valla iraththamae",
-    "suththamanachchaாtchiyai enakkuth thaththu",
-    "suththikariththa parisuththa iraththamae",
-    "Segment 3",
-    "3 thooramaana pura jaathi enakku",
-    "sonthamenta uravai thantha iraththamae",
-    "jeevanulla puthiya maarkaththinul",
-    "piravaesikka thairiyam thantha iraththamae",
-    "Segment 4",
-    "4 niththiya meetpai enakkuththara",
-    "ethirkkum saaththaan mael jeyam pera",
-    "nanmaikal enakkaay paesukira",
-    "thelikkappadum parisuththa iraththamae"
+  "englishSegments": [
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "1 Rathamae Sinthapatta Rathamae Lyrics in English",
+        "iraththamae sinthappatta iraththamae",
+        "vilaiyaerappetta valla iraththamae",
+        "Yesu kiristhuvin iraththamae",
+        "(enakku) vilaiyaaka sinthappattathae – 2",
+        "iraththamae sinthappatta iraththamae",
+        "vilaiyaerappetta valla iraththamae",
+        "iraththamae sinthappatta iraththamae",
+        "(enakku) vilaiyaaka sinthappattathae"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "2 paavangal yaavaiyum kaluvi ennai",
+        "parisuththamaakina valla iraththamae",
+        "suththamanachchaாtchiyai enakkuth thaththu",
+        "suththikariththa parisuththa iraththamae"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "3 thooramaana pura jaathi enakku",
+        "sonthamenta uravai thantha iraththamae",
+        "jeevanulla puthiya maarkaththinul",
+        "piravaesikka thairiyam thantha iraththamae"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "4 niththiya meetpai enakkuththara",
+        "ethirkkum saaththaan mael jeyam pera",
+        "nanmaikal enakkaay paesukira",
+        "thelikkappadum parisuththa iraththamae"
+      ]
+    }
   ]
 }

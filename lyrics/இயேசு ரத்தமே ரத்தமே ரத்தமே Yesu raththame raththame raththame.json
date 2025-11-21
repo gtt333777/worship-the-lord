@@ -67,25 +67,40 @@
       ]
     }
   ],
-  "englishLyrics": [
-    "Segment 1",
-    "Yesu raththame raththame raththame",
-    "Vilaiyera petra raththame",
-    "Kutram illaa parisutha raththame",
-    "yesu raththame raththame raththame",
-    "Segment 2",
-    "Magaa kodura paavangal kazhuvidum – nam",
-    "yesuvin raththame",
-    "Magaa viyaakula vedhanaiyaai viyarvai",
-    "raththamaai veli vanthadhe",
-    "Segment 3",
-    "Manasaatchiyai suththikarithidum – nam",
-    "yesuvin raththame",
-    "Manavedhanai neengidume",
-    "Saabam ellaame pokkidume",
-    "Magaa parisutha sthalamathil saerthidum",
-    "Nam yesuvin raththame",
-    "Magaa pradhaana aasaariyaraai",
-    "Namakku mun sendra parisuththarae"
+  "englishSegments": [
+    {
+      "start": 0.001,
+      "end": 47.146,
+      "lyrics": [
+        "Yesu raththame raththame raththame",
+        "Vilaiyera petra raththame",
+        "Kutram illaa parisutha raththame",
+        "yesu raththame raththame raththame"
+      ]
+    },
+    {
+      "start": 47.147,
+      "end": 121.163,
+      "lyrics": [
+        "Magaa kodura paavangal kazhuvidum – nam",
+        "yesuvin raththame",
+        "Magaa viyaakula vedhanaiyaai viyarvai",
+        "raththamaai veli vanthadhe"
+      ]
+    },
+    {
+      "start": 121.164,
+      "end": 200.029,
+      "lyrics": [
+        "Manasaatchiyai suththikarithidum – nam",
+        "yesuvin raththame",
+        "Manavedhanai neengidume",
+        "Saabam ellaame pokkidume",
+        "Magaa parisutha sthalamathil saerthidum",
+        "Nam yesuvin raththame",
+        "Magaa pradhaana aasaariyaraai",
+        "Namakku mun sendra parisuththarae"
+      ]
+    }
   ]
 }

@@ -119,47 +119,72 @@
       ]
     }
   ],
-  "englishLyrics": [
-    "Segment 1",
-    "alakaay thiral thiralaay",
-    "vennnnaatai anninthor koottaththudan",
-    "anpar Yesuvin mukam kanndu",
-    "aananthippom annaalinilae",
-    "makimaiyin naalathu makimaiyin naalathu",
-    "makimaiyin naalathu",
-    "Segment 2",
-    "2. Yesuvin iraththaththinaalae",
-    "maaperum meetpai atainthom",
-    "vennnnaataiyai thariththuk konndu",
-    "aarpparippom antha naalinilae",
-    "marukaraiyil mannan maalikaiyil",
-    "makilvudanae naam sernthiduvom",
-    "Segment 3",
-    "3. peyarkal eluthappattaோr",
-    "punnnniya thaesam kaannpaar",
-    "angae oru paathai unndu",
-    "thooyarkal athilae nadanthu selvaar",
-    "Segment 4",
-    "4. Yesuvai pattik konntoor",
-    "annaalil palanaik kaannpaar",
-    "ulakaththilae thuyarappattaோr",
-    "unnathaththil antu kanam peruvaar",
-    "Segment 5",
-    "5. puththiyulla kannikai pola",
-    "pakthiyaay aayaththamaavom",
-    "makimai tharum mana naalilae",
-    "manavaattiyaay naam joliththiduvom",
-    "Segment",
-    "6. kannnneer kavalai illai",
-    "paavam saapamillai",
-    "thuthiyin saththam engum thonikkum",
-    "thooyavar Yesuvil kempeerippom",
-    "Segment",
-    "6. கண்ணீர் கவலை இல்லை",
-    "பாவம் சாபமில்லை                     2",
-    "துதியின் சத்தம் எங்கும் தொனிக்கும்",
-    "தூயவர் இயேசுவில் கெம்பீரிப்போம்     2",
-    "மறுகரையில் மன்னன் மாளிகையில்",
-    "மகிழ்வுடனே நாம் சேர்ந்திடுவோம்      2"
+  "englishSegments": [
+    {
+      "start": 42.035,
+      "end": 113.351,
+      "lyrics": [
+        "alakaay thiral thiralaay",
+        "vennnnaatai anninthor koottaththudan",
+        "anpar Yesuvin mukam kanndu",
+        "aananthippom annaalinilae",
+        "makimaiyin naalathu makimaiyin naalathu",
+        "makimaiyin naalathu"
+      ]
+    },
+    {
+      "start": 131.393,
+      "end": 202.567,
+      "lyrics": [
+        "2. Yesuvin iraththaththinaalae",
+        "maaperum meetpai atainthom",
+        "vennnnaataiyai thariththuk konndu",
+        "aarpparippom antha naalinilae",
+        "marukaraiyil mannan maalikaiyil",
+        "makilvudanae naam sernthiduvom"
+      ]
+    },
+    {
+      "start": 211.545,
+      "end": 282.573,
+      "lyrics": [
+        "3. peyarkal eluthappattaோr",
+        "punnnniya thaesam kaannpaar",
+        "angae oru paathai unndu",
+        "thooyarkal athilae nadanthu selvaar"
+      ]
+    },
+    {
+      "start": 309.033,
+      "end": 380.101,
+      "lyrics": [
+        "4. Yesuvai pattik konntoor",
+        "annaalil palanaik kaannpaar",
+        "ulakaththilae thuyarappattaோr",
+        "unnathaththil antu kanam peruvaar"
+      ]
+    },
+    {
+      "start": 398.428,
+      "end": 527.666,
+      "lyrics": [
+        "5. puththiyulla kannikai pola",
+        "pakthiyaay aayaththamaavom",
+        "makimai tharum mana naalilae",
+        "manavaattiyaay naam joliththiduvom",
+        "Segment",
+        "6. kannnneer kavalai illai",
+        "paavam saapamillai",
+        "thuthiyin saththam engum thonikkum",
+        "thooyavar Yesuvil kempeerippom",
+        "Segment",
+        "6. கண்ணீர் கவலை இல்லை",
+        "பாவம் சாபமில்லை                     2",
+        "துதியின் சத்தம் எங்கும் தொனிக்கும்",
+        "தூயவர் இயேசுவில் கெம்பீரிப்போம்     2",
+        "மறுகரையில் மன்னன் மாளிகையில்",
+        "மகிழ்வுடனே நாம் சேர்ந்திடுவோம்      2"
+      ]
+    }
   ]
 }

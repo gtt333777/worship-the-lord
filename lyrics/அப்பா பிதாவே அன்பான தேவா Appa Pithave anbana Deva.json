@@ -69,35 +69,55 @@
       ]
     }
   ],
-  "englishLyrics": [
-    "Segment 1",
-    "Appa Pithave Anbana Devaa",
-    "Arumai Iratchakarae Aaviyaanavarae",
-    "Segment 2",
-    "Engo Naan Vaalnthaen Ariyaamal Alainthaen",
-    "En Naesar Thaeti Vantheer",
-    "Nenjaara Annaiththu Muththangal Koduththu",
-    "Nilalaay Maari Vittir",
-    "Nantri Umakku Nantri",
-    "Segment 3",
-    "Thaalmaiyil Irunthaen Thallaati Nadanthaen",
-    "Thayavaay Ninaivu Koorntheer",
-    "Kalangaathae Entu Kanneeraith Thutaiththu",
-    "Karam Patti Nadaththukireer",
-    "Segment 4",
-    "Ulaiyaana Settil Vaalntha Ennai",
-    "Thookki Eduththeerae",
-    "Kalvaari Iraththam Enakkaaka Sinthi",
-    "Kaluvi Annaiththeerae",
-    "Segment",
-    "Iravum Pakalum Aiyaa Kooda Irunthu",
-    "Ennaalum Kaappavarae",
-    "Maravaatha Theyvam Maaraatha Naesar",
-    "Makimaikkup Paaththirarae",
-    "Segment",
-    "இரவும் பகலும் ஐயா கூட இருந்து",
-    "எந்நாளும் காப்பவரே",
-    "மறவாத தெய்வம் மாறாத நேசர்",
-    "மகிமைக்குப் பாத்திரரே"
+  "englishSegments": [
+    {
+      "start": 47.153,
+      "end": 78.657,
+      "lyrics": [
+        "Appa Pithave Anbana Devaa",
+        "Arumai Iratchakarae Aaviyaanavarae"
+      ]
+    },
+    {
+      "start": 85.409,
+      "end": 155.399,
+      "lyrics": [
+        "Engo Naan Vaalnthaen Ariyaamal Alainthaen",
+        "En Naesar Thaeti Vantheer",
+        "Nenjaara Annaiththu Muththangal Koduththu",
+        "Nilalaay Maari Vittir",
+        "Nantri Umakku Nantri"
+      ]
+    },
+    {
+      "start": 178.295,
+      "end": 248.256,
+      "lyrics": [
+        "Thaalmaiyil Irunthaen Thallaati Nadanthaen",
+        "Thayavaay Ninaivu Koorntheer",
+        "Kalangaathae Entu Kanneeraith Thutaiththu",
+        "Karam Patti Nadaththukireer"
+      ]
+    },
+    {
+      "start": 271.123,
+      "end": 341.244,
+      "lyrics": [
+        "Ulaiyaana Settil Vaalntha Ennai",
+        "Thookki Eduththeerae",
+        "Kalvaari Iraththam Enakkaaka Sinthi",
+        "Kaluvi Annaiththeerae",
+        "Segment",
+        "Iravum Pakalum Aiyaa Kooda Irunthu",
+        "Ennaalum Kaappavarae",
+        "Maravaatha Theyvam Maaraatha Naesar",
+        "Makimaikkup Paaththirarae",
+        "Segment",
+        "இரவும் பகலும் ஐயா கூட இருந்து",
+        "எந்நாளும் காப்பவரே",
+        "மறவாத தெய்வம் மாறாத நேசர்",
+        "மகிமைக்குப் பாத்திரரே"
+      ]
+    }
   ]
 }
