@@ -588,7 +588,7 @@ function scrollToCenter(el) {
 }
 */
 
-
+/*
 function scrollToOneLineBelowTop(el) {
   if (!el) return;
   if (userIsScrolling) return;
@@ -607,6 +607,25 @@ function scrollToOneLineBelowTop(el) {
 
   parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
 }
+*/
+
+function scrollToOneLineBelowTop(el) {
+  if (!el) return;
+  if (userIsScrolling) return;
+
+  const parent = document.getElementById('lyricsScrollBox');
+
+  const parentRect = parent.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+
+  const lineHeight = 28;
+
+  const targetScroll =
+    parent.scrollTop + (elRect.top - parentRect.top) - lineHeight;
+
+  parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
+}
+
 
 
 
