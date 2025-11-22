@@ -709,7 +709,7 @@ function applyHighlight(segIndex, lineIndex) {
       el.style.fontWeight = "bold";
       el.style.color = "#000";
 
-     // scrollToThreeLinesBelowTop(el);
+     scrollToThreeLinesBelowTop(el);
 
       // ⭐ Stop auto-scroll if user touched the screen
       if (!userIsScrolling) scrollToThreeLinesBelowTop(el);
