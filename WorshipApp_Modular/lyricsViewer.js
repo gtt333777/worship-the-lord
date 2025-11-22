@@ -53,6 +53,8 @@ window.setMaxPartsLimit = function(n){
   if (!isNaN(v) && v > 0) maxPartsLimit = v;
 };
 
+
+/*
 // Scroll control
 let userIsScrolling = false;
 let scrollCooldownTimer = null;
@@ -61,6 +63,19 @@ window.addEventListener("scroll", () => {
   if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
   scrollCooldownTimer = setTimeout(() => { userIsScrolling = false; }, 5000);
 });
+
+*/
+
+window.addEventListener("scroll", () => {
+  userIsScrolling = true;
+
+  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
+
+  scrollCooldownTimer = setTimeout(() => {
+    userIsScrolling = false;  // ⭐ Auto-scroll resumes
+  }, 3000); // 3 seconds pause
+});
+
 
 
 /*
@@ -609,6 +624,7 @@ function scrollToOneLineBelowTop(el) {
 }
 */
 
+/*
 function scrollToOneLineBelowTop(el) {
   if (!el) return;
   if (userIsScrolling) return;
@@ -625,6 +641,26 @@ function scrollToOneLineBelowTop(el) {
 
   parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
 }
+*/
+
+
+function scrollToOneLineBelowTop(el) {
+  if (!el) return;
+  if (userIsScrolling) return;
+
+  const parent = document.getElementById('lyricsScrollBox');
+
+  const parentRect = parent.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+
+  const lineHeight = 28;
+
+  const targetScroll =
+    parent.scrollTop + (elRect.top - parentRect.top) - (lineHeight * 2);
+
+  parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
+}
+
 
 
 
