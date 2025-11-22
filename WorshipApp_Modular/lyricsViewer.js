@@ -588,21 +588,24 @@ function scrollToCenter(el) {
 }
 */
 
+
 function scrollToOneLineBelowTop(el) {
   if (!el) return;
   if (userIsScrolling) return;
 
   const parent = document.getElementById('tamilLyricsBox');
+
+  // get positions
   const parentRect = parent.getBoundingClientRect();
   const elRect = el.getBoundingClientRect();
 
-  const lineHeight = 28; // your line height
-  const targetTop = parentRect.top + lineHeight; // 1 line below top
-  const elTop = elRect.top;
+  const lineHeight = 28;
 
-  const scrollAmount = elTop - targetTop;
+  // Correct scroll target inside the box
+  const targetScroll =
+    parent.scrollTop + (elRect.top - parentRect.top) - lineHeight;
 
-  window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+  parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
 }
 
 
