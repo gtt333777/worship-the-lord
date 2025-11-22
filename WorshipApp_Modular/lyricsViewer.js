@@ -66,6 +66,8 @@ window.addEventListener("scroll", () => {
 
 */
 
+
+/*
 window.addEventListener("scroll", () => {
   userIsScrolling = true;
 
@@ -75,6 +77,24 @@ window.addEventListener("scroll", () => {
     userIsScrolling = false;  // ⭐ Auto-scroll resumes
   }, 3000); // 3 seconds pause
 });
+*/
+
+// -------------------------------------
+// ⭐ Scroll control (manual + auto-resume)
+// -------------------------------------
+let userIsScrolling = false;
+let scrollCooldownTimer = null;
+
+window.addEventListener("scroll", () => {
+  userIsScrolling = true;
+
+  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
+
+  scrollCooldownTimer = setTimeout(() => {
+    userIsScrolling = false;  // ⭐ Auto-scroll resumes after 3 sec
+  }, 3000);
+});
+
 
 
 
