@@ -899,7 +899,7 @@ if (seg.parts && seg.parts.length > 0) {
     const avgPerChar = seg.parts[0].perChar || 0;
 
     if (avgPerChar > 0) {
-        const charsEarly = 1.0 / avgPerChar;      // characters equal to 1 second
+        const charsEarly = 2.0 / avgPerChar;      // characters equal to 1 second
         let newCharPos = globalCharIndex + charsEarly;
 
         // clamp inside total chars
