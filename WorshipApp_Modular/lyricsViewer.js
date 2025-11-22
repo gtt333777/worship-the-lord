@@ -712,7 +712,7 @@ function applyHighlight(segIndex, lineIndex) {
      scrollToThreeLinesBelowTop(el);
 
       // ⭐ Stop auto-scroll if user touched the screen
-      if (!userIsScrolling) scrollToThreeLinesBelowTop(el);
+      // if (!userIsScrolling) scrollToThreeLinesBelowTop(el);
 
 
     }
