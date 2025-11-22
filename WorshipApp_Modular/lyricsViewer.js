@@ -19,6 +19,15 @@
 // To further increase by 1 or 2 second:
 // const charsEarly = 1.0 / avgPerChar;      // characters equal to 1 second
 
+
+// Search for this function:
+// function scrollToOneLineBelowTop(el) {
+// Inside you will see this line:
+//  const targetScroll =
+// parent.scrollTop + (elRect.top - parentRect.top) - (lineHeight * 2);
+// 👉 This “2” controls how many lines below the top the highlighted line sits.
+
+
 // ===============================================================
 
 // --------- PUBLIC / GLOBALS ----------
@@ -558,7 +567,7 @@ function scrollToOneLineBelowTop(el) {
   const lineHeight = 28;
 
   const targetScroll =
-    parent.scrollTop + (elRect.top - parentRect.top) - (lineHeight * 2);
+    parent.scrollTop + (elRect.top - parentRect.top) - (lineHeight * 3);
 
   parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
 }
