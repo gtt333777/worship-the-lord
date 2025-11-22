@@ -265,23 +265,6 @@ window.loadLyricsFromJSON = function (jsonData) {
 };
 
 
-// ⭐ Manual scroll detection (only inside lyrics box)
-let userIsScrolling = false;
-let scrollCooldownTimer = null;
-
-const scrollBox = document.getElementById("lyricsScrollBox");
-
-scrollBox.addEventListener("scroll", () => {
-  userIsScrolling = true;
-
-  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
-
-  scrollCooldownTimer = setTimeout(() => {
-    userIsScrolling = false;   // ⭐ Auto-scroll resumes after 5 sec
-  }, 3000); // change to 3000 if you want 3 sec
-});
-
-
 
 
 
@@ -984,7 +967,26 @@ window.highlightDown = function(){
 
 window.highlightReset = function(){ 
   window.manualOffset = 0; 
+
 };
+
+  // ⭐ Manual scroll detection (only inside lyrics box)
+let userIsScrolling = false;
+let scrollCooldownTimer = null;
+
+const scrollBox = document.getElementById("lyricsScrollBox");
+
+scrollBox.addEventListener("scroll", () => {
+  userIsScrolling = true;
+
+  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
+
+  scrollCooldownTimer = setTimeout(() => {
+    userIsScrolling = false;   // ⭐ Auto-scroll resumes after 5 sec
+  }, 3000); // change to 5000 if you want 5 sec
+});
+
+
 
 // -------------------------
 // Keyboard shortcuts
