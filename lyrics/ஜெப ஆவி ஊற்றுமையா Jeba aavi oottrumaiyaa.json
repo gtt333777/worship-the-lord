@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 47.428,
+      "end": 66.885,
+      "lyrics": [
+        "1. ஜெப ஆவி ஊற்றுமையா",
+        "ஜெபிக்கணும் ஜெபிக்கணுமே   2"
+      ]
+    },
+    {
+      "start": 82.873,
+      "end": 112.177,
+      "lyrics": [
+        "2. ஸ்தோத்திர பலி, விண்ணப்ப ஜெபம் 2",
+        "எந்நேரமும் நான் ஏறெடுக்கணும்     2"
+      ]
+    },
+    {
+      "start": 123.312,
+      "end": 152.589,
+      "lyrics": [
+        "3. உபவாசித்து, உடலை ஒறுத்து,     2",
+        "ஒவ்வொரு நாளும் ஜெபிக்கணுமே   2"
+      ]
+    },
+    {
+      "start": 168.785,
+      "end": 198.033,
+      "lyrics": [
+        "4. திறப்பின் வாசலில் நிற்கணுமே   2",
+        "தேசத்திற்காய் கதறணுமே -என்  2"
+      ]
+    },
+    {
+      "start": 214.318,
+      "end": 243.736,
+      "lyrics": [
+        "5. முழங்கால்கள் முடங்கணுமே          2",
+        "கண்கள் எல்லாம் குளமாகணும் -என்  2"
+      ]
+    },
+    {
+      "start": 254.828,
+      "end": 294.872,
+      "lyrics": [
+        "6. தானியேல் போல மூன்று வேளையும்  2",
+        "தவறாமல் நான் ஜெபிக்கணுமே       2"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 47.428,
+      "end": 66.885,
+      "lyrics": [
+        "1. jepa aavi oottumaiyaa",
+        "jepikkanum jepikkanumae"
+      ]
+    },
+    {
+      "start": 82.873,
+      "end": 112.177,
+      "lyrics": [
+        "2. sthoththira pali, vinnnappa jepam",
+        "ennaeramum naan aeraெdukkanum"
+      ]
+    },
+    {
+      "start": 123.312,
+      "end": 152.589,
+      "lyrics": [
+        "3. upavaasiththu, udalai oruththu,",
+        "ovvoru naalum jepikkanumae"
+      ]
+    },
+    {
+      "start": 168.785,
+      "end": 198.033,
+      "lyrics": [
+        "4. thirappin vaasalil nirkanumae",
+        "thaesaththirkaay katharanumae -en"
+      ]
+    },
+    {
+      "start": 214.318,
+      "end": 243.736,
+      "lyrics": [
+        "5. mulangaalkal mudanganumae",
+        "kannkal ellaam kulamaakanum -en"
+      ]
+    },
+    {
+      "start": 254.828,
+      "end": 294.872,
+      "lyrics": [
+        "6. thaaniyael pola moontu vaelaiyum",
+        "thavaraamal naan jepikkanumae"
+      ]
+    }
+  ]
+}

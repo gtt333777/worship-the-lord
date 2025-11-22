@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 36.838,
+      "end": 126.084,
+      "lyrics": [
+        "1. வாதை உந்தன் கூடாரத்தை அணுகாது மகனே",
+        "பொல்லாப்பு நேரிடாது நேரிடாது மகளே       2",
+        "உன்னதமான கர்த்தரையே",
+        "உறைவிடமாக்கிக் கொண்டாய்  2",
+        "அடைக்கலமாம் ஆண்டவனை",
+        "ஆதாயமாக்கிக் கொண்டாய்    2"
+      ]
+    },
+    {
+      "start": 145.884,
+      "end": 196.902,
+      "lyrics": [
+        "2. ஆட்டுக்குட்டி இரத்தத்தினால்",
+        "சாத்தானை ஜெயித்து விட்டோம் 2",
+        "ஆவி உண்டு வசனம் உண்டு",
+        "அன்றாடம் வெற்றி உண்டு      2"
+      ]
+    },
+    {
+      "start": 222.85,
+      "end": 273.869,
+      "lyrics": [
+        "3. கர்த்தருக்குள் நம் பாடுகள்",
+        "ஒரு நாளும் வீணாகாது      2",
+        "அசையாமல் உறுதியுடன்",
+        "அதிகமாய் செயல்படுவோம் 2"
+      ]
+    },
+    {
+      "start": 293.213,
+      "end": 346.475,
+      "lyrics": [
+        "4. நம்முடைய குடியிருப்பு",
+        "பரலோகத்தில் உண்டு       2",
+        "வரப்போகும் இரட்சகரை",
+        "எதிர்நோக்கி காத்திருப்போம் 2",
+        "5. அழைத்தவரோ உண்மையுள்ளவர்",
+        "பரிசுத்தமாக்கிடுவார்",
+        "ஆவி ஆத்துமா சரீரமெல்லாம்",
+        "குற்றமின்றி காத்திடுவார்",
+        "6. அற்பமான ஆரம்பத்தை",
+        "அசட்டை பண்ணாதே",
+        "தொடங்கினவர் முடித்திடுவார்",
+        "சொன்னதை செய்திடுவார்",
+        "7. ஆற்றல் அல்ல சக்தி அல்ல",
+        "ஆவியினால் ஆகும்",
+        "சோர்ந்திடாமல் நன்மை செய்வோம்",
+        "துணையாளர் முன் செல்கிறார்"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 36.838,
+      "end": 126.084,
+      "lyrics": [
+        "1. Vaathai unthan koodaaraththai anukaathu makanae",
+        "pollaappu naeridaathu naeridaathu makalae",
+        "unnathamaana karththaraiyae",
+        "uraividamaakkik konndaay",
+        "ataikkalamaam aanndavanai",
+        "aathaayamaakkik konndaay"
+      ]
+    },
+    {
+      "start": 145.884,
+      "end": 196.902,
+      "lyrics": [
+        "2. aattukkutti iraththaththinaal",
+        "saaththaanai jeyiththu vittaோm",
+        "aavi unndu vasanam unndu",
+        "antadam vetti unndu"
+      ]
+    },
+    {
+      "start": 222.85,
+      "end": 273.869,
+      "lyrics": [
+        "3. karththarukkul nam paadukal",
+        "oru naalum veennaakaathu",
+        "asaiyaamal uruthiyudan",
+        "athikamaay seyalpaduvom"
+      ]
+    },
+    {
+      "start": 293.213,
+      "end": 346.475,
+      "lyrics": [
+        "4. nammutaiya kutiyiruppu",
+        "paralokaththil unndu",
+        "varappokum iratchakarai",
+        "ethirNnokki kaaththiruppom",
+        "5. alaiththavaro unnmaiyullavar",
+        "parisuththamaakkiduvaar",
+        "aavi aaththumaa sareeramellaam",
+        "kuttaminti kaaththiduvaar",
+        "6. arpamaana aarampaththai",
+        "asattaை pannnnaathae",
+        "thodanginavar mutiththiduvaar",
+        "sonnathai seythiduvaar",
+        "7. aattal alla sakthi alla",
+        "aaviyinaal aakum",
+        "sornthidaamal nanmai seyvom",
+        "thunnaiyaalar mun selkiraar"
+      ]
+    }
+  ]
+}

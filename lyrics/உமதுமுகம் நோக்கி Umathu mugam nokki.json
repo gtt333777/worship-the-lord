@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 31.745,
+      "end": 93.425,
+      "lyrics": [
+        "1. உமது முகம் நோக்கிப் பார்த்தவர்கள்",
+        "வெட்கப்பட்டு போவதில்லை",
+        "உமது திரு நாமம் அறிந்தவர்கள்",
+        "கைவிடப்படுவதில்லை",
+        "நம்பினோரை நீர் மறப்பதில்லை",
+        "உம்மை தேடி வந்தோரை வெறுப்பதில்லை"
+      ]
+    },
+    {
+      "start": 109.878,
+      "end": 171.257,
+      "lyrics": [
+        "2. உடைந்த பாத்திரம் என்று",
+        "நீர் எவரையும் தள்ளுவதில்லை",
+        "ஒன்றுக்கும் உதவாதோர் என்று",
+        "நீர் எவரையும் சொல்லுவதில்லை",
+        "இயேசு மகா ராஜா எங்கள் நேசா",
+        "இரக்கத்தின் சிகரம் நீரே"
+      ]
+    },
+    {
+      "start": 187.813,
+      "end": 297.879,
+      "lyrics": [
+        "3. ஏழைகளின் பெலன் நீரே",
+        "எளியோரின் நம்பிக்கை நீரே",
+        "திக்கற்றோர் வேதனை அறிந்து",
+        "உதவுடும் தகப்பன் நீரே",
+        "Umathu mugam Lyrics in English"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 31.745,
+      "end": 93.425,
+      "lyrics": [
+        "1. umathu mukam Nnokkip paarththavarkal",
+        "vetkappattu povathillai",
+        "umathu thiru naamam arinthavarkal",
+        "kaividappaduvathillai",
+        "nampinorai neer marappathillai",
+        "ummai thaeti vanthorai veruppathillai"
+      ]
+    },
+    {
+      "start": 109.878,
+      "end": 171.257,
+      "lyrics": [
+        "2. utaintha paaththiram entu",
+        "neer evaraiyum thalluvathillai",
+        "ontukkum uthavaathor entu",
+        "neer evaraiyum solluvathillai",
+        "Yesu makaa raajaa engal naesaa",
+        "irakkaththin sikaram neerae"
+      ]
+    },
+    {
+      "start": 187.813,
+      "end": 297.879,
+      "lyrics": [
+        "3. aelaikalin pelan neerae",
+        "eliyorin nampikkai neerae",
+        "thikkattaோr vaethanai arinthu",
+        "uthavudum thakappan neerae"
+      ]
+    }
+  ]
+}

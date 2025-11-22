@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 17.943,
+      "end": 101.093,
+      "lyrics": [
+        "1. ஐயா உம் திருநாமம்",
+        "அகிலமெல்லாம் பரவ வேண்டும்",
+        "ஆறுதல் உம் வசனம்",
+        "அனைவரும் கேட்க வேண்டும்",
+        "கலங்கிடும் மாந்தர்",
+        "கல்வாரி அன்பை",
+        "கண்டு மகிழ வேண்டும்",
+        "கழுவப்பட்டு வாழ வேண்டும்"
+      ]
+    },
+    {
+      "start": 110.445,
+      "end": 158.301,
+      "lyrics": [
+        "2. இருளில் வாழும் மாந்தர்",
+        "பேரொளியைக் கண்டு",
+        "இரட்சிப்பு அடைய வேண்டும்",
+        "இயேசு என்று சொல்ல வேண்டும்"
+      ]
+    },
+    {
+      "start": 176.629,
+      "end": 224.98,
+      "lyrics": [
+        "3. சாத்தானை வென்று",
+        "சாபத்தினின்று",
+        "விடுதலை பெற வேண்டும்",
+        "வெற்றி பெற்று வாழ வேண்டும்"
+      ]
+    },
+    {
+      "start": 238.287,
+      "end": 316.61,
+      "lyrics": [
+        "4. குருடரெல்லாம் பார்க்கணும்",
+        "முடவரெல்லாம் நடக்கணுமே",
+        "செவிடரெல்லாம் கேட்கணுமே",
+        "சுவிஷேசம் சொல்லணுமே"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 17.943,
+      "end": 101.093,
+      "lyrics": [
+        "1. aiyaa um thirunaamam",
+        "akilamellaam parava vaenndum",
+        "aaruthal um vasanam",
+        "anaivarum kaetka vaenndum",
+        "kalangidum maanthar",
+        "kalvaari anpai",
+        "kanndu makila vaenndum",
+        "kaluvappattu vaala vaenndum"
+      ]
+    },
+    {
+      "start": 110.445,
+      "end": 158.301,
+      "lyrics": [
+        "2. irulil vaalum maanthar",
+        "paeroliyaik kanndu",
+        "iratchippu ataiya vaenndum",
+        "Yesu entu solla vaenndum"
+      ]
+    },
+    {
+      "start": 176.629,
+      "end": 224.98,
+      "lyrics": [
+        "3. saaththaanai ventu",
+        "saapaththinintu",
+        "viduthalai pera vaenndum",
+        "vetti pettu vaala vaenndum"
+      ]
+    },
+    {
+      "start": 238.287,
+      "end": 316.61,
+      "lyrics": [
+        "4. kurudarellaam paarkkanum",
+        "mudavarellaam nadakkanumae",
+        "sevidarellaam kaetkanumae",
+        "suvishaesam sollanumae"
+      ]
+    }
+  ]
+}

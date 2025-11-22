@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 35.329,
+      "end": 54.02,
+      "lyrics": [
+        "தளர்ந்து போன கைகளை திடப்படுத்துங்கள்",
+        "தள்ளாடும் முழங்கால்களை உறுதிப்படுத்துங்கள்   2 - 1"
+      ]
+    },
+    {
+      "start": 78.499,
+      "end": 133.643,
+      "lyrics": [
+        "உறுதியற்ற உள்ளங்களே திடன் கொள்ளுங்கள் அஞ்சாதிருங்கள்  2",
+        "அநீதிக்குப் பழி வாங்கும் தெய்வம் வருகிறார்  2",
+        "விரைவில் வந்து உங்களையே விடுவிப்பார்    2",
+        "அஞ்சாதிருங்கள் திடன் கொள்ளுங்கள்",
+        "ராஜா வருகிறார் இயேசு ராஜா வருகிறார்  1"
+      ]
+    },
+    {
+      "start": 148.208,
+      "end": 203.056,
+      "lyrics": [
+        "அங்கே ஒரு நெடுஞ்சாலை வழியிருக்கும்",
+        "அது தூய வழி         2",
+        "தீட்டுப்பட்டோர் அதன் வழியாய்",
+        "கடந்து செல்வதில்லை 2",
+        "மீட்கப்பட்டோர் அதன் வழியாய்",
+        "நடந்து செல்வார்கள்   2"
+      ]
+    },
+    {
+      "start": 227.564,
+      "end": 282.378,
+      "lyrics": [
+        "ஆண்டவரால் மீட்கப்பட்டோர்",
+        "மகிழ்ந்து பாடி சீயோன் வருவார்கள்     2",
+        "நித்திய மகிழ்ச்சி தலை மேலிருக்கும்    2",
+        "சஞ்சலமும் தவிப்பும் ஓடிப்போகும்      2"
+      ]
+    },
+    {
+      "start": 306.838,
+      "end": 396.102,
+      "lyrics": [
+        "பார்வையற்றோர் கண்களெல்லாம்",
+        "பார்வை அடையும் செவிகள் கேட்கும்   2",
+        "ஊனமுற்றோர் மான்கள் போல",
+        "துள்ளிக் குதிப்பார்கள்                 2",
+        "ஊமையர்கள் பாடிப் பாடி மகிழ்ந்திருப்பார்கள் 2",
+        "Thalarnthu pona kaihalai Lyrics in English"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 35.329,
+      "end": 54.02,
+      "lyrics": [
+        "thalarnthu pona kaikalai thidappaduththungal",
+        "thallaadum mulangaalkalai uruthippaduththungal"
+      ]
+    },
+    {
+      "start": 78.499,
+      "end": 133.643,
+      "lyrics": [
+        "uruthiyatta ullangalae thidan kollungal anjaathirungal",
+        "aneethikkup pali vaangum theyvam varukiraar",
+        "viraivil vanthu ungalaiyae viduvippaar",
+        "anjaathirungal thidan kollungal",
+        "raajaa varukiraar Yesu raajaa varukiraar"
+      ]
+    },
+    {
+      "start": 148.208,
+      "end": 203.056,
+      "lyrics": [
+        "angae oru nedunjaalai valiyirukkum",
+        "athu thooya vali",
+        "theettuppattaோr athan valiyaay",
+        "kadanthu selvathillai",
+        "meetkappattaோr athan valiyaay",
+        "nadanthu selvaarkal"
+      ]
+    },
+    {
+      "start": 227.564,
+      "end": 282.378,
+      "lyrics": [
+        "aanndavaraal meetkappattaோr",
+        "makilnthu paati seeyon varuvaarkal",
+        "niththiya makilchchi thalai maelirukkum",
+        "sanjalamum thavippum otippokum"
+      ]
+    },
+    {
+      "start": 306.838,
+      "end": 396.102,
+      "lyrics": [
+        "paarvaiyattaோr kannkalellaam",
+        "paarvai ataiyum sevikal kaetkum",
+        "oonamuttaோr maankal pola",
+        "thullik kuthippaarkal",
+        "oomaiyarkal paatip paati makilnthiruppaarkal"
+      ]
+    }
+  ]
+}

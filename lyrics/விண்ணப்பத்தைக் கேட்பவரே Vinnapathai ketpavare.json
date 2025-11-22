@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 30.19,
+      "end": 118.885,
+      "lyrics": [
+        "1. விண்ணப்பத்தைக் கேட்பவரே",
+        "என் கண்ணீரைக் காண்பவரே",
+        "சுகம் தருபவரே",
+        "ஸ்தோத்திரம் இயேசையா             2",
+        "உம்மால் கூடும் எல்லாம் கூடும்",
+        "ஒரு வார்த்தை சொன்னால் போதும்     2",
+        "ஒரு வார்த்தை சொன்னால் போதும்"
+      ]
+    },
+    {
+      "start": 139.136,
+      "end": 183.125,
+      "lyrics": [
+        "2. மனதுருகி கரம் நீட்டி",
+        "அதிசயம் செய்பவரே          2",
+        "அதிசயம் செய்பவரே"
+      ]
+    },
+    {
+      "start": 193.551,
+      "end": 237.239,
+      "lyrics": [
+        "3. சித்தம் உண்டு சுத்தமாகு",
+        "என்று சொல்லி சுகமாக்கினீர்   2",
+        "என்று சொல்லி சுகமாக்கினீர்"
+      ]
+    },
+    {
+      "start": 258.003,
+      "end": 326.493,
+      "lyrics": [
+        "4. என் நோய்களை சிலுவையிலே",
+        "சுமந்து தீர்த்தீரைய்யா          2",
+        "சுமந்து தீர்த்தீரைய்யா",
+        "5. குருடர்களை பார்க்கச் செய்தீர்",
+        "முடவர்களை நடக்கச் செய்தீர்",
+        "உம் காயத்தால் சுகமானேன்",
+        "ஒரு கோடி ஸ்தோத்திரமே"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 30.19,
+      "end": 118.885,
+      "lyrics": [
+        "1. vinnnappaththaik kaetpavarae",
+        "en kannnneeraik kaannpavarae",
+        "sukam tharupavarae sthoththiram iyaesaiyaa",
+        "ummaal koodum ellaam koodum",
+        "oru vaarththai sonnaal pothum"
+      ]
+    },
+    {
+      "start": 139.136,
+      "end": 183.125,
+      "lyrics": [
+        "2. manathuruki karam neetti",
+        "athisayam seypavarae"
+      ]
+    },
+    {
+      "start": 193.551,
+      "end": 237.239,
+      "lyrics": [
+        "3. siththam unndu suththamaaku",
+        "entu solli sukamaakkineer"
+      ]
+    },
+    {
+      "start": 258.003,
+      "end": 326.493,
+      "lyrics": [
+        "4. en Nnoykalai siluvaiyilae",
+        "sumanthu theerththeeraiyyaa",
+        "5. kurudarkalai paarkkach seytheer",
+        "mudavarkalai nadakkach seytheer",
+        "um kaayaththaal sukamaanaen",
+        "oru koti sthoththiramae"
+      ]
+    }
+  ]
+}

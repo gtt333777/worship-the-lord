@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 20.562,
+      "end": 36.465,
+      "lyrics": [
+        "1. உம்மை புகழ்ந்து பாடுவது நல்லது",
+        "அது இனிமையானது ஏற்புடையது  2"
+      ]
+    },
+    {
+      "start": 52.387,
+      "end": 115.267,
+      "lyrics": [
+        "2. பாடல்கள் வைத்திர் ஐயா",
+        "பாலகர் நாவிலே     2",
+        "எதிரியை அடக்க",
+        "பகைவரை ஒடுக்க",
+        "இவ்வாறு செய்தீரய்யா  2",
+        "உந்தன் திருநாமம் – அது",
+        "எவ்வளவு உயர்ந்தது –   2"
+      ]
+    },
+    {
+      "start": 131.084,
+      "end": 194.031,
+      "lyrics": [
+        "3. நிலாவை பார்க்கும்போது",
+        "விண்மீன்கள் நோக்கும்போது  2",
+        "என்னை நினைத்து",
+        "விசாரித்து நடத்த நான்",
+        "எம்மாத்திரமையா 2"
+      ]
+    },
+    {
+      "start": 213.717,
+      "end": 276.67,
+      "lyrics": [
+        "4. வானதூதனை விட சற்று",
+        "சிறியவனாய் படைத்துள்ளீர்  2",
+        "மகிமை மாட்சிமை",
+        "மிகுந்த மேன்மையாய்",
+        "முடிசூட்டி நடத்துகிறீர் 2"
+      ]
+    },
+    {
+      "start": 296.378,
+      "end": 361.256,
+      "lyrics": [
+        "5. அனைத்துப் படைப்புகள் மேல்",
+        "அதிகாரம் தந்துள்ளீர்  2",
+        "காட்டு விலங்குகள்",
+        "மீன்கள் பறவைகள்",
+        "கீழ்படியச் செய்துள்ளீர்  2"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 20.562,
+      "end": 36.465,
+      "lyrics": [
+        "1. Ummai pukalnthu paaduvathu nallathu",
+        "athu inimaiyaanathu aerputaiyathu"
+      ]
+    },
+    {
+      "start": 52.387,
+      "end": 115.267,
+      "lyrics": [
+        "2. paadalkal vaiththir aiyaa",
+        "paalakar naavilae",
+        "ethiriyai adakka pakaivarai odukka",
+        "ivvaatru seytheerayyaa",
+        "unthan thirunaamam - athu",
+        "evvalavu uyarnthathu - 2"
+      ]
+    },
+    {
+      "start": 131.084,
+      "end": 194.031,
+      "lyrics": [
+        "3. nilaavai paarkkumpothu",
+        "vinnmeenkal Nnokkumpothu",
+        "ennai ninaiththu visaariththu",
+        "nadaththa naan emmaaththiramaiyaa"
+      ]
+    },
+    {
+      "start": 213.717,
+      "end": 276.67,
+      "lyrics": [
+        "4. vaanathoothanai vida sattu",
+        "siriyavanaay pataiththulleer",
+        "makimai maatchimai mikuntha",
+        "maenmaiyaay mutisootti nadaththukireer"
+      ]
+    },
+    {
+      "start": 296.378,
+      "end": 361.256,
+      "lyrics": [
+        "5. anaiththup pataippukal mael",
+        "athikaaram thanthulleer",
+        "kaattu vilangukal meenkal",
+        "paravaikal geelpatiyach seithulleer"
+      ]
+    }
+  ]
+}

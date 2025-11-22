@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 23.745,
+      "end": 57.362,
+      "lyrics": [
+        "1. நன்றி பலி, நன்றி பலி",
+        "நல்லவரே உமக்குத்தான்",
+        "அதிகாலை ஆனந்தமே – என்",
+        "அப்பா உம் திருப்பாதமே     2"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 23.745,
+      "end": 57.362,
+      "lyrics": [
+        "1. Sthothrabali Sthothrabali",
+        "Manchi Devaa, Neekenayyaa",
+        "Shubhavela Aanandame - Naa",
+        "Thandri Nee Chiru Paadame (2)"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "2. நேற்றைய துயரமெல்லாம்",
+        "இன்று மறைந்ததையா       2",
+        "Ninnati Baadhalanthaa",
+        "Netiki Maayamayye (2)",
+        "நிம்மதி பிறந்ததையா – அது",
+        "நிரந்தரமானதையா          2",
+        "Nemmadi Udayinche - Adi",
+        "Shaashwathamainadayyaa (2",
+        "கோடி கோடி நன்றி டாடி (3)",
+        "Koti Koti Sthothram Daddy (3)  ||Sthothrabali||"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "3. இரவெல்லாம் காத்தீர்",
+        "இன்னும் ஓர் நாள் தந்தீர்      2",
+        "Reyanthaa Kaachithivi",
+        "Maru Dinamichchithivi (2)",
+        "மறவாத என் நேசரே – இன்று",
+        "உறவாடி மகிழ்ந்திடுவேன்    2",
+        "Maruvani Naa Snehamaa - Neetho",
+        "Kalasi Santhoshinthunu (2)",
+        "கோடி கோடி நன்றி டாடி (3)",
+        "Koti Koti Sthothram Daddy (3)  ||Sthothrabali||"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "4. ஊழியப் பாதையிலே",
+        "உற்சாகம் தந்தீரையா     2",
+        "Nee Seva Maargamlo",
+        "Uthsaaham Nosagithivi (2)",
+        "ஓடி ஓடி உழைப்பதற்கு",
+        "உடல் சுகம் தந்தீரையா    2",
+        "Urikuriki Pani Cheya - Naaku",
+        "Aarogyamichchithivi (2)",
+        "கோடி கோடி நன்றி டாடி (3)",
+        "Koti Koti Sthothram Daddy (3)  ||Sthothrabali||"
+      ]
+    },
+    {
+      "start": null,
+      "end": null,
+      "lyrics": [
+        "5. வேதனை துன்பமெல்லாம்",
+        "ஒரு நாளும் பிரிக்காதையா   2",
+        "Vedana Dukhamaina",
+        "Ennadu Vidadheeyadhu (2)",
+        "நாதனே உம் நிழலில்",
+        "நாள்தோறும் வாழ்வேனையா – இயேசு 2",
+        "Yesayya Nee Needalo",
+        "Dinadinam Jeevinthunu (2)",
+        "கோடி கோடி நன்றி டாடி (3)",
+        "Koti Koti Sthothram Daddy (3)  ||Sthothrabali||",
+        "స్తోత్రబలి స్తోత్రబలి – మంచిదేవా నీకేనయ్యా",
+        "శుభవేళ ఆనందమే – నా తండ్రి నీ చిరుపాదమే (2)",
+        "నిన్నటి బాధలంతా నేటికి మాయమయ్యే (2)",
+        "నెమ్మది ఉదయించె అది శాశ్వతమైనదయ్యా (2)",
+        "కోటి కోటి స్తోత్రం డాడి (3)          ||స్తోత్రబలి||",
+        "రేయంతా కాచితివి మరు దినమిచ్చితివి (2)",
+        "మరువని నా స్నేహమా నీతో కలసి సంతోషింతును (2)",
+        "కోటి కోటి స్తోత్రం డాడి (3)          ||స్తోత్రబలి||",
+        "నీ సేవ మార్గంలో ఉత్సాహం నొసగితివి (2)",
+        "ఉరికురికి పనిచేయ నాకు ఆరోగ్యమిచ్చితివి (2)",
+        "కోటి కోటి స్తోత్రం డాడి (3)          ||స్తోత్రబలి||",
+        "వేదన దుఃఖమైన ఎన్నడు విడదీయదు (2)",
+        "యేసయ్య నీ నీడలో దినదినం జీవింతును (2)",
+        "కోటి కోటి స్తోత్రం డాడి (3)          ||స్తోత్రబలి||"
+      ]
+    }
+  ]
+}

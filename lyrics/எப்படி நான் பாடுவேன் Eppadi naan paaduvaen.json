@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 25.24,
+      "end": 93.901,
+      "lyrics": [
+        "எப்படி நான் பாடுவேன்",
+        "என்ன சொல்லி நான் துதிப்பேன் (2)",
+        "இரத்தம் சிந்தி மீட்டவரே",
+        "இரக்கம் நிறைந்தவரே (2)- ஐயா"
+      ]
+    },
+    {
+      "start": 114.324,
+      "end": 163.527,
+      "lyrics": [
+        "2. அபிஷேகித்து அணைப்பவரே",
+        "ஆறுதல் நாயகனே (2) – ஐயா"
+      ]
+    },
+    {
+      "start": 188.342,
+      "end": 237.401,
+      "lyrics": [
+        "3. உந்தன் பாதம் அமர்ந்திருந்து",
+        "ஓயாமல் முத்தம் செய்கிறேன் (2)-ஐயா"
+      ]
+    },
+    {
+      "start": 257.766,
+      "end": 306.691,
+      "lyrics": [
+        "4. என்னை விட்டு எடுபடாத",
+        "நல்ல பங்கு நீர்தானய்யா (2) – ஐயா"
+      ]
+    },
+    {
+      "start": 331.74,
+      "end": 416.308,
+      "lyrics": [
+        "5. வருகையில் எடுத்துக் கொள்வீர்",
+        "கூடவே வைத்துக் கொள்வீர் (2)- ஐயா"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 25.24,
+      "end": 93.901,
+      "lyrics": [
+        "eppati naan paaduvaen",
+        "enna solli naan thuthippaen (2)",
+        "iraththam sinthi meettavarae",
+        "irakkam nirainthavarae (2)- aiyaa"
+      ]
+    },
+    {
+      "start": 114.324,
+      "end": 163.527,
+      "lyrics": [
+        "2. apishaekiththu annaippavarae",
+        "aaruthal naayakanae (2) – aiyaa"
+      ]
+    },
+    {
+      "start": 188.342,
+      "end": 237.401,
+      "lyrics": [
+        "3. unthan paatham amarnthirunthu",
+        "oyaamal muththam seykiraen (2)-aiyaa"
+      ]
+    },
+    {
+      "start": 257.766,
+      "end": 306.691,
+      "lyrics": [
+        "4. ennai vittu edupadaatha",
+        "nalla pangu neerthaanayyaa (2) – aiyaa"
+      ]
+    },
+    {
+      "start": 331.74,
+      "end": 416.308,
+      "lyrics": [
+        "5. varukaiyil eduththuk kolveer",
+        "koodavae vaiththuk kolveer (2)- aiyaa"
+      ]
+    }
+  ]
+}

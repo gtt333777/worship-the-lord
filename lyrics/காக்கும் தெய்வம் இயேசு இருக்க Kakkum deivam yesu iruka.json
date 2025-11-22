@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 21.059,
+      "end": 60.662,
+      "lyrics": [
+        "1. காக்கும் தெய்வம் இயேசு இருக்க",
+        "கலக்கம்  ஏன் மனமே",
+        "கண்ணீர் ஏன் மனமே  2"
+      ]
+    },
+    {
+      "start": 76.542,
+      "end": 131.427,
+      "lyrics": [
+        "2. இதுவரை உன்னை நடத்தின தேவன் (நடத்திய தெய்வம்)",
+        "இனியும் நடத்திச் செல்வார்",
+        "எபிநேசர் அவர்தானே          2",
+        "எபிநேசர் அவர்தானே"
+      ]
+    },
+    {
+      "start": 152.359,
+      "end": 206.411,
+      "lyrics": [
+        "3. சிலுவை சுமந்தால் சுபாவம் மாறும்",
+        "தெரிந்துகொள் மனமே",
+        "சீடன் அவன் தானே          2",
+        "சீடன் அவன் தானே"
+      ]
+    },
+    {
+      "start": 228.302,
+      "end": 282.857,
+      "lyrics": [
+        "4. பாடுகள் சகித்தால் பரமனின் வருகையில்",
+        "கூட சென்றிடலாம் பாடி மகிழ்ந்திடலாம்   2",
+        "பாடி மகிழ்ந்திடலாம்"
+      ]
+    },
+    {
+      "start": 293.869,
+      "end": 370.657,
+      "lyrics": [
+        "5. காண்கின்ற உலகம் நமது இல்லை",
+        "காணாத பரலோகம் தான்",
+        "நமது குடியிருப்பு                        2",
+        "நமது குடியிருப்பு",
+        "6. சீக்கிரம் நீங்கிடும் உலகப்பாடுகள்",
+        "மகிமையை கொண்டு வரும்",
+        "மறவாதே என் மனமே",
+        "7. மலைகள் விலகும் குன்றுகள் அகலும்",
+        "கிருபை விலகாதென்றார்",
+        "மனது உருகும் தெய்வம்",
+        "Kakkum deivam yesu iruka Lyrics in English"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 21.059,
+      "end": 60.662,
+      "lyrics": [
+        "1. kaakkum theyvam Yesu irukka",
+        "kalakkam en manamae kannnneer aen manamae"
+      ]
+    },
+    {
+      "start": 76.542,
+      "end": 131.427,
+      "lyrics": [
+        "2. ithuvarai unnai nadaththina thaevan",
+        "iniyum nadaththich selvaar",
+        "epinaesar avarthaanae"
+      ]
+    },
+    {
+      "start": 152.359,
+      "end": 206.411,
+      "lyrics": [
+        "3. siluvai sumanthaal supaavam maarum",
+        "therinthukol manamae",
+        "seedan avan thaanae"
+      ]
+    },
+    {
+      "start": 228.302,
+      "end": 282.857,
+      "lyrics": [
+        "4. paadukal sakiththaal paramanin varukaiyil",
+        "kooda sentidalaam paati makilnthidalaam"
+      ]
+    },
+    {
+      "start": 293.869,
+      "end": 370.657,
+      "lyrics": [
+        "5. kaannkinta ulakam namathu illai",
+        "kaannaatha paralokam thaan",
+        "namathu kutiyiruppu",
+        "6. seekkiram neengidum ulakappaadukal",
+        "makimaiyai konndu varum",
+        "maravaathae en manamae",
+        "7. malaikal vilakum kuntukal akalum",
+        "kirupai vilakaathentar",
+        "manathu urukum theyvam"
+      ]
+    }
+  ]
+}

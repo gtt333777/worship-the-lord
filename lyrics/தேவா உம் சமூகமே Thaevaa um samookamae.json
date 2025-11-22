@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 33.682,
+      "end": 81.046,
+      "lyrics": [
+        "1. தேவா உம் சமூகமே எனது பிரியமே – 2",
+        "அல்லேலூயா அல்லேலூயா 2"
+      ]
+    },
+    {
+      "start": 105.712,
+      "end": 133.584,
+      "lyrics": [
+        "2. வானத்தின் வாசல் நீரே",
+        "வாழ்க்கையின் அப்பம் நீரே – 2"
+      ]
+    },
+    {
+      "start": 153.609,
+      "end": 181.683,
+      "lyrics": [
+        "3. நம்பிக்கை தெய்வம் நீரே",
+        "நங்கூரம் என்றும் நீரே – 2"
+      ]
+    },
+    {
+      "start": 216.018,
+      "end": 244.106,
+      "lyrics": [
+        "4. கர்த்தாதி கர்த்தர் நீரே",
+        "கானான் தேசம் நீரே – 2"
+      ]
+    },
+    {
+      "start": 268.839,
+      "end": 296.692,
+      "lyrics": [
+        "5. ஆதி அந்தம் நீரே",
+        "ஆட்கொண்ட சொந்தம் நீரே – 2"
+      ]
+    },
+    {
+      "start": 316.852,
+      "end": 386.645,
+      "lyrics": [
+        "6. அக்கினி ஜீவாலை நீரே",
+        "காலை பனியும் நீரே – 2"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 33.682,
+      "end": 81.046,
+      "lyrics": [
+        "1. thaevaa um samookamae enathu piriyamae - 2",
+        "allaelooyaa allaelooyaa 2"
+      ]
+    },
+    {
+      "start": 105.712,
+      "end": 133.584,
+      "lyrics": [
+        "2. vaanaththin vaasal neerae",
+        "vaalkkaiyin appam neerae - 2"
+      ]
+    },
+    {
+      "start": 153.609,
+      "end": 181.683,
+      "lyrics": [
+        "3. nampikkai theyvam neerae",
+        "nangaூram entum neerae - 2"
+      ]
+    },
+    {
+      "start": 216.018,
+      "end": 244.106,
+      "lyrics": [
+        "4. karththaathi karththar neerae",
+        "kaanaan thaesam neerae - 2"
+      ]
+    },
+    {
+      "start": 268.839,
+      "end": 296.692,
+      "lyrics": [
+        "5. aathi antham neerae",
+        "aatkonnda sontham neerae - 2"
+      ]
+    },
+    {
+      "start": 316.852,
+      "end": 386.645,
+      "lyrics": [
+        "6. akkini jeevaalai neerae",
+        "kaalai paniyum neerae - 2"
+      ]
+    }
+  ]
+}

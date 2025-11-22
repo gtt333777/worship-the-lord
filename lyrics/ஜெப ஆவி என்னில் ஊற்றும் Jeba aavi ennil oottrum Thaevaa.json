@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 12.743,
+      "end": 59.489,
+      "lyrics": [
+        "1. ஜெப ஆவி என்னில் ஊற்றும் தேவா",
+        "ஜெப சிந்தை என்னில் தாரும் தேவா 2",
+        "உறங்காத கண்கள் வேண்டும்",
+        "உணர்வுள்ள நெஞ்சம் வேண்டும்",
+        "முடியாத கண்ணீர் வேண்டும்",
+        "நீரே என்னை நடத்த வேண்டும்      2"
+      ]
+    },
+    {
+      "start": 94.653,
+      "end": 164.779,
+      "lyrics": [
+        "2. அறைக்குள் கதவை பூட்டி",
+        "தரைமட்டும் என்னை தாழ்த்தி",
+        "இதயத்தை உம்மிடம் ஏந்தி",
+        "ஜெபிக்கின்ற வரமே தாரும்        2"
+      ]
+    },
+    {
+      "start": 191.311,
+      "end": 309.814,
+      "lyrics": [
+        "3. இராக்கால தரிசனம் தாரும்",
+        "அதிகாலை விழிப்பைத் தாரும்",
+        "ஆத்தும பாரம் தாரும்",
+        "திறப்பிலே நிற்கவும் வேண்டும்     2"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 12.743,
+      "end": 59.489,
+      "lyrics": [
+        "1. jepa aavi ennil oottum thaevaa",
+        "jepa sinthai ennil thaarum thaevaa",
+        "urangaatha kannkal vaenndum",
+        "unarvulla nenjam vaenndum",
+        "mutiyaatha kannnneer vaenndum",
+        "neerae ennai nadaththa vaenndum"
+      ]
+    },
+    {
+      "start": 94.653,
+      "end": 164.779,
+      "lyrics": [
+        "2. araikkul kathavai pootti",
+        "tharaimattum ennai thaalththi",
+        "ithayaththai ummidam aenthi",
+        "jepikkinta varamae thaarum"
+      ]
+    },
+    {
+      "start": 191.311,
+      "end": 309.814,
+      "lyrics": [
+        "3. iraakkaala tharisanam thaarum",
+        "athikaalai vilippaith thaarum",
+        "aaththuma paaram thaarum",
+        "thirappilae nirkavum vaenndum"
+      ]
+    }
+  ]
+}

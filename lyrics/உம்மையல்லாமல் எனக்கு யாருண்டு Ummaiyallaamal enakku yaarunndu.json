@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 27.89,
+      "end": 101.324,
+      "lyrics": [
+        "1. உம்மையல்லாமல் எனக்கு யாருண்டு?",
+        "உம்மைத்தவிர விருப்பம் எதுவுண்டு?     2",
+        "ஆசையெல்லாம் நீர்தானைய்யா",
+        "தேவையெல்லாம் நீர்தானைய்யா      2",
+        "இரட்சகரே இயேசுநாதா",
+        "தேவையெல்லாம் நீர்தானே      2"
+      ]
+    },
+    {
+      "start": 124.129,
+      "end": 208.11,
+      "lyrics": [
+        "2. இதயக்கன்மலை நீர்தானைய்யா",
+        "உரிய பங்கும் நீர்தானைய்யா     2",
+        "எப்போதும் உம்மோடு இருக்கின்றேன்",
+        "வலக்கரம் பிடித்து தாங்குகிறீர் -ஆசை  2"
+      ]
+    },
+    {
+      "start": 230.755,
+      "end": 314.7,
+      "lyrics": [
+        "3. உம்மோடு வாழ்வதே என் பாக்கியம்",
+        "நீரே எனது உயிர்த் துடிப்பு       2",
+        "உமது விருப்பம்போல் நடத்துகிறீர்",
+        "முடிவிலே மகிமையில் ஏற்றுக்கொள்வீர் -ஆசை  2"
+      ]
+    },
+    {
+      "start": 337.563,
+      "end": 457.395,
+      "lyrics": [
+        "4. உலகில் வாழும் நாட்களெல்லாம்",
+        "உமது செயல்கள் சொல்லி மகிழ்வேன்    2",
+        "உம்மைத்தான் அடைக்கலமாய்க் கொண்டுள்ளேன்",
+        "உம்மையே நம்பி வாழ்ந்திருப்பேன் -ஆசை    2",
+        "Ummai Allamal Enakku Yaar Undu – உம்மையல்லாமல் எனக்கு யாருண்டு Lyrics in English"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 27.89,
+      "end": 101.324,
+      "lyrics": [
+        "1. ummaiyallaamal enakku yaarunndu?",
+        "ummaiththavira viruppam ethuundu?   2",
+        "aasaiyellaam neerthaanaiyyaa",
+        "thaevaiyellaam neerthaanaiyyaa   2",
+        "iratchakarae Yesunaathaa",
+        "thaevaiyellaam neerthanae        2"
+      ]
+    },
+    {
+      "start": 124.129,
+      "end": 208.11,
+      "lyrics": [
+        "2. ithayakkanmalai neerthaanaiyyaa",
+        "uriya pangum neerthaanaiyyaa     2",
+        "eppothum ummodu irukkinten",
+        "valakkaram pitiththu thaangukireer -aasai 2"
+      ]
+    },
+    {
+      "start": 230.755,
+      "end": 314.7,
+      "lyrics": [
+        "3. ummodu vaalvathae en paakkiyam",
+        "neerae enathu uyirth thutippu    2",
+        "umathu viruppampol nadaththukireer",
+        "mutivilae makimaiyil aettukkolveer -aasai  2"
+      ]
+    },
+    {
+      "start": 337.563,
+      "end": 457.395,
+      "lyrics": [
+        "4. ulakil vaalum naatkalellaam",
+        "umathu seyalkal solli makilvaen     2",
+        "ummaiththaan ataikkalamaayk konndullaen",
+        "ummaiyae nampi vaalnthiruppaen -aasai   2"
+      ]
+    }
+  ]
+}
