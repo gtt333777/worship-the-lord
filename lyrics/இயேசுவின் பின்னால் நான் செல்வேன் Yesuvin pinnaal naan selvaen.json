@@ -5,8 +5,8 @@
   },
   "tamilSegments": [
     {
-      "start": null,
-      "end": null,
+      "start": 41.426,
+      "end": 98.926,
       "lyrics": [
         "இயேசுவின் பின்னால் நான் செல்வேன்",
         "திரும்பி பார்க்க மாட்டேன்",
@@ -26,8 +26,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 113.275,
+      "end": 177.547,
       "lyrics": [
         "2. உலகத்தின் பெருமை செல்வத்தின் பற்று",
         "எல்லாம் உதறி விட்டேன்",
@@ -49,8 +49,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 192.037,
+      "end": 256.509,
       "lyrics": [
         "3. வேதனை நெருக்கம் இன்னல்கள் இடர்கள்",
         "எதுவும் பிரிக்காது",
@@ -74,8 +74,8 @@
   ],
   "englishSegments": [
     {
-      "start": null,
-      "end": null,
+      "start": 41.426,
+      "end": 98.926,
       "lyrics": [
         "Yesuvin pinnaal naan selvaen",
         "thirumpi paarkka maattaen",
@@ -85,8 +85,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 113.275,
+      "end": 177.547,
       "lyrics": [
         "2. ulakaththin perumai selvaththin pattu",
         "ellaam uthari vittaen",
@@ -98,8 +98,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 192.037,
+      "end": 256.509,
       "lyrics": [
         "3. Vaethanai nerukkam innalkal idarkal",
         "ethuvum pirikkaathu",
