@@ -775,9 +775,11 @@ function applyHighlight(segIndex, lineIndex) {
       el.style.color = "#000";
     }
   });
-}
 
 */
+}
+
+
 
 
 
