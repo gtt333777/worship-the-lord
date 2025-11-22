@@ -708,7 +708,13 @@ function applyHighlight(segIndex, lineIndex) {
       el.style.background = "rgba(255,255,0,0.35)";
       el.style.fontWeight = "bold";
       el.style.color = "#000";
-      scrollToThreeLinesBelowTop(el);
+
+     // scrollToThreeLinesBelowTop(el);
+
+      // ⭐ Stop auto-scroll if user touched the screen
+     // if (!userIsScrolling) scrollToThreeLinesBelowTop(el);
+
+
     }
     else if (item.lineIndex === prev) {
       el.style.fontWeight = "bold";
