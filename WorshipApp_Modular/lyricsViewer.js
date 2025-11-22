@@ -551,7 +551,7 @@ function renderEnglishLyrics() {
 }
 
 
-
+/*
 
 // -------------------------
 // Scroll target line 3 lines below top
@@ -567,6 +567,27 @@ function scrollToThreeLinesBelowTop(el) {
 
   window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
 }
+
+*/
+
+
+function scrollToCenter(el) {
+  if (!el) return;
+  if (userIsScrolling) return;
+
+  const parent = document.getElementById('tamilLyricsBox');
+  const parentRect = parent.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+
+  const parentCenter = parentRect.top + parentRect.height / 2;
+  const elCenter = elRect.top + elRect.height / 2;
+
+  const scrollAmount = elCenter - parentCenter;
+
+  window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+}
+
+
 
 // -------------------------
 // Clear highlights
@@ -709,7 +730,9 @@ function applyHighlight(segIndex, lineIndex) {
       el.style.fontWeight = "bold";
       el.style.color = "#000";
 
-     scrollToThreeLinesBelowTop(el);
+      scrollToCenter(el);
+
+     // scrollToThreeLinesBelowTop(el);
 
       // ⭐ Stop auto-scroll if user touched the screen
       // if (!userIsScrolling) scrollToThreeLinesBelowTop(el);
