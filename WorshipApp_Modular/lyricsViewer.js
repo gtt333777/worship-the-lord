@@ -79,6 +79,7 @@ window.addEventListener("scroll", () => {
 });
 */
 
+/*
 // -------------------------------------
 // ⭐ Scroll control (manual + auto-resume)
 // -------------------------------------
@@ -93,6 +94,20 @@ window.addEventListener("scroll", () => {
   scrollCooldownTimer = setTimeout(() => {
     userIsScrolling = false;  // ⭐ Auto-scroll resumes after 3 sec
   }, 3000);
+});
+*/
+
+// ⭐ Manual scroll detector - only inside lyrics box
+const scrollBox = document.getElementById("lyricsScrollBox");
+
+scrollBox.addEventListener("scroll", () => {
+  userIsScrolling = true;
+
+  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
+
+  scrollCooldownTimer = setTimeout(() => {
+    userIsScrolling = false;   // ⭐ Auto-scroll resumes after 5 sec
+  }, 3000);  // change this to 3000 / 5000 as you prefer
 });
 
 
