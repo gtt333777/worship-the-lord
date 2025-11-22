@@ -54,138 +54,7 @@ window.setMaxPartsLimit = function(n){
 };
 
 
-/*
-// Scroll control
-let userIsScrolling = false;
-let scrollCooldownTimer = null;
-window.addEventListener("scroll", () => {
-  userIsScrolling = true;
-  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
-  scrollCooldownTimer = setTimeout(() => { userIsScrolling = false; }, 5000);
-});
 
-*/
-
-
-/*
-window.addEventListener("scroll", () => {
-  userIsScrolling = true;
-
-  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
-
-  scrollCooldownTimer = setTimeout(() => {
-    userIsScrolling = false;  // ⭐ Auto-scroll resumes
-  }, 3000); // 3 seconds pause
-});
-*/
-
-/*
-// -------------------------------------
-// ⭐ Scroll control (manual + auto-resume)
-// -------------------------------------
-let userIsScrolling = false;
-let scrollCooldownTimer = null;
-
-window.addEventListener("scroll", () => {
-  userIsScrolling = true;
-
-  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
-
-  scrollCooldownTimer = setTimeout(() => {
-    userIsScrolling = false;  // ⭐ Auto-scroll resumes after 3 sec
-  }, 3000);
-});
-*/
-
-// ⭐ Manual scroll detector - only inside lyrics box
-const scrollBox = document.getElementById("lyricsScrollBox");
-
-scrollBox.addEventListener("scroll", () => {
-  userIsScrolling = true;
-
-  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
-
-  scrollCooldownTimer = setTimeout(() => {
-    userIsScrolling = false;   // ⭐ Auto-scroll resumes after 5 sec
-  }, 3000);  // change this to 3000 / 5000 as you prefer
-});
-
-
-
-
-/*
-// -------------------------
-// Utility: Clean a Tamil line
-// -------------------------
-function cleanTamilLine(line) {
-  if (!line || typeof line !== 'string') return '';
-  line = line.trim();
-  const allowed = /[\u0B80-\u0BFF\u00A0\u0020]/g;
-  const matches = line.match(allowed);
-  if (!matches) return '';
-  return matches.join('').replace(/\s+/g, ' ').trim();
-}
-*/
-
-/*
-
-function cleanTamilLine(line) {
-  if (!line || typeof line !== 'string') return '';
-
-  line = line.trim();
-
-  // Allow Tamil + English + spaces
-  const allowed = /[\u0B80-\u0BFFA-Za-z\u00A0\u0020]/g;
-
-  const matches = line.match(allowed);
-  if (!matches) return '';
-
-  return matches.join('').replace(/\s+/g, ' ').trim();
-}
-*/
-
-/*
-function cleanTamilLine(line) {
-  if (!line || typeof line !== 'string') return '';
-
-  line = line.trim();
-
-  // Allow Tamil, Telugu, Malayalam, Kannada, English, numbers, spaces
-  const allowed =
-    /[\u0B80-\u0BFF\u0C00-\u0C7F\u0D00-\u0D7F\u0C80-\u0CFFA-Za-z0-9\u00A0\u0020]/g;
-
-  const matches = line.match(allowed);
-  if (!matches) return '';
-
-  return matches.join('').replace(/\s+/g, ' ').trim();
-}
-*/
-
-/*
-function cleanTamilLine(line) {
-  if (!line || typeof line !== "string") return "";
-
-  line = line.trim();
-
-  // UNIVERSAL MULTI-LANGUAGE CLEANER
-  // Tamil, Hindi, Telugu, Kannada, Malayalam, English, numbers, spaces, punctuation
-  const allowed =
-    /[
-      \u0B80-\u0BFF     // Tamil
-      \u0900-\u097F     // Hindi (Devanagari)
-      \u0C00-\u0C7F     // Telugu
-      \u0C80-\u0CFF     // Kannada
-      \u0D00-\u0D7F     // Malayalam
-      A-Za-z0-9
-      .,!?\-()–—\u00A0\u0020
-    ]/gx;
-
-  const matches = line.match(allowed);
-  if (!matches) return "";
-
-  return matches.join("").replace(/\s+/g, " ").trim();
-}
-*/
 
 function cleanTamilLine(line) {
   if (!line || typeof line !== "string") return "";
@@ -396,6 +265,21 @@ window.loadLyricsFromJSON = function (jsonData) {
 };
 
 
+// ⭐ Manual scroll detection (only inside lyrics box)
+let userIsScrolling = false;
+let scrollCooldownTimer = null;
+
+const scrollBox = document.getElementById("lyricsScrollBox");
+
+scrollBox.addEventListener("scroll", () => {
+  userIsScrolling = true;
+
+  if (scrollCooldownTimer) clearTimeout(scrollCooldownTimer);
+
+  scrollCooldownTimer = setTimeout(() => {
+    userIsScrolling = false;   // ⭐ Auto-scroll resumes after 5 sec
+  }, 3000); // change to 3000 if you want 3 sec
+});
 
 
 
