@@ -570,7 +570,7 @@ function scrollToThreeLinesBelowTop(el) {
 
 */
 
-
+/*
 function scrollToCenter(el) {
   if (!el) return;
   if (userIsScrolling) return;
@@ -583,6 +583,24 @@ function scrollToCenter(el) {
   const elCenter = elRect.top + elRect.height / 2;
 
   const scrollAmount = elCenter - parentCenter;
+
+  window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+}
+*/
+
+function scrollToOneLineBelowTop(el) {
+  if (!el) return;
+  if (userIsScrolling) return;
+
+  const parent = document.getElementById('tamilLyricsBox');
+  const parentRect = parent.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+
+  const lineHeight = 28; // your line height
+  const targetTop = parentRect.top + lineHeight; // 1 line below top
+  const elTop = elRect.top;
+
+  const scrollAmount = elTop - targetTop;
 
   window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
 }
@@ -730,7 +748,10 @@ function applyHighlight(segIndex, lineIndex) {
       el.style.fontWeight = "bold";
       el.style.color = "#000";
 
-      scrollToCenter(el);
+      //scrollToCenter(el);
+
+      
+      scrollToOneLineBelowTop(el);
 
      // scrollToThreeLinesBelowTop(el);
 
