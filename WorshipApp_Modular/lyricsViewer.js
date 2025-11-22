@@ -722,9 +722,24 @@ function applyHighlight(segIndex, lineIndex) {
     }
   });
 
+  
+    
+
+  // ============================================================
+  // ❌ ENGLISH HIGHLIGHT DISABLED
+  // ------------------------------------------------------------
+  // We are intentionally turning OFF English highlighting.
+  // Only Tamil lines will highlight during playback.
+  // English text will stay static (no color / no bold).
+  //
+  // To re-enable later, uncomment the block below.
+  // ============================================================
+
+
   // ============================
   // ⭐ ENGLISH HIGHLIGHT (NO MARGIN SHIFT — FIX SCREEN JUMP)
   // ============================
+  /*
   const engSeg = window._engProcessed ? window._engProcessed[segIndex] : null;
   if (!engSeg) return;
 
@@ -762,7 +777,7 @@ function applyHighlight(segIndex, lineIndex) {
   });
 }
 
-
+*/
 
 
 
