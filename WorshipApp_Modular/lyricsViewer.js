@@ -732,12 +732,14 @@ function applyHighlight(segIndex, lineIndex) {
     else if (item.lineIndex === prev) {
       el.style.fontWeight = "bold";
       el.style.color = "#000";
-      el.style.marginTop = "12px";
+   // el.style.marginTop = "12px";  // ⭐ THIS CREATES SPACE ABOVE
+      el.style.marginTop = "0px";  // ⭐ THIS CREATES SPACE ABOVE
     }
     else if (item.lineIndex === next) {
       el.style.fontWeight = "bold";
       el.style.color = "#000";
-      el.style.marginBottom = "12px";
+   // el.style.marginBottom = "12px";   // ⭐ THIS CREATES SPACE BELOW
+      el.style.marginBottom = "0px";   // ⭐ THIS CREATES SPACE BELOW
     }
   });
 
