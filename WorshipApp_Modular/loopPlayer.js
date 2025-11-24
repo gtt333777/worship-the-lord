@@ -242,15 +242,20 @@ loopButtonsDiv.innerHTML = "";
 //btn.textContent = `Segment ${index + 1}`;
 
 
-// ---- PREVIEW TEXT (from JSON direct) ----
+
+// ---- PREVIEW TEXT (Tamil-safe) ----
 let preview = "";
 
 try {
     if (segment.lyrics && segment.lyrics.length > 0) {
         let line = (segment.lyrics[0] || "").trim();
-        line = line.replace(/\s+/g, " ");
 
-        let words = line.split(" ");
+        // Normalize all space types (Tamil + English)
+        line = line.replace(/\s+/gu, " ");
+
+        // Split on ANY kind of whitespace
+        let words = line.split(/\s+/u);
+
         preview = words.slice(0, 3).join(" ");
         if (words.length > 3) preview += "…";
     }
@@ -259,7 +264,6 @@ try {
     preview = "";
 }
 
-// Final label
 btn.textContent = preview
     ? `S${index + 1} — ${preview}`
     : `S${index + 1}`;
