@@ -428,16 +428,13 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-
-
-
 <!-- ⭐ Bookmark Controls -->
 <div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
 
   <!-- Left big star (song bookmark) -->
   <button id="bookmarkBtn"
     onclick="toggleBookmark(document.getElementById('songSelect').value)"
-    style="font-size:1.6rem; border:none; background:none; cursor:pointer; line-height:1;">
+    style="font-size:1.6rem; border:none; background:none; cursor:pointer;">
     ☆
   </button>
 
@@ -445,54 +442,33 @@ button#vocalMuteBtn.vocal-muted {
   <button id="bookmarkFilterBtn"
     onclick="toggleBookmarkView()"
     style="
-      font-size:0.82rem; 
-      padding:5px 14px; 
+      font-size:0.9rem;
+      padding:6px 14px;
       border-radius:7px;
       background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-      font-weight:bold; 
-      border:none; 
+      font-weight:bold;
+      border:none;
       cursor:pointer;
-      min-width:120px; 
-      text-align:center;
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      gap:6px;
-      line-height:1.1rem;
-      overflow:visible;
-      padding-right:18px;
-    ">
-    <span style="color:black;">⭐</span>
-    <span>Fvt Songs</span>
+      min-width:120px;">
+    ⭐ Fvt Songs
   </button>
 
   <!-- Fvt Segments -->
   <button id="segmentFavBtn"
     onclick="toggleSegmentFavView()"
     style="
-      font-size:0.82rem; 
-      padding:5px 14px; 
+      font-size:0.9rem;
+      padding:6px 14px;
       border-radius:7px;
       background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-      font-weight:bold; 
-      border:none; 
+      font-weight:bold;
+      border:none;
       cursor:pointer;
-      min-width:120px; 
-      text-align:center;
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      gap:6px;
-      line-height:1.1rem;
-      overflow:visible;
-      padding-right:18px;
-    ">
-    <span>Fvt Sgmnts</span>
-    <span style="font-size:1.1rem; color:black;">⭐</span>
+      min-width:120px;">
+    ⭐ Fvt Sgmnts
   </button>
 
 </div>
-
 
 
   <!-- ✅ Player Controls -->
