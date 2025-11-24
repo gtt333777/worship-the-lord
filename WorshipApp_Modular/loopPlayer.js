@@ -178,84 +178,48 @@ window.currentPlayingSegmentIndex = null;
 
 
 
-
 /* ============================================================
-   ⭐ GOLDEN INDICATOR — One Red Bar INSIDE Each Segment Button
-   - Simple, old-style: red bar at TOP, left → right
-   - Uses audio.currentTime + segments[]
-   - Does NOT touch lyrics, previews, or any other features
+   ⭐ ORIGINAL DARK-RED TOP PROGRESS BAR (Restored Version)
    ============================================================ */
+
 window.startGoldenIndicator = function (segments, audio, container) {
-  if (!segments || !segments.length || !audio || !container) {
-    console.warn("⚠️ GoldenIndicator: Missing segments/audio/container");
-    return;
-  }
+    if (!segments || !segments.length || !audio) return;
 
-  // Remove any old bars
-  container.querySelectorAll(".gold-bar").forEach(el => el.remove());
+    // Remove old bars
+    container.querySelectorAll(".gold-bar").forEach(b => b.remove());
 
-  const buttons = container.querySelectorAll(".segment-button");
-  if (!buttons.length) {
-    console.warn("⚠️ GoldenIndicator: No .segment-button found");
-    return;
-  }
+    const buttons = container.querySelectorAll(".segment-button");
 
-  // Create a red bar INSIDE each segment button (top edge)
-  segments.forEach((seg, i) => {
-    const btn = buttons[i];
-    if (!btn) return;
-
-    const bar = document.createElement("div");
-    bar.className = "gold-bar";
-    bar.style.position = "absolute";
-    bar.style.top = "0";
-    bar.style.left = "0";
-    bar.style.height = "4px";       // thin horizontal bar
-    bar.style.width = "0%";         // will grow with time
-    bar.style.background = "red";
-    bar.style.pointerEvents = "none";
-    bar.style.borderRadius = "2px";
-    bar.style.opacity = "0";        // hidden when not active
-
-    // Make sure button is a positioned container
-    if (getComputedStyle(btn).position === "static") {
-      btn.style.position = "relative";
-    }
-
-    btn.appendChild(bar);
-    btn._goldBar = bar;
-  });
-
-  // Animation loop — updates bar width based on currentTime
-  function animate() {
-    const t = audio.currentTime;
-
-    segments.forEach((seg, i) => {
-      const btn = buttons[i];
-      const bar = btn && btn._goldBar;
-      if (!bar || typeof seg.start !== "number" || typeof seg.end !== "number") return;
-
-      if (t >= seg.start && t <= seg.end) {
-        const duration = seg.end - seg.start;
-        const pct = duration > 0 ? ((t - seg.start) / duration) * 100 : 0;
-        const clamped = Math.max(0, Math.min(100, pct));
-
-        bar.style.width = clamped + "%";
-        bar.style.opacity = "1";
-      } else {
-        bar.style.width = "0%";
-        bar.style.opacity = "0";
-      }
+    // Make one top-bar for each button
+    buttons.forEach((btn, i) => {
+        const bar = document.createElement("div");
+        bar.className = "gold-bar";
+        btn.appendChild(bar);
+        btn._goldBar = bar;
     });
 
+    function animate() {
+        const t = audio.currentTime;
+
+        segments.forEach((seg, i) => {
+            const bar = buttons[i]._goldBar;
+            if (!bar) return;
+
+            if (t >= seg.start && t <= seg.end) {
+                // segment is active → grow bar
+                const pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
+                bar.style.width = pct + "%";
+            } else {
+                // not active → keep empty
+                bar.style.width = "0%";
+            }
+        });
+
+        requestAnimationFrame(animate);
+    }
+
     requestAnimationFrame(animate);
-  }
-
-  requestAnimationFrame(animate);
 };
-
-
-
 
 
 
