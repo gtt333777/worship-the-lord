@@ -1,5 +1,4 @@
-﻿// WorshipApp_Modular/songNamesLoader.js
-console.log("🎵 songNamesLoader.js: Starting (Cloudflare R2 mode + Unicode safe)…");
+﻿console.log("🎵 songNamesLoader.js: Starting (Cloudflare R2 mode + Unicode safe)…");
 
 const R2_BASE_URL = "https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev/";
 
@@ -171,7 +170,10 @@ function restoreFilterButton(btn) {
   btn.style.background = btn.dataset.wasBg || "";
   btn.style.color = btn.dataset.wasColor || "";
   btn.style.fontWeight = btn.dataset.wasWeight || "";
-  btn.textContent = btn.dataset.wasText || (showingBookmarks ? "📚 Show All Songs" : "🎯 Show Bookmarked");
+
+  btn.textContent =
+    btn.dataset.wasText || (showingBookmarks ? "📚 Show All" : "⭐ Fvt Songs");
+
   collapsedGuide = false;
 }
 
@@ -184,7 +186,6 @@ window.toggleBookmarkView = function() {
   let bookmarks = loadBookmarks();
   const firstOption = select.options[0];
 
-  // ✅ Only trigger encouragement when switching to "Show Bookmarked"
   if (!showingBookmarks && bookmarks.length === 0) {
     alert("🌟 Start bookmarking a song by pressing the star (☆) at left so it turns Gold.\nI’m making the first bookmark for you!");
     const firstSong = select.options.length > 1 ? select.options[1].value : null;
@@ -193,30 +194,27 @@ window.toggleBookmarkView = function() {
       saveBookmarks(bookmarks);
       console.log("🌟 Auto-bookmarked:", firstSong);
     }
-    // Force showing all songs mode next
     showingBookmarks = false;
   }
 
-  // Smooth fade for button state
   btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
   if (!showingBookmarks) {
-    // 🔹 Show only bookmarked
     for (const opt of allOptions) {
       if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
     }
     if (firstOption) firstOption.style.display = "block";
 
-    btn.textContent = "📚 Show All Songs";
+    btn.textContent = "📚 Show All";
     btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
     btn.style.color = "white";
     btn.style.fontWeight = "bold";
     btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
     showingBookmarks = true;
   } else {
-    // 🔹 Show all songs
     for (const opt of allOptions) opt.style.display = "block";
-    btn.textContent = "🎯 Show Bookmarked";
+
+    btn.textContent = "⭐ Fvt Songs";
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
     btn.style.fontWeight = "bold";
@@ -224,11 +222,9 @@ window.toggleBookmarkView = function() {
     showingBookmarks = false;
   }
 
-  // Reset dropdown
   select.selectedIndex = 0;
   select.blur();
 
-  // Collapse + disable temporarily
   collapseFilterButtonGuide(btn);
   try { select.focus(); } catch {}
 
@@ -273,8 +269,8 @@ window.addEventListener("DOMContentLoaded", () => {
   if (filterBtn) {
     filterBtn.style.transition =
       "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-    // Initial orange state
-    filterBtn.textContent = "🎯 Show Bookmarked";
+
+    filterBtn.textContent = "⭐ Fvt Songs";
     filterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     filterBtn.style.color = "black";
     filterBtn.style.fontWeight = "bold";
