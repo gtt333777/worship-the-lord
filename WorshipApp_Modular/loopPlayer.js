@@ -241,26 +241,27 @@ loopButtonsDiv.innerHTML = "";
   btn.className = "segment-button";
 //btn.textContent = `Segment ${index + 1}`;
 
-
-// ---- PREVIEW TEXT (first 3 words of first line) ----
+// ---- PREVIEW TEXT from lyricsViewer.js processed data ----
 let preview = "";
-if (segment.lyrics && segment.lyrics.length > 0) {
-    let line = (segment.lyrics[0] || "").trim();
+try {
+    if (window._lyricsProcessed &&
+        window._lyricsProcessed[index] &&
+        window._lyricsProcessed[index].cleanedLines &&
+        window._lyricsProcessed[index].cleanedLines.length > 0) {
 
-    // keep Tamil clean
-    line = line.replace(/\s+/g, " ");
+        let line = window._lyricsProcessed[index].cleanedLines[0] || "";
+        line = line.replace(/\s+/g, " ").trim();
 
-    // take first 3 words only
-    let words = line.split(" ");
-    preview = words.slice(0, 3).join(" ");
-    if (words.length > 3) preview += "…";
+        let words = line.split(" ");
+        preview = words.slice(0, 3).join(" ");
+        if (words.length > 3) preview += "…";
+    }
+} catch (e) {
+    console.warn("Preview text error:", e);
 }
 
 // ---- Final button text ----
 btn.textContent = `S${index + 1} — ${preview}`;
-
-
-
 
 
 
