@@ -793,25 +793,3 @@ let the playing present segment play smoothly till end
 
 
  })();
-
-
-
-
-/*
-Why this fixes the “present segment suffers” issue
-•	Previously, priming briefly sought the live players, momentarily interrupting playback.
-•	Now, we never touch the live players during priming. We spin up two separate, muted <audio> warmers with the same sources, 
-seek them to next.start, play for ~120 ms (muted), then stop and remove them. Browsers reuse cache/decoder state, 
-so the real players have the next timestamp “hot” with zero disruption.
-Tweak if needed
-•	If your device needs a longer warm-up, raise WARM_MS (e.g., 150–200).
-•	If you want earlier prep, increase LOOKAHEAD_S to 2.5–3.0.
-•	If a platform dislikes removing nodes, omit el.remove() and just keep a small pool (but this version cleans up to stay light).
-This approach keeps your current segment buttery smooth and still primes the next one right on time.
-*/
-
-/* Optional safety helper to stop warmers when app backgrounded:
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && window.__prime2sStop) window.__prime2sStop();
-});
-*/
