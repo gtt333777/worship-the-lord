@@ -567,7 +567,7 @@ function scrollToOneLineBelowTop(el) {
   const lineHeight = 28;
 
   const targetScroll =
-    parent.scrollTop + (elRect.top - parentRect.top) - (lineHeight * 4);
+    parent.scrollTop + (elRect.top - parentRect.top) - (lineHeight * 5);
 
   parent.scrollTo({ top: targetScroll, behavior: 'smooth' });
 }
