@@ -186,6 +186,7 @@
       text-align: left;
     }
 
+
     .segment-button {
       position: relative;
       margin: 4px;
@@ -200,10 +201,10 @@
       cursor: pointer;
       transition: all 0.25s ease;
       min-width: 90px;
+      overflow: visible;
+      z-index: 1;   /* ← ADD THIS */
+}
 
-      overflow: visible;   /* ⭐ FIX ADDED HERE */
-
-    }
 
 
     /* ⭐ NEW NON-FLICKERING PROGRESS NEEDLE */
@@ -320,17 +321,6 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-/* =====================================
-   ⭐ SAFE PROGRESS BAR (Top Edge)
-   ===================================== */
-.segment-button {
-  position: relative !important;
-  overflow: visible !important;
-  z-index: 1;   /* <-- CRITICAL */
-}
-
-
-
 
 
 /* --------------------------
@@ -353,16 +343,6 @@ button#vocalMuteBtn.vocal-muted {
   white-space: nowrap;                     /* keeps text in one line */
 }
 
-/*
-.lyric-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 20px 22px;
-  margin: 14px 0;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  border: 1px solid #f1f1f1;
-}
-*/
 
 /* Bible-App style lyric card */
 .lyric-card {
