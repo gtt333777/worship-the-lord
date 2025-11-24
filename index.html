@@ -433,51 +433,42 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-<!-- ⭐ Bookmark Controls -->
-<div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
 
+<!-- ⭐ Bookmark Controls -->
+<div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
+
+  <!-- Left big star (song bookmark) -->
   <button id="bookmarkBtn"
     onclick="toggleBookmark(document.getElementById('songSelect').value)"
     style="font-size:1.4rem; border:none; background:none; cursor:pointer;">
     ☆
   </button>
 
+  <!-- Fvt Songs -->
   <button id="bookmarkFilterBtn"
     onclick="toggleBookmarkView()"
     style="font-size:0.82rem; padding:5px 14px; border-radius:7px;
            background:linear-gradient(to bottom right,#ffcc33,#ff9900);
            font-weight:bold; border:none; cursor:pointer;
-           min-width:110px; text-align:center;">
-    ⭐ Fvt Songs
+           min-width:115px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;">
+    <span style="color:black;">⭐</span>
+    <span>Fvt Songs</span>
   </button>
 
-
-
-
+  <!-- Fvt Segments -->
   <button id="segmentFavBtn"
-  onclick="toggleSegmentFavView()"
-  style="
-    font-size:0.82rem;
-    padding:5px 10px;
-    border-radius:7px;
-    background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-    font-weight:bold;
-    border:none;
-    cursor:pointer;
-    min-width:110px;
-    text-align:center;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-  ">
-  <span>Fvt Sgmnts</span>
-  <span style="font-size:1rem; line-height:1; color:black;">⭐</span>
-</button>
-
-
+    onclick="toggleSegmentFavView()"
+    style="font-size:0.82rem; padding:5px 14px; border-radius:7px;
+           background:linear-gradient(to bottom right,#ffcc33,#ff9900);
+           font-weight:bold; border:none; cursor:pointer;
+           min-width:115px; text-align:center;
+           display:flex; align-items:center; justify-content:center; gap:4px;">
+    <span>Fvt Sgmnts</span>
+    <span style="font-size:1rem; color:black;">⭐</span>
+  </button>
 
 </div>
+
 
 
 
