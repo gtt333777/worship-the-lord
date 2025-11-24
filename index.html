@@ -431,15 +431,21 @@ button#vocalMuteBtn.vocal-muted {
 
   <!-- ⭐ Bookmark Controls -->
   <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
-    <button id="bookmarkBtn"
-      onclick="toggleBookmark(document.getElementById('songSelect').value)"
-      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
+    
+      <button id="bookmarkBtn"
+  onclick="toggleBookmark(document.getElementById('songSelect').value)"
+  style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
 
-    <button id="bookmarkFilterBtn"
-      onclick="toggleBookmarkView()"
-      
-      style="font-size:0.82rem; padding:5px 8px; border-radius:7px;">🎯 Fvt Songs</button>
-  
+<button id="bookmarkFilterBtn"
+  onclick="toggleBookmarkView()"
+  style="font-size:0.82rem; padding:5px 8px; border-radius:7px;">⭐ Fvt Songs</button>
+
+<button id="segmentFavBtn"
+  onclick="toggleSegmentFavView()"
+  style="font-size:0.82rem; padding:5px 8px; border-radius:7px; background:linear-gradient(to bottom right,#ffcc33,#ff9900); font-weight:bold; border:none; cursor:pointer;">
+  Fvt Sgmnts ⭐
+</button>
+
       </div>
 
   <!-- ✅ Player Controls -->
@@ -533,7 +539,8 @@ button#vocalMuteBtn.vocal-muted {
   <script src="WorshipApp_Modular/loopPlayer.js" defer></script>
   <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
   <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
-  
+  <script src="WorshipApp_Modular/segmentFavorites.js" defer></script>
+
 
 
   <!-- ✅ Service Worker -->
