@@ -202,6 +202,7 @@ window.startGoldenIndicator = function(segments, audio, container) {
       background:red;
       pointer-events:none;
       border-radius:2px;
+      z-index:9999;      /* ⭐ ADD THIS */
     `;
     btn.appendChild(bar);
     btn._goldBar = bar;
