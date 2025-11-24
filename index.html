@@ -389,27 +389,39 @@ button#vocalMuteBtn.vocal-muted {
 }
 
 
-
+/* FIX ⭐ BUTTONS COMPLETELY — override global button styles */
 #bookmarkFilterBtn,
 #segmentFavBtn {
-  all: unset;
+  all: unset;                     /* remove ALL inherited button styling */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 5px 14px;
+  padding: 5px 14px !important;
   background: linear-gradient(to bottom right,#ffcc33,#ff9900);
   font-size: 0.82rem;
   font-weight: bold;
   border-radius: 7px;
   cursor: pointer;
   min-width: 120px;
-  border: none;
   line-height: 1.1rem;
+  border: none !important;
   overflow: visible !important;
+  box-sizing: border-box;
 }
 
+/* Restore pointer behavior because all:unset removes semantics */
+#bookmarkFilterBtn,
+#segmentFavBtn {
+  -webkit-appearance: none;
+  appearance: none;
+  user-select: none;
+}
 
+#bookmarkFilterBtn:focus,
+#segmentFavBtn:focus {
+  outline: none;
+}
 
 
 
