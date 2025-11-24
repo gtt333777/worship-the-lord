@@ -716,6 +716,79 @@ requestAnimationFrame(updateActiveSegmentByTime);
 
 
 
+<script>
+/* ===========================================
+   RESTORE OLD RED TOP PROGRESS BAR (AUTO)
+   =========================================== */
+
+// Make sure every segment button has a red bar
+function ensureRedBars() {
+  document.querySelectorAll(".segment-button").forEach(btn => {
+    if (!btn.querySelector(".seg-progress")) {
+      const bar = document.createElement("div");
+      bar.className = "seg-progress";
+      btn.appendChild(bar);
+    }
+  });
+}
+
+// Red bar CSS (auto-inject)
+const css = document.createElement("style");
+css.textContent = `
+  .seg-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: red;
+    width: 0%;
+    z-index: 50;
+    transition: width 0.1s linear;
+  }
+`;
+document.head.appendChild(css);
+
+
+// Main updater
+function updateRedBar() {
+  const audio = window.vocalAudio;
+  const segs  = window.currentSegments;
+
+  ensureRedBars();
+
+  if (!audio || !segs) {
+    requestAnimationFrame(updateRedBar);
+    return;
+  }
+
+  const t = audio.currentTime;
+  let idx = segs.findIndex(s => t >= s.start && t <= s.end);
+
+  const buttons = document.querySelectorAll(".segment-button");
+
+  buttons.forEach((btn, i) => {
+    const bar = btn.querySelector(".seg-progress");
+    if (!bar) return;
+
+    if (i === idx) {
+      const s = segs[i];
+      const pct = ((t - s.start) / (s.end - s.start)) * 100;
+      bar.style.width = pct + "%";
+    } else {
+      bar.style.width = "0%";
+    }
+  });
+
+  requestAnimationFrame(updateRedBar);
+}
+
+// Start loop
+requestAnimationFrame(updateRedBar);
+</script>
+
+
+
+
 
 </body>
 </html>
