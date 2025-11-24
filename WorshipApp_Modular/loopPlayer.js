@@ -176,53 +176,58 @@ if (window.charModeEnabled) {
 
 window.currentPlayingSegmentIndex = null;
 
+
 /* ============================================================
-   ⭐ GOLDEN INDICATOR (Red Progress Bar Above Segment Buttons)
+   ⭐ GOLDEN INDICATOR — One Red Bar INSIDE Each Segment Button
    ============================================================ */
+
 window.startGoldenIndicator = function(segments, audio, container) {
-    if (!segments || !segments.length || !audio || !container) {
-        console.warn("GoldenIndicator: Missing dependencies");
-        return;
-    }
+  if (!segments || !segments.length || !audio) return;
 
-    // Remove old bars
-    container.querySelectorAll(".gold-bar").forEach(e => e.remove());
+  // remove old bars
+  container.querySelectorAll(".gold-bar").forEach(e => e.remove());
 
-    // Create progress bar
+  const buttons = container.querySelectorAll(".segment-button");
+
+  // Create a bar INSIDE each segment button
+  buttons.forEach((btn, i) => {
     const bar = document.createElement("div");
     bar.className = "gold-bar";
     bar.style.cssText = `
-        position:absolute;
-        left:0;
-        top:0;
-        height:3px;
-        background:red;
-        width:0%;
-        z-index:10;
-        pointer-events:none;
-        transition:none;
+      position:absolute;
+      top:0;
+      left:0;
+      height:4px;
+      width:0%;
+      background:red;
+      pointer-events:none;
+      border-radius:2px;
     `;
-    container.style.position = "relative";
-    container.appendChild(bar);
+    btn.appendChild(bar);
+    btn._goldBar = bar;
+  });
 
-    function update() {
-        const idx = window.currentPlayingSegmentIndex;
-        if (idx === null || idx < 0 || idx >= segments.length) {
-            bar.style.width = "0%";
-            return;
-        }
+  function animate() {
+    const t = audio.currentTime;
 
-        const seg = segments[idx];
-        const t = audio.currentTime;
+    segments.forEach((seg, i) => {
+      const bar = buttons[i]._goldBar;
+      if (!bar) return;
 
-        let pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
-        pct = Math.max(0, Math.min(pct, 100));
-
+      if (t >= seg.start && t <= seg.end) {
+        const pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
         bar.style.width = pct + "%";
-    }
+        bar.style.opacity = "1";
+      } else {
+        bar.style.width = "0%";
+        bar.style.opacity = "0";
+      }
+    });
 
-    // Update 20× per second
-    setInterval(update, 50);
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
 };
 
 
