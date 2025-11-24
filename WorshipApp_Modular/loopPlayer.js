@@ -239,7 +239,33 @@ loopButtonsDiv.innerHTML = "";
 (window.segments || []).forEach((segment, index) => {
   const btn = document.createElement("button");
   btn.className = "segment-button";
-  btn.textContent = `Segment ${index + 1}`;
+//btn.textContent = `Segment ${index + 1}`;
+
+
+// ---- PREVIEW TEXT (first 3 words of first line) ----
+let preview = "";
+if (segment.lyrics && segment.lyrics.length > 0) {
+    let line = (segment.lyrics[0] || "").trim();
+
+    // keep Tamil clean
+    line = line.replace(/\s+/g, " ");
+
+    // take first 3 words only
+    let words = line.split(" ");
+    preview = words.slice(0, 3).join(" ");
+    if (words.length > 3) preview += "…";
+}
+
+// ---- Final button text ----
+btn.textContent = `S${index + 1} — ${preview}`;
+
+
+
+
+
+
+
+
 
   // ✳️ Independent data for other scripts (goldenIndicator.js)
   //    These attributes let other files read times straight from DOM
@@ -755,57 +781,7 @@ let the playing present segment play smoothly till end
   console.log("✅ Non-invasive 2s priming overlay installed (separate muted warmers).");
 
 
-
-  /* ==========================================================
-   ⭐ SAFE PROGRESS BAR ENGINE — NO FLICKER, NO DISAPPEAR
-   - DOM never touched
-   - No divs created or removed
-   - Just updates CSS variable on each button
-   - Works even if buttons are rebuilt
-   ========================================================== */
-(function safeProgressBarEngine() {
-
-    console.log("SAFE Progress Bar Engine: Loaded");
-
-    function updateSafeProgressBar() {
-        const audio = window.vocalAudio;
-        const segs  = window.currentSegments || window.loadedSegments || [];
-
-        if (!audio || !segs.length) {
-            requestAnimationFrame(updateSafeProgressBar);
-            return;
-        }
-
-        const t = audio.currentTime;
-        const buttons = document.querySelectorAll(".segment-button");
-
-        if (!buttons.length) {
-            requestAnimationFrame(updateSafeProgressBar);
-            return;
-        }
-
-        for (let i = 0; i < segs.length; i++) {
-            const seg = segs[i];
-            const btn = buttons[i];
-            if (!btn) continue;
-
-            if (t >= seg.start && t <= seg.end) {
-                // compute progress 0–100%
-                const pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
-                btn.style.setProperty("--seg-progress", pct + "%");
-            } else {
-                // reset progress
-                btn.style.setProperty("--seg-progress", "0%");
-            }
-        }
-
-        requestAnimationFrame(updateSafeProgressBar);
-    }
-
-    requestAnimationFrame(updateSafeProgressBar);
-
-    })();
-
+ })();
 
 
 })();
