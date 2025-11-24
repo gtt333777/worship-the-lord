@@ -429,24 +429,37 @@ button#vocalMuteBtn.vocal-muted {
   <select id="songSelect"></select>
   </div>
 
-  <!-- ⭐ Bookmark Controls -->
-  <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
-    
-      <button id="bookmarkBtn"
-  onclick="toggleBookmark(document.getElementById('songSelect').value)"
-  style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
 
-<button id="bookmarkFilterBtn"
-  onclick="toggleBookmarkView()"
-  style="font-size:0.82rem; padding:5px 8px; border-radius:7px;">⭐ Fvt Songs</button>
-    
-<button id="segmentFavBtn"
-  onclick="toggleSegmentFavView()"
-  style="font-size:0.82rem; padding:5px 8px; border-radius:7px; background:linear-gradient(to bottom right,#ffcc33,#ff9900); font-weight:bold; border:none; cursor:pointer;">
-  Fvt Sgmnts ⭐
-</button>
+<!-- ⭐ Bookmark Controls -->
+<div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
 
-      </div>
+  <button id="bookmarkBtn"
+    onclick="toggleBookmark(document.getElementById('songSelect').value)"
+    style="font-size:1.4rem; border:none; background:none; cursor:pointer;">
+    ☆
+  </button>
+
+  <button id="bookmarkFilterBtn"
+    onclick="toggleBookmarkView()"
+    style="font-size:0.82rem; padding:5px 14px; border-radius:7px;
+           background:linear-gradient(to bottom right,#ffcc33,#ff9900);
+           font-weight:bold; border:none; cursor:pointer;
+           min-width:110px; text-align:center;">
+    ⭐ Fvt Songs
+  </button>
+
+  <button id="segmentFavBtn"
+    onclick="toggleSegmentFavView()"
+    style="font-size:0.82rem; padding:5px 14px; border-radius:7px;
+           background:linear-gradient(to bottom right,#ffcc33,#ff9900);
+           font-weight:bold; border:none; cursor:pointer;
+           min-width:110px; text-align:center;">
+    Fvt Sgmnts ⭐
+  </button>
+
+</div>
+
+
 
   <!-- ✅ Player Controls -->
   <div style="margin-top:10px;">
