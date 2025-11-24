@@ -795,7 +795,7 @@ let the playing present segment play smoothly till end
  })();
 
 
-})();
+
 
 /*
 Why this fixes the “present segment suffers” issue
