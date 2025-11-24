@@ -391,51 +391,73 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-<!-- ⭐ Bookmark Controls -->
-<div style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:10px;">
+<!-- ⭐ Bookmark Controls (SVG-based star → guaranteed visible) -->
+<div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
+
+  <!-- Left big star -->
+  <button id="bookmarkBtn"
+    onclick="toggleBookmark(document.getElementById('songSelect').value)"
+    style="font-size:1.6rem; border:none; background:none; cursor:pointer; line-height:1;">
+    ★
+  </button>
 
   <!-- Fvt Songs -->
   <button id="bookmarkFilterBtn"
     onclick="toggleBookmarkView()"
     style="
-      font-size:0.9rem; 
-      padding:7px 16px; 
-      border-radius:8px;
+      font-size:0.82rem;
+      padding:5px 14px;
+      border-radius:7px;
       background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-      font-weight:bold; 
-      border:none; 
+      font-weight:bold;
+      border:none;
       cursor:pointer;
-      min-width:150px; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      gap:8px;
-    ">
-    ⭐ <span>Fvt Songs</span>
+      min-width:120px;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;">
+    
+    <!-- SVG STAR LEFT -->
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="black">
+      <path d="M12 .587l3.668 7.571 8.332 1.151-6.064 5.868 
+               1.48 8.273L12 18.896l-7.416 4.554 
+               1.48-8.273L0 9.309l8.332-1.151z"/>
+    </svg>
+
+    Fvt Songs
   </button>
 
   <!-- Fvt Segments -->
   <button id="segmentFavBtn"
     onclick="toggleSegmentFavView()"
     style="
-      font-size:0.9rem; 
-      padding:7px 16px; 
-      border-radius:8px;
+      font-size:0.82rem;
+      padding:5px 14px;
+      border-radius:7px;
       background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-      font-weight:bold; 
-      border:none; 
+      font-weight:bold;
+      border:none;
       cursor:pointer;
-      min-width:150px; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      gap:8px;
-    ">
-    ⭐ <span>Fvt Sgmnts</span>
+      min-width:120px;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;">
+
+    Fvt Sgmnts
+
+    <!-- SVG STAR RIGHT -->
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="black">
+      <path d="M12 .587l3.668 7.571 8.332 1.151-6.064 5.868 
+               1.48 8.273L12 18.896l-7.416 4.554 
+               1.48-8.273L0 9.309l8.332-1.151z"/>
+    </svg>
   </button>
 
 </div>
-
 
 
   </style>
