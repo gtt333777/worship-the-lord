@@ -630,38 +630,6 @@ function markActiveSegment(index) {
 }
 
 
-/*
-
-// 🔹 Progress bar animation
-function updateProgressBar() {
-  const audio = window.vocalAudio || window.currentVocal || document.querySelector('audio');
-  const buttons = document.querySelectorAll('.segment-button');
-  const segments = window.currentSegments || window.loadedSegments;
-
-  if (!audio || !segments || !buttons.length) {
-    requestAnimationFrame(updateProgressBar);
-    return;
-  }
-
-  
-  const activeBtn = document.querySelector('.segment-button.active');
-  if (activeBtn) {
-    const pb = activeBtn.querySelector('.progress-bar');
-    const currentTime = audio.currentTime;
-    const activeSegment = segments.find(s => currentTime >= s.start && currentTime <= s.end);
-
-    if (activeSegment && pb) {
-      const percent = ((currentTime - activeSegment.start) /
-                       (activeSegment.end - activeSegment.start)) * 100;
-      pb.style.left = `${percent}%`;
-    }
-  }
-
-  requestAnimationFrame(updateProgressBar);
-}
-
-*/
-
 // ----------------------------------------------------
 // 🟢 SAFE HOOK — prevents null → null playSegment calls
 // ----------------------------------------------------
@@ -698,11 +666,6 @@ function hookPlaySegment() {
   }
 })();
 
-/*
-
-// Start progress bar loop
-requestAnimationFrame(updateProgressBar);
-*/
 
 </script>
 
