@@ -241,14 +241,20 @@ loopButtonsDiv.innerHTML = "";
   btn.className = "segment-button";
 //btn.textContent = `Segment ${index + 1}`;
 
-// ---- PREVIEW TEXT from lyricsViewer.js processed data ----
+
+
+// ---- SAFE PREVIEW TEXT (never breaks) ----
 let preview = "";
+
 try {
-    if (window._lyricsProcessed &&
+    // Check if lyricsProcessed exists AND has this segment
+    if (
+        window._lyricsProcessed &&
+        Array.isArray(window._lyricsProcessed) &&
         window._lyricsProcessed[index] &&
         window._lyricsProcessed[index].cleanedLines &&
-        window._lyricsProcessed[index].cleanedLines.length > 0) {
-
+        window._lyricsProcessed[index].cleanedLines.length > 0
+    ) {
         let line = window._lyricsProcessed[index].cleanedLines[0] || "";
         line = line.replace(/\s+/g, " ").trim();
 
@@ -256,12 +262,16 @@ try {
         preview = words.slice(0, 3).join(" ");
         if (words.length > 3) preview += "…";
     }
-} catch (e) {
-    console.warn("Preview text error:", e);
+
+} catch (err) {
+    console.warn("Preview error:", err);
+    preview = "";  // fallback
 }
 
-// ---- Final button text ----
-btn.textContent = `S${index + 1} — ${preview}`;
+// Always produce a valid label
+btn.textContent = preview
+    ? `S${index + 1} — ${preview}`
+    : `S${index + 1}`;
 
 
 
