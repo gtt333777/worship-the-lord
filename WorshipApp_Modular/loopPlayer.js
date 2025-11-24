@@ -178,51 +178,6 @@ window.currentPlayingSegmentIndex = null;
 
 
 
-/* ============================================================
-   ⭐ ORIGINAL DARK-RED TOP PROGRESS BAR (Restored Version)
-   ============================================================ */
-
-window.startGoldenIndicator = function (segments, audio, container) {
-    if (!segments || !segments.length || !audio) return;
-
-    // Remove old bars
-    container.querySelectorAll(".gold-bar").forEach(b => b.remove());
-
-    const buttons = container.querySelectorAll(".segment-button");
-
-    // Make one top-bar for each button
-    buttons.forEach((btn, i) => {
-        const bar = document.createElement("div");
-        bar.className = "gold-bar";
-        btn.appendChild(bar);
-        btn._goldBar = bar;
-    });
-
-    function animate() {
-        const t = audio.currentTime;
-
-        segments.forEach((seg, i) => {
-            const bar = buttons[i]._goldBar;
-            if (!bar) return;
-
-            if (t >= seg.start && t <= seg.end) {
-                // segment is active → grow bar
-                const pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
-                bar.style.width = pct + "%";
-            } else {
-                // not active → keep empty
-                bar.style.width = "0%";
-            }
-        });
-
-        requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
-};
-
-
-
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
