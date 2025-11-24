@@ -390,54 +390,61 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
+<!-- ⭐ Bookmark Controls -->
+<div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
 
+  <!-- Left big star (song bookmark) -->
+  <button id="bookmarkBtn"
+    onclick="toggleBookmark(document.getElementById('songSelect').value)"
+    style="font-size:1.6rem; border:none; background:none; cursor:pointer; line-height:1;">
+    ☆
+  </button>
 
-<!-- Fvt Songs -->
-<button id="bookmarkFilterBtn"
-  onclick="toggleBookmarkView()"
-  style="
-    font-size:0.82rem; 
-    padding:5px 14px; 
-    border-radius:7px;
-    background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-    font-weight:bold; 
-    border:none; 
-    cursor:pointer;
-    min-width:120px; 
-    text-align:center;
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-    gap:6px;
-  ">
-  <span style="color:black;">⭐</span>
-  <span>Fvt Songs</span>
-  <span style="display:inline-block; width:8px;"></span>
-</button>
+  <!-- Fvt Songs -->
+  <button id="bookmarkFilterBtn"
+    onclick="toggleBookmarkView()"
+    style="
+      font-size:0.82rem; 
+      padding:5px 14px; 
+      border-radius:7px;
+      background:linear-gradient(to bottom right,#ffcc33,#ff9900);
+      font-weight:bold; 
+      border:none; 
+      cursor:pointer;
+      min-width:120px; 
+      text-align:center;
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      gap:6px;
+    ">
+    <span style="color:white;">⭐</span>
+    <span>Fvt Songs</span>
+  </button>
 
-<!-- Fvt Segments -->
-<button id="segmentFavBtn"
-  onclick="toggleSegmentFavView()"
-  style="
-    font-size:0.82rem; 
-    padding:5px 14px; 
-    border-radius:7px;
-    background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-    font-weight:bold; 
-    border:none; 
-    cursor:pointer;
-    min-width:120px; 
-    text-align:center;
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-    gap:6px;
-  ">
-  <span>Fvt Sgmnts</span>
-  <span style="font-size:1.1rem; color:black;">⭐</span>
-  <span style="display:inline-block; width:8px;"></span>
-</button>
+  <!-- Fvt Segments -->
+  <button id="segmentFavBtn"
+    onclick="toggleSegmentFavView()"
+    style="
+      font-size:0.82rem; 
+      padding:5px 14px; 
+      border-radius:7px;
+      background:linear-gradient(to bottom right,#ffcc33,#ff9900);
+      font-weight:bold; 
+      border:none; 
+      cursor:pointer;
+      min-width:120px; 
+      text-align:center;
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      gap:6px;
+    ">
+    <span>Fvt Sgmnts</span>
+    <span style="font-size:1.1rem; color:white;">⭐</span>
+  </button>
 
+</div>
 
 
   </style>
