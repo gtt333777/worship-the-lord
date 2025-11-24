@@ -376,12 +376,17 @@ button#vocalMuteBtn.vocal-muted {
   position: relative;
 }
 
-
 .gold-bar {
-    pointer-events:none;
-    z-index:9999;   /* ⭐ ADD THIS */
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 0%;
+    background: #cc0000;   /* dark red (original) */
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 9999;
 }
-
 
 
 
