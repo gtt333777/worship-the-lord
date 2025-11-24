@@ -242,37 +242,27 @@ loopButtonsDiv.innerHTML = "";
 //btn.textContent = `Segment ${index + 1}`;
 
 
-
-// ---- SAFE PREVIEW TEXT (never breaks) ----
+// ---- PREVIEW TEXT (from JSON direct) ----
 let preview = "";
 
 try {
-    // Check if lyricsProcessed exists AND has this segment
-    if (
-        window._lyricsProcessed &&
-        Array.isArray(window._lyricsProcessed) &&
-        window._lyricsProcessed[index] &&
-        window._lyricsProcessed[index].cleanedLines &&
-        window._lyricsProcessed[index].cleanedLines.length > 0
-    ) {
-        let line = window._lyricsProcessed[index].cleanedLines[0] || "";
-        line = line.replace(/\s+/g, " ").trim();
+    if (segment.lyrics && segment.lyrics.length > 0) {
+        let line = (segment.lyrics[0] || "").trim();
+        line = line.replace(/\s+/g, " ");
 
         let words = line.split(" ");
         preview = words.slice(0, 3).join(" ");
         if (words.length > 3) preview += "…";
     }
-
-} catch (err) {
-    console.warn("Preview error:", err);
-    preview = "";  // fallback
+} catch (e) {
+    console.warn("Preview error:", e);
+    preview = "";
 }
 
-// Always produce a valid label
+// Final label
 btn.textContent = preview
     ? `S${index + 1} — ${preview}`
     : `S${index + 1}`;
-
 
 
 
