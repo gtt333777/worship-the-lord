@@ -65,21 +65,8 @@ function playSegment(startTime, endTime, index = 0) {
 
     window.currentlyPlaying = true;
 
-    
-  /* 🔔 Golden Indicator Playback Hook */
-  try {
-    if (typeof window.__goldenIndicatorStarted === "undefined") {
-      window.__goldenIndicatorStarted = true;
+  
 
-      const c = document.getElementById("loopButtonsContainer");
-      if (typeof window.startGoldenIndicator === "function") {
-        console.log("GoldenIndicator: Activating after real playback start.");
-        window.startGoldenIndicator(window.segments, window.vocalAudio, c);
-      }
-    }
-  } catch (e) {}
-
-        
     // Watchdog based on actual time; also micro-resync the two tracks
     const EPS   = 0.02; // 20ms guard near the end
     const DRIFT = 0.06; // resync if drift > 60ms
@@ -188,6 +175,58 @@ if (window.charModeEnabled) {
 }
 
 window.currentPlayingSegmentIndex = null;
+
+/* ============================================================
+   ⭐ GOLDEN INDICATOR (Red Progress Bar Above Segment Buttons)
+   ============================================================ */
+window.startGoldenIndicator = function(segments, audio, container) {
+    if (!segments || !segments.length || !audio || !container) {
+        console.warn("GoldenIndicator: Missing dependencies");
+        return;
+    }
+
+    // Remove old bars
+    container.querySelectorAll(".gold-bar").forEach(e => e.remove());
+
+    // Create progress bar
+    const bar = document.createElement("div");
+    bar.className = "gold-bar";
+    bar.style.cssText = `
+        position:absolute;
+        left:0;
+        top:0;
+        height:3px;
+        background:red;
+        width:0%;
+        z-index:10;
+        pointer-events:none;
+        transition:none;
+    `;
+    container.style.position = "relative";
+    container.appendChild(bar);
+
+    function update() {
+        const idx = window.currentPlayingSegmentIndex;
+        if (idx === null || idx < 0 || idx >= segments.length) {
+            bar.style.width = "0%";
+            return;
+        }
+
+        const seg = segments[idx];
+        const t = audio.currentTime;
+
+        let pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
+        pct = Math.max(0, Math.min(pct, 100));
+
+        bar.style.width = pct + "%";
+    }
+
+    // Update 20× per second
+    setInterval(update, 50);
+};
+
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const loopButtonsDiv = document.getElementById("loopButtonsContainer");
@@ -333,24 +372,6 @@ setTimeout(() => {
 
 
 
-        /*
-
-        // ✅ Notify segmentProgressVisualizer.js
-        if (typeof window.startSegmentProgressVisualizer === "function") {
-          const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-          window.startSegmentProgressVisualizer(window.segments, window.vocalAudio, loopButtonsContainer);
-        }
-        */
-
-        /*
-        // ⭐ Activate Golden Running Indicator
-if (typeof window.startGoldenIndicator === "function") {
-  const loopButtonsContainer = document.getElementById("loopButtonsContainer");
-  window.startGoldenIndicator(window.segments, window.vocalAudio, loopButtonsContainer);
-}
-*/
-
-
 
 
         // 🔁 Handshake: if user already pressed Play and wants Segment 1 auto-start
@@ -399,230 +420,6 @@ function checkReadyAndPlaySegment(startTime, endTime, index = 0) {
   console.log(`🎧 loopPlayer.js: ✅ Playing segment ${index + 1}`);
   playSegment(startTime, endTime, index);
 }
-
-
-
-
-
-
-
-
-/* ==========================================================
-   🌐 Micro-priming overlay for v3 (Segment 2+ only, always on)
-   - Drop-in: paste at END of loopPlayer.js (replace old overlay)
-   - Segment 1 untouched
-   - One tiny seek “tickle” once per segment boundary
-   - No network check; still very light
-   ========================================================== */
-/*
-(function () {
-  if (window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__) return;
-  window.__V3_MICRO_PRIME_OVERLAY_ALWAYS__ = true;
-
-  var __basePlaySegment = window.playSegment;
-  if (typeof __basePlaySegment !== 'function') return;
-
-  // Tunables (keep conservative; you can try 0.16–0.25 if needed)
-  var LOOKAHEAD_WINDOW_S = 0.20; // 200 ms before boundary
-  var RELEASE_MS = 20;           // re-entry guard
-
-  function fastSeekOrSet(el, t){
-    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
-    try { if (el) el.currentTime = t; } catch(_) {}
-  }
-
-  window.playSegment = function (startTime, endTime, index) {
-    // Run your existing v3 behavior (which skips segment 1’s seamless hook)
-    __basePlaySegment.call(this, startTime, endTime, index);
-
-    // Only enhance segments 2+
-    if ((index|0) === 0) return;
-
-    var myRun = window.playRunId;
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    var jumping = false;
-    var primedFor = -1;          // ensure we prime only once per segment
-    var curIdx  = index|0;
-    var curEnd  = endTime;
-
-    // Kill previous overlay watcher if any
-    if (window.__v3MicroPrimeStop) { try { window.__v3MicroPrimeStop(); } catch(_){} }
-
-    var interval = setInterval(function(){
-      // Abort if takeover or players gone
-      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
-        clearInterval(interval); window.__v3MicroPrimeStop = null; return;
-      }
-
-      var va = a.currentTime;
-      var timeToBoundary = (curEnd - va);
-
-      // Next segment
-      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
-        ? window.segments[curIdx + 1]
-        : null;
-
-      // One-time tiny tickle before boundary (always on)
-      if (next && typeof next.start === 'number' &&
-          primedFor !== curIdx &&          // only once per segment
-          !jumping &&
-          timeToBoundary > 0 &&
-          timeToBoundary <= LOOKAHEAD_WINDOW_S) {
-
-        primedFor = curIdx;                // mark as primed
-        jumping = true;
-
-        try {
-          var returnTo = va;
-          fastSeekOrSet(a, next.start);
-          fastSeekOrSet(b, next.start);
-          fastSeekOrSet(a, returnTo);
-          fastSeekOrSet(b, returnTo);
-        } catch (_) {}
-
-        setTimeout(function(){ jumping = false; }, RELEASE_MS);
-      }
-
-      // If your base v3 logic advanced to next segment, update bounds & reset priming
-      try {
-        if (window.currentPlayingSegmentIndex === curIdx + 1 && next) {
-          curIdx += 1;
-          curEnd  = next.end;
-          primedFor = -1;                  // allow priming for new segment
-        }
-      } catch(_) {}
-    }, 25); // light; in line with v3’s check cadence
-
-    window.__v3MicroPrimeStop = function(){ clearInterval(interval); };
-  };
-
-  console.log("🌐 v3 micro-priming overlay installed (always on, Segment 2+ only, one-time per boundary).");
-})();
-
-*/
-
-
-
-
-/*
-I feel that it is only priming issue. segments handsoff are good even without seamless v3 hence I 
-removed V3 seamless codes. Now I want to focus on priming next segment that is segment 2 starting 
-onwards. Segment 1 should not be 
-touched it is good. Can you give code for 2 seconds before, for priming from segment 2 starting 
-onwards. At the same time because of this priming the segments should not juggle. I have pasted 
-below loopPlayer.js without v3
-*/
-/* ==========================================================
-   🎯 Next-segment priming overlay (2.0s before boundary)
-   - Paste at END of loopPlayer.js
-   - Does NOT alter Segment 1 start behavior
-   - While Seg N plays, primes Seg N+1 once at (end(N) - 2s)
-   - Muted micro-seek to avoid audible juggle
-   ========================================================== */
-/*
-(function () {
-  if (window.__PRIME_NEXT_2S_OVERLAY__) return;
-  window.__PRIME_NEXT_2S_OVERLAY__ = true;
-
-  var basePlay = window.playSegment;
-  if (typeof basePlay !== 'function') return;
-
-  // Tunables
-  var LOOKAHEAD_S = 2.0;  // when to prime before boundary
-  var RELEASE_MS  = 20;   // brief re-entry guard
-  var TICK_MS     = 40;   // watcher cadence (light)
-
-  function fastSeekOrSet(el, t){
-    try { if (el && el.fastSeek) return el.fastSeek(t); } catch(_) {}
-    try { if (el) el.currentTime = t; } catch(_) {}
-  }
-
-  function muteBoth(a, b, on) {
-    try { a.muted = !!on; } catch(_) {}
-    try { b.muted = !!on; } catch(_) {}
-  }
-
-  window.playSegment = function (startTime, endTime, index) {
-    // run your current (v3-less) implementation
-    basePlay.call(this, startTime, endTime, index);
-
-    // players
-    var a = window.vocalAudio, b = window.accompAudio;
-    if (!a || !b) return;
-
-    // stop any prior watcher
-    if (window.__prime2sStop) { try { window.__prime2sStop(); } catch(_) {} }
-
-    var myRun     = window.playRunId;
-    var curIdx    = (index|0);
-    var curEnd    = endTime;
-    var primedFor = -1;      // ensure one-time per segment
-    var jumping   = false;
-
-    var timer = setInterval(function () {
-      // abort if a newer play took over or players vanished
-      if (myRun !== window.playRunId || !window.vocalAudio || !window.accompAudio) {
-        clearInterval(timer); window.__prime2sStop = null; return;
-      }
-
-      // How far to boundary (use vocal clock)
-      var now = a.currentTime;
-      var dt  = curEnd - now;
-
-      // Next segment data
-      var next = (Array.isArray(window.segments) && curIdx < window.segments.length - 1)
-        ? window.segments[curIdx + 1]
-        : null;
-
-      // Do the one-time priming ~2s before boundary
-      if (next && typeof next.start === 'number' &&
-          dt > 0 && dt <= LOOKAHEAD_S &&
-          primedFor !== curIdx &&
-          !jumping) {
-
-        primedFor = curIdx;
-        jumping   = true;
-
-        try {
-          // brief, muted micro-seek to "warm" decoders/buffers
-          var returnTo = now;
-          muteBoth(a, b, true);
-          fastSeekOrSet(a, next.start + 0.001);
-          fastSeekOrSet(b, next.start + 0.001);
-          fastSeekOrSet(a, returnTo);
-          fastSeekOrSet(b, returnTo);
-          // small async release to ensure seeks settle
-          setTimeout(function(){
-            muteBoth(a, b, false);
-            jumping = false;
-          }, RELEASE_MS);
-        } catch(_) {
-          // even on error, release quickly
-          setTimeout(function(){ jumping = false; }, RELEASE_MS);
-          try { muteBoth(a, b, false); } catch(_) {}
-        }
-      }
-
-      // When your base code auto-advances to the next segment,
-      // this overlay will be re-installed by the next playSegment() call
-      // (which bumps playRunId). If for any reason we detect we've crossed
-      // the boundary without a takeover, stop this watcher.
-      if (dt <= 0) {
-        clearInterval(timer); window.__prime2sStop = null; return;
-      }
-    }, TICK_MS);
-
-    window.__prime2sStop = function(){ clearInterval(timer); };
-  };
-
-  console.log("🎯 2s-before-boundary priming overlay installed (one-time per segment).");
-})();
-
-*/
-
-
 
 
 
