@@ -428,10 +428,11 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-<!-- ⭐ Bookmark Controls -->
+
+  <!-- ⭐ Bookmark Controls -->
 <div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
 
-  <!-- Left big star (song bookmark) -->
+  <!-- Left big star -->
   <button id="bookmarkBtn"
     onclick="toggleBookmark(document.getElementById('songSelect').value)"
     style="font-size:1.6rem; border:none; background:none; cursor:pointer;">
@@ -449,8 +450,15 @@ button#vocalMuteBtn.vocal-muted {
       font-weight:bold;
       border:none;
       cursor:pointer;
-      min-width:120px;">
-    ⭐ Fvt Songs
+      min-width:140px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:8px;
+      padding-right:28px;
+    ">
+    ⭐
+    <span>Fvt Songs</span>
   </button>
 
   <!-- Fvt Segments -->
@@ -464,8 +472,15 @@ button#vocalMuteBtn.vocal-muted {
       font-weight:bold;
       border:none;
       cursor:pointer;
-      min-width:120px;">
-    ⭐ Fvt Sgmnts
+      min-width:140px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:8px;
+      padding-right:28px;
+    ">
+    ⭐
+    <span>Fvt Sgmnts</span>
   </button>
 
 </div>
@@ -820,25 +835,6 @@ requestAnimationFrame(updateRedBar);
 
 
 
-
-
-
-<script>
-setTimeout(() => {
-  const test = document.createElement("div");
-  test.id = "emojiTest";
-  test.style.fontSize = "40px";
-  test.style.background = "#fffccc";
-  test.style.padding = "10px";
-  test.style.margin = "10px";
-  test.textContent = "⭐ ← RIGHT SIDE STAR TEST";
-  document.body.prepend(test);
-
-  console.log("⭐ TEST WIDTH:", test.offsetWidth);
-  console.log("⭐ TEST HEIGHT:", test.offsetHeight);
-  console.log("⭐ TEST INNER:", test.innerText);
-}, 1000);
-</script>
 
 
 
