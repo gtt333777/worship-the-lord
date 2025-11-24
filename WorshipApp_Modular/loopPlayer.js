@@ -177,47 +177,70 @@ if (window.charModeEnabled) {
 window.currentPlayingSegmentIndex = null;
 
 
+
+
 /* ============================================================
    ⭐ GOLDEN INDICATOR — One Red Bar INSIDE Each Segment Button
+   - Simple, old-style: red bar at TOP, left → right
+   - Uses audio.currentTime + segments[]
+   - Does NOT touch lyrics, previews, or any other features
    ============================================================ */
+window.startGoldenIndicator = function (segments, audio, container) {
+  if (!segments || !segments.length || !audio || !container) {
+    console.warn("⚠️ GoldenIndicator: Missing segments/audio/container");
+    return;
+  }
 
-window.startGoldenIndicator = function(segments, audio, container) {
-  if (!segments || !segments.length || !audio) return;
-
-  // remove old bars
-  container.querySelectorAll(".gold-bar").forEach(e => e.remove());
+  // Remove any old bars
+  container.querySelectorAll(".gold-bar").forEach(el => el.remove());
 
   const buttons = container.querySelectorAll(".segment-button");
+  if (!buttons.length) {
+    console.warn("⚠️ GoldenIndicator: No .segment-button found");
+    return;
+  }
 
-  // Create a bar INSIDE each segment button
-  buttons.forEach((btn, i) => {
+  // Create a red bar INSIDE each segment button (top edge)
+  segments.forEach((seg, i) => {
+    const btn = buttons[i];
+    if (!btn) return;
+
     const bar = document.createElement("div");
     bar.className = "gold-bar";
-    bar.style.cssText = `
-      position:absolute;
-      top:0;
-      left:0;
-      height:4px;
-      width:0%;
-      background:red;
-      pointer-events:none;
-      border-radius:2px;
-      z-index:9999;      /* ⭐ ADD THIS */
-    `;
+    bar.style.position = "absolute";
+    bar.style.top = "0";
+    bar.style.left = "0";
+    bar.style.height = "4px";       // thin horizontal bar
+    bar.style.width = "0%";         // will grow with time
+    bar.style.background = "red";
+    bar.style.pointerEvents = "none";
+    bar.style.borderRadius = "2px";
+    bar.style.opacity = "0";        // hidden when not active
+
+    // Make sure button is a positioned container
+    if (getComputedStyle(btn).position === "static") {
+      btn.style.position = "relative";
+    }
+
     btn.appendChild(bar);
     btn._goldBar = bar;
   });
 
+  // Animation loop — updates bar width based on currentTime
   function animate() {
     const t = audio.currentTime;
 
     segments.forEach((seg, i) => {
-      const bar = buttons[i]._goldBar;
-      if (!bar) return;
+      const btn = buttons[i];
+      const bar = btn && btn._goldBar;
+      if (!bar || typeof seg.start !== "number" || typeof seg.end !== "number") return;
 
       if (t >= seg.start && t <= seg.end) {
-        const pct = ((t - seg.start) / (seg.end - seg.start)) * 100;
-        bar.style.width = pct + "%";
+        const duration = seg.end - seg.start;
+        const pct = duration > 0 ? ((t - seg.start) / duration) * 100 : 0;
+        const clamped = Math.max(0, Math.min(100, pct));
+
+        bar.style.width = clamped + "%";
         bar.style.opacity = "1";
       } else {
         bar.style.width = "0%";
@@ -230,6 +253,9 @@ window.startGoldenIndicator = function(segments, audio, container) {
 
   requestAnimationFrame(animate);
 };
+
+
+
 
 
 
