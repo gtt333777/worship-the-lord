@@ -208,7 +208,10 @@ window.toggleBookmarkView = function() {
     }
     if (firstOption) firstOption.style.display = "block";
 
-    btn.textContent = "📚 Show All Songs";
+    
+
+    btn.innerHTML = "📚 Show<br>All Songs";
+
     btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
     btn.style.color = "white";
     btn.style.fontWeight = "bold";
@@ -217,7 +220,11 @@ window.toggleBookmarkView = function() {
   } else {
     // 🔹 Show all songs
     for (const opt of allOptions) opt.style.display = "block";
-    btn.textContent = "🎯 Show Bookmarked";
+    
+
+    btn.innerHTML = "🎯 Show<br>Bookmarked";
+
+
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
     btn.style.fontWeight = "bold";
@@ -385,7 +392,9 @@ window.toggleFavoriteView = function() {
     // Restore all songs
     for (const opt of allOptions) opt.style.display = "block";
 
-    btn.textContent = "💛 Show Favorites";
+    btn.innerHTML = "💛 Show<br>Favorites";
+
+
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
     btn.style.fontWeight = "bold";
@@ -456,8 +465,8 @@ window.addEventListener("DOMContentLoaded", () => {
     bookmarkFilterBtn.style.transition =
       "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
-    // Initial orange style
-    bookmarkFilterBtn.textContent = "🎯 Show Bookmarked";
+        // Initial orange style — supports 2-line button
+    bookmarkFilterBtn.innerHTML = "🎯 Show<br>Bookmarked";
     bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     bookmarkFilterBtn.style.color = "black";
     bookmarkFilterBtn.style.fontWeight = "bold";
@@ -466,6 +475,10 @@ window.addEventListener("DOMContentLoaded", () => {
     bookmarkFilterBtn.style.borderRadius = "8px";
     bookmarkFilterBtn.style.padding = "6px 12px";
     bookmarkFilterBtn.style.cursor = "pointer";
+    bookmarkFilterBtn.style.whiteSpace = "normal";
+    bookmarkFilterBtn.style.lineHeight = "1.1";
+    bookmarkFilterBtn.style.textAlign = "center";
+
   }
 
   /* 💛 Favorite Filter Button */
@@ -474,8 +487,8 @@ window.addEventListener("DOMContentLoaded", () => {
     favoriteFilterBtn.style.transition =
       "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
-    // Initial orange style
-    favoriteFilterBtn.textContent = "💛 Show Favorites";
+        // Initial orange style — supports 2-line button
+    favoriteFilterBtn.innerHTML = "💛 Show<br>Favorites";
     favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     favoriteFilterBtn.style.color = "black";
     favoriteFilterBtn.style.fontWeight = "bold";
@@ -484,5 +497,10 @@ window.addEventListener("DOMContentLoaded", () => {
     favoriteFilterBtn.style.borderRadius = "8px";
     favoriteFilterBtn.style.padding = "6px 12px";
     favoriteFilterBtn.style.cursor = "pointer";
+    favoriteFilterBtn.style.whiteSpace = "normal";
+    favoriteFilterBtn.style.lineHeight = "1.1";
+    favoriteFilterBtn.style.textAlign = "center";
+
+
   }
 });
