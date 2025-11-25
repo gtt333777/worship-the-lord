@@ -137,6 +137,7 @@ window.toggleBookmark = function(songName) {
   console.log("⭐ Updated bookmarks:", bookmarks);
 };
 
+
 /* -------------------------------------------------------------------
    🎯 Toggle between All Songs / Bookmarked View
 ------------------------------------------------------------------- */
@@ -261,27 +262,227 @@ document.getElementById("songSelect").addEventListener("change", () => {
   }
 });
 
+
+
+
+
 /* -------------------------------------------------------------------
-   🪶 Smooth transitions setup + initial color
+   💛 Favorite System (identical to Bookmark System)
+------------------------------------------------------------------- */
+
+// Load Favorites
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem("favoriteSongs");
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save Favorites
+function saveFavorites(list) {
+  localStorage.setItem("favoriteSongs", JSON.stringify(list));
+}
+
+// Toggle a song as Favorite
+window.toggleFavorite = function(songName) {
+  if (!songName) return alert("⚠️ Please select a song first.");
+  const btn = document.getElementById("favoriteBtn");
+  let favs = loadFavorites();
+
+  if (favs.includes(songName)) {
+    favs = favs.filter(s => s !== songName);
+    btn.textContent = "☆";
+    btn.style.color = "black";
+    btn.style.fontSize = "1.4rem";
+  } else {
+    favs.push(songName);
+    btn.textContent = "★";
+    btn.style.color = "gold";
+    btn.style.fontSize = "1.7rem";
+  }
+
+  saveFavorites(favs);
+  console.log("💛 Updated favorites:", favs);
+};
+
+/* -------------------------------------------------------------------
+   💛 Toggle between All Songs / Favorite View
+------------------------------------------------------------------- */
+
+let showingFavorites = false;
+let collapsedFavGuide = false;
+
+function collapseFavoriteGuide(btn) {
+  btn.dataset.wasText = btn.textContent;
+  btn.dataset.wasBg = btn.style.background || "";
+  btn.dataset.wasColor = btn.style.color || "";
+  btn.dataset.wasWeight = btn.style.fontWeight || "";
+
+  btn.style.transition = "transform 0.18s ease, background 0.3s ease, color 0.3s ease";
+  btn.style.transform = "translateY(6px) scale(0.96)";
+  btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
+  btn.style.color = "#333";
+  btn.style.fontWeight = "600";
+  btn.textContent = "▲ Tap the list above";
+  btn.disabled = true;
+  btn.style.opacity = "0.7";
+  btn.style.cursor = "not-allowed";
+  collapsedFavGuide = true;
+}
+
+function restoreFavoriteGuide(btn) {
+  if (!collapsedFavGuide) return;
+  btn.disabled = false;
+  btn.style.opacity = "1";
+  btn.style.cursor = "pointer";
+  btn.style.transform = "translateY(0) scale(1)";
+  btn.style.background = btn.dataset.wasBg || "";
+  btn.style.color = btn.dataset.wasColor || "";
+  btn.style.fontWeight = btn.dataset.wasWeight || "";
+  btn.textContent = btn.dataset.wasText || (showingFavorites ? "📚 Show All Songs" : "💛 Show Favorites");
+  collapsedFavGuide = false;
+}
+
+window.toggleFavoriteView = function() {
+  const btn = document.getElementById("favoriteFilterBtn");
+  const select = document.getElementById("songSelect");
+  if (!btn || !select) return;
+
+  const allOptions = [...select.options];
+  let favs = loadFavorites();
+  const firstOption = select.options[0];
+
+  // First-time encouragement
+  if (!showingFavorites && favs.length === 0) {
+    alert("🌟 You haven't added any Favorites yet.\nI'll mark the first song for you!");
+    const firstSong = select.options.length > 1 ? select.options[1].value : null;
+    if (firstSong) {
+      favs = [firstSong];
+      saveFavorites(favs);
+      console.log("💛 Auto-favorited:", firstSong);
+    }
+    showingFavorites = false;
+  }
+
+  btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease";
+
+  if (!showingFavorites) {
+    // Show only favorites
+    for (const opt of allOptions) {
+      if (opt.value && !favs.includes(opt.value)) opt.style.display = "none";
+    }
+    if (firstOption) firstOption.style.display = "block";
+
+    btn.textContent = "📚 Show All Songs";
+    btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
+    btn.style.color = "white";
+    btn.style.fontWeight = "bold";
+    showingFavorites = true;
+  } else {
+    // Restore all songs
+    for (const opt of allOptions) opt.style.display = "block";
+
+    btn.textContent = "💛 Show Favorites";
+    btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    btn.style.color = "black";
+    btn.style.fontWeight = "bold";
+    showingFavorites = false;
+  }
+
+  // Reset dropdown
+  select.selectedIndex = 0;
+  select.blur();
+
+  // Collapse button temporarily
+  collapseFavoriteGuide(btn);
+  try { select.focus(); } catch {}
+
+  const restoreFavOnce = () => {
+    restoreFavoriteGuide(btn);
+    select.removeEventListener("focus", restoreFavOnce);
+    select.removeEventListener("change", restoreFavOnce);
+  };
+  select.addEventListener("focus", restoreFavOnce);
+  select.addEventListener("change", restoreFavOnce);
+};
+
+/* -------------------------------------------------------------------
+   💛 Update Favorite Star when song changes
+------------------------------------------------------------------- */
+document.getElementById("songSelect").addEventListener("change", () => {
+  const select = document.getElementById("songSelect");
+  const favBtn = document.getElementById("favoriteBtn");
+  const favs = loadFavorites();
+  const song = select.value;
+
+  if (favs.includes(song)) {
+    favBtn.textContent = "★";
+    favBtn.style.color = "gold";
+    favBtn.style.fontSize = "1.7rem";
+  } else {
+    favBtn.textContent = "☆";
+    favBtn.style.color = "black";
+    favBtn.style.fontSize = "1.4rem";
+  }
+});
+
+
+
+
+
+/* -------------------------------------------------------------------
+   🪶 Smooth transitions setup + initial color for BOTH Bookmark & Favorite
 ------------------------------------------------------------------- */
 window.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("bookmarkBtn");
-  const filterBtn = document.getElementById("bookmarkFilterBtn");
 
-  if (btn) btn.style.transition = "all 0.3s ease";
+  /* ⭐ Bookmark Star Button */
+  const bookmarkBtn = document.getElementById("bookmarkBtn");
+  if (bookmarkBtn) {
+    bookmarkBtn.style.transition = "all 0.3s ease";
+  }
 
-  if (filterBtn) {
-    filterBtn.style.transition =
+  /* ⭐ Favorite Star Button */
+  const favoriteBtn = document.getElementById("favoriteBtn");
+  if (favoriteBtn) {
+    favoriteBtn.style.transition = "all 0.3s ease";
+  }
+
+  /* 🎯 Bookmark Filter Button */
+  const bookmarkFilterBtn = document.getElementById("bookmarkFilterBtn");
+  if (bookmarkFilterBtn) {
+    bookmarkFilterBtn.style.transition =
       "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-    // Initial orange state
-    filterBtn.textContent = "🎯 Show Bookmarked";
-    filterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    filterBtn.style.color = "black";
-    filterBtn.style.fontWeight = "bold";
-    filterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-    filterBtn.style.border = "none";
-    filterBtn.style.borderRadius = "8px";
-    filterBtn.style.padding = "6px 12px";
-    filterBtn.style.cursor = "pointer";
+
+    // Initial orange style
+    bookmarkFilterBtn.textContent = "🎯 Show Bookmarked";
+    bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    bookmarkFilterBtn.style.color = "black";
+    bookmarkFilterBtn.style.fontWeight = "bold";
+    bookmarkFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+    bookmarkFilterBtn.style.border = "none";
+    bookmarkFilterBtn.style.borderRadius = "8px";
+    bookmarkFilterBtn.style.padding = "6px 12px";
+    bookmarkFilterBtn.style.cursor = "pointer";
+  }
+
+  /* 💛 Favorite Filter Button */
+  const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
+  if (favoriteFilterBtn) {
+    favoriteFilterBtn.style.transition =
+      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
+
+    // Initial orange style
+    favoriteFilterBtn.textContent = "💛 Show Favorites";
+    favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    favoriteFilterBtn.style.color = "black";
+    favoriteFilterBtn.style.fontWeight = "bold";
+    favoriteFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+    favoriteFilterBtn.style.border = "none";
+    favoriteFilterBtn.style.borderRadius = "8px";
+    favoriteFilterBtn.style.padding = "6px 12px";
+    favoriteFilterBtn.style.cursor = "pointer";
   }
 });
