@@ -459,48 +459,52 @@ window.addEventListener("DOMContentLoaded", () => {
     favoriteBtn.style.transition = "all 0.3s ease";
   }
 
-  /* 🎯 Bookmark Filter Button */
-  const bookmarkFilterBtn = document.getElementById("bookmarkFilterBtn");
-  if (bookmarkFilterBtn) {
-    bookmarkFilterBtn.style.transition =
-      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-        // Initial orange style — supports 2-line button
-    bookmarkFilterBtn.innerHTML = "🎯 Show<br>Bookmarked";
-    bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    bookmarkFilterBtn.style.color = "black";
-    bookmarkFilterBtn.style.fontWeight = "bold";
-    bookmarkFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-    bookmarkFilterBtn.style.border = "none";
-    bookmarkFilterBtn.style.borderRadius = "8px";
-    bookmarkFilterBtn.style.padding = "6px 12px";
-    bookmarkFilterBtn.style.cursor = "pointer";
-    bookmarkFilterBtn.style.whiteSpace = "normal";
-    bookmarkFilterBtn.style.lineHeight = "1.1";
-    bookmarkFilterBtn.style.textAlign = "center";
-
-  }
-
-  /* 💛 Favorite Filter Button */
-  const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
-  if (favoriteFilterBtn) {
-    favoriteFilterBtn.style.transition =
-      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-        // Initial orange style — supports 2-line button
-    favoriteFilterBtn.innerHTML = "💛 Show<br>Favorites";
-    favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    favoriteFilterBtn.style.color = "black";
-    favoriteFilterBtn.style.fontWeight = "bold";
-    favoriteFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-    favoriteFilterBtn.style.border = "none";
-    favoriteFilterBtn.style.borderRadius = "8px";
-    favoriteFilterBtn.style.padding = "6px 12px";
-    favoriteFilterBtn.style.cursor = "pointer";
-    favoriteFilterBtn.style.whiteSpace = "normal";
-    favoriteFilterBtn.style.lineHeight = "1.1";
-    favoriteFilterBtn.style.textAlign = "center";
 
 
-  }
+
+  /* 🎯 Bookmark Filter Button — 2-Line Mode */
+const bookmarkFilterBtn = document.getElementById("bookmarkFilterBtn");
+if (bookmarkFilterBtn) {
+  bookmarkFilterBtn.style.transition =
+    "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
+
+  // Two-line style
+  bookmarkFilterBtn.innerHTML = "🎯 Show<br>Bookmarked";
+  bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+  bookmarkFilterBtn.style.color = "black";
+  bookmarkFilterBtn.style.fontWeight = "bold";
+  bookmarkFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+  bookmarkFilterBtn.style.border = "none";
+  bookmarkFilterBtn.style.borderRadius = "8px";
+  bookmarkFilterBtn.style.padding = "6px 12px";
+  bookmarkFilterBtn.style.cursor = "pointer";
+  bookmarkFilterBtn.style.whiteSpace = "normal";
+  bookmarkFilterBtn.style.lineHeight = "1.1";
+  bookmarkFilterBtn.style.textAlign = "center";
+}
+
+
+/* 💛 Favorite Filter Button — 2-Line Mode */
+const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
+if (favoriteFilterBtn) {
+  favoriteFilterBtn.style.transition =
+    "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
+
+  // Two-line style
+  favoriteFilterBtn.innerHTML = "💛 Show<br>Favorites";
+  favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+  favoriteFilterBtn.style.color = "black";
+  favoriteFilterBtn.style.fontWeight = "bold";
+  favoriteFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+  favoriteFilterBtn.style.border = "none";
+  favoriteFilterBtn.style.borderRadius = "8px";
+  favoriteFilterBtn.style.padding = "6px 12px";
+  favoriteFilterBtn.style.cursor = "pointer";
+  favoriteFilterBtn.style.whiteSpace = "normal";
+  favoriteFilterBtn.style.lineHeight = "1.1";
+  favoriteFilterBtn.style.textAlign = "center";
+}
+
+
+
 });
