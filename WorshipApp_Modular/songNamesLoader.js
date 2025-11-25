@@ -444,6 +444,68 @@ document.getElementById("songSelect").addEventListener("change", () => {
 
 
 
+/* -------------------------------------------------------------------
+   🔵 COMMON RESET: Show All Songs
+------------------------------------------------------------------- */
+
+window.resetAllFilters = function() {
+  const select = document.getElementById("songSelect");
+  const bookmarkBtn = document.getElementById("bookmarkFilterBtn");
+  const favoriteBtn = document.getElementById("favoriteFilterBtn");
+
+  if (!select) return;
+
+  // 1️⃣ Show ALL songs
+  const allOptions = [...select.options];
+  for (const opt of allOptions) {
+    opt.style.display = "block";
+  }
+
+  // Reset dropdown selection
+  select.selectedIndex = 0;
+
+  // 2️⃣ Reset Bookmark Mode
+  window.showingBookmarks = false;
+  window.collapsedGuide = false;
+
+  if (bookmarkBtn) {
+    bookmarkBtn.innerHTML = "🎯 Show<br>Bookmarked";
+    bookmarkBtn.style.background =
+      "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    bookmarkBtn.style.color = "black";
+    bookmarkBtn.style.fontWeight = "bold";
+    bookmarkBtn.disabled = false;
+    bookmarkBtn.style.opacity = "1";
+    bookmarkBtn.style.cursor = "pointer";
+    bookmarkBtn.style.transform = "translateY(0) scale(1)";
+  }
+
+  // 3️⃣ Reset Favorite Mode
+  window.showingFavorites = false;
+  window.collapsedFavGuide = false;
+
+  if (favoriteBtn) {
+    favoriteBtn.innerHTML = "💛 Show<br>Favorites";
+    favoriteBtn.style.background =
+      "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    favoriteBtn.style.color = "black";
+    favoriteBtn.style.fontWeight = "bold";
+    favoriteBtn.disabled = false;
+    favoriteBtn.style.opacity = "1";
+    favoriteBtn.style.cursor = "pointer";
+    favoriteBtn.style.transform = "translateY(0) scale(1)";
+  }
+
+  console.log("🔵 All filters reset. Showing every song.");
+};
+
+
+
+
+
+
+
+
 
 /* -------------------------------------------------------------------
    🪶 Smooth transitions setup + initial color for BOTH Bookmark & Favorite
