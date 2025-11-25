@@ -208,10 +208,7 @@ window.toggleBookmarkView = function() {
     }
     if (firstOption) firstOption.style.display = "block";
 
-    
-
-    btn.innerHTML = "📚 Show<br>All Songs";
-
+    btn.textContent = "📚 Show All Songs";
     btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
     btn.style.color = "white";
     btn.style.fontWeight = "bold";
@@ -220,11 +217,7 @@ window.toggleBookmarkView = function() {
   } else {
     // 🔹 Show all songs
     for (const opt of allOptions) opt.style.display = "block";
-    
-
-    btn.innerHTML = "🎯 Show<br>Bookmarked";
-
-
+    btn.textContent = "🎯 Show Bookmarked";
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
     btn.style.fontWeight = "bold";
@@ -383,10 +376,7 @@ window.toggleFavoriteView = function() {
     }
     if (firstOption) firstOption.style.display = "block";
 
-    
-
-    btn.innerHTML = "📚 Show<br>All Songs";
-
+    btn.textContent = "📚 Show All Songs";
     btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
     btn.style.color = "white";
     btn.style.fontWeight = "bold";
@@ -395,9 +385,7 @@ window.toggleFavoriteView = function() {
     // Restore all songs
     for (const opt of allOptions) opt.style.display = "block";
 
-    btn.innerHTML = "💛 Show<br>Favorites";
-
-
+    btn.textContent = "💛 Show Favorites";
     btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
     btn.style.color = "black";
     btn.style.fontWeight = "bold";
@@ -444,68 +432,6 @@ document.getElementById("songSelect").addEventListener("change", () => {
 
 
 
-/* -------------------------------------------------------------------
-   🔵 COMMON RESET: Show All Songs
-------------------------------------------------------------------- */
-
-window.resetAllFilters = function() {
-  const select = document.getElementById("songSelect");
-  const bookmarkBtn = document.getElementById("bookmarkFilterBtn");
-  const favoriteBtn = document.getElementById("favoriteFilterBtn");
-
-  if (!select) return;
-
-  // 1️⃣ Show ALL songs
-  const allOptions = [...select.options];
-  for (const opt of allOptions) {
-    opt.style.display = "block";
-  }
-
-  // Reset dropdown selection
-  select.selectedIndex = 0;
-
-  // 2️⃣ Reset Bookmark Mode
-  window.showingBookmarks = false;
-  window.collapsedGuide = false;
-
-  if (bookmarkBtn) {
-    bookmarkBtn.innerHTML = "🎯 Show<br>Bookmarked";
-    bookmarkBtn.style.background =
-      "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    bookmarkBtn.style.color = "black";
-    bookmarkBtn.style.fontWeight = "bold";
-    bookmarkBtn.disabled = false;
-    bookmarkBtn.style.opacity = "1";
-    bookmarkBtn.style.cursor = "pointer";
-    bookmarkBtn.style.transform = "translateY(0) scale(1)";
-  }
-
-  // 3️⃣ Reset Favorite Mode
-  window.showingFavorites = false;
-  window.collapsedFavGuide = false;
-
-  if (favoriteBtn) {
-    favoriteBtn.innerHTML = "💛 Show<br>Favorites";
-    favoriteBtn.style.background =
-      "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    favoriteBtn.style.color = "black";
-    favoriteBtn.style.fontWeight = "bold";
-    favoriteBtn.disabled = false;
-    favoriteBtn.style.opacity = "1";
-    favoriteBtn.style.cursor = "pointer";
-    favoriteBtn.style.transform = "translateY(0) scale(1)";
-  }
-
-  console.log("🔵 All filters reset. Showing every song.");
-};
-
-
-
-
-
-
-
-
 
 /* -------------------------------------------------------------------
    🪶 Smooth transitions setup + initial color for BOTH Bookmark & Favorite
@@ -524,52 +450,39 @@ window.addEventListener("DOMContentLoaded", () => {
     favoriteBtn.style.transition = "all 0.3s ease";
   }
 
+  /* 🎯 Bookmark Filter Button */
+  const bookmarkFilterBtn = document.getElementById("bookmarkFilterBtn");
+  if (bookmarkFilterBtn) {
+    bookmarkFilterBtn.style.transition =
+      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
+    // Initial orange style
+    bookmarkFilterBtn.textContent = "🎯 Show Bookmarked";
+    bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    bookmarkFilterBtn.style.color = "black";
+    bookmarkFilterBtn.style.fontWeight = "bold";
+    bookmarkFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+    bookmarkFilterBtn.style.border = "none";
+    bookmarkFilterBtn.style.borderRadius = "8px";
+    bookmarkFilterBtn.style.padding = "6px 12px";
+    bookmarkFilterBtn.style.cursor = "pointer";
+  }
 
+  /* 💛 Favorite Filter Button */
+  const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
+  if (favoriteFilterBtn) {
+    favoriteFilterBtn.style.transition =
+      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
 
-  /* 🎯 Bookmark Filter Button — 2-Line Mode */
-const bookmarkFilterBtn = document.getElementById("bookmarkFilterBtn");
-if (bookmarkFilterBtn) {
-  bookmarkFilterBtn.style.transition =
-    "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-  // Two-line style
-  bookmarkFilterBtn.innerHTML = "🎯 Show<br>Bookmarked";
-  bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-  bookmarkFilterBtn.style.color = "black";
-  bookmarkFilterBtn.style.fontWeight = "bold";
-  bookmarkFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-  bookmarkFilterBtn.style.border = "none";
-  bookmarkFilterBtn.style.borderRadius = "8px";
-  bookmarkFilterBtn.style.padding = "6px 12px";
-  bookmarkFilterBtn.style.cursor = "pointer";
-  bookmarkFilterBtn.style.whiteSpace = "normal";
-  bookmarkFilterBtn.style.lineHeight = "1.1";
-  bookmarkFilterBtn.style.textAlign = "center";
-}
-
-
-/* 💛 Favorite Filter Button — 2-Line Mode */
-const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
-if (favoriteFilterBtn) {
-  favoriteFilterBtn.style.transition =
-    "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-  // Two-line style
-  favoriteFilterBtn.innerHTML = "💛 Show<br>Favorites";
-  favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-  favoriteFilterBtn.style.color = "black";
-  favoriteFilterBtn.style.fontWeight = "bold";
-  favoriteFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-  favoriteFilterBtn.style.border = "none";
-  favoriteFilterBtn.style.borderRadius = "8px";
-  favoriteFilterBtn.style.padding = "6px 12px";
-  favoriteFilterBtn.style.cursor = "pointer";
-  favoriteFilterBtn.style.whiteSpace = "normal";
-  favoriteFilterBtn.style.lineHeight = "1.1";
-  favoriteFilterBtn.style.textAlign = "center";
-}
-
-
-
+    // Initial orange style
+    favoriteFilterBtn.textContent = "💛 Show Favorites";
+    favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
+    favoriteFilterBtn.style.color = "black";
+    favoriteFilterBtn.style.fontWeight = "bold";
+    favoriteFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+    favoriteFilterBtn.style.border = "none";
+    favoriteFilterBtn.style.borderRadius = "8px";
+    favoriteFilterBtn.style.padding = "6px 12px";
+    favoriteFilterBtn.style.cursor = "pointer";
+  }
 });
