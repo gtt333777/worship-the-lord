@@ -172,7 +172,14 @@ function restoreFilterButton(btn) {
   btn.style.background = btn.dataset.wasBg || "";
   btn.style.color = btn.dataset.wasColor || "";
   btn.style.fontWeight = btn.dataset.wasWeight || "";
-  btn.textContent = btn.dataset.wasText || (showingBookmarks ? "📚 Show All Songs" : "🎯 Show Bookmarked");
+
+// btn.textContent = btn.dataset.wasText || (showingBookmarks ? "📚 Show All Songs" : "🎯 Show Bookmarked");
+
+btn.innerHTML = btn.dataset.wasText || (showingBookmarks
+  ? "Show<br>All Songs"
+  : "🎯 Show<br>Bookmarked");
+
+  
   collapsedGuide = false;
 }
 
@@ -348,7 +355,12 @@ function restoreFavoriteGuide(btn) {
   btn.style.background = btn.dataset.wasBg || "";
   btn.style.color = btn.dataset.wasColor || "";
   btn.style.fontWeight = btn.dataset.wasWeight || "";
-  btn.textContent = btn.dataset.wasText || (showingFavorites ? "📚 Show All Songs" : "💛 Show Favorites");
+
+// btn.textContent = btn.dataset.wasText || (showingFavorites ? "📚 Show All Songs" : "💛 Show Favorites");
+  btn.innerHTML = btn.dataset.wasText || (showingFavorites
+  ? "Show<br>All Songs"
+  : "💛 Show<br>Favorites");
+
   collapsedFavGuide = false;
 }
 
