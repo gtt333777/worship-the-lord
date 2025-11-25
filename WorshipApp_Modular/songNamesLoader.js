@@ -383,7 +383,10 @@ window.toggleFavoriteView = function() {
     }
     if (firstOption) firstOption.style.display = "block";
 
-    btn.textContent = "📚 Show All Songs";
+    
+
+    btn.innerHTML = "📚 Show<br>All Songs";
+
     btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
     btn.style.color = "white";
     btn.style.fontWeight = "bold";
