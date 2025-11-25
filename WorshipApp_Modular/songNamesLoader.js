@@ -146,7 +146,11 @@ let showingBookmarks = false;
 let collapsedGuide = false;
 
 function collapseFilterButtonGuide(btn) {
-  btn.dataset.wasText = btn.textContent;
+
+// btn.dataset.wasText = btn.textContent;
+   btn.dataset.wasText = btn.innerHTML;
+
+
   btn.dataset.wasBg = btn.style.background || "";
   btn.dataset.wasColor = btn.style.color || "";
   btn.dataset.wasWeight = btn.style.fontWeight || "";
@@ -156,7 +160,11 @@ function collapseFilterButtonGuide(btn) {
   btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
   btn.style.color = "#333";
   btn.style.fontWeight = "600";
-  btn.textContent = "▲ Tap the list above";
+
+ // btn.textContent = "▲ Tap the list above";
+    btn.innerHTML = "▲ Tap the list above";
+
+
   btn.disabled = true;
   btn.style.opacity = "0.7";
   btn.style.cursor = "not-allowed";
@@ -329,7 +337,11 @@ let showingFavorites = false;
 let collapsedFavGuide = false;
 
 function collapseFavoriteGuide(btn) {
-  btn.dataset.wasText = btn.textContent;
+
+// btn.dataset.wasText = btn.textContent;
+   btn.dataset.wasText = btn.innerHTML;
+
+
   btn.dataset.wasBg = btn.style.background || "";
   btn.dataset.wasColor = btn.style.color || "";
   btn.dataset.wasWeight = btn.style.fontWeight || "";
@@ -339,7 +351,11 @@ function collapseFavoriteGuide(btn) {
   btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
   btn.style.color = "#333";
   btn.style.fontWeight = "600";
-  btn.textContent = "▲ Tap the list above";
+
+// btn.textContent = "▲ Tap the list above";
+   btn.innerHTML = "▲ Tap the list above";
+
+
   btn.disabled = true;
   btn.style.opacity = "0.7";
   btn.style.cursor = "not-allowed";
