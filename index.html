@@ -431,29 +431,49 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-  <!-- ⭐ Bookmark + Favorite Controls -->
-<div style="display:flex; flex-direction:column; align-items:center; margin-top:6px; gap:6px;">
 
-  <!-- Row 1: Bookmark -->
-  <div style="display:inline-flex; align-items:center; gap:6px;">
-    <button id="bookmarkBtn"
-      onclick="toggleBookmark(document.getElementById('songSelect').value)"
-      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
 
-    <button id="bookmarkFilterBtn"
-      onclick="toggleBookmarkView()"
-      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">🎯 Show Bookmarked</button>
+
+<!-- ⭐ Bookmark + Favorite Controls (New 2-Line Vertical Layout) -->
+<div style="display:flex; justify-content:center; gap:25px; margin-top:10px; flex-wrap:wrap;">
+
+  <!-- BOOKMARK BLOCK -->
+  <div style="display:flex; flex-direction:column; align-items:center;">
+      
+      <!-- Star -->
+      <button id="bookmarkBtn"
+        onclick="toggleBookmark(document.getElementById('songSelect').value)"
+        style="font-size:1.8rem; border:none; background:none; cursor:pointer; line-height:1;">
+        ☆
+      </button>
+
+      <!-- Text (2 lines) -->
+      <button id="bookmarkFilterBtn"
+        onclick="toggleBookmarkView()"
+        style="font-size:1rem; padding:6px 12px; border-radius:8px; line-height:1.2; white-space:pre-line;">
+        🎯 Show\nBookmarked
+      </button>
+
   </div>
 
-  <!-- Row 2: Favorite -->
-  <div style="display:inline-flex; align-items:center; gap:6px;">
-    <button id="favoriteBtn"
-      onclick="toggleFavorite(document.getElementById('songSelect').value)"
-      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
 
-    <button id="favoriteFilterBtn"
-      onclick="toggleFavoriteView()"
-      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">💛 Show Favorites</button>
+  <!-- FAVORITE BLOCK -->
+  <div style="display:flex; flex-direction:column; align-items:center;">
+      
+      <!-- Star -->
+      <button id="favoriteBtn"
+        onclick="toggleFavorite(document.getElementById('songSelect').value)"
+        style="font-size:1.8rem; border:none; background:none; cursor:pointer; line-height:1;">
+        ☆
+      </button>
+
+      <!-- Text (2 lines) -->
+      <button id="favoriteFilterBtn"
+        onclick="toggleFavoriteView()"
+        style="font-size:1rem; padding:6px 12px; border-radius:8px; line-height:1.2; white-space:pre-line;">
+        💛 Show\nFavorites
+      </button>
+
   </div>
 
 </div>
