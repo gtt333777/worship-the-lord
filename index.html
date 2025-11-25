@@ -443,8 +443,18 @@ button#vocalMuteBtn.vocal-muted {
 ">
 
   <!-- ⭐ Bookmark -->
-  <div style="display:flex; align-items:center; gap:6px;">
-    <button id="bookmarkBtn"
+
+  <!-- Row 1: Bookmark -->
+<div style="display:flex; align-items:center; gap:4px;">
+  <button id="bookmarkBtn"
+    onclick="toggleBookmark(document.getElementById('songSelect').value)"
+    style="font-size:1.2rem; border:none; background:none; cursor:pointer; padding:2px 4px;">☆</button>
+
+  <button id="bookmarkFilterBtn"
+    onclick="toggleBookmarkView()"
+    style="font-size:0.78rem; padding:4px 6px; border-radius:6px; min-width:110px;">🎯 Show Bookmarked</button>
+</div>
+
       onclick="toggleBookmark(document.getElementById('songSelect').value)"
       style="font-size:1.4rem; border:none; background:none; cursor:pointer;">
       ☆
@@ -458,8 +468,18 @@ button#vocalMuteBtn.vocal-muted {
   </div>
 
   <!-- 💛 Favorite -->
-  <div style="display:flex; align-items:center; gap:6px;">
-    <button id="favoriteBtn"
+
+  <!-- Row 2: Favorite -->
+<div style="display:flex; align-items:center; gap:4px;">
+  <button id="favoriteBtn"
+    onclick="toggleFavorite(document.getElementById('songSelect').value)"
+    style="font-size:1.2rem; border:none; background:none; cursor:pointer; padding:2px 4px;">☆</button>
+
+  <button id="favoriteFilterBtn"
+    onclick="toggleFavoriteView()"
+    style="font-size:0.78rem; padding:4px 6px; border-radius:6px; min-width:110px;">💛 Show Favorites</button>
+</div>
+
       onclick="toggleFavorite(document.getElementById('songSelect').value)"
       style="font-size:1.4rem; border:none; background:none; cursor:pointer;">
       ☆
