@@ -431,32 +431,49 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
-  <!-- ⭐ Bookmark + Favorite Controls -->
-<div style="display:flex; flex-direction:column; align-items:center; margin-top:6px; gap:6px;">
+  <!-- ⭐ Bookmark + Favorite Controls (SIDE-BY-SIDE) -->
+<div style="
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  margin-top:10px;
+  flex-wrap:wrap;
+">
 
-  <!-- Row 1: Bookmark -->
-  <div style="display:inline-flex; align-items:center; gap:6px;">
+  <!-- ⭐ Bookmark -->
+  <div style="display:flex; align-items:center; gap:6px;">
     <button id="bookmarkBtn"
       onclick="toggleBookmark(document.getElementById('songSelect').value)"
-      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
+      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">
+      ☆
+    </button>
 
     <button id="bookmarkFilterBtn"
       onclick="toggleBookmarkView()"
-      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">🎯 Show Bookmarked</button>
+      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">
+      🎯 Show Bookmarked
+    </button>
   </div>
 
-  <!-- Row 2: Favorite -->
-  <div style="display:inline-flex; align-items:center; gap:6px;">
+  <!-- 💛 Favorite -->
+  <div style="display:flex; align-items:center; gap:6px;">
     <button id="favoriteBtn"
       onclick="toggleFavorite(document.getElementById('songSelect').value)"
-      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
+      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">
+      ☆
+    </button>
 
     <button id="favoriteFilterBtn"
       onclick="toggleFavoriteView()"
-      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">💛 Show Favorites</button>
+      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">
+      💛 Show Favorites
+    </button>
   </div>
 
 </div>
+
 
 
 
