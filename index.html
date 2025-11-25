@@ -389,6 +389,9 @@ button#vocalMuteBtn.vocal-muted {
 }
 
 
+
+
+
   </style>
 </head>
 
@@ -426,65 +429,16 @@ button#vocalMuteBtn.vocal-muted {
   <select id="songSelect"></select>
   </div>
 
-
-
-
   <!-- ⭐ Bookmark Controls -->
-<div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;">
+  <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;">
+    <button id="bookmarkBtn"
+      onclick="toggleBookmark(document.getElementById('songSelect').value)"
+      style="font-size:1.4rem; border:none; background:none; cursor:pointer;">☆</button>
 
-  <!-- Left big star -->
-  <button id="bookmarkBtn"
-    onclick="toggleBookmark(document.getElementById('songSelect').value)"
-    style="font-size:1.6rem; border:none; background:none; cursor:pointer;">
-    ☆
-  </button>
-
-  <!-- Fvt Songs -->
-  <button id="bookmarkFilterBtn"
-    onclick="toggleBookmarkView()"
-    style="
-      font-size:0.9rem;
-      padding:6px 14px;
-      border-radius:7px;
-      background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-      font-weight:bold;
-      border:none;
-      cursor:pointer;
-      min-width:140px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap:8px;
-      padding-right:28px;
-    ">
-    ⭐
-    <span>Fvt Songs</span>
-  </button>
-
-  <!-- Fvt Segments -->
-  <button id="segmentFavBtn"
-    onclick="toggleSegmentFavView()"
-    style="
-      font-size:0.9rem;
-      padding:6px 14px;
-      border-radius:7px;
-      background:linear-gradient(to bottom right,#ffcc33,#ff9900);
-      font-weight:bold;
-      border:none;
-      cursor:pointer;
-      min-width:140px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap:8px;
-      padding-right:28px;
-    ">
-    ⭐
-    <span>Fvt Sgmnts</span>
-  </button>
-
-</div>
-
+    <button id="bookmarkFilterBtn"
+      onclick="toggleBookmarkView()"
+      style="font-size:0.95rem; padding:6px 10px; border-radius:8px;">🎯 Show Bookmarked</button>
+  </div>
 
   <!-- ✅ Player Controls -->
   <div style="margin-top:10px;">
@@ -577,8 +531,7 @@ button#vocalMuteBtn.vocal-muted {
   <script src="WorshipApp_Modular/loopPlayer.js" defer></script>
   <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
   <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
-  <script src="WorshipApp_Modular/segmentFavorites.js" defer></script>
-
+  
 
 
   <!-- ✅ Service Worker -->
@@ -762,6 +715,7 @@ requestAnimationFrame(updateActiveSegmentByTime);
 
 
 
+
 <script>
 /* ===========================================
    RESTORE OLD RED TOP PROGRESS BAR (AUTO)
@@ -831,11 +785,6 @@ function updateRedBar() {
 // Start loop
 requestAnimationFrame(updateRedBar);
 </script>
-
-
-
-
-
 
 
 
