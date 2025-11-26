@@ -398,18 +398,24 @@ button {
 
 
 /* Smaller 2-line button */
+
+
 .dualLineBtn {
   white-space: normal !important;
   line-height: 1.1;
-  min-width: 90px;        /* reduced from 120 */
-  padding: 6px 8px;       /* reduced height/width */
-  font-size: 0.85rem;     /* reduced font */
+  width: 30%;                 /* ⭐ Forces 3-per-row ALWAYS */
+  max-width: 115px;           /* ⭐ Hard limit so buttons can’t grow */
+  padding: 6px 4px;           /* smaller */
+  font-size: 0.8rem;          /* smaller */
   font-weight: 600;
   border-radius: 8px;
   color: white;
   border: none;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+
+
+
 
 
 /* Blue Install style */
@@ -447,8 +453,10 @@ button {
 
 
   <div id="topButtonRow"
-     style="width:100%; display:flex; justify-content:space-between; align-items:center;
-            gap:4px; padding:0 6px; box-sizing:border-box; margin-top:8px;">
+     style="width:100%; display:flex; justify-content:space-between;
+            align-items:center; gap:3px; padding:0 4px;
+            box-sizing:border-box; margin-top:8px;">
+
 
 
     <!-- Hidden PWA inline install prompt -->
