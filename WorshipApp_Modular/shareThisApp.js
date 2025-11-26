@@ -44,3 +44,29 @@ window.shareThisApp = async function () {
   }
 };
 
+
+
+
+// =============================
+// 🎵 Share Selected Song
+// =============================
+function shareThisSong() {
+  const song = document.getElementById("songSelect").value;
+
+  if (!song) {
+    alert("Please select a song first.");
+    return;
+  }
+
+  const shareData = {
+    title: "Worship Song",
+    text: "Listen to this worship song:",
+    url: window.location.href + "?song=" + encodeURIComponent(song)
+  };
+
+  if (navigator.share) {
+    navigator.share(shareData).catch(console.error);
+  } else {
+    alert("Sharing not supported on this device.");
+  }
+}
