@@ -396,20 +396,28 @@ button {
 
 
 
-/* FINAL compact two-line button that fits 3 per row */
+/* ⭐ Equal perfect square buttons (top row) */
 .dualLineBtn {
-  width: 95px;               /* ⭐ fixed width so 3 fit in row */
-  height: 55px;              /* ⭐ fixed height for neat look */
-  white-space: normal !important;
-  line-height: 1.1;
-  padding: 4px 2px;          /* smaller padding */
-  font-size: 0.78rem;        /* reduced font */
+  width: 95px;             /* equal width  */
+  height: 95px;            /* equal height (square) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  margin: 0;
+
+  font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 8px;
-  color: white;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.20);
+  line-height: 1.1;
   text-align: center;
+
+  border: none;
+  border-radius: 12px;
+  color: white;
+
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
 }
 
 
@@ -451,8 +459,8 @@ button {
 
 
   <div id="topButtonRow"
-     style="width:100%; display:flex; justify-content:center;
-            gap:4px; flex-wrap:nowrap; margin-top:8px;">
+     style="width:100%; display:flex; justify-content:space-between;
+            gap:6px; padding:0 6px; box-sizing:border-box; margin-top:8px;">
 
 
 
