@@ -44,12 +44,3 @@ window.shareThisApp = async function () {
   }
 };
 
-// ⭐ Ensure app volume is normal on load
-window.addEventListener("load", () => {
-  if (window.vocalAudio) {
-    window.vocalAudio.volume = 0.8;
-  }
-  if (window.musicAudio) {
-    window.musicAudio.volume = 0.8;
-  }
-});

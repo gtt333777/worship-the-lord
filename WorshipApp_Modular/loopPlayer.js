@@ -1,6 +1,32 @@
 ﻿// WorshipApp_Modular/loopPlayer.js
 console.log("🎵 loopPlayer.js: Starting...");
 
+
+// ⭐ Safe default volume initializer (does NOT override perSongVolumeMemory)
+window.addEventListener("DOMContentLoaded", () => {
+  try {
+    const savedVocal = localStorage.getItem("vocalVolume");
+    const savedAcc   = localStorage.getItem("musicVolume");  // accomp = music
+
+    // Apply default only if no saved volume exists
+    if (window.vocalAudio && savedVocal === null) {
+      window.vocalAudio.volume = 0.5;
+    }
+    if (window.accompAudio && savedAcc === null) {
+      window.accompAudio.volume = 0.5;
+    }
+  } catch (e) {
+    console.warn("Volume init error", e);
+  }
+});
+
+
+
+
+
+
+
+
 window.segments = [];
 window.currentlyPlaying = false;
 window.activeSegmentTimeout = null;   // kept for compatibility (cleared on play)
