@@ -32,42 +32,69 @@ if ("serviceWorker" in navigator) {
 }
 
 
+// ===============================
+// 🌟 PWA Setup & Auto-Update
+// ===============================
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("service-worker.js")
+    .then((registration) => {
+      console.log("✅ Service Worker registered:", registration.scope);
+
+      // 🔄 Auto-update whenever new SW arrives
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            console.log("🆕 New version ready — activating...");
+            newWorker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+
+      // When new SW takes control → reload once
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        console.log("🔁 Reloading after SW activation…");
+        window.location.reload();
+      });
+    })
+    .catch((err) => {
+      console.error("❌ Service Worker registration failed:", err);
+    });
+}
 
 
-// ======================================================
-// === CLEAN & STABLE PWA INSTALL HANDLING (Chrome 2025) ===
-// ======================================================
+// ===============================
+// 🌟 Install Prompt Handling
+// ===============================
 
 let deferredPrompt = null;
 
-// 1️⃣ Capture install event when browser decides app is installable
-window.addEventListener("beforeinstallprompt", (event) => {
-  event.preventDefault();
-  deferredPrompt = event;
-  console.log("📥 Install prompt captured and ready.");
+// Capture the event
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  console.log("📥 Install prompt captured.");
 });
 
-// 2️⃣ Install button handler (your top header button)
+// Manual install button handler
 window.showInstallPrompt = async () => {
   if (!deferredPrompt) {
-    // This message only appears for:
-    // - already installed users
-    // - browsers that don’t support PWA install
     alert("App is already installed or not installable yet.");
     return;
   }
 
-  // Show install prompt
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
-
   console.log("📲 User install choice:", outcome);
 
-  // Important: reset
   deferredPrompt = null;
 };
 
-// 3️⃣ When installation is completed successfully
+// Installed event
 window.addEventListener("appinstalled", () => {
   console.log("🎉 App installed successfully!");
 });
