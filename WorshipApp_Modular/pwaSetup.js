@@ -33,35 +33,41 @@ if ("serviceWorker" in navigator) {
 
 
 
+
 // ======================================================
-// === NEW CLEAN PWA Install Prompt Handling (2025) =====
+// === CLEAN & STABLE PWA INSTALL HANDLING (Chrome 2025) ===
 // ======================================================
 
 let deferredPrompt = null;
 
-// Capture the install prompt event
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
+// 1️⃣ Capture install event when browser decides app is installable
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredPrompt = event;
   console.log("📥 Install prompt captured and ready.");
 });
 
-// Called when user presses the "Install App" button
+// 2️⃣ Install button handler (your top header button)
 window.showInstallPrompt = async () => {
   if (!deferredPrompt) {
+    // This message only appears for:
+    // - already installed users
+    // - browsers that don’t support PWA install
     alert("App is already installed or not installable yet.");
     return;
   }
 
+  // Show install prompt
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
 
   console.log("📲 User install choice:", outcome);
 
+  // Important: reset
   deferredPrompt = null;
 };
 
-// App installed event
+// 3️⃣ When installation is completed successfully
 window.addEventListener("appinstalled", () => {
   console.log("🎉 App installed successfully!");
 });
