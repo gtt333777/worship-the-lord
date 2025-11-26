@@ -436,6 +436,43 @@ button {
 
 <body>
 
+
+
+<!-- ⭐ Chrome Warning (insert here) -->
+<div id="chromeWarning" 
+     style="display:none; background:#fff3cd; color:#856404;
+            padding:10px; border-radius:8px; margin:10px; font-size:0.95rem;">
+  ⚠ This app works best in Chrome.<br>
+  👉 Please choose <b>Chrome</b> on the next screen.
+  <br><br>
+  <button onclick="openInChrome()" 
+          style="padding:8px 14px; border:none; background:#1976d2; color:white;
+                 border-radius:6px; font-weight:bold;">
+    Open in Chrome
+  </button>
+</div>
+
+<script>
+function isChrome() {
+  return /Chrome/i.test(navigator.userAgent) && 
+         !/Firefox|Edg|OPR|SamsungBrowser/i.test(navigator.userAgent);
+}
+
+if (!isChrome()) {
+  document.getElementById("chromeWarning").style.display = "block";
+}
+
+function openInChrome() {
+  window.location.href =
+    "intent://worship-the-lord/#Intent;scheme=https;package=com.android.chrome;end;";
+}
+</script>
+<!-- ⭐ End Chrome Warning -->
+
+
+
+
+
 <header style="margin-top:10px;">
   <h3>🎵 Worship The Lord</h3>
 
