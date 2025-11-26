@@ -31,57 +31,37 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-// === PWA Install Prompt Handling ===
+
+
+// ======================================================
+// === NEW CLEAN PWA Install Prompt Handling (2025) =====
+// ======================================================
+
 let deferredPrompt = null;
 
+// Capture the install prompt event
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-
-  const installBar = document.getElementById("installPrompt");
-  if (installBar) {
-    installBar.style.display = "block";
-
-    const installButton = document.getElementById("installButton");
-    if (installButton) {
-      installButton.onclick = async () => {
-        installBar.style.display = "none";
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`📲 User install choice: ${outcome}`);
-        deferredPrompt = null;
-      };
-    }
-  }
+  console.log("📥 Install prompt captured and ready.");
 });
 
-// === Optional: Listen for successful app install ===
-window.addEventListener("appinstalled", () => {
-  console.log("🎉 App installed successfully!");
-  const installBar = document.getElementById("installPrompt");
-  if (installBar) installBar.style.display = "none";
-});
-
-
-// 🧩 Hide manual install button after app installation
-window.addEventListener("appinstalled", () => {
-  const manualButtonDiv = document.getElementById("manualInstallDiv");
-  if (manualButtonDiv) manualButtonDiv.style.display = "none";
-});
-
-
-
-
-// Fallback: manual install button
+// Called when user presses the "Install App" button
 window.showInstallPrompt = async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`Manual install outcome: ${outcome}`);
-    deferredPrompt = null;
-  } else {
-    alert("App is already installable or installed!");
+  if (!deferredPrompt) {
+    alert("App is already installed or not installable yet.");
+    return;
   }
+
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+
+  console.log("📲 User install choice:", outcome);
+
+  deferredPrompt = null;
 };
 
-
+// App installed event
+window.addEventListener("appinstalled", () => {
+  console.log("🎉 App installed successfully!");
+});
