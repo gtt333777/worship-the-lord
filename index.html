@@ -396,22 +396,20 @@ button {
 
 
 
-
-/* Smaller 2-line button */
-
-
+/* FINAL compact two-line button that fits 3 per row */
 .dualLineBtn {
+  width: 95px;               /* ⭐ fixed width so 3 fit in row */
+  height: 55px;              /* ⭐ fixed height for neat look */
   white-space: normal !important;
   line-height: 1.1;
-  width: 30%;                 /* ⭐ Forces 3-per-row ALWAYS */
-  max-width: 115px;           /* ⭐ Hard limit so buttons can’t grow */
-  padding: 6px 4px;           /* smaller */
-  font-size: 0.8rem;          /* smaller */
+  padding: 4px 2px;          /* smaller padding */
+  font-size: 0.78rem;        /* reduced font */
   font-weight: 600;
   border-radius: 8px;
   color: white;
   border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.20);
+  text-align: center;
 }
 
 
@@ -453,9 +451,8 @@ button {
 
 
   <div id="topButtonRow"
-     style="width:100%; display:flex; justify-content:space-between;
-            align-items:center; gap:3px; padding:0 4px;
-            box-sizing:border-box; margin-top:8px;">
+     style="width:100%; display:flex; justify-content:center;
+            gap:4px; flex-wrap:nowrap; margin-top:8px;">
 
 
 
