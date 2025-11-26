@@ -395,19 +395,22 @@ button {
 }
 
 
-/* Two-line buttons */
+
+
+/* Smaller 2-line button */
 .dualLineBtn {
   white-space: normal !important;
-  line-height: 1.2;
-  min-width: 120px;
-  padding: 10px 14px;
-  font-size: 1rem;
-  font-weight: bold;
-  border-radius: 10px;
+  line-height: 1.1;
+  min-width: 95px;        /* reduced from 120 */
+  padding: 6px 8px;       /* reduced height/width */
+  font-size: 0.85rem;     /* reduced font */
+  font-weight: 600;
+  border-radius: 8px;
   color: white;
   border: none;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+
 
 /* Blue Install style */
 #manualInstallDiv .dualLineBtn {
@@ -441,8 +444,12 @@ button {
 
   
   <!-- ✅ Install / Share App / Share Song -->
+
+
 <div id="topButtonRow"
-     style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;">
+     style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:8px;">
+
+
 
     <!-- Hidden PWA inline install prompt -->
     <div id="installPrompt" style="display:none;">
