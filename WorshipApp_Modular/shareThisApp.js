@@ -46,11 +46,10 @@ window.shareThisApp = async function () {
 
 
 
-
 // =============================
 // 🎵 Share Selected Song
 // =============================
-function shareThisSong() {
+window.shareThisSong = function () {
   const song = document.getElementById("songSelect").value;
 
   if (!song) {
@@ -69,4 +68,4 @@ function shareThisSong() {
   } else {
     alert("Sharing not supported on this device.");
   }
-}
+};
