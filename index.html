@@ -439,36 +439,41 @@ button {
 <header style="margin-top:10px;">
   <h3>🎵 Worship The Lord</h3>
 
+  
+  <!-- ✅ Install / Share App / Share Song -->
+<div id="topButtonRow"
+     style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;">
 
-    <!-- ✅ Install / Share App / Share Song -->
-  <div id="topButtonRow"
-       style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;">
+    <!-- Hidden PWA inline install prompt -->
+    <div id="installPrompt" style="display:none;">
+      <button id="installButton">📲 Install<br>App</button>
+    </div>
 
-      <!-- Install App -->
-      <div id="manualInstallDiv">
-        <button class="dualLineBtn"
-                onclick="showInstallPrompt()">
-          📲 Install<br>App
-        </button>
-      </div>
+    <!-- Manual Install -->
+    <div id="manualInstallDiv">
+      <button class="dualLineBtn"
+              onclick="showInstallPrompt()">
+        📲 Install<br>App
+      </button>
+    </div>
 
-      <!-- Share This App -->
-      <div id="shareAppDiv">
-        <button class="dualLineBtn btn-orange"
-                onclick="shareThisApp()">
-          📤 Share<br>This App
-        </button>
-      </div>
+    <!-- Share This App -->
+    <div id="shareAppDiv">
+      <button class="dualLineBtn btn-orange"
+              onclick="shareThisApp()">
+        📤 Share<br>This App
+      </button>
+    </div>
 
-      <!-- Share a Song (NEW) -->
-      <div id="shareSongDiv">
-        <button class="dualLineBtn btn-orange"
-                onclick="shareThisSong()">
-          🎵 Share<br>a Song
-        </button>
-      </div>
+    <!-- Share Song (NEW) -->
+    <div id="shareSongDiv">
+      <button class="dualLineBtn btn-orange"
+              onclick="shareThisSong()">
+        🎵 Share<br>a Song
+      </button>
+    </div>
 
-  </div>
+</div>
 
 
 
