@@ -390,6 +390,45 @@ button#vocalMuteBtn.vocal-muted {
 
 
 
+button {
+  line-height: 1.2;
+}
+
+
+/* Two-line buttons */
+.dualLineBtn {
+  white-space: normal !important;
+  line-height: 1.2;
+  min-width: 120px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 10px;
+  color: white;
+  border: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* Blue Install style */
+#manualInstallDiv .dualLineBtn {
+  background: linear-gradient(to bottom right, #1976d2, #0d47a1);
+}
+#manualInstallDiv .dualLineBtn:hover {
+  background: linear-gradient(to bottom right, #2196f3, #1565c0);
+}
+
+/* Orange buttons (Share App + Share Song) */
+.btn-orange {
+  background: linear-gradient(to bottom right, #ff9800, #f57c00);
+}
+.btn-orange:hover {
+  background: linear-gradient(to bottom right, #ffb74d, #fb8c00);
+  transform: scale(1.05);
+}
+
+
+
+
 
 
   </style>
@@ -400,20 +439,39 @@ button#vocalMuteBtn.vocal-muted {
 <header style="margin-top:10px;">
   <h3>🎵 Worship The Lord</h3>
 
-  <!-- ✅ Install & Share side-by-side -->
-  <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
-    <div id="installPrompt" style="display:none;">
-      <button id="installButton">📲 Install App</button>
-    </div>
 
-    <div id="manualInstallDiv">
-      <button onclick="showInstallPrompt()">📲 Install App</button>
-    </div>
+    <!-- ✅ Install / Share App / Share Song -->
+  <div id="topButtonRow"
+       style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;">
 
-    <div id="shareAppDiv">
-      <button onclick="shareThisApp()">📤 Share This App</button>
-    </div>
+      <!-- Install App -->
+      <div id="manualInstallDiv">
+        <button class="dualLineBtn"
+                onclick="showInstallPrompt()">
+          📲 Install<br>App
+        </button>
+      </div>
+
+      <!-- Share This App -->
+      <div id="shareAppDiv">
+        <button class="dualLineBtn btn-orange"
+                onclick="shareThisApp()">
+          📤 Share<br>This App
+        </button>
+      </div>
+
+      <!-- Share a Song (NEW) -->
+      <div id="shareSongDiv">
+        <button class="dualLineBtn btn-orange"
+                onclick="shareThisSong()">
+          🎵 Share<br>a Song
+        </button>
+      </div>
+
   </div>
+
+
+
 </header>
 
   <!-- ✅ Song selector -->
