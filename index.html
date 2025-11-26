@@ -396,43 +396,34 @@ button {
 
 
 
-/* ⭐ Top buttons same size as "Show Favorites" */
-.dualLineBtn {
-  white-space: normal !important;
+
+.topHeaderBtn {
+  white-space: pre-line;
   line-height: 1.2;
-  padding: 8px 14px;      /* same as Show Favorites */
-  font-size: 0.95rem;     /* same font size */
+  padding: 10px 14px;
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 10px;    /* same rounded corners */
+  border-radius: 12px;
   border: none;
   color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.20);
-  min-width: 120px;       /* same width behavior */
+  min-width: 140px;
   text-align: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
-
-
-
-
-
-/* Blue Install style */
-#manualInstallDiv .dualLineBtn {
+.btn-blue {
   background: linear-gradient(to bottom right, #1976d2, #0d47a1);
 }
-#manualInstallDiv .dualLineBtn:hover {
+.btn-blue:hover {
   background: linear-gradient(to bottom right, #2196f3, #1565c0);
 }
 
-/* Orange buttons (Share App + Share Song) */
 .btn-orange {
   background: linear-gradient(to bottom right, #ff9800, #f57c00);
 }
 .btn-orange:hover {
   background: linear-gradient(to bottom right, #ffb74d, #fb8c00);
-  transform: scale(1.05);
 }
-
 
 
 
@@ -451,39 +442,26 @@ button {
 
   <div id="topButtonRow"
      style="width:100%; display:flex; justify-content:center;
-            gap:8px; flex-wrap:nowrap; margin-top:8px;">
+            gap:10px; flex-wrap:nowrap; margin-top:8px;">
 
+  <!-- Install App -->
+  <button class="topHeaderBtn btn-blue" onclick="showInstallPrompt()">
+📲 Install
+App
+  </button>
 
+  <!-- Share This App -->
+  <button class="topHeaderBtn btn-orange" onclick="shareThisApp()">
+📤 Share
+This App
+  </button>
 
+  <!-- Share Song -->
+  <button class="topHeaderBtn btn-orange" onclick="shareThisSong()">
+🎵 Share
+a Song
+  </button>
 
-    <!-- Hidden PWA inline install prompt -->
-    <div id="installPrompt" style="display:none;">
-      <button id="installButton">📲 Install<br>App</button>
-    </div>
-
-    <!-- Manual Install -->
-    <div id="manualInstallDiv">
-      <button class="dualLineBtn"
-              onclick="showInstallPrompt()">
-        📲 Install<br>App
-      </button>
-    </div>
-
-    <!-- Share This App -->
-    <div id="shareAppDiv">
-      <button class="dualLineBtn btn-orange"
-              onclick="shareThisApp()">
-        📤 Share<br>This App
-      </button>
-    </div>
-
-    <!-- Share Song (NEW) -->
-    <div id="shareSongDiv">
-      <button class="dualLineBtn btn-orange"
-              onclick="shareThisSong()">
-        🎵 Share<br>a Song
-      </button>
-    </div>
 
 </div>
 
