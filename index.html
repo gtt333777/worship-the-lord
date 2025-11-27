@@ -938,21 +938,18 @@ requestAnimationFrame(updateRedBar);
 
 
 
-
-
 <script>
 /* ==========================================================
-   STEP 1 — Shared Link: Select song + trigger natural event
+   STEP 1 — Shared Link: Safely select song in dropdown
    ========================================================== */
 
 (function () {
-
   const params = new URLSearchParams(window.location.search);
-  const songFromLink = params.get("song");
+  const songFromLink = params.get("song");   // already decoded
 
   if (!songFromLink) return;
 
-  console.log("🔗 Shared link:", songFromLink);
+  console.log("🔗 Shared link (raw param):", songFromLink);
 
   function waitForDropdown() {
     const select = document.getElementById("songSelect");
@@ -962,21 +959,42 @@ requestAnimationFrame(updateRedBar);
       return setTimeout(waitForDropdown, 150);
     }
 
-    // 👉 Set dropdown EXACTLY to the shared link value
-    select.value = songFromLink;
+    const decoded = songFromLink.trim();
+    let targetValue = null;
 
-    // 👉 Now fire the natural change event
-    console.log("🎯 Firing natural dropdown change event…");
+    // 🔍 Try to find matching option in the dropdown
+    for (const opt of select.options) {
+      const val  = (opt.value || "").trim();       // TRUE song name
+      const text = (opt.textContent || "").trim(); // What user sees
+
+      // 1) Exact value match  (normal case)
+      // 2) Exact text match   (if some system used text)
+      // 3) Text without leading * / # prefixes
+      const textNoPrefix = text.replace(/^[*#]+/, "").trim();
+
+      if (val === decoded || text === decoded || textNoPrefix === decoded) {
+        targetValue = val;
+        break;
+      }
+    }
+
+    if (!targetValue) {
+      console.warn("⚠️ Shared song not found in dropdown:", decoded);
+      return;
+    }
+
+    // ✅ Set dropdown to the CLEAN value (no *, no #)
+    select.value = targetValue;
+    console.log("🎯 Shared link matched value:", targetValue);
+
+    // 🔔 Trigger the normal change flow (which calls loadSelectedSong)
     select.dispatchEvent(new Event("change"));
-
     console.log("✅ Song selected via real browser flow:", select.value);
   }
 
   waitForDropdown();
-
 })();
 </script>
-
 
 
 
