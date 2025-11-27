@@ -941,7 +941,7 @@ requestAnimationFrame(updateRedBar);
 
 <script>
 /* ==========================================================
-   SAFE SHARE-MODE — NO FIRST-WORD REPEAT
+   ⭐ SAFE SHARE-MODE — NO FIRST-WORD REPEAT (FINAL VERSION)
    ========================================================== */
 
 (function() {
@@ -949,48 +949,61 @@ requestAnimationFrame(updateRedBar);
   const urlParams = new URLSearchParams(window.location.search);
   const songFromLink = urlParams.get("song");
 
-  if (!songFromLink) return;  // run ONLY for shared links
+  if (!songFromLink) return;  // Only run for shared links
 
   console.log("🔗 Shared link detected:", songFromLink);
 
-  // 1) Load dropdown value
+  // 1) Select the song in dropdown
   const select = document.getElementById("songSelect");
   if (select) select.value = songFromLink;
 
-  // 2) Load the song fully (NO auto-play yet)
+  // 2) Load the song fully (do NOT auto-play yet)
   loadSelectedSong(songFromLink).then(() => {
 
-    console.log("🎼 Song loaded from shared link");
+    console.log("🎼 Shared song loaded");
 
-    // 3) Wait until both tracks are fully ready
+    // 3) Wait until BOTH tracks really finish updating + metadata loaded
     function waitReady() {
-      if (
-        window.vocalAudio?.readyState >= 2 &&
-        window.accompAudio?.readyState >= 2
-      ) {
-        console.log("🎵 Audio ready — STARTING clean full play");
 
-        // ⭐ FIX: Do clean full play (NO segments)
-        window.ignoreSegments = true;
+      const v = window.vocalAudio;
+      const a = window.accompAudio;
 
-        document.getElementById("playBtn").click();
-
-        // enable segment buttons after 7s
-        setTimeout(() => {
-          window.ignoreSegments = false;
-          console.log("🔓 share-mode ended → normal segment play restored");
-        }, 7000);
-
-      } else {
-        setTimeout(waitReady, 200);
+      // A) Wait until src assigned (songLoader.js is async)
+      if (!v?.src || !a?.src) {
+        console.log("⏳ Waiting for audio src update…");
+        return setTimeout(waitReady, 100);
       }
+
+      // B) Wait for metadata (duration available)
+      if (v.readyState < 2 || a.readyState < 2) {
+        console.log("⏳ Waiting for metadata ready…");
+        return setTimeout(waitReady, 150);
+      }
+
+      console.log("🎵 Both audio tracks READY → clean auto-play starting");
+
+      // ⭐ Disable segment-triggering during first 7 seconds
+      window.ignoreSegments = true;
+
+      // Start FULL PLAY cleanly
+      const btn = document.getElementById("playBtn");
+      if (btn) btn.click();
+
+      // After 7 seconds → restore normal segment play
+      setTimeout(() => {
+        window.ignoreSegments = false;
+        console.log("🔓 Share-mode ended → Segments restored");
+      }, 7000);
     }
 
+    // Begin readiness check
     waitReady();
+
   });
 
 })();
 </script>
+
 
 
 
