@@ -60,7 +60,13 @@ window.shareThisSong = function () {
   const shareData = {
     title: "Worship Song",
     text: "Listen to this worship song:",
-    url: window.location.href + "?song=" + encodeURIComponent(song)
+
+
+   // url: window.location.href + "?song=" + encodeURIComponent(song)
+   url: "https://gtt333777.github.io/worship-the-lord/?song=" + 
+      encodeURIComponent(song)
+
+
   };
 
   if (navigator.share) {

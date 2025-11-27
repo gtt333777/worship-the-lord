@@ -70,6 +70,41 @@ async function loadSelectedSong(songName) {
     } else {
       console.error("❌ loadLyricsFromJSON() missing");
     }
+
+
+    // =====================================================
+// ⭐ AUTO-PLAY if app opened with ?song= in URL
+// =====================================================
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("song")) {
+  console.log("🎶 Auto-play triggered from shared link");
+
+  // Wait a moment for audio elements to finish loading
+  setTimeout(() => {
+    const btn = document.getElementById("playBtn");
+    if (btn) btn.click();
+  }, 900);
+}
+
+// =====================================================
+// 🎚 Auto Volume for shared link (Acc/Vocal = 0.50)
+// =====================================================
+if (params.has("song")) {
+  console.log("🎚 Setting both volumes to 0.50 (shared mode)");
+
+  setTimeout(() => {
+    const acc = document.getElementById("accompVolume");
+    const voc = document.getElementById("vocalVolume");
+
+    if (acc) { acc.value = 0.50; acc.dispatchEvent(new Event("input")); }
+    if (voc) { voc.value = 0.50; voc.dispatchEvent(new Event("input")); }
+
+  }, 1300);
+}
+
+
+
   } catch (err) {
     console.warn("⚠️ Lyrics JSON missing:", jsonFile);
 
