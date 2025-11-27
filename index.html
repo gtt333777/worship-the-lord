@@ -982,59 +982,6 @@ requestAnimationFrame(updateRedBar);
 
 
 
-<script>
-/* ==========================================================
-   SAFE STAR PREFIX DECORATION (VALUE NEVER CHANGES)
-   ========================================================== */
-
-function applyStarPrefixesSafely() {
-    const select = document.getElementById("songSelect");
-    if (!select || !window.star) return;
-
-    [...select.options].forEach(opt => {
-        const cleanName = opt.value.trim(); // real correct name
-
-        const match = window.star.find(s => s.endsWith(cleanName));
-        if (!match) return;
-
-        const prefix = match.split(" ")[0];
-
-        // UI ONLY — Do NOT modify opt.value
-        opt.textContent = prefix + " " + cleanName;
-
-        // Colors
-        if (prefix === "***") opt.style.color = "green";
-        else if (prefix === "**") opt.style.color = "orange";
-        else if (prefix === "*") opt.style.color = "black";
-        else if (prefix === "#") opt.style.color = "gray";
-    });
-}
-
-function waitForSongListThenApplyPrefix() {
-    if (!window.songListReady) {
-        return setTimeout(waitForSongListThenApplyPrefix, 80);
-    }
-    applyStarPrefixesSafely();
-}
-
-waitForSongListThenApplyPrefix();
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
