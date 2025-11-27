@@ -44,12 +44,24 @@ function playSegment(startTime, endTime, index = 0) {
   */
 
   function playSegment(startTime, endTime, index = 0) {
+
+
+  // 🚫 Ignore segment triggers during auto-shared-play
+if (window.ignoreSegments) {
+  console.log("⛔ Segment ignored during shared auto-play");
+  return;
+}
+
+
   window.currentPlayingSegmentIndex = index;   // ⭐ FIX ADDED HERE
 
   if (!window.vocalAudio || !window.accompAudio) {
     console.warn("❌ loopPlayer.js: Audio tracks not present yet, will start after ready...");
     return;
   }
+
+
+
 
 
 
