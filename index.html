@@ -938,6 +938,85 @@ requestAnimationFrame(updateRedBar);
 
 
 
+<script>
+// =====================================================
+// 🔥 Fuzzy Auto-Select Song From URL (?song=...)
+//     (Correct version – waits until dropdown is loaded)
+// =====================================================
+document.addEventListener("DOMContentLoaded", () => {
+
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("song")) return;
+
+  const target = params.get("song").trim().toLowerCase();
+
+  function tryAutoSelect() {
+    const select = document.getElementById("songSelect");
+
+    // Wait until dropdown is filled
+    if (!select || select.options.length === 0) {
+      console.log("⏳ Waiting for song list…");
+      return setTimeout(tryAutoSelect, 200);
+    }
+
+    console.log("🎶 Song list loaded, starting fuzzy match…");
+
+    let bestMatchIndex = -1;
+    let bestScore = 0;
+
+    function score(a, b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      let count = 0;
+      for (let ch of a) if (b.includes(ch)) count++;
+      return count / a.length;
+    }
+
+    for (let i = 0; i < select.options.length; i++) {
+      const opt = select.options[i].value.toLowerCase();
+      const sc = score(target, opt);
+      if (sc > bestScore) {
+        bestScore = sc;
+        bestMatchIndex = i;
+      }
+    }
+
+    if (bestMatchIndex !== -1 && bestScore > 0.30) {
+      select.selectedIndex = bestMatchIndex;
+      console.log("🎯 Auto-selected:", select.value);
+
+      // Auto-load + auto-play
+      setTimeout(() => {
+        loadSelectedSong(select.value).then(() => {
+          const btn = document.getElementById("playBtn");
+          if (btn) btn.click();
+        });
+      }, 800);
+
+      // Auto volume
+      setTimeout(() => {
+        const acc = document.getElementById("accompVolume");
+        const voc = document.getElementById("vocalVolume");
+        if (acc) { acc.value = 0.50; acc.dispatchEvent(new Event("input")); }
+        if (voc) { voc.value = 0.50; voc.dispatchEvent(new Event("input")); }
+      }, 1400);
+
+    } else {
+      console.warn("⚠ No close match found for:", target);
+    }
+  }
+
+  // Start waiting loop
+  tryAutoSelect();
+});
+</script>
+
+
+
+
+
+
+
 </body>
 </html>
 
