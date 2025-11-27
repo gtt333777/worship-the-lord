@@ -942,52 +942,37 @@ requestAnimationFrame(updateRedBar);
 
 <script>
 /* ==========================================================
-   STEP 1 — Shared Link: ONLY SELECT the correct dropdown item
+   STEP 1 — Shared Link: Select song + trigger natural event
    ========================================================== */
 
 (function () {
 
   const params = new URLSearchParams(window.location.search);
+  const songFromLink = params.get("song");
 
-  const songFromLink = normalizeSongName(params.get("song"));
+  if (!songFromLink) return;
 
-  
+  console.log("🔗 Shared link:", songFromLink);
 
-  if (!songFromLink) return; // Not a share link → exit
-
-  console.log("🔗 STEP1: Shared link detected:", songFromLink);
-
-  // Repeatedly check until the dropdown is filled with songs
-  function waitForSongs() {
+  function waitForDropdown() {
     const select = document.getElementById("songSelect");
 
-    if (!select) {
-      console.log("⏳ Waiting for dropdown element...");
-      return setTimeout(waitForSongs, 150);
+    if (!select || select.options.length === 0) {
+      console.log("⏳ Waiting for dropdown and songs...");
+      return setTimeout(waitForDropdown, 150);
     }
 
-    // Dropdown exists but may be empty
-    if (select.options.length <= 1) {
-      console.log("⏳ Waiting for songs to load... (", select.options.length, "loaded)");
-      return setTimeout(waitForSongs, 200);
-    }
-
-    console.log("🎉 Songs loaded. Now selecting:", songFromLink);
-
-    // Attempt selection
+    // 👉 Set dropdown EXACTLY to the shared link value
     select.value = songFromLink;
 
-    // Verify
-    if (select.value === songFromLink) {
-      console.log("✅ STEP1 SUCCESS: Selected", songFromLink);
-    } else {
-      console.warn("⚠️ Not matched exactly. Check spelling:", songFromLink);
-    }
+    // 👉 Now fire the natural change event
+    console.log("🎯 Firing natural dropdown change event…");
+    select.dispatchEvent(new Event("change"));
 
-    // ⚠️ STOP HERE — do NOT load or play yet.
+    console.log("✅ Song selected via real browser flow:", select.value);
   }
 
-  waitForSongs();
+  waitForDropdown();
 
 })();
 </script>
