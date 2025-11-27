@@ -939,10 +939,10 @@ requestAnimationFrame(updateRedBar);
 
 
 
+
 <script>
 /* ==========================================================
-   STEP 1 — Shared Link: ONLY select the song from dropdown
-   (No loading, no playing, no segment behavior)
+   STEP 1 — Shared Link: ONLY SELECT the correct dropdown item
    ========================================================== */
 
 (function () {
@@ -950,30 +950,46 @@ requestAnimationFrame(updateRedBar);
   const params = new URLSearchParams(window.location.search);
   const songFromLink = params.get("song");
 
-  if (!songFromLink) return; // not a shared link → do nothing
+  if (!songFromLink) return; // Not a share link → exit
 
-  console.log("🔗 STEP1: Shared link detected → selecting:", songFromLink);
+  console.log("🔗 STEP1: Shared link detected:", songFromLink);
 
-  // 1) Wait until dropdown exists
-  function waitForDropdown() {
+  // Repeatedly check until the dropdown is filled with songs
+  function waitForSongs() {
     const select = document.getElementById("songSelect");
 
     if (!select) {
-      console.log("⏳ Waiting for dropdown...");
-      return setTimeout(waitForDropdown, 150);
+      console.log("⏳ Waiting for dropdown element...");
+      return setTimeout(waitForSongs, 150);
     }
 
-    // 2) Set dropdown value
-    select.value = songFromLink;
-    console.log("✅ STEP1 SUCCESS: Dropdown selected:", select.value);
+    // Dropdown exists but may be empty
+    if (select.options.length <= 1) {
+      console.log("⏳ Waiting for songs to load... (", select.options.length, "loaded)");
+      return setTimeout(waitForSongs, 200);
+    }
 
-    // ❗ STOP HERE — DO NOT load song, DO NOT play
+    console.log("🎉 Songs loaded. Now selecting:", songFromLink);
+
+    // Attempt selection
+    select.value = songFromLink;
+
+    // Verify
+    if (select.value === songFromLink) {
+      console.log("✅ STEP1 SUCCESS: Selected", songFromLink);
+    } else {
+      console.warn("⚠️ Not matched exactly. Check spelling:", songFromLink);
+    }
+
+    // ⚠️ STOP HERE — do NOT load or play yet.
   }
 
-  waitForDropdown();
+  waitForSongs();
 
 })();
 </script>
+
+
 
 
 
