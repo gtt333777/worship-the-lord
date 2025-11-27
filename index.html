@@ -938,6 +938,64 @@ requestAnimationFrame(updateRedBar);
 
 
 
+
+<script>
+/* ==========================================================
+   SAFE SHARE-MODE — NO FIRST-WORD REPEAT
+   ========================================================== */
+
+(function() {
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const songFromLink = urlParams.get("song");
+
+  if (!songFromLink) return;  // run ONLY for shared links
+
+  console.log("🔗 Shared link detected:", songFromLink);
+
+  // 1) Load dropdown value
+  const select = document.getElementById("songSelect");
+  if (select) select.value = songFromLink;
+
+  // 2) Load the song fully (NO auto-play yet)
+  loadSelectedSong(songFromLink).then(() => {
+
+    console.log("🎼 Song loaded from shared link");
+
+    // 3) Wait until both tracks are fully ready
+    function waitReady() {
+      if (
+        window.vocalAudio?.readyState >= 2 &&
+        window.accompAudio?.readyState >= 2
+      ) {
+        console.log("🎵 Audio ready — STARTING clean full play");
+
+        // ⭐ FIX: Do clean full play (NO segments)
+        window.ignoreSegments = true;
+
+        document.getElementById("playBtn").click();
+
+        // enable segment buttons after 7s
+        setTimeout(() => {
+          window.ignoreSegments = false;
+          console.log("🔓 share-mode ended → normal segment play restored");
+        }, 7000);
+
+      } else {
+        setTimeout(waitReady, 200);
+      }
+    }
+
+    waitReady();
+  });
+
+})();
+</script>
+
+
+
+
+
 </body>
 </html>
 
