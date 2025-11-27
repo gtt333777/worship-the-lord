@@ -643,44 +643,6 @@ a Song
 
 
 
-<!-- ⭐ AUTO SET VOLUMES TO 0.50 FOR SHARED SONG LINK -->
-<script>
-// =======================================================
-// 🎚 Shared Song Mode -> Force Volume = 0.50 (Acc + Vocal)
-// =======================================================
-
-(function applySharedLinkVolumes() {
-  // Check if URL contains ?song=
-  const params = new URLSearchParams(window.location.search);
-  if (!params.has("song")) return;  // Not a shared song → skip
-
-  console.log("🎚 Shared link detected — setting both volumes to 0.50");
-
-  // Wait until sliders exist (DOM loaded + components ready)
-  setTimeout(() => {
-    const acc = document.getElementById("accompVolume");
-    const voc = document.getElementById("vocalVolume");
-
-    if (acc) {
-      acc.value = 0.50;
-      acc.dispatchEvent(new Event("input"));
-    }
-
-    if (voc) {
-      voc.value = 0.50;
-      voc.dispatchEvent(new Event("input"));
-    }
-
-    console.log("🎚 Volumes applied: Acc=0.50 | Vocal=0.50");
-  }, 1500);
-})();
-</script>
-<!-- ⭐ END AUTO-VOLUME BLOCK -->
-
-
-
-
-
 
 
 
