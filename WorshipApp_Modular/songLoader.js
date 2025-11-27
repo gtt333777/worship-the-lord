@@ -1,12 +1,12 @@
 ﻿/* ============================================================
    Worship The Lord — songLoader.js
-   🟩 FINAL JSON-LYRICS BUILD — 2025-11-17
+   🟩 FINAL JSON-LYRICS BUILD — CLEAN FIX
    ============================================================ */
 
 console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
 
 // 🎵 Global audio players
-window.vocalAudio = new Audio();
+window.vocalAudio  = new Audio();
 window.accompAudio = new Audio();
 
 // ============================================================
@@ -30,24 +30,36 @@ async function loadSelectedSong(songName) {
   }
 
   // ------------------------------------------------------------
-  const entry = window.songURLs[songName];
-  if (!entry) return console.error("❌ No entry for", songName);
+  // Look up URLs for this song
+  // ------------------------------------------------------------
+  const entry = window.songURLs && window.songURLs[songName];
+  if (!entry) {
+    console.error("❌ No entry for", songName);
+    return;
+  }
 
   const { vocalURL, accURL } = entry;
 
+  // Stop any existing audio
   stopAndUnloadAudio();
 
   // ------------------------------------------------------------
   // Smart Cache (Cloudflare R2)
   // ------------------------------------------------------------
-  window.vocalAudio.src = await cacheSong(vocalURL);
-  window.accompAudio.src = await cacheSong(accURL);
+  try {
+    window.vocalAudio.src  = await cacheSong(vocalURL);
+    window.accompAudio.src = await cacheSong(accURL);
+  } catch (e) {
+    console.warn("⚠️ Cache / audio load failed:", e);
+    window.vocalAudio.src  = vocalURL;
+    window.accompAudio.src = accURL;
+  }
 
-  window.vocalAudio.preload = "auto";
+  window.vocalAudio.preload  = "auto";
   window.accompAudio.preload = "auto";
 
   // ============================================================
-  // NEW: Load JSON lyrics instead of .txt
+  // Load JSON lyrics
   // ============================================================
   const jsonFile = `lyrics/${songName}.json`;
 
@@ -58,11 +70,7 @@ async function loadSelectedSong(songName) {
     const json = await res.json();
     console.log("📘 JSON lyrics loaded:", json);
 
-    // -------------------------
-    // ⭐ Minimal-safe fix:
-    // Ensure window.segments contains the tamilSegments array
-    // so playFirstSegment() and other code can read it.
-    // -------------------------
+    // Make segments available globally for loopPlayer, etc.
     window.segments = json.tamilSegments || [];
 
     if (window.loadLyricsFromJSON) {
@@ -70,63 +78,8 @@ async function loadSelectedSong(songName) {
     } else {
       console.error("❌ loadLyricsFromJSON() missing");
     }
-
-
-
-
-
-
-    // ================================================
-// SAFE AUTO-PLAY for shared link
-// Waits until segments are fully ready
-// ================================================
-if (window._sharedLinkSong) {
-
-    if (window._sharedPlayHasRun) return;
-    window._sharedPlayHasRun = true;
-
-    console.log("🎶 SAFE auto-play: waiting for segments...");
-
-    function waitForSegments() {
-        if (!window.segments || window.segments.length === 0) {
-            console.log("⏳ Segments not ready, retrying...");
-            return setTimeout(waitForSegments, 300);
-        }
-
-        console.log("✅ Segments ready! Auto-playing...");
-        const btn = document.getElementById("playBtn");
-        if (btn) btn.click();
-    }
-
-    waitForSegments();
-}
-
-
-
-
-
-
-
-// =====================================================
-// 🎚 Auto Volume for shared link (Acc/Vocal = 0.50)
-// =====================================================
-if (params.has("song")) {
-  console.log("🎚 Setting both volumes to 0.50 (shared mode)");
-
-  setTimeout(() => {
-    const acc = document.getElementById("accompVolume");
-    const voc = document.getElementById("vocalVolume");
-
-    if (acc) { acc.value = 0.50; acc.dispatchEvent(new Event("input")); }
-    if (voc) { voc.value = 0.50; voc.dispatchEvent(new Event("input")); }
-
-  }, 1300);
-}
-
-
-
   } catch (err) {
-    console.warn("⚠️ Lyrics JSON missing:", jsonFile);
+    console.warn("⚠️ Lyrics JSON missing or failed to load:", jsonFile, err);
 
     // Clear viewer boxes
     const ta = document.getElementById("tamilLyricsBox");
@@ -136,56 +89,41 @@ if (params.has("song")) {
   }
 }
 
-
-
-
 // ============================================================
 // Stop / unload audio
 // ============================================================
 function stopAndUnloadAudio() {
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
+  try {
+    window.vocalAudio.pause();
+    window.accompAudio.pause();
 
-  window.vocalAudio.currentTime = 0;
-  window.accompAudio.currentTime = 0;
+    window.vocalAudio.currentTime  = 0;
+    window.accompAudio.currentTime = 0;
 
-  window.vocalAudio.removeAttribute("src");
-  window.accompAudio.removeAttribute("src");
+    window.vocalAudio.removeAttribute("src");
+    window.accompAudio.removeAttribute("src");
 
-  window.vocalAudio.load();
-  window.accompAudio.load();
+    window.vocalAudio.load();
+    window.accompAudio.load();
 
-  console.log("🛑 Audio stopped and unloaded");
+    console.log("🛑 Audio stopped and unloaded");
+  } catch (e) {
+    console.warn("⚠️ stopAndUnloadAudio failed:", e);
+  }
 
   // No boost system anymore — keep this for safety
   window.__VOCAL_BOOST_ACTIVE__ = false;
 }
 
-
-/*
 // ============================================================
-// Play first segment
+// Play first segment (called by Play button)
 // ============================================================
 async function playFirstSegment() {
   const select = document.getElementById("songSelect");
-  if (!select) return;
-
-  const songName = select.value;
-  if (!songName) return console.warn("⚠️ No song selected");
-
-  await loadSelectedSong(songName);
-
-  const segment = window.segments[0];
-  if (!segment) return console.error("❌ First segment not found");
-
-  playSegment(segment.start, segment.end, 0);
-}
-*/
-
-
-async function playFirstSegment() {
-  const select = document.getElementById("songSelect");
-  if (!select) return;
+  if (!select) {
+    console.warn("⚠️ No songSelect dropdown");
+    return;
+  }
 
   const songName = select.value;
   if (!songName) {
@@ -196,7 +134,7 @@ async function playFirstSegment() {
   // Load the song (audio + JSON lyrics)
   await loadSelectedSong(songName);
 
-  // 🟢 NEW: Wait until segments are available
+  // 🟢 Wait until segments are available
   let tries = 0;
   while ((!window.segments || window.segments.length === 0) && tries < 30) {
     await new Promise(res => setTimeout(res, 100));
@@ -218,30 +156,39 @@ async function playFirstSegment() {
   playSegment(first.start, first.end, 0);
 }
 
-
-
 // ============================================================
 // Segment playback
 // ============================================================
 function playSegment(startTime, endTime, index) {
   console.log(`🎵 Playing segment: ${startTime} → ${endTime}`);
 
-  window.vocalAudio.currentTime = startTime;
+  if (!window.vocalAudio || !window.accompAudio) {
+    console.error("❌ Audio objects missing");
+    return;
+  }
+
+  window.vocalAudio.currentTime  = startTime;
   window.accompAudio.currentTime = startTime;
 
   window.vocalAudio.play().catch(err => console.error("Vocal error:", err));
   window.accompAudio.play().catch(err => console.error("Acc error:", err));
 
-  const EPS = 0.02;
+  const EPS   = 0.02;
   const DRIFT = 0.06;
 
-  window.activeSegmentInterval = setInterval(() => {
+  if (window.activeSegmentInterval) {
+    clearInterval(window.activeSegmentInterval);
+    window.activeSegmentInterval = null;
+  }
 
+  window.activeSegmentInterval = setInterval(() => {
     // Sync accompaniment audio
     const diff = Math.abs(window.vocalAudio.currentTime - window.accompAudio.currentTime);
-    if (diff > DRIFT) window.accompAudio.currentTime = window.vocalAudio.currentTime;
+    if (diff > DRIFT) {
+      window.accompAudio.currentTime = window.vocalAudio.currentTime;
+    }
 
-    // 🔥 NEW — Live Lyrics Highlight
+    // 🔥 Live Lyrics Highlight
     if (window.updateLyricsHighlight) {
       window.updateLyricsHighlight(window.vocalAudio.currentTime);
     }
@@ -254,28 +201,36 @@ function playSegment(startTime, endTime, index) {
       window.vocalAudio.pause();
       window.accompAudio.pause();
 
-      if (index < window.segments.length - 1) {
+      if (Array.isArray(window.segments) &&
+          index < window.segments.length - 1) {
         const next = window.segments[index + 1];
-        playSegment(next.start, next.end, index + 1);
+        if (next && typeof next.start === "number" && typeof next.end === "number") {
+          playSegment(next.start, next.end, index + 1);
+        }
       }
     }
-
   }, 50);
 }
 
 // ============================================================
 // Buttons
 // ============================================================
-document.getElementById("playBtn").addEventListener("click", playFirstSegment);
+document.addEventListener("DOMContentLoaded", () => {
+  const playBtn  = document.getElementById("playBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
 
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  window.vocalAudio.pause();
-  window.accompAudio.pause();
-  console.log("⏸️ Paused both tracks");
+  if (playBtn)  playBtn.addEventListener("click", playFirstSegment);
+  if (pauseBtn) {
+    pauseBtn.addEventListener("click", () => {
+      if (window.vocalAudio)  window.vocalAudio.pause();
+      if (window.accompAudio) window.accompAudio.pause();
+      console.log("⏸️ Paused both tracks");
+    });
+  }
 });
 
 // ============================================================
-// Manual cache clear
+// Manual cache clear (kept for safety, if you still use it)
 // ============================================================
 async function clearAudioCache() {
   const ok = confirm("🧹 Delete ALL cached songs?");
@@ -292,11 +247,13 @@ window.addEventListener("load", () => {
     const vSlider = document.getElementById("vocalVolume");
     const aSlider = document.getElementById("accompVolume");
 
-    if (window.vocalAudio && vSlider)
+    if (window.vocalAudio && vSlider) {
       window.vocalAudio.volume = parseFloat(vSlider.value) || 0.0027;
+    }
 
-    if (window.accompAudio && aSlider)
+    if (window.accompAudio && aSlider) {
       window.accompAudio.volume = parseFloat(aSlider.value) || 0.03;
+    }
 
     console.log("🎚️ Volume safety applied");
   } catch (e) {
