@@ -979,53 +979,74 @@ requestAnimationFrame(updateRedBar);
 
 
 
+
+
+
+
+
+
+
+
+
 <script>
 /* ==========================================================
-   APPLY STAR PREFIXES (UI-only, VALUES REMAIN CLEAN)
+   SAFE STAR PREFIX DECORATION (VALUE NEVER CHANGES)
    ========================================================== */
 
-function applyStarStyles() {
-    if (!window.star) return;
-
+function applyStarPrefixesSafely() {
     const select = document.getElementById("songSelect");
-    if (!select) return;
+    if (!select || !window.star) return;
 
-    // Loop through dropdown options
+    // Loop through all <option> items
     [...select.options].forEach(opt => {
 
-        const cleanName = opt.value.trim(); // TRUE song name
+        const cleanName = opt.value.trim(); // real song name (correct)
 
-        // Find matching star entry
+        // Find matching entry in star.js
         const match = window.star.find(s => s.endsWith(cleanName));
-        if (!match) return; // not a starred song
+        if (!match) return;  // this song has no prefix
 
-        // Extract prefix (* / ** / *** / #)
+        // Extract prefix (*, **, ***, #)
         const prefix = match.split(" ")[0];
 
-        // ⭐ Apply prefix visually (BUT VALUE stays clean)
+        // 🎨 Display prefix visually — but do NOT touch opt.value!
+        opt.dataset.realText = cleanName;       // store clean text
         opt.textContent = prefix + " " + cleanName;
 
-        // ⭐ Optional color coding
+        // Optional color coding
         if (prefix === "***") opt.style.color = "green";
         else if (prefix === "**") opt.style.color = "orange";
         else if (prefix === "*") opt.style.color = "black";
-        else if (prefix === "#") opt.style.color = "grey";
+        else if (prefix === "#") opt.style.color = "gray";
     });
 }
 
 /* ==========================================================
-   WAIT FOR songs_names.txt TO FINISH LOADING
-   (songNamesLoader.js sets window.songListReady = true)
+   WAIT UNTIL songNamesLoader.js FINISHES
    ========================================================== */
-function waitForSongsAndApplyStar() {
+
+function waitForSongListThenApplyPrefix() {
     if (!window.songListReady) {
-        return setTimeout(waitForSongsAndApplyStar, 100);
+        return setTimeout(waitForSongListThenApplyPrefix, 80);
     }
-    applyStarStyles();
+    applyStarPrefixesSafely();
 }
 
-waitForSongsAndApplyStar();
+waitForSongListThenApplyPrefix();
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
