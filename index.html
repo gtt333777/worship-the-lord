@@ -661,6 +661,50 @@ a Song
 
 
 
+<!-- ⭐ FULLSCREEN LOADING OVERLAY FOR SHARED-LINK AUTO DOWNLOAD -->
+<div id="loadingOverlay" style="
+  position: fixed;
+  inset: 0;
+  background: white;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 999999;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+">
+  <!-- Blue spinner -->
+  <div class="loader-spinner" style="
+    width: 60px;
+    height: 60px;
+    border: 6px solid #cce0ff;
+    border-top-color: #1e88e5;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  "></div>
+
+  <div style="margin-top:18px; font-size:1.2rem; color:black;">
+    <b>Preparing…</b><br>
+    Please wait a few seconds…
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+</style>
+
+
+
+
+
+
+
+
+
   <!-- ✅ Modular Scripts (untouched) -->
   <script src="WorshipApp_Modular/star.js" defer></script>
   <script src="WorshipApp_Modular/songNamesLoader.js" defer></script>
@@ -1040,6 +1084,62 @@ requestAnimationFrame(updateRedBar);
 })();
 </script>
 
+
+
+<script>
+/* ============================================================
+   ⭐ Shared-Link: Fullscreen Loading Overlay + Auto Refresh
+   ============================================================ */
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const sharedSong = params.get("song");
+  if (!sharedSong) return;
+
+  const overlay = document.getElementById("loadingOverlay");
+  if (!overlay) return;
+
+  console.log("🎵 Shared-link detected — enabling loading overlay.");
+
+  // 1️⃣ Show fullscreen overlay immediately
+  overlay.style.display = "flex";
+
+  // 2️⃣ Disable ALL user clicks while loading
+  document.body.addEventListener("click", function (e) {
+    if (overlay.style.display === "flex") e.stopPropagation();
+  }, true);
+
+  // 3️⃣ Poll until audio sources have loaded
+  let readyCheckCount = 0;
+
+  function waitForAudioReady() {
+    readyCheckCount++;
+
+    const v = window.vocalAudio;
+    const a = window.accompAudio;
+
+    if (v && a && v.src && a.src) {
+      console.log("🎧 Audio prepared:", v.src, a.src);
+
+      // 4️⃣ Small delay then auto-refresh so autoplay works cleanly
+      setTimeout(() => {
+        console.log("🔄 Auto-refresh to start playback");
+        window.location.reload();
+      }, 300);
+
+      return;
+    }
+
+    if (readyCheckCount < 50) {   // ~12.5 seconds max waiting
+      setTimeout(waitForAudioReady, 250);
+    } else {
+      console.warn("⚠️ Timeout waiting for audio");
+      overlay.style.display = "none"; // Fail-safe
+    }
+  }
+
+  waitForAudioReady();
+})();
+</script>
 
 
 
