@@ -948,7 +948,10 @@ requestAnimationFrame(updateRedBar);
 (function () {
 
   const params = new URLSearchParams(window.location.search);
-  const songFromLink = params.get("song");
+
+  const songFromLink = normalizeSongName(params.get("song"));
+
+  
 
   if (!songFromLink) return; // Not a share link → exit
 
