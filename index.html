@@ -935,42 +935,6 @@ requestAnimationFrame(updateRedBar);
 </script>
 
 
-<script>
-(function(){
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const songFromLink = urlParams.get("song");
-
-  if (!songFromLink) return;  // Only run when shared link
-
-  console.log("🔗 Shared link detected, auto-playing:", songFromLink);
-
-  window.ignoreSegments = true;
-
-  const select = document.getElementById("songSelect");
-  if (select) select.value = songFromLink;
-
-  setTimeout(() => {
-    loadSelectedSong(songFromLink).then(() => {
-      const btn = document.getElementById("playBtn");
-      if (btn) btn.click();
-    });
-  }, 800);
-
-  setTimeout(() => {
-    const acc = document.getElementById("accompVolume");
-    const voc = document.getElementById("vocalVolume");
-    if (acc) { acc.value = 0.50; acc.dispatchEvent(new Event("input")); }
-    if (voc) { voc.value = 0.50; voc.dispatchEvent(new Event("input")); }
-  }, 1400);
-
-  setTimeout(() => {
-    window.ignoreSegments = false;
-    console.log("🔓 ignoreSegments reset → normal segment play restored");
-  }, 5000);
-
-})();
-</script>
 
 
 
