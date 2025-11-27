@@ -1072,21 +1072,33 @@ function hookPlaySegment() {
       }, 6000);
     }
 
-    // 3️⃣ Trigger the REAL Play button
-    //btn.click();
 
-    // 3️⃣ Trigger Play ONLY when audio URLs are ready
-function waitForAudioSources() {
-  if (window.vocalAudio?.src && window.accompAudio?.src) {
-    console.log("🎵 Audio sources ready — triggering Play");
-    btn.click();
-    return;
+    // 3️⃣ Trigger Play ONLY when fully ready
+function waitForFullReady() {
+  // 1️⃣ Both src assigned?
+  if (!window.vocalAudio?.src || !window.accompAudio?.src) {
+    console.log("⏳ Waiting for audio src…");
+    return setTimeout(waitForFullReady, 150);
   }
-  console.log("⏳ Waiting for audio sources…");
-  setTimeout(waitForAudioSources, 150);
+
+  // 2️⃣ Both preloaded enough?
+  if (window.vocalAudio.readyState < 2 || window.accompAudio.readyState < 2) {
+    console.log("⏳ Waiting for audio metadata…");
+    return setTimeout(waitForFullReady, 150);
+  }
+
+  // 3️⃣ Segments loaded?
+  if (!window.segments || window.segments.length === 0) {
+    console.log("⏳ Waiting for segments…");
+    return setTimeout(waitForFullReady, 150);
+  }
+
+  // 4️⃣ Everything ready → autoplay now
+  console.log("🎵 FULLY READY — autoplaying");
+  btn.click();
 }
 
-waitForAudioSources();
+waitForFullReady();
 
 
 
