@@ -432,6 +432,15 @@ button {
 
 
   </style>
+
+
+
+
+
+
+
+
+
 </head>
 
 <body>
@@ -694,6 +703,29 @@ a Song
 
 
 
+<script>
+window.showLoadingOverlay = function (msg = "Preparing… Please wait a few seconds…") {
+  const overlay = document.getElementById("loadingOverlay");
+  const title   = document.getElementById("loadingTitle");
+  const percent = document.getElementById("loadingPercent");
+
+  if (!overlay) return;
+
+  overlay.style.display = "flex";
+  document.body.style.pointerEvents = "none";
+
+  if (title) title.textContent = msg;
+  if (percent) percent.textContent = "0%";
+};
+
+window.hideLoadingOverlay = function () {
+  const overlay = document.getElementById("loadingOverlay");
+  if (!overlay) return;
+
+  overlay.style.display = "none";
+  document.body.style.pointerEvents = "auto";
+};
+</script>
 
 
 
@@ -1075,127 +1107,6 @@ requestAnimationFrame(updateRedBar);
   }
 
   waitForDropdown();
-})();
-</script>
-
-
-
-
-
-<script>
-/* ============================================================
-   ⭐ Fullscreen Shared-Link Loader with Real % Percentage
-   ============================================================ */
-
-(function () {
-
-  const params = new URLSearchParams(window.location.search);
-  const shared = params.get("song");
-  if (!shared) return;   // Only for shared links
-
-  const overlay  = document.getElementById("loadingOverlay");
-  const titleEl  = document.getElementById("loadingTitle");
-  const percentEl= document.getElementById("loadingPercent");
-
-  overlay.style.display = "flex";   // Show immediately
-  document.body.style.pointerEvents = "none"; // Disable UI
-
-  function updatePercent(p) {
-    percentEl.textContent = p + "%";
-  }
-
-  // ============================================================
-  // ⭐ Override cacheSong so we get REAL PROGRESS %
-  // ============================================================
-  const oldCacheSong = window.cacheSong;
-
-  window.cacheSong = async function(url) {
-    return new Promise(async (resolve, reject) => {
-
-      // If already cached → skip downloading
-      try {
-        const cache = await caches.open("songs-cache-v1");
-        const match = await cache.match(url);
-        if (match) {
-          console.log("⚡ Cached hit:", url);
-          updatePercent(100);
-          return resolve(url);
-        }
-      } catch (e) {}
-
-      // NOT cached → show downloading %
-      titleEl.textContent = "Preparing…";
-
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error("Network error");
-
-        const total = Number(resp.headers.get("content-length") || 0);
-        let loaded = 0;
-
-        const reader = resp.body.getReader();
-        const chunks = [];
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          chunks.push(value);
-          loaded += value.length;
-
-          if (total > 0) {
-            const pct = Math.round((loaded / total) * 100);
-            updatePercent(pct);
-          } else {
-            updatePercent(loaded); // No total known
-          }
-        }
-
-        // Build the full blob
-        const blob = new Blob(chunks);
-        const responseToCache = new Response(blob, { headers: resp.headers });
-
-        // Save into cache
-        const cache = await caches.open("songs-cache-v1");
-        await cache.put(url, responseToCache.clone());
-
-        updatePercent(100);
-        resolve(URL.createObjectURL(blob));
-
-      } catch (err) {
-        reject(err);
-      }
-    });
-  };
-
-  // ============================================================
-  // ⭐ Wait until audio loads OR cache completes
-  // ============================================================
-  let checks = 0;
-
-  function checkReady() {
-    const v = window.vocalAudio;
-    const a = window.accompAudio;
-
-    if (v && a && v.readyState >= 2 && a.readyState >= 2) {
-      console.log("🎉 Audio ready → removing overlay");
-      overlay.style.display = "none";
-      document.body.style.pointerEvents = "auto";
-      return;
-    }
-
-    checks++;
-    if (checks > 40) { // failsafe: 10 sec
-      overlay.style.display = "none";
-      document.body.style.pointerEvents = "auto";
-      return;
-    }
-
-    setTimeout(checkReady, 250);
-  }
-
-  checkReady();
-
 })();
 </script>
 
