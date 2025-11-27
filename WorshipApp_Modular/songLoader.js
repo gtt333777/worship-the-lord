@@ -71,26 +71,38 @@ async function loadSelectedSong(songName) {
       console.error("❌ loadLyricsFromJSON() missing");
     }
 
+
+
+
+
+
     // ================================================
-// AUTO-PLAY if app opened with ?song= in URL (ONE TIME ONLY)
+// SAFE AUTO-PLAY for shared link
+// Waits until segments are fully ready
 // ================================================
 if (window._sharedLinkSong) {
 
-    if (window._sharedPlayHasRun) return;   // ⛔ STOP multiple auto-plays
-    window._sharedPlayHasRun = true;        // ✅ mark as run
+    if (window._sharedPlayHasRun) return;
+    window._sharedPlayHasRun = true;
 
-    console.log("🎶 Auto-play triggered from shared link");
+    console.log("🎶 SAFE auto-play: waiting for segments...");
 
-    // Wait 900ms to ensure audio + segments loaded
-    setTimeout(() => {
-        try {
-            const btn = document.getElementById("playBtn");
-            if (btn) btn.click();
-        } catch (e) {
-            console.error(e);
+    function waitForSegments() {
+        if (!window.segments || window.segments.length === 0) {
+            console.log("⏳ Segments not ready, retrying...");
+            return setTimeout(waitForSegments, 300);
         }
-    }, 900);
+
+        console.log("✅ Segments ready! Auto-playing...");
+        const btn = document.getElementById("playBtn");
+        if (btn) btn.click();
+    }
+
+    waitForSegments();
 }
+
+
+
 
 
 
