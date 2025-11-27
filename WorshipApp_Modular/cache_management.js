@@ -185,3 +185,38 @@ async function autoCleanOldSongs() {
   if (removed > 0) console.log(`♻️ Removed ${removed} outdated song(s)`);
 }
 // autoCleanOldSongs();   // ⛔ disabled to preserve songs permanently
+
+
+
+
+// ==================================================
+// 6️⃣ Helper: check if BOTH vocal + acc are cached
+//     - Used by normal Play button to decide whether
+//       to show "Preparing..." or play immediately.
+// ==================================================
+async function isSongCachedByUrls(vocalURL, accURL) {
+  if (!("caches" in window)) return false;
+
+  try {
+    const cache = await caches.open(SONG_CACHE_NAME);
+    const versionTag = window.songVersionTag || "";
+
+    const vURL = vocalURL.includes("?v=") ? vocalURL : `${vocalURL}?v=${versionTag}`;
+    const aURL = accURL.includes("?v=") ? accURL : `${accURL}?v=${versionTag}`;
+
+    const [vMatch, aMatch] = await Promise.all([
+      cache.match(vURL),
+      cache.match(aURL)
+    ]);
+
+    return !!(vMatch && aMatch);
+  } catch (e) {
+    console.warn("⚠️ isSongCachedByUrls failed:", e);
+    return false;
+  }
+}
+
+// Make it available everywhere
+window.isSongCachedByUrls = isSongCachedByUrls;
+
+
