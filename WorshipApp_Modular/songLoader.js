@@ -5,6 +5,20 @@
 
 console.log("🎵 songLoader.js: Starting (R2 + smart caching)...");
 
+
+// ============================================================
+// Update loading % on the fullscreen shared-link overlay
+// ============================================================
+window.updateLoadingPercent = function (percent) {
+  const el = document.getElementById("loadingPercent");
+  if (el) {
+    el.textContent = percent + "%";
+  }
+};
+
+
+
+
 // 🎵 Global audio players
 window.vocalAudio  = new Audio();
 window.accompAudio = new Audio();
@@ -115,6 +129,8 @@ function stopAndUnloadAudio() {
   window.__VOCAL_BOOST_ACTIVE__ = false;
 }
 
+/*
+
 // ============================================================
 // Play first segment (called by Play button)
 // ============================================================
@@ -211,6 +227,137 @@ function playSegment(startTime, endTime, index) {
     }
   }, 50);
 }
+
+*/
+
+
+// ============================================================
+// Play first segment (called by Play button)
+//  - If song cached → play immediately (no overlay)
+//  - If not cached → show "Preparing..." overlay, download,
+//    then tell user to press Play again (no auto-play).
+// ============================================================
+async function playFirstSegment() {
+  const select = document.getElementById("songSelect");
+  if (!select) {
+    console.warn("⚠️ No songSelect dropdown");
+    return;
+  }
+
+  const songName = select.value;
+  if (!songName) {
+    console.warn("⚠️ No song selected");
+    return;
+  }
+
+  // 🌐 Shared-link auto-play logic is handled separately.
+  // Here we are in NORMAL mode (user pressed Play).
+  const entry = window.songURLs && window.songURLs[songName];
+  if (!entry) {
+    console.warn("❌ No songURLs entry for", songName);
+    return;
+  }
+
+  const vocalURL = entry.vocalURL;
+  const accURL   = entry.accURL;
+
+  // 1️⃣ Check if both files are already in cache
+  let alreadyCached = false;
+  if (typeof window.isSongCachedByUrls === "function") {
+    try {
+      alreadyCached = await window.isSongCachedByUrls(vocalURL, accURL);
+    } catch (e) {
+      console.warn("⚠️ Cache check failed, treating as not cached:", e);
+    }
+  }
+
+  // References for UI
+  const playBtn = document.getElementById("playBtn");
+  const cacheStatusEl = document.getElementById("cacheStatus");
+
+  // 2️⃣ If NOT cached → show Preparing overlay and ONLY download
+  if (!alreadyCached) {
+    console.log("⏳ First-time download for", songName, "- showing Preparing overlay.");
+
+    // Fullscreen overlay (covers taps)
+    if (window.showLoadingOverlay) {
+      window.showLoadingOverlay("Preparing… Please wait a few seconds…");
+    }
+
+    // Temporarily disable Play button so user can't spam it
+    if (playBtn) {
+      playBtn.disabled = true;
+      playBtn.textContent = "⏳ Preparing…";
+    }
+
+    try {
+      // Download + cache via normal loader
+      await loadSelectedSong(songName);
+
+      // ✅ Finished preparing
+      if (cacheStatusEl) {
+        cacheStatusEl.textContent = "✅ Song ready — now press Play";
+        cacheStatusEl.style.color = "green";
+      } else {
+        alert("✅ Song is ready — now press Play.");
+      }
+    } catch (e) {
+      console.warn("❌ Error while preparing song:", e);
+      if (cacheStatusEl) {
+        cacheStatusEl.textContent = "⚠️ Download failed. Please check internet and try again.";
+        cacheStatusEl.style.color = "red";
+      } else {
+        alert("⚠️ Download failed. Please check internet and try again.");
+      }
+    } finally {
+      // Hide overlay + re-enable Play button
+      if (window.hideLoadingOverlay) {
+        window.hideLoadingOverlay();
+      }
+      if (playBtn) {
+        playBtn.disabled = false;
+        playBtn.textContent = "▶️ Play";
+      }
+    }
+
+    // 🚫 IMPORTANT: Do NOT auto-play here.
+    // User will press Play again. On the second press,
+    // the song will be cached and the "alreadyCached" path runs.
+    return;
+  }
+
+  // 3️⃣ If already cached → NORMAL fast flow (auto-play)
+  console.log("✅ Song already cached. Playing immediately:", songName);
+
+  // Load the song (audio + JSON lyrics) – this will read from cache fast
+  await loadSelectedSong(songName);
+
+  // 🔁 Wait until segments are available
+  let tries = 0;
+  while ((!window.segments || window.segments.length === 0) && tries < 30) {
+    await new Promise(res => setTimeout(res, 100));
+    tries++;
+  }
+
+  if (!window.segments || window.segments.length === 0) {
+    console.error("❌ First segment not found after waiting.");
+    return;
+  }
+
+  const first = window.segments[0];
+  if (!first || typeof first.start !== "number" || typeof first.end !== "number") {
+    console.error("❌ First segment invalid:", first);
+    return;
+  }
+
+  // 🟢 Safe to call (loopPlayer.js handles actual playback)
+  playSegment(first.start, first.end, 0);
+}
+
+
+
+
+
 
 // ============================================================
 // Buttons
