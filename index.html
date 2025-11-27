@@ -670,52 +670,116 @@ a Song
 
 
 
+<!-- ⭐ Loader: mini for normal Play, fullscreen with % for shared-link -->
+<div id="loadingOverlay" class="loader-mini">
+  <div class="loader-spinner"></div>
 
-
-
-<!-- ⭐ Fullscreen Loader with Percentage -->
-<div id="loadingOverlay" 
-     style="position:fixed; top:0; left:0; width:100%; height:100%;
-            background:white; display:none; flex-direction:column;
-            align-items:center; justify-content:center; z-index:99999;">
-
-  <div style="width:60px; height:60px; border:6px solid #e0e0e0;
-              border-top-color:#1e88e5; border-radius:50%;
-              animation: spin 0.9s linear infinite;">
-  </div>
-
-  <h2 id="loadingTitle" style="margin-top:20px; color:#333;">
+  <h2 id="loadingTitle" class="loader-title">
     Preparing…
   </h2>
 
-  <p id="loadingPercent" style="color:#555; font-size:1.1rem;">
+  <p id="loadingPercent" class="loader-percent">
     0%
   </p>
 </div>
 
 <style>
+/* Common loader container */
+#loadingOverlay {
+  position: fixed;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  font-family: system-ui, sans-serif;
+}
+
+/* Fullscreen mode: for shared-link URLs */
+#loadingOverlay.loader-full {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+}
+
+/* Mini mode: small card for normal Play */
+#loadingOverlay.loader-mini {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 18px 26px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+}
+
+/* Spinner */
+.loader-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #e0e0e0;
+  border-top-color: #1e88e5;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+/* Text styles */
+.loader-title {
+  margin-top: 16px;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.loader-percent {
+  margin-top: 4px;
+  color: #555;
+  font-size: 1.0rem;
+}
+
+/* Spinner animation */
 @keyframes spin {
-  from { transform:rotate(0deg); }
-  to   { transform:rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 </style>
 
-
-
-
 <script>
-window.showLoadingOverlay = function (msg = "Preparing… Please wait a few seconds…") {
+/**
+ * showLoadingOverlay
+ *  - msg: text to show
+ *  - fullScreen: true  → fullscreen + percentage (for shared links)
+ *                 false → small card, no percentage (for normal Play)
+ */
+window.showLoadingOverlay = function (
+  msg = "Preparing… Please wait a few seconds…",
+  fullScreen = false
+) {
   const overlay = document.getElementById("loadingOverlay");
   const title   = document.getElementById("loadingTitle");
   const percent = document.getElementById("loadingPercent");
 
   if (!overlay) return;
 
+  // Decide mode
+  overlay.classList.toggle("loader-full", fullScreen);
+  overlay.classList.toggle("loader-mini", !fullScreen);
+
   overlay.style.display = "flex";
   document.body.style.pointerEvents = "none";
 
   if (title) title.textContent = msg;
-  if (percent) percent.textContent = "0%";
+
+  // In mini mode, hide the percentage line
+  if (percent) {
+    if (fullScreen) {
+      percent.style.display = "";
+      percent.textContent = "0%";   // your songLoader can still update this
+    } else {
+      percent.style.display = "none";
+    }
+  }
 };
 
 window.hideLoadingOverlay = function () {
@@ -726,6 +790,10 @@ window.hideLoadingOverlay = function () {
   document.body.style.pointerEvents = "auto";
 };
 </script>
+
+
+
+
 
 
 
@@ -894,17 +962,82 @@ function hookPlaySegment() {
 </script>
 
 
+<!-- ⭐ Mini "Preparing…" overlay for normal Play (no shared-link) -->
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const isSharedLink = params.has("song");
+  if (isSharedLink) {
+    // Shared-link case will use fullscreen loader below
+    return;
+  }
 
-<!-- ⭐ SAFE SHARED-LINK AUTO-PLAY (Muted Hack) -->
+  function setupNormalPlayPreparing() {
+    const btn = document.getElementById("playBtn");
+    if (!btn) {
+      return setTimeout(setupNormalPlayPreparing, 200);
+    }
+
+    btn.addEventListener("click", () => {
+      // Show mini overlay for normal manual Play
+      if (typeof window.showLoadingOverlay === "function") {
+        window.showLoadingOverlay("Preparing…", false); // mini mode
+      }
+
+      const audio = window.vocalAudio || window.accompAudio;
+
+      if (audio && typeof audio.addEventListener === "function") {
+        const clear = () => {
+          if (typeof window.hideLoadingOverlay === "function") {
+            window.hideLoadingOverlay();
+          }
+          audio.removeEventListener("playing", clear);
+          audio.removeEventListener("error", clear);
+        };
+
+        audio.addEventListener("playing", clear);
+        audio.addEventListener("error", clear);
+
+        // Safety timeout in case "playing" never fires
+        setTimeout(clear, 8000);
+      } else {
+        // No audio yet → just auto-hide after a short time
+        setTimeout(() => {
+          if (typeof window.hideLoadingOverlay === "function") {
+            window.hideLoadingOverlay();
+          }
+        }, 4000);
+      }
+    });
+  }
+
+  setupNormalPlayPreparing();
+})();
+</script>
+
+
+
+
+
+<!-- ⭐ SAFE SHARED-LINK AUTO-PLAY (Muted Hack) + Fullscreen Loader -->
 <script>
 (function () {
   const params = new URLSearchParams(window.location.search);
   if (!params.has("song")) return;
 
-  console.log("🎶 SAFE auto-play: waiting for Play button...");
+  console.log("🎶 SAFE auto-play (shared link): waiting for Play button...");
+
+  // Mark globally that this is a shared-link session
+  window.isSharedLink = true;
+
+  // Show FULLSCREEN loader with percent
+  if (typeof window.showLoadingOverlay === "function") {
+    window.showLoadingOverlay("Preparing shared worship song…", true);
+  }
 
   function waitForReady() {
     const btn = document.getElementById("playBtn");
+
     if (!btn || typeof window.playSegment !== "function") {
       console.log("⏳ Waiting for play button / playSegment...");
       return setTimeout(waitForReady, 250);
@@ -913,16 +1046,39 @@ function hookPlaySegment() {
     console.log("🎵 Auto-playing now (muted hack)…");
 
     // 1️⃣ Start muted so autoplay is allowed
-    window.vocalAudio.muted  = true;
-    window.accompAudio.muted = true;
+    if (window.vocalAudio)  window.vocalAudio.muted  = true;
+    if (window.accompAudio) window.accompAudio.muted = true;
 
-    // 2️⃣ Trigger the REAL Play button
+    // 2️⃣ Hide fullscreen loader as soon as audio starts
+    const mainAudio = window.vocalAudio || window.accompAudio;
+
+    if (mainAudio && typeof mainAudio.addEventListener === "function") {
+      const clearLoader = () => {
+        if (typeof window.hideLoadingOverlay === "function") {
+          window.hideLoadingOverlay();
+        }
+        mainAudio.removeEventListener("playing", clearLoader);
+        mainAudio.removeEventListener("error", clearLoader);
+      };
+
+      mainAudio.addEventListener("playing", clearLoader);
+      mainAudio.addEventListener("error", clearLoader);
+    } else {
+      // Fallback: hide after 6s if we never get a "playing" event
+      setTimeout(() => {
+        if (typeof window.hideLoadingOverlay === "function") {
+          window.hideLoadingOverlay();
+        }
+      }, 6000);
+    }
+
+    // 3️⃣ Trigger the REAL Play button
     btn.click();
 
-    // 3️⃣ Unmute after 1 second
+    // 4️⃣ Unmute after 1 second
     setTimeout(() => {
-      window.vocalAudio.muted  = false;
-      window.accompAudio.muted = false;
+      if (window.vocalAudio)  window.vocalAudio.muted  = false;
+      if (window.accompAudio) window.accompAudio.muted = false;
       console.log("🔊 Unmuted after autoplay");
     }, 1000);
   }
@@ -930,7 +1086,6 @@ function hookPlaySegment() {
   waitForReady();
 })();
 </script>
-
 
 
 
