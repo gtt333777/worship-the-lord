@@ -1073,7 +1073,22 @@ function hookPlaySegment() {
     }
 
     // 3️⃣ Trigger the REAL Play button
+    //btn.click();
+
+    // 3️⃣ Trigger Play ONLY when audio URLs are ready
+function waitForAudioSources() {
+  if (window.vocalAudio?.src && window.accompAudio?.src) {
+    console.log("🎵 Audio sources ready — triggering Play");
     btn.click();
+    return;
+  }
+  console.log("⏳ Waiting for audio sources…");
+  setTimeout(waitForAudioSources, 150);
+}
+
+waitForAudioSources();
+
+
 
     // 4️⃣ Unmute after 1 second
     setTimeout(() => {
