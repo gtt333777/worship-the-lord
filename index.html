@@ -982,12 +982,6 @@ requestAnimationFrame(updateRedBar);
 
 
 
-
-
-
-
-
-
 <script>
 /* ==========================================================
    SAFE STAR PREFIX DECORATION (VALUE NEVER CHANGES)
@@ -997,33 +991,24 @@ function applyStarPrefixesSafely() {
     const select = document.getElementById("songSelect");
     if (!select || !window.star) return;
 
-    // Loop through all <option> items
     [...select.options].forEach(opt => {
+        const cleanName = opt.value.trim(); // real correct name
 
-        const cleanName = opt.value.trim(); // real song name (correct)
-
-        // Find matching entry in star.js
         const match = window.star.find(s => s.endsWith(cleanName));
-        if (!match) return;  // this song has no prefix
+        if (!match) return;
 
-        // Extract prefix (*, **, ***, #)
         const prefix = match.split(" ")[0];
 
-        // 🎨 Display prefix visually — but do NOT touch opt.value!
-        opt.dataset.realText = cleanName;       // store clean text
+        // UI ONLY — Do NOT modify opt.value
         opt.textContent = prefix + " " + cleanName;
 
-        // Optional color coding
+        // Colors
         if (prefix === "***") opt.style.color = "green";
         else if (prefix === "**") opt.style.color = "orange";
         else if (prefix === "*") opt.style.color = "black";
         else if (prefix === "#") opt.style.color = "gray";
     });
 }
-
-/* ==========================================================
-   WAIT UNTIL songNamesLoader.js FINISHES
-   ========================================================== */
 
 function waitForSongListThenApplyPrefix() {
     if (!window.songListReady) {
@@ -1034,6 +1019,8 @@ function waitForSongListThenApplyPrefix() {
 
 waitForSongListThenApplyPrefix();
 </script>
+
+
 
 
 
