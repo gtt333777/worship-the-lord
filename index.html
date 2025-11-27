@@ -979,6 +979,53 @@ requestAnimationFrame(updateRedBar);
 
 
 
+<script>
+/* ==========================================================
+   APPLY STAR PREFIXES (UI-only, VALUES REMAIN CLEAN)
+   ========================================================== */
+
+function applyStarStyles() {
+    if (!window.star) return;
+
+    const select = document.getElementById("songSelect");
+    if (!select) return;
+
+    // Loop through dropdown options
+    [...select.options].forEach(opt => {
+
+        const cleanName = opt.value.trim(); // TRUE song name
+
+        // Find matching star entry
+        const match = window.star.find(s => s.endsWith(cleanName));
+        if (!match) return; // not a starred song
+
+        // Extract prefix (* / ** / *** / #)
+        const prefix = match.split(" ")[0];
+
+        // ⭐ Apply prefix visually (BUT VALUE stays clean)
+        opt.textContent = prefix + " " + cleanName;
+
+        // ⭐ Optional color coding
+        if (prefix === "***") opt.style.color = "green";
+        else if (prefix === "**") opt.style.color = "orange";
+        else if (prefix === "*") opt.style.color = "black";
+        else if (prefix === "#") opt.style.color = "grey";
+    });
+}
+
+/* ==========================================================
+   WAIT FOR songs_names.txt TO FINISH LOADING
+   (songNamesLoader.js sets window.songListReady = true)
+   ========================================================== */
+function waitForSongsAndApplyStar() {
+    if (!window.songListReady) {
+        return setTimeout(waitForSongsAndApplyStar, 100);
+    }
+    applyStarStyles();
+}
+
+waitForSongsAndApplyStar();
+</script>
 
 
 
