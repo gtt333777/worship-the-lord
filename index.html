@@ -941,69 +941,39 @@ requestAnimationFrame(updateRedBar);
 
 <script>
 /* ==========================================================
-   ⭐ SAFE SHARE-MODE — NO FIRST-WORD REPEAT (FINAL VERSION)
+   STEP 1 — Shared Link: ONLY select the song from dropdown
+   (No loading, no playing, no segment behavior)
    ========================================================== */
 
-(function() {
+(function () {
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const songFromLink = urlParams.get("song");
+  const params = new URLSearchParams(window.location.search);
+  const songFromLink = params.get("song");
 
-  if (!songFromLink) return;  // Only run for shared links
+  if (!songFromLink) return; // not a shared link → do nothing
 
-  console.log("🔗 Shared link detected:", songFromLink);
+  console.log("🔗 STEP1: Shared link detected → selecting:", songFromLink);
 
-  // 1) Select the song in dropdown
-  const select = document.getElementById("songSelect");
-  if (select) select.value = songFromLink;
+  // 1) Wait until dropdown exists
+  function waitForDropdown() {
+    const select = document.getElementById("songSelect");
 
-  // 2) Load the song fully (do NOT auto-play yet)
-  loadSelectedSong(songFromLink).then(() => {
-
-    console.log("🎼 Shared song loaded");
-
-    // 3) Wait until BOTH tracks really finish updating + metadata loaded
-    function waitReady() {
-
-      const v = window.vocalAudio;
-      const a = window.accompAudio;
-
-      // A) Wait until src assigned (songLoader.js is async)
-      if (!v?.src || !a?.src) {
-        console.log("⏳ Waiting for audio src update…");
-        return setTimeout(waitReady, 100);
-      }
-
-      // B) Wait for metadata (duration available)
-      if (v.readyState < 2 || a.readyState < 2) {
-        console.log("⏳ Waiting for metadata ready…");
-        return setTimeout(waitReady, 150);
-      }
-
-      console.log("🎵 Both audio tracks READY → clean auto-play starting");
-
-      // ⭐ Disable segment-triggering during first 7 seconds
-      window.ignoreSegments = true;
-
-      // Start FULL PLAY cleanly
-      const btn = document.getElementById("playBtn");
-      if (btn) btn.click();
-
-      // After 7 seconds → restore normal segment play
-      setTimeout(() => {
-        window.ignoreSegments = false;
-        console.log("🔓 Share-mode ended → Segments restored");
-      }, 7000);
+    if (!select) {
+      console.log("⏳ Waiting for dropdown...");
+      return setTimeout(waitForDropdown, 150);
     }
 
-    // Begin readiness check
-    waitReady();
+    // 2) Set dropdown value
+    select.value = songFromLink;
+    console.log("✅ STEP1 SUCCESS: Dropdown selected:", select.value);
 
-  });
+    // ❗ STOP HERE — DO NOT load song, DO NOT play
+  }
+
+  waitForDropdown();
 
 })();
 </script>
-
 
 
 
