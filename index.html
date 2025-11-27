@@ -937,31 +937,50 @@ requestAnimationFrame(updateRedBar);
 
 
 
+<script>
+// ======================================================
+//  🎵 Shared-Link Auto-Play Logic (CORRECT FINAL VERSION)
+// ======================================================
 
+// Check for shared song in URL
+const urlParams = new URLSearchParams(window.location.search);
+const sharedSong = urlParams.get("song");
 
-// For shared-link auto play, disable segment looping
-window.ignoreSegments = true;
+if (sharedSong) {
+  console.log("📩 Shared song detected:", sharedSong);
 
-// Auto-load + auto-play
-setTimeout(() => {
-  loadSelectedSong(select.value).then(() => {
-    const btn = document.getElementById("playBtn");
-    if (btn) btn.click();
-  });
-}, 800);
+  // 1️⃣ Select dropdown value
+  const select = document.getElementById("songSelect");
+  if (select) {
+    select.value = sharedSong;
+  }
 
-// Auto volume
-setTimeout(() => {
-  const acc = document.getElementById("accompVolume");
-  const voc = document.getElementById("vocalVolume");
-  if (acc) { acc.value = 0.50; acc.dispatchEvent(new Event("input")); }
-  if (voc) { voc.value = 0.50; voc.dispatchEvent(new Event("input")); }
-}, 1400);
+  // 2️⃣ Disable segment switching temporarily
+  window.ignoreSegments = true;
 
-// After 5 seconds, allow segment looping again
-setTimeout(() => {
-  window.ignoreSegments = false;
-}, 5000);
+  // 3️⃣ Auto-load + auto-play
+  setTimeout(() => {
+    loadSelectedSong(sharedSong).then(() => {
+      const btn = document.getElementById("playBtn");
+      if (btn) btn.click();
+    });
+  }, 800);
+
+  // 4️⃣ Auto volume
+  setTimeout(() => {
+    const acc = document.getElementById("accompVolume");
+    const voc = document.getElementById("vocalVolume");
+    if (acc) { acc.value = 0.50; acc.dispatchEvent(new Event("input")); }
+    if (voc) { voc.value = 0.50; voc.dispatchEvent(new Event("input")); }
+  }, 1400);
+
+  // 5️⃣ Re-enable segment buttons after 5 seconds
+  setTimeout(() => {
+    window.ignoreSegments = false;
+    console.log("🔓 Segment buttons enabled again.");
+  }, 5000);
+}
+</script>
 
 
 
