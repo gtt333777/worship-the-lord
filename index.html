@@ -824,6 +824,50 @@ function hookPlaySegment() {
 </script>
 
 
+
+<!-- ⭐ SAFE SHARED-LINK AUTO-PLAY (Muted Hack) -->
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("song")) return;
+
+  console.log("🎶 SAFE auto-play: waiting for Play button...");
+
+  function waitForReady() {
+    const btn = document.getElementById("playBtn");
+    if (!btn || typeof window.playSegment !== "function") {
+      console.log("⏳ Waiting for play button / playSegment...");
+      return setTimeout(waitForReady, 250);
+    }
+
+    console.log("🎵 Auto-playing now (muted hack)…");
+
+    // 1️⃣ Start muted so autoplay is allowed
+    window.vocalAudio.muted  = true;
+    window.accompAudio.muted = true;
+
+    // 2️⃣ Trigger the REAL Play button
+    btn.click();
+
+    // 3️⃣ Unmute after 1 second
+    setTimeout(() => {
+      window.vocalAudio.muted  = false;
+      window.accompAudio.muted = false;
+      console.log("🔊 Unmuted after autoplay");
+    }, 1000);
+  }
+
+  waitForReady();
+})();
+</script>
+
+
+
+
+
+
+
+
 <script>
 /* =======================================================
    ⭐ Absolute Flicker-Free Segment Highlighter (Time-based)
