@@ -962,160 +962,62 @@ function hookPlaySegment() {
 </script>
 
 
-<!-- ⭐ Mini "Preparing…" overlay for normal Play (no shared-link) -->
+
+<!-- ⭐ FAST Normal Play (metadata-only sync) -->
 <script>
 (function () {
   const params = new URLSearchParams(window.location.search);
-  const isSharedLink = params.has("song");
-  if (isSharedLink) {
-    // Shared-link case will use fullscreen loader below
-    return;
-  }
+  if (params.has("song")) return;  // shared-link uses different logic
 
-  function setupNormalPlayPreparing() {
+  function waitForPlayButton() {
     const btn = document.getElementById("playBtn");
-    if (!btn) {
-      return setTimeout(setupNormalPlayPreparing, 200);
-    }
+    if (!btn) return setTimeout(waitForPlayButton, 150);
 
     btn.addEventListener("click", () => {
-      // Show mini overlay for normal manual Play
       if (typeof window.showLoadingOverlay === "function") {
-        window.showLoadingOverlay("Preparing…", false); // mini mode
+        window.showLoadingOverlay("Preparing…", false);
       }
 
-      const audio = window.vocalAudio || window.accompAudio;
+      function waitForReady() {
+        const a = window.vocalAudio;
+        const b = window.accompAudio;
 
-      if (audio && typeof audio.addEventListener === "function") {
-        const clear = () => {
-          if (typeof window.hideLoadingOverlay === "function") {
-            window.hideLoadingOverlay();
-          }
-          audio.removeEventListener("playing", clear);
-          audio.removeEventListener("error", clear);
-        };
+        // Wait for audio elements
+        if (!a || !b) {
+          return setTimeout(waitForReady, 120);
+        }
 
-        audio.addEventListener("playing", clear);
-        audio.addEventListener("error", clear);
+        // Wait ONLY for metadata, not full buffering
+        if (a.readyState < 2 || b.readyState < 2) {
+          return setTimeout(waitForReady, 120);
+        }
 
-        // Safety timeout in case "playing" never fires
-        setTimeout(clear, 8000);
-      } else {
-        // No audio yet → just auto-hide after a short time
+        // Start synchronized playback
+        a.currentTime = 0;
+        b.currentTime = 0;
+
+        a.muted = true;
+        b.muted = true;
+
+        btn.click(); // actual Play
+
         setTimeout(() => {
+          a.muted = false;
+          b.muted = false;
+
           if (typeof window.hideLoadingOverlay === "function") {
             window.hideLoadingOverlay();
           }
-        }, 4000);
+        }, 250);
       }
+
+      waitForReady();
     });
   }
 
-  setupNormalPlayPreparing();
+  waitForPlayButton();
 })();
 </script>
-
-
-
-
-
-<!-- ⭐ SAFE SHARED-LINK AUTO-PLAY (Muted Hack) + Fullscreen Loader -->
-<script>
-(function () {
-  const params = new URLSearchParams(window.location.search);
-  if (!params.has("song")) return;
-
-  console.log("🎶 SAFE auto-play (shared link): waiting for Play button...");
-
-  // Mark globally that this is a shared-link session
-  window.isSharedLink = true;
-
-  // Show FULLSCREEN loader with percent
-  if (typeof window.showLoadingOverlay === "function") {
-    window.showLoadingOverlay("Preparing shared worship song…", true);
-  }
-
-  function waitForReady() {
-    const btn = document.getElementById("playBtn");
-
-    if (!btn || typeof window.playSegment !== "function") {
-      console.log("⏳ Waiting for play button / playSegment...");
-      return setTimeout(waitForReady, 250);
-    }
-
-    console.log("🎵 Auto-playing now (muted hack)…");
-
-    // 1️⃣ Start muted so autoplay is allowed
-    if (window.vocalAudio)  window.vocalAudio.muted  = true;
-    if (window.accompAudio) window.accompAudio.muted = true;
-
-    // 2️⃣ Hide fullscreen loader as soon as audio starts
-    const mainAudio = window.vocalAudio || window.accompAudio;
-
-    if (mainAudio && typeof mainAudio.addEventListener === "function") {
-      const clearLoader = () => {
-        if (typeof window.hideLoadingOverlay === "function") {
-          window.hideLoadingOverlay();
-        }
-        mainAudio.removeEventListener("playing", clearLoader);
-        mainAudio.removeEventListener("error", clearLoader);
-      };
-
-      mainAudio.addEventListener("playing", clearLoader);
-      mainAudio.addEventListener("error", clearLoader);
-    } else {
-      // Fallback: hide after 6s if we never get a "playing" event
-      setTimeout(() => {
-        if (typeof window.hideLoadingOverlay === "function") {
-          window.hideLoadingOverlay();
-        }
-      }, 6000);
-    }
-
-
-    // 3️⃣ Trigger Play ONLY when fully ready
-function waitForFullReady() {
-  // 1️⃣ Both src assigned?
-  if (!window.vocalAudio?.src || !window.accompAudio?.src) {
-    console.log("⏳ Waiting for audio src…");
-    return setTimeout(waitForFullReady, 150);
-  }
-
-  // 2️⃣ Both preloaded enough?
-  if (window.vocalAudio.readyState < 2 || window.accompAudio.readyState < 2) {
-    console.log("⏳ Waiting for audio metadata…");
-    return setTimeout(waitForFullReady, 150);
-  }
-
-  // 3️⃣ Segments loaded?
-  if (!window.segments || window.segments.length === 0) {
-    console.log("⏳ Waiting for segments…");
-    return setTimeout(waitForFullReady, 150);
-  }
-
-  // 4️⃣ Everything ready → autoplay now
-  console.log("🎵 FULLY READY — autoplaying");
-  btn.click();
-}
-
-waitForFullReady();
-
-
-
-    // 4️⃣ Unmute after 1 second
-    setTimeout(() => {
-      if (window.vocalAudio)  window.vocalAudio.muted  = false;
-      if (window.accompAudio) window.accompAudio.muted = false;
-      console.log("🔊 Unmuted after autoplay");
-    }, 1000);
-  }
-
-  waitForReady();
-})();
-</script>
-
-
-
 
 
 
@@ -1289,6 +1191,74 @@ requestAnimationFrame(updateRedBar);
   }
 
   waitForDropdown();
+})();
+</script>
+
+
+
+
+
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("song")) return;
+
+  console.log("🎶 Fast Shared-Link Autoplay (metadata-only sync)");
+
+  window.isSharedLink = true;
+
+  if (typeof window.showLoadingOverlay === "function") {
+    window.showLoadingOverlay("Preparing shared worship song…", true);
+  }
+
+  function waitForFullMetadata() {
+    const a = window.vocalAudio;
+    const b = window.accompAudio;
+
+    if (!a || !b) {
+      console.log("⏳ Waiting for audio objects…");
+      return setTimeout(waitForFullMetadata, 150);
+    }
+
+    // Metadata ready?
+    if (a.readyState < 2 || b.readyState < 2) {
+      console.log("⏳ Waiting for metadata… (" + a.readyState + "," + b.readyState + ")");
+      return setTimeout(waitForFullMetadata, 150);
+    }
+
+    // Segments loaded?
+    if (!window.currentSegments || window.currentSegments.length === 0) {
+      console.log("⏳ Waiting for segments…");
+      return setTimeout(waitForFullMetadata, 150);
+    }
+
+    console.log("✅ Metadata ready — syncing both players");
+
+    // PERFECT sync
+    a.currentTime = 0;
+    b.currentTime = 0;
+
+    // Remove muted hack later, but start muted for autoplay
+    a.muted = true;
+    b.muted = true;
+
+    // Trigger actual play
+    document.getElementById("playBtn").click();
+
+    // Unmute after 500ms
+    setTimeout(() => {
+      a.muted = false;
+      b.muted = false;
+      console.log("🔊 Unmuted after sync-start");
+    }, 500);
+
+    // Remove fullscreen loader
+    if (typeof window.hideLoadingOverlay === "function") {
+      window.hideLoadingOverlay();
+    }
+  }
+
+  waitForFullMetadata();
 })();
 </script>
 
