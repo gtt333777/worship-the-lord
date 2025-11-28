@@ -973,6 +973,21 @@ window.hideLoadingOverlay = function () {
 
 
 <script>
+function markActiveSegment(index) {
+  const buttons = document.querySelectorAll('.segment-button');
+
+  buttons.forEach((btn, i) => {
+    btn.classList.toggle('active', i === index);
+  });
+}
+</script>
+
+
+
+
+
+
+<script>
 /* =======================================================
    ⭐ Absolute Flicker-Free Segment Highlighter (Time-based)
    ======================================================= */
