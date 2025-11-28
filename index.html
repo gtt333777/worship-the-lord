@@ -1264,6 +1264,48 @@ requestAnimationFrame(updateRedBar);
 
 
 
+<script>
+(function () {
+  // Normal play only (shared-link already perfect)
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("song")) return;
+
+  // Prevent double trigger of Segment 1
+  const originalPlaySegment = window.playSegment;
+
+  window.playSegment = function(start, end, index) {
+    // If segment 1 triggers during the first 150ms of Play → delay it
+    if (index === 0 && window.justPressedPlay === true) {
+      setTimeout(() => {
+        window.justPressedPlay = false;
+        originalPlaySegment(start, end, index);
+      }, 150);
+      return;
+    }
+
+    window.justPressedPlay = false;
+    return originalPlaySegment(start, end, index);
+  };
+
+  // Hook Play button
+  function hookPlay() {
+    const btn = document.getElementById("playBtn");
+    if (!btn) return setTimeout(hookPlay, 100);
+
+    btn.addEventListener("click", () => {
+      window.justPressedPlay = true;
+
+      // Auto-reset safety
+      setTimeout(() => window.justPressedPlay = false, 300);
+    });
+  }
+
+  hookPlay();
+})();
+</script>
+
+
+
 
 
 
