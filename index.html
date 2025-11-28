@@ -938,6 +938,31 @@ document.getElementById("songSelect")?.addEventListener("change", () => {
 
 
 
+<!-- ⭐ Disable Play button until song selected -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const playBtn = document.getElementById("playBtn");
+  const select  = document.getElementById("songSelect");
+
+  // Disable initially
+  playBtn.disabled = true;
+
+  // Enable Play when song selected
+  select.addEventListener("change", () => {
+    if (select.value && select.value.trim() !== "") {
+      playBtn.disabled = false;
+    } else {
+      playBtn.disabled = true; // if cleared
+    }
+  });
+});
+</script>
+
+
+
+
+
+
 <!-- ⭐ FAST Normal Play (metadata-only sync) -->
 <script>
 (function () {
@@ -949,6 +974,18 @@ document.getElementById("songSelect")?.addEventListener("change", () => {
     if (!btn) return setTimeout(waitForPlayButton, 150);
 
     btn.addEventListener("click", () => {
+
+          // ⭐ If no song selected, auto-open dropdown + stop playback
+      const select = document.getElementById("songSelect");
+      if (!select.value || select.value.trim() === "") {
+        try {
+          select.focus();
+          select.click();  // auto-opens dropdown on most devices
+        } catch (e) {}
+        return; // ⛔ stop Play
+      }
+
+
       if (typeof window.showLoadingOverlay === "function") {
         window.showLoadingOverlay("Preparing…", false);
       }
