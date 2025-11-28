@@ -919,20 +919,17 @@ window.hideLoadingOverlay = function () {
 
 <script>
 /* ==========================================================
-   ULTRA-FAST NORMAL PLAY
-   (metadata prewarm + micro-sync + instant start)
+   ULTRA-FAST NORMAL PLAY (SAFE — NO DOUBLE PLAY)
    ========================================================== */
 
 (function () {
   const params = new URLSearchParams(window.location.search);
-
-  // ❗ Do NOT run this for Share-a-Song URLs
-  if (params.has("song")) return;
+  if (params.has("song")) return; // do not run for shared-link autoplay
 
   let prewarmed = false;
 
   /* ----------------------------------------------------------
-     STEP 1 — Prewarm when user selects a song
+     STEP 1 — Prewarm metadata when selecting a song
      ---------------------------------------------------------- */
   document.getElementById("songSelect")?.addEventListener("change", () => {
     prewarmed = false;
@@ -944,15 +941,15 @@ window.hideLoadingOverlay = function () {
 
       function waitMeta() {
         if (a.readyState < 2 || b.readyState < 2) {
-          return setTimeout(waitMeta, 50);
+          return setTimeout(waitMeta, 40);
         }
 
-        // Metadata is ready → prewarm sync
+        // metadata ready → align both
         a.currentTime = 0;
         b.currentTime = 0;
 
         prewarmed = true;
-        console.log("🔥 ULTRA PREWARM — metadata synced");
+        console.log("🔥 Prewarm DONE (metadata synced)");
       }
 
       waitMeta();
@@ -960,34 +957,37 @@ window.hideLoadingOverlay = function () {
   });
 
   /* ----------------------------------------------------------
-     STEP 2 — Ultra-Fast Play Button
+     STEP 2 — When user presses REAL Play button
      ---------------------------------------------------------- */
-  function waitForPlayButton() {
+  function attachUltraFastPlay() {
     const playBtn = document.getElementById("playBtn");
-    if (!playBtn) return setTimeout(waitForPlayButton, 100);
+    if (!playBtn) return setTimeout(attachUltraFastPlay, 100);
 
     playBtn.addEventListener("click", () => {
       const a = window.vocalAudio;
       const b = window.accompAudio;
+      if (!a || !b) return;
 
       if (typeof window.showLoadingOverlay === "function") {
         window.showLoadingOverlay("Preparing…", false);
       }
 
-      function startUltraFast() {
-        if (!a || !b) return setTimeout(startUltraFast, 30);
-        if (a.readyState < 2 || b.readyState < 2) return setTimeout(startUltraFast, 30);
+      function syncOnly() {
+        if (a.readyState < 2 || b.readyState < 2) {
+          return setTimeout(syncOnly, 25);
+        }
 
-        // MICRO-SYNC FIX (1–5ms)
+        // MICRO-SYNC (SAFE — NO PLAY TRIGGER)
         const base = Math.min(a.currentTime, b.currentTime);
         a.currentTime = base;
         b.currentTime = base;
 
+        // muted for perfect phase alignment
         a.muted = true;
         b.muted = true;
 
-        // call real play (sync with audioControl.js)
-        playBtn.dispatchEvent(new Event("actualPlay"));
+        // IMPORTANT: do NOT dispatch actualPlay
+        // audioControl.js will handle the actual play itself
 
         requestAnimationFrame(() => {
           a.muted = false;
@@ -996,24 +996,20 @@ window.hideLoadingOverlay = function () {
           if (typeof window.hideLoadingOverlay === "function") {
             window.hideLoadingOverlay();
           }
-
-          console.log("🎧 ULTRA-FAST NORMAL PLAY — Perfect sync");
         });
+
+        console.log("🎧 Ultra-Fast Normal Play (SAFE sync)");
       }
 
-      if (prewarmed) {
-        console.log("⚡ Instant start from prewarm");
-        startUltraFast();
-      } else {
-        console.log("⏳ Waiting for metadata (no prewarm)");
-        startUltraFast();
-      }
+      syncOnly();
     });
   }
 
-  waitForPlayButton();
+  attachUltraFastPlay();
 })();
 </script>
+
+
 
 
 
