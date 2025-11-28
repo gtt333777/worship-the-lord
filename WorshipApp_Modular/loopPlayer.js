@@ -2,6 +2,9 @@
 console.log("🎵 loopPlayer.js: Starting...");
 
 
+window.stopAtSegmentIndex = null;
+
+
 // ⭐ Safe default volume initializer (does NOT override perSongVolumeMemory)
 window.addEventListener("DOMContentLoaded", () => {
   try {
@@ -182,6 +185,25 @@ if (window.charModeEnabled) {
 
       // End of segment?
       if (window.vocalAudio.currentTime >= endTime - EPS) {
+
+
+      // ⭐ STOP-AT-END FEATURE
+if (window.stopAtSegmentIndex === index) {
+  if (window.vocalAudio.currentTime >= endTime - 0.05) {
+    console.log("⛔ Stopping at end of segment", index + 1);
+
+    clearInterval(window.activeSegmentInterval);
+    window.activeSegmentInterval = null;
+
+    window.vocalAudio.pause();
+    window.accompAudio.pause();
+    window.currentlyPlaying = false;
+
+    return; // ⛔ DO NOT AUTO-ADVANCE
+  }
+}
+
+
         clearInterval(window.activeSegmentInterval);
         window.activeSegmentInterval = null;
 
@@ -268,6 +290,22 @@ loopButtonsDiv.innerHTML = "";
   const btn = document.createElement("button");
   btn.className = "segment-button";
 //btn.textContent = `Segment ${index + 1}`;
+
+
+// ⭐ ADD STOP ICON HERE ⭐
+  const stopIcon = document.createElement("span");
+  stopIcon.textContent = "■";                 // stop icon
+  stopIcon.className = "segment-stop-icon";   // CSS class
+
+  stopIcon.addEventListener("click", (e) => {
+    e.stopPropagation();      // prevent normal play
+    setStopAtSegment(index);  // activate stop-at-end
+  });
+
+  btn.appendChild(stopIcon);
+  // ⭐ END STOP ICON BLOCK ⭐
+
+
 
 
 
@@ -573,3 +611,22 @@ let the playing present segment play smoothly till end
 
 
  })();
+
+
+ function setStopAtSegment(index) {
+  window.stopAtSegmentIndex = index;
+
+  // Remove active state from all icons
+  document.querySelectorAll(".segment-stop-icon").forEach((icon) => {
+    icon.classList.remove("active");
+  });
+
+  // Highlight the chosen one
+  const btn = document.querySelectorAll(".segment-button")[index];
+  if (btn) {
+    const icon = btn.querySelector(".segment-stop-icon");
+    if (icon) icon.classList.add("active");
+  }
+
+  console.log("Stop-at-end enabled for segment:", index + 1);
+}
