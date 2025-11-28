@@ -45,7 +45,6 @@ window.shareThisApp = async function () {
 };
 
 
-
 // =============================
 // 🎵 Share Selected Song
 // =============================
@@ -57,16 +56,16 @@ window.shareThisSong = function () {
     return;
   }
 
+  const cleanBase =
+    "https://gtt333777.github.io/worship-the-lord/";
+
+  const shareURL =
+    cleanBase + "?song=" + encodeURIComponent(song);
+
   const shareData = {
     title: "Worship Song",
     text: "Listen to this worship song:",
-
-
-   // url: window.location.href + "?song=" + encodeURIComponent(song)
-   url: "https://gtt333777.github.io/worship-the-lord/?song=" + 
-      encodeURIComponent(song)
-
-
+    url: shareURL
   };
 
   if (navigator.share) {

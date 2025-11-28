@@ -194,3 +194,15 @@ if(document.readyState==="loading"){
 window.addEventListener("load", ()=>{
   if (!window._volumesInitialized) initAudioControls();
 });
+
+
+/* ============================================================
+   Allow TURBO mode to trigger the real Play
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  const playBtn = document.getElementById("playBtn");
+  if (!playBtn) return;
+
+  // When Turbo mode dispatches "actualPlay", run the real Play
+  playBtn.addEventListener("actualPlay", () => playBtn.click());
+});
