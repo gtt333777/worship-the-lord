@@ -168,11 +168,28 @@ if (window.charModeEnabled) {
             // Only show countdown while this segment is the current playing segment
             if (window.currentPlayingSegmentIndex === index && window.currentlyPlaying) {
               // Keep it minimal & clean: "S1 - 15s"
-              activeBtn.textContent = `S${index + 1} - ${remaining}s`;
+              
+              //activeBtn.textContent = `S${index + 1} - ${remaining}s`;
+
+              const labelSpan = activeBtn.querySelector(".seg-label");
+if (labelSpan) {
+    labelSpan.textContent = `S${index + 1} — ${remaining}s`;
+}
+
+
+
             } else {
               // If not playing, ensure label resets to original
               if (activeBtn.dataset.originalLabel) {
-                activeBtn.textContent = activeBtn.dataset.originalLabel;
+              //activeBtn.textContent = activeBtn.dataset.originalLabel;
+
+              const label = activeBtn.querySelector(".seg-label");
+if (label) {
+    label.textContent = activeBtn.dataset.originalLabel;
+}
+
+
+
               }
             }
           }
@@ -216,7 +233,12 @@ if (window.stopAtSegmentIndex === index) {
           const btns = document.querySelectorAll(".segment-button");
           const endBtn = (btns && btns.length) ? btns[index] : null;
           if (endBtn && endBtn.dataset && endBtn.dataset.originalLabel) {
-            endBtn.textContent = endBtn.dataset.originalLabel;
+       // endBtn.textContent = endBtn.dataset.originalLabel;
+
+       const label = endBtn.querySelector(".seg-label");
+if (label) label.textContent = endBtn.dataset.originalLabel;
+
+
           }
         } catch (e) {
           // ignore UI restore errors
@@ -291,19 +313,6 @@ loopButtonsDiv.innerHTML = "";
   btn.className = "segment-button";
 //btn.textContent = `Segment ${index + 1}`;
 
-
-// ⭐ ADD STOP ICON HERE ⭐
-  const stopIcon = document.createElement("span");
-  stopIcon.textContent = "■";                 // stop icon
-  stopIcon.className = "segment-stop-icon";   // CSS class
-
-  stopIcon.addEventListener("click", (e) => {
-    e.stopPropagation();      // prevent normal play
-    setStopAtSegment(index);  // activate stop-at-end
-  });
-
-  btn.appendChild(stopIcon);
-  // ⭐ END STOP ICON BLOCK ⭐
 
 
 
