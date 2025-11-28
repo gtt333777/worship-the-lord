@@ -938,28 +938,6 @@ document.getElementById("songSelect")?.addEventListener("change", () => {
 
 
 
-<!-- ⭐ Disable Play button until song selected -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const playBtn = document.getElementById("playBtn");
-  const select  = document.getElementById("songSelect");
-
-  // Disable initially
-  playBtn.disabled = true;
-
-  // Enable Play when song selected
-  select.addEventListener("change", () => {
-    if (select.value && select.value.trim() !== "") {
-      playBtn.disabled = false;
-    } else {
-      playBtn.disabled = true; // if cleared
-    }
-  });
-});
-</script>
-
-
-
 
 
 
