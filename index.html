@@ -976,24 +976,12 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
 
 
-    // ⭐ If no song selected, auto-open dropdown + stop playback
-const select = document.getElementById("songSelect");
-if (!select.value || select.value.trim() === "") {
-  try {
-    select.focus();
-
-    // WORKING dropdown open
-    const evt = new PointerEvent("pointerdown", {
-      bubbles: true,
-      cancelable: true
-    });
-    select.dispatchEvent(evt);
-
-  } catch (e) {}
-
-  return; // stop Play
-}
-
+      // ⭐ If no song selected → show message + stop
+  const select = document.getElementById("songSelect");
+  if (!select.value || select.value.trim() === "") {
+    alert("Please select a song from the dropdown above and then press Play.");
+    return;
+  }
 
 
       if (typeof window.showLoadingOverlay === "function") {
