@@ -912,56 +912,6 @@ window.hideLoadingOverlay = function () {
 </script>
 
 
-<script>
-// 🔹 Highlight only the active segment
-function markActiveSegment(index) {
-  const buttons = document.querySelectorAll('.segment-button');
-  buttons.forEach((btn, i) => {
-    btn.classList.toggle('active', i === index);
-  });
-}
-
-
-// ----------------------------------------------------
-// 🟢 SAFE HOOK — prevents null → null playSegment calls
-// ----------------------------------------------------
-function hookPlaySegment() {
-  if (typeof window.playSegment === "function") {
-    console.log("✅ playSegment() available — hooking highlight logic.");
-
-    const original = window.playSegment;
-
-    window.playSegment = function(start, end, index) {
-      // 🚫 Ignore invalid calls completely
-      if (typeof start !== "number" || typeof end !== "number" ||
-          isNaN(start) || isNaN(end)) {
-        console.warn("⛔ Ignoring invalid playSegment:", start, end, index);
-        return;
-      }
-
-      // ✔️ Highlight only valid segments
-      markActiveSegment(index);
-
-      return original(start, end, index);
-    };
-
-    return true;
-  }
-  return false;
-}
-
-// 🔁 Keep checking until loopPlayer.js defines playSegment()
-(function waitForPlaySegment() {
-  if (!hookPlaySegment()) {
-    console.warn("⏳ Waiting for playSegment()...");
-    setTimeout(waitForPlaySegment, 200);
-  }
-})();
-
-
-</script>
-
-
 
 <!-- ⭐ FAST Normal Play (metadata-only sync) -->
 <script>
