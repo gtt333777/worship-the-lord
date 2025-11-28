@@ -912,6 +912,31 @@ window.hideLoadingOverlay = function () {
 </script>
 
 
+<script>
+/* ==========================================================
+   PATCH 1 — Background Preload (safe, no autoplay)
+   ========================================================== */
+document.getElementById("songSelect")?.addEventListener("change", () => {
+  setTimeout(() => {
+    const a = window.vocalAudio;
+    const b = window.accompAudio;
+
+    if (!a || !b) return;
+
+    // Guarantee preload mode
+    a.preload = "auto";
+    b.preload = "auto";
+
+    // Start background fetch
+    if (a.buffered.length === 0) a.load();
+    if (b.buffered.length === 0) b.load();
+
+    console.log("✨ Safe Preload: Started");
+  }, 150);
+});
+</script>
+
+
 
 <!-- ⭐ FAST Normal Play (metadata-only sync) -->
 <script>
@@ -937,28 +962,28 @@ window.hideLoadingOverlay = function () {
           return setTimeout(waitForReady, 120);
         }
 
-        // Wait ONLY for metadata, not full buffering
-        if (a.readyState < 2 || b.readyState < 2) {
-          return setTimeout(waitForReady, 120);
-        }
+        // Wait ONLY until metadata is available
+if (a.readyState < 1 || b.readyState < 1) {
+  return setTimeout(waitForReady, 80);
+}
 
-        // Start synchronized playback
-        a.currentTime = 0;
-        b.currentTime = 0;
+// As soon as metadata is ready → start playback immediately
+if (a.readyState >= 1 && b.readyState >= 1) {
+  a.currentTime = 0;
+  b.currentTime = 0;
 
-        a.muted = true;
-        b.muted = true;
+  a.muted = true;
+  b.muted = true;
 
-        
-        setTimeout(() => {
-          a.muted = false;
-          b.muted = false;
+  setTimeout(() => {
+    a.muted = false;
+    b.muted = false;
+    window.hideLoadingOverlay?.();
+  }, 220);
 
-          if (typeof window.hideLoadingOverlay === "function") {
-            window.hideLoadingOverlay();
-          }
-        }, 250);
-      }
+  return;
+}
+
 
       waitForReady();
     });
@@ -971,7 +996,27 @@ window.hideLoadingOverlay = function () {
 
 
 
+
+
 <script>
+/* ==========================================================
+   PATCH 2 — Prevent first-segment fast repeat
+   ========================================================== */
+window.addEventListener("play", () => {
+  const a = window.vocalAudio;
+  const b = window.accompAudio;
+
+  if (!a || !b) return;
+
+  // Keep start point EXACTLY 0 to avoid double-trigger
+  if (a.currentTime < 0.05) a.currentTime = 0;
+  if (b.currentTime < 0.05) b.currentTime = 0;
+}, true);
+</script>
+
+
+<script>
+
 function markActiveSegment(index) {
   const buttons = document.querySelectorAll('.segment-button');
 
