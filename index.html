@@ -961,7 +961,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-+++++++
+
 
 <!-- ⭐ FAST Normal Play (metadata-only sync) -->
 <script>
@@ -975,15 +975,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btn.addEventListener("click", () => {
 
-          // ⭐ If no song selected, auto-open dropdown + stop playback
-      const select = document.getElementById("songSelect");
-      if (!select.value || select.value.trim() === "") {
-        try {
-          select.focus();
-          select.click();  // auto-opens dropdown on most devices
-        } catch (e) {}
-        return; // ⛔ stop Play
-      }
+
+    // ⭐ If no song selected, auto-open dropdown + stop playback
+const select = document.getElementById("songSelect");
+if (!select.value || select.value.trim() === "") {
+  try {
+    select.focus();
+
+    // WORKING dropdown open
+    const evt = new PointerEvent("pointerdown", {
+      bubbles: true,
+      cancelable: true
+    });
+    select.dispatchEvent(evt);
+
+  } catch (e) {}
+
+  return; // stop Play
+}
+
 
 
       if (typeof window.showLoadingOverlay === "function") {
@@ -1030,7 +1040,7 @@ if (a.readyState >= 1 && b.readyState >= 1) {
 })();
 </script>
 
-++++++++++
+
 
 
 
