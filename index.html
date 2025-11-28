@@ -950,6 +950,14 @@ window.hideLoadingOverlay = function () {
 
         prewarmed = true;
         console.log("🔥 Prewarm DONE (metadata synced)");
+
+        // ⭐ NEW: Begin background pre-buffer (safe, no autoplay)
+a.preload = "auto";
+b.preload = "auto";
+
+if (a.buffered.length === 0) a.load();
+if (b.buffered.length === 0) b.load();
+
       }
 
       waitMeta();
