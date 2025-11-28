@@ -330,10 +330,24 @@ try {
     preview = "";
 }
 
+/*
 btn.textContent = preview
     ? `S${index + 1} — ${preview}`
     : `S${index + 1}`;
 
+    */
+
+    // Build button HTML including label + stop icon
+btn.innerHTML = `
+  <span class="seg-label">S${index + 1} — ${preview}</span>
+  <span class="segment-stop-icon">■</span>
+`;
+
+// STOP icon click → enable stop-at-end
+btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
+  e.stopPropagation();   // prevent button from playing the segment
+  setStopAtSegment(index);
+});
 
 
 
@@ -344,7 +358,10 @@ btn.textContent = preview
   btn.dataset.end   = (typeof segment.end   === "number") ? String(segment.end)   : "";
 
   // store original label (safe)
-  btn.dataset.originalLabel = btn.textContent.trim();
+  //btn.dataset.originalLabel = btn.textContent.trim();
+
+  btn.dataset.originalLabel = `S${index + 1} — ${preview}`;
+
 
   btn.addEventListener("click", () => {
     // Reset all button labels when user switches segment
