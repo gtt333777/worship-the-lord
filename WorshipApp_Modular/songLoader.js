@@ -69,8 +69,15 @@ async function loadSelectedSong(songName) {
     window.accompAudio.src = accURL;
   }
 
-  window.vocalAudio.preload  = "auto";
+  /*
+    window.vocalAudio.preload  = "auto";
   window.accompAudio.preload = "auto";
+  */
+
+  window.vocalAudio.preload = "metadata";
+  window.accompAudio.preload = "metadata";
+
+
 
   // ============================================================
   // Load JSON lyrics

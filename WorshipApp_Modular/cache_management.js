@@ -2,6 +2,48 @@
 console.log("🧩 cache_management.js: Smart cache manager + instant playback + visual indicator (v2)");
 
 
+// ==================================================
+// 🔢 Progress-aware fetch (stream reader)
+// ==================================================
+async function fetchWithProgress(url, onProgress) {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Network error while fetching " + url);
+  }
+
+  const contentLength = Number(response.headers.get("content-length") || 0);
+
+  if (!contentLength) {
+    // No progress possible → just return blob
+    if (onProgress) onProgress(100);
+    return await response.blob();
+  }
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let received = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    chunks.push(value);
+    received += value.length;
+
+    const percent = (received / contentLength) * 100;
+
+    if (onProgress) {
+      onProgress(percent);
+    }
+  }
+
+  // Combine chunks into a single Blob
+  return new Blob(chunks);
+}
+
+
+
 const SONG_CACHE_NAME = "songs-cache-v1";
 const BASE_URL = "https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev/";
 
@@ -41,17 +83,34 @@ async function cacheSong(url) {
       return URL.createObjectURL(await cached.blob());
     }
 
-    // 🆕 Step 2: Not cached → download + store
-    showCacheStatus("⬇️ Downloading song…", "blue");
-    console.log("🌐 Fetching new song:", versionedURL);
 
-    const response = await fetch(versionedURL, { mode: "cors", cache: "no-store" });
-    if (!response.ok) throw new Error("Network fetch failed");
 
-    await cache.put(versionedURL, response.clone());
-    showCacheStatus("✅ Cached for offline use", "green");
+    // 🆕 Step 2: Not cached → download + store (with progress)
+showCacheStatus("⬇️ Downloading song…", "blue");
+console.log("🌐 Fetching new song:", versionedURL);
 
-    return URL.createObjectURL(await response.blob());
+// ⭐ Download with real progress
+const blob = await fetchWithProgress(versionedURL, (percent) => {
+  // Update fullscreen loader % (shared-link)
+  if (window.updateLoadingPercent) {
+    window.updateLoadingPercent(Math.round(percent));
+  }
+});
+
+const response = new Response(blob, {
+  headers: { "content-type": "audio/mpeg" }
+});
+
+// Store in cache
+await cache.put(versionedURL, response.clone());
+showCacheStatus("✅ Cached for offline use", "green");
+
+// Return playable object URL
+return URL.createObjectURL(blob);
+
+
+
+
   } catch (err) {
     showCacheStatus("⚠️ Using direct stream (cache unavailable)", "red");
     console.warn("⚠️ cacheSong fallback:", err);
@@ -73,8 +132,14 @@ async function checkForSongUpdate(url, cache) {
 
     if (serverDate > localDate) {
       console.log("🔄 Newer version detected, refreshing:", url);
-      const newResponse = await fetch(url, { mode: "cors", cache: "no-store" });
-      if (newResponse.ok) {
+   // const newResponse = await fetch(url, { mode: "cors", cache: "no-store" });
+      const newResponse = await fetch(url, {
+        mode: "cors",
+        cache: "no-store",
+        headers: { "Range": "bytes=0-" }
+      });
+   
+   if (newResponse.ok) {
         await cache.put(url, newResponse.clone());
         console.log("✅ Song cache updated in background:", url);
         showCacheStatus("🔄 Song updated in background", "orange");
