@@ -368,22 +368,25 @@ btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
   icon.classList.remove("mode-normal", "mode-stop", "mode-repeat");
   icon.classList.add(`mode-${mode}`);
 
-    /** ⭐ Tooltip (Desktop) + Mobile Label */
-  if (mode === "stop") {
-      icon.textContent = "■";
-      icon.dataset.tip = "Stop after this segment";     // desktop tooltip
-      icon.dataset.mobileTip = "Stop";                  // mobile label
-  }
-  else if (mode === "repeat") {
-      icon.textContent = "🔁";
-      icon.dataset.tip = "Repeat this segment";         // desktop tooltip
-      icon.dataset.mobileTip = "Repeat";                // mobile label
-  }
-  else {
-      icon.textContent = "□";
-      icon.dataset.tip = "Auto-advance";                // desktop tooltip
-      icon.dataset.mobileTip = "Auto";                  // mobile label
-  }
+  /** ⭐ Same UI for Desktop + Mobile */
+let label = "";
+
+if (mode === "stop") {
+    icon.textContent = "■";
+    label = "Stop";
+}
+else if (mode === "repeat") {
+    icon.textContent = "🔁";
+    label = "Repeat";
+}
+else {
+    icon.textContent = "□";
+    label = "Auto";
+}
+
+// Insert text below icon (beautiful + mobile-friendly)
+icon.dataset.modeLabel = label;
+icon.innerHTML = `${icon.textContent}<div class="mode-label">${label}</div>`;
 
 
 
