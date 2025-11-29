@@ -303,6 +303,24 @@
 }
 
 
+/* ⭐ Big tap area ONLY when active segment */
+.segment-button.active .segment-stop-icon {
+    visibility: visible !important;      /* ensure visible */
+    padding: 10px 16px !important;       /* enlarge touch zone */
+    font-size: 22px !important;          /* bigger icon */
+    margin-left: 14px;
+    border-left: 2px solid #666;         /* clearer separator */
+}
+
+
+/* ⭐ Inactive: icon invisible & non-tappable */
+.segment-button:not(.active) .segment-stop-icon {
+    visibility: hidden !important;
+    pointer-events: none !important;   /* cannot click by mistake */
+}
+
+
+
 
 
 
