@@ -469,6 +469,18 @@ button {
 
 
 
+/* ⭐ Mobile-only text label under icon */
+@media (max-width: 600px) {
+    .segment-stop-icon::after {
+        content: attr(data-mobile-tip);
+        display: block;
+        font-size: 0.65rem;
+        margin-top: 4px;
+        color: #444;
+        opacity: 0.9;
+    }
+}
+
 
 
 
