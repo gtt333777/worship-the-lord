@@ -189,143 +189,6 @@
 
 
 
-    /* === Job 1: Flex layout for segment button === */
-.segment-button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 8px 12px;
-  margin: 4px;
-
-  font-size: 1rem;
-  font-weight: 500;
-  color: #0d3b66;
-
-  background: linear-gradient(to bottom right, #ffffffcc, #cfe4ff);
-  border: 1px solid #a5c7f7;
-  border-radius: 12px;
-
-  min-width: 120px;
-
-  position: relative;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-/* LEFT (75%) */
-.seg-label {
-  flex: 3;
-  text-align: left;
-  padding-right: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* RIGHT (25%) */
-.segment-stop-icon {
-  flex: 1;
-  text-align: right;
-  font-size: 16px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.segment-stop-icon:hover {
-  opacity: 1;
-}
-
-
-/* === Modes for stop icon === */
-.segment-stop-icon.mode-normal {
-  color: #666;
-}
-
-.segment-stop-icon.mode-stop {
-  color: red;
-}
-
-.segment-stop-icon.mode-repeat {
-  color: #0066ff;
-}
-
-
-
-
-
-
-
-
-/* Layout: prevent flicker and enforce 75/25 split */
-.segment-button {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 10px;
-}
-
-
-/* Label = 90% */
-.seg-label {
-    flex: 9;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-
-
-/* Icon = 25% + separator line */
-
-/* ⭐ MUCH BIGGER TOUCH AREA for Stop / Repeat / Normal */
-.segment-stop-icon {
-    flex: 1.6;                         /* ⬅ widen right portion */
-    max-width: 65px;                   /* ⬅ wider touch zone */
-    text-align: center;
-    font-size: 20px;                   /* visible but not huge */
-
-    /* separator line */
-    border-left: 2px solid #999 !important;
-
-    /* touch padding */
-    padding: 10px 6px !important;      /* ⬅ increase tap area */
-
-    /* make it easier to tap */
-    cursor: pointer;
-}
-
-/* Prevent icon from shrinking in narrow screens */
-.segment-button {
-    min-width: 150px;
-}
-
-
-/* ⭐ Big tap area ONLY when active segment */
-.segment-button.active .segment-stop-icon {
-    visibility: visible !important;      /* ensure visible */
-    padding: 10px 16px !important;       /* enlarge touch zone */
-    font-size: 22px !important;          /* bigger icon */
-    margin-left: 14px;
-    border-left: 2px solid #666;         /* clearer separator */
-}
-
-
-/* ⭐ Inactive: icon invisible & non-tappable */
-.segment-button:not(.active) .segment-stop-icon {
-    visibility: hidden !important;
-    pointer-events: none !important;   /* cannot click by mistake */
-}
-
-
-
-
-
-
-
-
 
 /* ⭐ Final authoritative size for segment buttons */
 .segment-button {
@@ -560,6 +423,57 @@ button {
   background: linear-gradient(to bottom right, #ffb74d, #fb8c00);
 }
 
+
+/* ================================
+   ⭐ Final Segment Button Layout Patch
+   ================================ */
+
+/* Base layout for all */
+.segment-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    min-width: 150px;
+}
+
+/* LABEL = 70% only when active */
+.segment-button.active .seg-label {
+    flex: 7 !important;     /* 70% */
+}
+
+/* LABEL = 100% when inactive (full preview) */
+.segment-button:not(.active) .seg-label {
+    flex: 10 !important;    /* 100% */
+}
+
+/* ICON area default: hidden for inactive */
+.segment-button:not(.active) .segment-stop-icon {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0px !important; 
+    margin-left: 0 !important;
+    padding: 0 !important;
+    border-left: none !important;
+}
+
+/* ACTIVE icon area = 30% */
+.segment-button.active .segment-stop-icon {
+    visibility: visible !important;
+
+    flex: 3 !important;           /* 30% */
+    max-width: 70px !important;
+    min-width: 50px !important;
+
+    text-align: center;
+    font-size: 22px !important;
+
+    margin-left: 12px;
+    padding: 10px 6px !important;
+    border-left: 2px solid #666 !important;
+
+    cursor: pointer;
+}
 
 
 
