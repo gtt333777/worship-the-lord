@@ -204,20 +204,29 @@ if (label) {
       if (window.vocalAudio.currentTime >= endTime - EPS) {
 
 
-      // ⭐ STOP-AT-END FEATURE
-if (window.stopAtSegmentIndex === index) {
-  if (window.vocalAudio.currentTime >= endTime - 0.05) {
-    console.log("⛔ Stopping at end of segment", index + 1);
 
-    clearInterval(window.activeSegmentInterval);
-    window.activeSegmentInterval = null;
+      // === Per-segment mode handling ===
+const btn = document.querySelectorAll(".segment-button")[index];
+const icon = btn?.querySelector(".segment-stop-icon");
+const mode = icon?.dataset.mode || "normal";
 
-    window.vocalAudio.pause();
-    window.accompAudio.pause();
-    window.currentlyPlaying = false;
+if (mode === "stop") {
+  console.log("⛔ Stop mode: stopping after segment", index + 1);
+  window.vocalAudio.pause();
+  window.accompAudio.pause();
+  window.currentlyPlaying = false;
+  return;
+}
 
-    return; // ⛔ DO NOT AUTO-ADVANCE
-  }
+if (mode === "repeat") {
+  console.log("🔁 Repeat mode: repeating segment", index + 1);
+  playSegment(startTime, endTime, index);
+  return;
+}
+
+// else → mode === "normal": allow auto-advance
+
+
 }
 
 
@@ -355,12 +364,27 @@ btn.textContent = preview
 
 
 
-// STOP icon click → enable stop-at-end
-btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
-  e.stopPropagation();   // prevent button from playing the segment
-  setStopAtSegment(index);
-});
+// mode-cycle click handler
 
+btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
+  e.stopPropagation(); // don’t start playback
+
+  const icon = e.currentTarget;
+  let mode = icon.dataset.mode || "normal";
+
+  // cycle modes
+  if (mode === "normal") mode = "stop";
+  else if (mode === "stop") mode = "repeat";
+  else mode = "normal";
+
+  icon.dataset.mode = mode;
+
+  // update color classes
+  icon.classList.remove("mode-normal", "mode-stop", "mode-repeat");
+  icon.classList.add(`mode-${mode}`);
+
+  console.log(`Segment ${index + 1} mode → ${mode}`);
+});
 
 
 
