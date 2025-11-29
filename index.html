@@ -266,24 +266,32 @@
     padding: 6px 10px;
 }
 
-/* Label = 75% */
+
+
+/* Label = 80% (more room for countdown) */
 .seg-label {
-    flex: 3;
+    flex: 4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
+
+
+
 /* Icon = 25% + separator line */
+
 .segment-stop-icon {
     flex: 1;
     text-align: center;
-    border-left: 1px solid #ccc; /* separator */
-    margin-left: 10px;
-    padding-left: 10px;
+    
+    /* MAKE SEPARATOR VISIBLE */
+    border-left: 2px solid #999 !important;
+
+    margin-left: 12px;
+    padding-left: 12px;
     font-size: 16px;
 }
-
 
 
 
