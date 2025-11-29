@@ -395,18 +395,21 @@ btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
 
   btn.dataset.originalLabel = `S${index + 1} — ${preview}`;
 
-
   btn.addEventListener("click", () => {
-    // Reset all button labels when user switches segment
-    try {
-      document.querySelectorAll(".segment-button").forEach(b => {
-        if (b.dataset && b.dataset.originalLabel) {
-          b.textContent = b.dataset.originalLabel;
-        }
-      });
-    } catch (e) {
-      // ignore
-    }
+  // Reset all button labels when user switches segment
+  try {
+    document.querySelectorAll(".segment-button").forEach(b => {
+      if (b.dataset && b.dataset.originalLabel) {
+        const lbl = b.querySelector(".seg-label");
+        if (lbl) lbl.textContent = b.dataset.originalLabel;
+      }
+    });
+  } catch (e) {
+    // ignore
+  }
+
+
+
 
     const isReady =
       window.vocalAudio?.readyState >= 2 &&
