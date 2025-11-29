@@ -368,6 +368,25 @@ btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
   icon.classList.remove("mode-normal", "mode-stop", "mode-repeat");
   icon.classList.add(`mode-${mode}`);
 
+    /** ⭐ Tooltip (Desktop) + Mobile Label */
+  if (mode === "stop") {
+      icon.textContent = "■";
+      icon.dataset.tip = "Stop after this segment";     // desktop tooltip
+      icon.dataset.mobileTip = "Stop";                  // mobile label
+  }
+  else if (mode === "repeat") {
+      icon.textContent = "🔁";
+      icon.dataset.tip = "Repeat this segment";         // desktop tooltip
+      icon.dataset.mobileTip = "Repeat";                // mobile label
+  }
+  else {
+      icon.textContent = "□";
+      icon.dataset.tip = "Auto-advance";                // desktop tooltip
+      icon.dataset.mobileTip = "Auto";                  // mobile label
+  }
+
+
+
   console.log(`Segment ${index + 1} mode → ${mode}`);
 });
 
