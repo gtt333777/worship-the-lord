@@ -255,7 +255,7 @@ if (window.vocalAudio.currentTime >= endTime - EPS) {
 
 
 
-      }
+      
     }, 50); // ~20 checks per second
   }).catch(err => {
     console.warn("⚠️ loopPlayer.js: playSegment error:", err);
