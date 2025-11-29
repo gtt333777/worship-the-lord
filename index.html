@@ -1220,7 +1220,7 @@ function ensureRedBars() {
   });
 }
 
-// Red bar CSS (auto-inject)
+// Gold bar CSS (auto-inject)
 const css = document.createElement("style");
 css.textContent = `
   .seg-progress {
@@ -1228,7 +1228,10 @@ css.textContent = `
     top: 0;
     left: 0;
     height: 4px;
-    background: red;
+   /* background: red; */
+   background: linear-gradient(to right, #f3c55d, #e7a400);
+   /* background: #e7a400; */
+
     width: 0%;
     z-index: 50;
     transition: width 0.1s linear;
