@@ -257,6 +257,42 @@
 
 
 
+
+/* Layout: prevent flicker and enforce 75/25 split */
+.segment-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+}
+
+/* Label = 75% */
+.seg-label {
+    flex: 3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Icon = 25% + separator line */
+.segment-stop-icon {
+    flex: 1;
+    text-align: center;
+    border-left: 1px solid #ccc; /* separator */
+    margin-left: 10px;
+    padding-left: 10px;
+    font-size: 16px;
+}
+
+
+
+
+
+
+
+
+
+
     /* ⭐ NEW NON-FLICKERING PROGRESS NEEDLE */
 .progress-bar {
   position: absolute;
@@ -275,16 +311,13 @@
       background: linear-gradient(to bottom right, #d8eaff, #b9d9ff);
     }
 
+
     .segment-button.active {
-      background: linear-gradient(to bottom right, #4caf50, #2e7d32);
-      color: white;
-      border: 1px solid #2e7d32;
-      transform: scale(1.05);
-    }
-
-
-
-
+  background-color: #d9ffd9 !important; /* light pastel green */
+  color: #0d3b66;
+  border: 1px solid #8ad98a;
+  transform: none;   /* Remove scaling */
+}
 
 
 
