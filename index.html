@@ -424,6 +424,49 @@ button {
 }
 
 
+
+
+
+/* ============================================================
+   ⭐ FIX PATCH: Active Highlight + Progress Bar + Icon Colors
+   ============================================================ */
+
+/* Ensure progress bar stays inside each button */
+.segment-button {
+    position: relative !important;
+}
+
+/* Restore ACTIVE segment highlight (light blue background) */
+.segment-button.active {
+    background: linear-gradient(to bottom right, #d8eaff, #b9d9ff) !important;
+    border: 1px solid #7bb4ff !important;
+    color: #0d3b66 !important;
+}
+
+/* Restore icon colors for each mode */
+.segment-stop-icon.mode-normal {
+    color: #444 !important;
+}
+
+.segment-stop-icon.mode-stop {
+    color: #d40000 !important;   /* bright red */
+}
+
+.segment-stop-icon.mode-repeat {
+    color: #0066ff !important;   /* bright blue */
+}
+
+/* Make sure cursor shows only in active segment */
+.segment-button.active .segment-stop-icon {
+    cursor: pointer;
+}
+
+
+
+
+
+
+
 /* ================================
    ⭐ Final Segment Button Layout Patch
    ================================ */
