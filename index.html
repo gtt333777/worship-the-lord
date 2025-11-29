@@ -469,17 +469,22 @@ button {
 
 
 
-/* ⭐ Mobile-only text label under icon */
-@media (max-width: 600px) {
-    .segment-stop-icon::after {
-        content: attr(data-mobile-tip);
-        display: block;
-        font-size: 0.65rem;
-        margin-top: 4px;
-        color: #444;
-        opacity: 0.9;
-    }
+/* Mini text below icon */
+.mode-label {
+  font-size: 10px;
+  color: #333;
+  margin-top: 2px;
+  line-height: 1;
 }
+
+.segment-stop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
 
 
 
