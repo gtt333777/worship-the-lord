@@ -201,63 +201,60 @@ if (label) {
 
 
       // End of segment?
-      if (window.vocalAudio.currentTime >= endTime - EPS) {
+if (window.vocalAudio.currentTime >= endTime - EPS) {
 
+  // === Per-segment mode handling ===
+  const btn = document.querySelectorAll(".segment-button")[index];
+  const icon = btn?.querySelector(".segment-stop-icon");
+  const mode = icon?.dataset.mode || "normal";
 
+  if (mode === "stop") {
+    console.log("⛔ Stop mode: stopping after segment", index + 1);
+    window.vocalAudio.pause();
+    window.accompAudio.pause();
+    window.currentlyPlaying = false;
+    return;  // DO NOT continue to auto-advance logic
+  }
 
-      // === Per-segment mode handling ===
-const btn = document.querySelectorAll(".segment-button")[index];
-const icon = btn?.querySelector(".segment-stop-icon");
-const mode = icon?.dataset.mode || "normal";
+  if (mode === "repeat") {
+    console.log("🔁 Repeat mode: repeating segment", index + 1);
+    playSegment(startTime, endTime, index);
+    return;  // DO NOT continue to auto-advance logic
+  }
 
-if (mode === "stop") {
-  console.log("⛔ Stop mode: stopping after segment", index + 1);
+  // === Else → mode === "normal": allow auto-advance ===
+
+  clearInterval(window.activeSegmentInterval);
+  window.activeSegmentInterval = null;
+
   window.vocalAudio.pause();
   window.accompAudio.pause();
   window.currentlyPlaying = false;
-  return;
+
+  // Restore original label of the segment that just ended
+  try {
+    const btns = document.querySelectorAll(".segment-button");
+    const endBtn = (btns && btns.length) ? btns[index] : null;
+    if (endBtn && endBtn.dataset && endBtn.dataset.originalLabel) {
+      const label = endBtn.querySelector(".seg-label");
+      if (label) label.textContent = endBtn.dataset.originalLabel;
+    }
+  } catch (e) {
+    // ignore UI restore errors
+  }
+
+  // Auto-advance (normal mode)
+  if (index < window.segments.length - 1) {
+    const next = window.segments[index + 1];
+    playSegment(next.start, next.end, index + 1);
+  }
 }
 
-if (mode === "repeat") {
-  console.log("🔁 Repeat mode: repeating segment", index + 1);
-  playSegment(startTime, endTime, index);
-  return;
-}
-
-// else → mode === "normal": allow auto-advance
 
 
-}
 
 
-        clearInterval(window.activeSegmentInterval);
-        window.activeSegmentInterval = null;
 
-        window.vocalAudio.pause();
-        window.accompAudio.pause();
-        window.currentlyPlaying = false;
-
-        // Restore original label of the segment that just ended
-        try {
-          const btns = document.querySelectorAll(".segment-button");
-          const endBtn = (btns && btns.length) ? btns[index] : null;
-          if (endBtn && endBtn.dataset && endBtn.dataset.originalLabel) {
-       // endBtn.textContent = endBtn.dataset.originalLabel;
-
-       const label = endBtn.querySelector(".seg-label");
-if (label) label.textContent = endBtn.dataset.originalLabel;
-
-
-          }
-        } catch (e) {
-          // ignore UI restore errors
-        }
-
-        // Auto-advance from here (no setTimeout drift)
-        if (index < window.segments.length - 1) {
-          const next = window.segments[index + 1];
-          playSegment(next.start, next.end, index + 1);
-        }
       }
     }, 50); // ~20 checks per second
   }).catch(err => {
