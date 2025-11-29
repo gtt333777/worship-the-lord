@@ -267,10 +267,9 @@
 }
 
 
-
-/* Label = 80% (more room for countdown) */
+/* Label = 90% */
 .seg-label {
-    flex: 4;
+    flex: 9;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -283,6 +282,7 @@
 
 .segment-stop-icon {
     flex: 1;
+    max-width: 42px; /* NEW: restrict icon width */
     text-align: center;
     
     /* MAKE SEPARATOR VISIBLE */
