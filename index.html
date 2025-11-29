@@ -187,23 +187,58 @@
     }
 
 
-    .segment-button {
-      position: relative;
-      margin: 4px;
-      padding: 8px 14px;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #0d3b66;
-      background: linear-gradient(to bottom right, #ffffffcc, #cfe4ff);
-      border: 1px solid #a5c7f7;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: all 0.25s ease;
-      min-width: 90px;
-      overflow: visible;
-      z-index: 1;   /* ← ADD THIS */
+
+
+    /* === Job 1: Flex layout for segment button === */
+.segment-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 8px 12px;
+  margin: 4px;
+
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0d3b66;
+
+  background: linear-gradient(to bottom right, #ffffffcc, #cfe4ff);
+  border: 1px solid #a5c7f7;
+  border-radius: 12px;
+
+  min-width: 120px;
+
+  position: relative;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
+
+/* LEFT (75%) */
+.seg-label {
+  flex: 3;
+  text-align: left;
+  padding-right: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* RIGHT (25%) */
+.segment-stop-icon {
+  flex: 1;
+  text-align: right;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.segment-stop-icon:hover {
+  opacity: 1;
+}
+
+
+
 
 
 
@@ -427,27 +462,6 @@ button {
   background: linear-gradient(to bottom right, #ffb74d, #fb8c00);
 }
 
-
-
-
-.segment-stop-icon {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s, color 0.2s;
-}
-
-.segment-stop-icon:hover {
-  opacity: 1;
-}
-
-.segment-stop-icon.active {
-  color: red;
-  opacity: 1;
-}
 
 
 
