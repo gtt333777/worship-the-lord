@@ -436,12 +436,17 @@ button {
     position: relative !important;
 }
 
-/* Restore ACTIVE segment highlight (light blue background) */
-.segment-button.active {
-    background: linear-gradient(to bottom right, #d8eaff, #b9d9ff) !important;
-    border: 1px solid #7bb4ff !important;
+
+/* --- INACTIVE --- (soft light blue background) */
+.segment-button:not(.active) {
+    background: linear-gradient(to bottom right, #ffffffcc, #cfe4ff) !important;
+    border: 1px solid #a5c7f7 !important;
     color: #0d3b66 !important;
 }
+
+/* --- ACTIVE --- (keep your existing light green) */
+/* No change — we DO NOT override your green */
+
 
 /* Restore icon colors for each mode */
 .segment-stop-icon.mode-normal {
