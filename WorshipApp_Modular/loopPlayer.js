@@ -347,10 +347,13 @@ btn.textContent = preview
     */
 
     // Build button HTML including label + stop icon
-btn.innerHTML = `
+
+    btn.innerHTML = `
   <span class="seg-label">S${index + 1} — ${preview}</span>
-  <span class="segment-stop-icon">■</span>
+  <span class="segment-stop-icon" data-mode="normal">■</span>
 `;
+
+
 
 // STOP icon click → enable stop-at-end
 btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
