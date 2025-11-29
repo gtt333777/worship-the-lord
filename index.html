@@ -280,18 +280,33 @@
 
 /* Icon = 25% + separator line */
 
+/* ⭐ MUCH BIGGER TOUCH AREA for Stop / Repeat / Normal */
 .segment-stop-icon {
-    flex: 1;
-    max-width: 42px; /* NEW: restrict icon width */
+    flex: 1.6;                         /* ⬅ widen right portion */
+    max-width: 65px;                   /* ⬅ wider touch zone */
     text-align: center;
-    
-    /* MAKE SEPARATOR VISIBLE */
+    font-size: 20px;                   /* visible but not huge */
+
+    /* separator line */
     border-left: 2px solid #999 !important;
 
-    margin-left: 12px;
-    padding-left: 12px;
-    font-size: 16px;
+    /* touch padding */
+    padding: 10px 6px !important;      /* ⬅ increase tap area */
+
+    /* make it easier to tap */
+    cursor: pointer;
 }
+
+/* Prevent icon from shrinking in narrow screens */
+.segment-button {
+    min-width: 150px;
+}
+
+
+
+
+
+
 
 
 /* ⭐ Final authoritative size for segment buttons */
