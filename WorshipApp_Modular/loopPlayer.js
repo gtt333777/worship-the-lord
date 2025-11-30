@@ -342,10 +342,14 @@ btn.textContent = preview
 
     // Build button HTML including label + stop icon
 
-    btn.innerHTML = `
+btn.innerHTML = `
   <span class="seg-label">S${index + 1} — ${preview}</span>
-  <span class="segment-stop-icon" data-mode="normal">■</span>
+  <span class="segment-stop-icon mode-normal" data-mode="normal">
+      <span>□</span>
+      <div class="mode-label">Auto</div>
+  </span>
 `;
+
 
 
 
