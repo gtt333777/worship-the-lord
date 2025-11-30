@@ -388,9 +388,11 @@ else {
     newLabel = "Auto";
 }
 
+/*
 // Set proper attributes for desktop + mobile CSS
 icon.dataset.desktopTip = newLabel;
 icon.dataset.mobileTip  = newLabel;
+*/
 
 // Update icon content (no innerHTML hack)
 icon.innerHTML = `
