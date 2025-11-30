@@ -467,34 +467,6 @@ button {
 }
 
 
-/* ⭐ Mini text below icon (desktop + mobile) */
-.segment-stop-icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Desktop label under icon */
-.segment-stop-icon::after {
-    content: attr(data-desktop-tip);
-    font-size: 11px;
-    margin-top: 3px;
-    color: #333;
-    opacity: 0.9;
-}
-
-/* Mobile-only smaller label */
-@media (max-width: 600px) {
-  .segment-stop-icon::after {
-      content: attr(data-mobile-tip);
-      font-size: 0.65rem;
-      margin-top: 3px;
-      color: #444;
-      opacity: 0.9;
-  }
-}
-
-
 
 
 /* Mini text below icon */
