@@ -368,26 +368,35 @@ btn.querySelector(".segment-stop-icon").addEventListener("click", (e) => {
   icon.classList.remove("mode-normal", "mode-stop", "mode-repeat");
   icon.classList.add(`mode-${mode}`);
 
-  /** ⭐ Same UI for Desktop + Mobile */
-let label = "";
 
+
+/* ⭐ Unified desktop + mobile label under icon */
+let newIcon = "";
+let newLabel = "";
+
+// MODE → icon + label mapping
 if (mode === "stop") {
-    icon.textContent = "■";
-    label = "Stop";
+    newIcon = "■";
+    newLabel = "Stop";
 }
 else if (mode === "repeat") {
-    icon.textContent = "🔁";
-    label = "Repeat";
+    newIcon = "🔁";
+    newLabel = "Repeat";
 }
 else {
-    icon.textContent = "□";
-    label = "Auto";
+    newIcon = "□";   // Auto icon
+    newLabel = "Auto";
 }
 
-// Insert text below icon (beautiful + mobile-friendly)
-icon.dataset.modeLabel = label;
-icon.innerHTML = `${icon.textContent}<div class="mode-label">${label}</div>`;
+// Set proper attributes for desktop + mobile CSS
+icon.dataset.desktopTip = newLabel;
+icon.dataset.mobileTip  = newLabel;
 
+// Update icon content (no innerHTML hack)
+icon.innerHTML = `
+    <span>${newIcon}</span>
+    <div class="mode-label">${newLabel}</div>
+`;
 
 
   console.log(`Segment ${index + 1} mode → ${mode}`);
