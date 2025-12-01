@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 29.784,
+      "end": 86.033,
+      "lyrics": [
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 2T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 3T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 4T",
+        "பெத்லகேமில் பிறந்த அவர்",
+        "பாலகனாய் ஜெனித்த அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே",
+        "உலகத்தின் ராஜா அவர்",
+        "தூதர் போற்றும் தேவன் அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 2T"
+      ]
+    },
+    {
+      "start": 114.783,
+      "end": 156.527,
+      "lyrics": [
+        "மகிமை நிறைந்த தேவன் அவர்",
+        "மகத்துவத்தின் கர்த்தர் அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே",
+        "சமாதான பிரபு அவர்",
+        "நன்மை தரும் தகப்பன் அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "மகிமை நிறைந்த தேவன் அவர்",
+        "மகத்துவத்தின் கர்த்தர் அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே",
+        "சமாதான பிரபு அவர்",
+        "நன்மை தரும் தகப்பன் அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 2T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 2T"
+      ]
+    },
+    {
+      "start": 185.325,
+      "end": 241.503,
+      "lyrics": [
+        "மனிதனாகப் பிறந்த அவர்",
+        "பரலோகத்தை திறந்த அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே",
+        "மாம்சமாக வந்த அவர்",
+        "நமக்குள் வாழும் இயேசு அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "மனிதனாகப் பிறந்த அவர்",
+        "பரலோகத்தை திறந்த அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே",
+        "மாம்சமாக வந்த அவர்",
+        "நமக்குள் வாழும் இயேசு அவர்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 2T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 1T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 2T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 3T",
+        "இம்மானுவேல் இம்மானுவேல்",
+        "இம்மானுவேல் என்னோடிருப்பாரே 4T"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 29.784,
+      "end": 86.033,
+      "lyrics": [
+        "immaanuvael immaanuvael",
+        "immaanuvael ennotiruppaarae-4",
+        "1.pethlakaemil pirantha avar",
+        "paalakanaay jeniththa avar",
+        "immaanuvael ennotiruppaarae",
+        "ulakaththin raajaa avar",
+        "thoothar pottum thaevan avar",
+        "immaanuvael ennotiruppaarae-2",
+        "immaanuvael immaanuvael",
+        "immaanuvael ennotiruppaarae-2"
+      ]
+    },
+    {
+      "start": 114.783,
+      "end": 156.527,
+      "lyrics": [
+        "2.makimai niraintha thaevan avar",
+        "makaththuvaththin karththar avar",
+        "immaanuvael ennotiruppaarae",
+        "samaathaana pirapu avar",
+        "nanmai tharum thakappan avar",
+        "immaanuvael ennotiruppaarae-2",
+        "immaanuvael immaanuvael",
+        "immaanuvael ennotiruppaarae-2"
+      ]
+    },
+    {
+      "start": 185.325,
+      "end": 241.503,
+      "lyrics": [
+        "3. manithanaakap pirantha avar",
+        "paralokaththai thirantha avar",
+        "immaanuvael ennotiruppaarae",
+        "maamsamaaka vantha avar",
+        "namakkul vaalum Yesu avar",
+        "immaanuvael ennotiruppaarae-2",
+        "immaanuvael immaanuvael",
+        "immaanuvael ennotiruppaarae-4"
+      ]
+    }
+  ]
+}
