@@ -723,9 +723,18 @@ a Song
     <button onclick="clearAllSongCache()">🔥 Clear All Songs</button>
   </div>
 
+
+
+  
+  <!-- 🔁 Segment Buttons -->
+  <div id="loopButtonsContainer"
+    style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
+  </div>
+
+
   <!-- ✅ Volume Controls -->
 <div class="volume-control">
-  <label for="accompVolume">🏛️ Accompaniment Volume:</label>
+  <label for="accompVolume">🏛️ Acc:</label>
      <button class="volume-adjust" onclick="adjustVolume('accomp', -0.01)">−</button>
   <input type="range" id="accompVolume" min="0.001" max="1" step="0.01" value="0.02">
    <span id="accompVolumeDisplay">0.02</span>
@@ -736,7 +745,7 @@ a Song
 </div>
 
 <div class="volume-control">
-  <label for="vocalVolume">🎤 Vocal Volume:</label>
+  <label for="vocalVolume">🎤 Voc:</label>
 <button class="volume-adjust" onclick="adjustVolume('vocal', -0.01)">−</button>
 <input type="range" id="vocalVolume" min="0.001" max="1" step="0.01" value="0.002">
   <span id="vocalVolumeDisplay">0.002</span>
@@ -745,11 +754,6 @@ a Song
   <button onclick="toggleMute('vocal')" id="vocalMuteBtn" style="margin-left:30px;">🔊 Mute</button>
 </div>
 </div>
-
-  <!-- 🔁 Segment Buttons -->
-  <div id="loopButtonsContainer"
-    style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
-  </div>
 
 
 
