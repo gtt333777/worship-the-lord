@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎵 Worship The Lord</title>
 
+
+    <!-- ⭐ Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-8WYTSZ6RGG');
+  </script>
+
+
   <!-- ✅ PWA Basics -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-192.png" type="image/png" />
@@ -1016,6 +1027,8 @@ window.hideLoadingOverlay = function () {
   font-family: system-ui, sans-serif;
 "></div>
 
+
+
 <script>
 (async () => {
   try {
@@ -1033,6 +1046,15 @@ window.hideLoadingOverlay = function () {
     // ✅ Auto-update trigger
     if (current && current !== latest) {
       console.log("🔁 New version detected — updating to", latest);
+
+      // ⭐ GA Event: App Updated
+      if (typeof gtag === "function") {
+        gtag('event', 'app_updated', {
+          event_category: 'version_update',
+          event_label: latest,  // which version they updated TO
+          value: 1
+        });
+      }
 
       // 1️⃣ Tell service worker to activate immediately
       if (navigator.serviceWorker?.controller) {
@@ -1052,6 +1074,8 @@ window.hideLoadingOverlay = function () {
   }
 })();
 </script>
+
+
 
 
 <script>
