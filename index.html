@@ -145,30 +145,7 @@
       line-height: 1.3;
     }
 
-    .volume-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 10px;
-    }
 
-    .volume-control label {
-      width: 150px;
-      text-align: right;
-    }
-
-    .volume-control input[type="range"] {
-      width: 150px;
-      margin: 0 5px;
-    }
-
-    .volume-control span {
-      width: 50px;
-      text-align: left;
-      font-weight: bold;
-      color: #2c3e50;
-    }
 
     #lyricsArea {
       width: 95%;
@@ -732,27 +709,25 @@ a Song
   </div>
 
 
-  <!-- ✅ Volume Controls -->
-<div class="volume-control">
-  <label for="accompVolume">🏛️ Acc:</label>
-     <button class="volume-adjust" onclick="adjustVolume('accomp', -0.01)">−</button>
+
+<!-- ⭐ COMPACT ACCOMPANIMENT VOLUME -->
+<div class="volRow">
+  <label>🏛️ Acc:</label>
+  <button class="volBtn" onclick="adjustVolume('accomp', -0.01)">−</button>
   <input type="range" id="accompVolume" min="0.001" max="1" step="0.01" value="0.02">
-   <span id="accompVolumeDisplay">0.02</span>
-   <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
-  <button class="volume-adjust" onclick="adjustVolume('accomp', 0.01)">+</button>
-  <button onclick="toggleMute('accomp')" id="accompMuteBtn" style="margin-left:30px;">🔊 Mute</button>
-</div>
+  <span id="accompVolumeDisplay">0.02</span>
+  <button class="volBtn" onclick="adjustVolume('accomp', 0.01)">+</button>
+  <button class="muteBtnSmall" onclick="toggleMute('accomp')">🔇</button>
 </div>
 
-<div class="volume-control">
-  <label for="vocalVolume">🎤 Voc:</label>
-<button class="volume-adjust" onclick="adjustVolume('vocal', -0.01)">−</button>
-<input type="range" id="vocalVolume" min="0.001" max="1" step="0.01" value="0.002">
+<!-- ⭐ COMPACT VOCAL VOLUME -->
+<div class="volRow">
+  <label>🎤 Voc:</label>
+  <button class="volBtn" onclick="adjustVolume('vocal', -0.01)">−</button>
+  <input type="range" id="vocalVolume" min="0.001" max="1" step="0.01" value="0.002">
   <span id="vocalVolumeDisplay">0.002</span>
-  <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
-<button class="volume-adjust" onclick="adjustVolume('vocal', 0.01)">+</button>
-  <button onclick="toggleMute('vocal')" id="vocalMuteBtn" style="margin-left:30px;">🔊 Mute</button>
-</div>
+  <button class="volBtn" onclick="adjustVolume('vocal', 0.01)">+</button>
+  <button id="vocalMuteBtn" class="muteBtnBig" onclick="toggleMute('vocal')">🔇</button>
 </div>
 
 
@@ -864,6 +839,60 @@ a Song
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+
+
+/* ⭐ Ultra-compact single-row volume controls */
+.volRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0;
+  white-space: nowrap;
+}
+
+.volRow label {
+  font-size: 1rem;
+  width: 55px;
+  text-align: right;
+}
+
+.volRow input[type="range"] {
+  width: 110px;      /* Adjust slider size here */
+}
+
+.volRow span {
+  width: 40px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.volBtn {
+  padding: 4px 10px;
+  font-size: 1.1rem;
+  border-radius: 6px;
+}
+
+.muteBtnSmall {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Keep your large Vocal mute button style */
+.muteBtnBig {
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+
+
+
+
+
 </style>
 
 <script>
