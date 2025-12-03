@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 12.52,
+      "end": 54.639,
+      "lyrics": [
+        "யோசனையில் பெரியவரே",
+        "ஆராதனை ஆராதனை",
+        "செயல்களிலே வல்லவரே",
+        "ஆராதனை ஆராதனை",
+        "ஓசான்னா உன்னத தேவனே",
+        "ஓசான்னா ஓசான்னா ஓசான்னா"
+      ]
+    },
+    {
+      "start": 54.64,
+      "end": 97.391,
+      "lyrics": [
+        "கண்மணிபோல் காப்பவரே",
+        "ஆராதனை ஆராதனை",
+        "கழுகு போல் சுமப்பவரே",
+        "ஆராதனை ஆராதனை",
+        "ஓசான்னா உன்னத தேவனே",
+        "ஓசான்னா ஓசான்னா ஓசான்னா"
+      ]
+    },
+    {
+      "start": 97.391,
+      "end": 139.991,
+      "lyrics": [
+        "சிலுவையினால் மீட்டவரே",
+        "ஆராதனை ஆராதனை",
+        "சிறகுகளால் மூடுபவரே",
+        "ஆராதனை ஆராதனை",
+        "ஓசான்னா உன்னத தேவனே",
+        "ஓசான்னா ஓசான்னா ஓசான்னா"
+      ]
+    },
+    {
+      "start": 139.991,
+      "end": 182.651,
+      "lyrics": [
+        "வழி நடத்தும் விண்மீனே",
+        "ஆராதனை ஆராதனை",
+        "ஒளி வீசும் விடிவெள்ளியே",
+        "ஆராதனை ஆராதனை",
+        "ஓசான்னா உன்னத தேவனே",
+        "ஓசான்னா ஓசான்னா ஓசான்னா"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 12.52,
+      "end": 54.639,
+      "lyrics": [
+        "yosanaiyil periyavarae",
+        "aaraathanai aaraathanai",
+        "seyalkalil vallavarae",
+        "aaraathanai aaraathanai",
+        "osaannaa unnatha thaevanae",
+        "osaannaa osaannaa osaannaa"
+      ]
+    },
+    {
+      "start": 54.64,
+      "end": 97.391,
+      "lyrics": [
+        "kannmannipol kaappavarae",
+        "aaraathanai aaraathanai",
+        "kaluku pol sumappavarae",
+        "aaraathanai aaraathanai"
+      ]
+    },
+    {
+      "start": 97.391,
+      "end": 139.991,
+      "lyrics": [
+        "siluvaiyinaal meettavarae",
+        "aaraathanai aaraathanai",
+        "sirakukalaal moodupavarae",
+        "aaraathanai aaraathanai"
+      ]
+    },
+    {
+      "start": 139.991,
+      "end": 182.651,
+      "lyrics": [
+        "vali nadaththum vinnmeenae",
+        "aaraathanai aaraathanai",
+        "oli veesum vitivelliyae",
+        "aaraathanai aaraathanai",
+        "thaeti ennaik kaannpavarae",
+        "aaraathanai aaraathanai",
+        "thinanthorum thaettupavarae",
+        "aaraathanai aaraathanai",
+        "parisuththarae pataiththavarae",
+        "aaraathanai aaraathanai",
+        "paavangalai manniththavarae",
+        "aaraathanai aaraathanai",
+        "uruthiyaana atiththalamae",
+        "aaraathanai aaraathanai",
+        "vilai uyarntha moolaik kallae",
+        "aaraathanai aaraathanai",
+        "தேடி என்னைக் காண்பவரே",
+        "ஆராதனை ஆராதனை",
+        "தினந்தோறும் தேற்றுபவரே",
+        "ஆராதனை ஆராதனை",
+        "பரிசுத்தரே படைத்தவரே",
+        "ஆராதனை ஆராதனை",
+        "பாவங்களை மன்னித்தவரே",
+        "ஆராதனை ஆராதனை",
+        "உறுதியான அடித்தளமே",
+        "ஆராதனை ஆராதனை",
+        "விலை உயர்ந்த மூலைக் கல்லே",
+        "ஆராதனை ஆராதனை"
+      ]
+    }
+  ]
+}
