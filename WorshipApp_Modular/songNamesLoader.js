@@ -316,7 +316,7 @@ window.toggleBookmarkView = function () {
     // Turn off favorite view visually
     favBtn.classList.remove("filter-active");
     favBtn.innerHTML =
-      "💛 Show<br>Favorites<br><span style='font-size:0.75rem; opacity:0.75'>(Touch 💛 above)</span>";
+      "💛 Show<br>Favorites<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
   }
 
   applySongView(currentView);
@@ -335,13 +335,13 @@ window.toggleFavoriteView = function () {
     // Turn OFF favorite view
     currentView = "all";
     btn.innerHTML =
-      "💛 Show<br>Favorites<br><span style='font-size:0.75rem; opacity:0.75'>(Touch 💛 above)</span>";
+      "💛 Show<br>Favorites<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
     btn.classList.remove("filter-active");
   } else {
     // Turn ON favorite view
     currentView = "favorite";
     btn.innerHTML =
-      "💛 Favorites<br>Only<br><span style='font-size:0.75rem; opacity:0.75'>(Touch 💛 above)</span>";
+      "💛 Favorites<br>Only<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
     btn.classList.add("filter-active");
 
     // Turn off bookmark view visually
