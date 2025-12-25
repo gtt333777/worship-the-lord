@@ -392,3 +392,86 @@ document.getElementById("songSelect").addEventListener("change", () => {
     }
   }
 });
+
+
+
+
+
+
+/* ==========================================================
+   🔁 Auto Play (Resume from where left)
+   ========================================================== */
+
+window.autoPlayEnabled = false;
+
+// Toggle Auto Play button
+window.toggleAutoPlay = function () {
+  const btn = document.getElementById("autoPlayBtn");
+  if (!btn) return;
+
+  autoPlayEnabled = !autoPlayEnabled;
+
+  if (autoPlayEnabled) {
+    btn.innerHTML = "🔁 Auto Play<br>(On)";
+    btn.style.background = "linear-gradient(to bottom right, #66bb6a, #2e7d32)";
+    console.log("🔁 Auto Play ENABLED");
+  } else {
+    btn.innerHTML = "🔁 Auto Play";
+    btn.style.background = "linear-gradient(to bottom right, #81c784, #4caf50)";
+    console.log("⏹ Auto Play DISABLED");
+  }
+};
+
+// Attach click once DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("autoPlayBtn");
+  if (btn) btn.onclick = toggleAutoPlay;
+});
+
+// Helper: get visible song list (based on current filter)
+function getVisibleSongList() {
+  const select = document.getElementById("songSelect");
+  if (!select) return [];
+
+  return [...select.options]
+    .filter(opt => opt.value && opt.style.display !== "none")
+    .map(opt => opt.value);
+}
+
+// When current song ends → play next
+document.addEventListener("DOMContentLoaded", () => {
+  function waitForAudio() {
+    if (!window.vocalAudio) return setTimeout(waitForAudio, 200);
+
+    window.vocalAudio.addEventListener("ended", () => {
+      if (!autoPlayEnabled) return;
+
+      const select = document.getElementById("songSelect");
+      if (!select) return;
+
+      const visibleSongs = getVisibleSongList();
+      const currentSong = select.value;
+      const idx = visibleSongs.indexOf(currentSong);
+
+      if (idx === -1 || idx + 1 >= visibleSongs.length) {
+        console.log("🔁 Auto Play finished list");
+        autoPlayEnabled = false;
+        toggleAutoPlay(); // turn OFF visually
+        return;
+      }
+
+      const nextSong = visibleSongs[idx + 1];
+      console.log("▶ Auto Play next song:", nextSong);
+
+      select.value = nextSong;
+      select.dispatchEvent(new Event("change"));
+
+      // Small delay, then press Play
+      setTimeout(() => {
+        document.getElementById("playBtn")?.click();
+      }, 400);
+    });
+  }
+
+  waitForAudio();
+});
