@@ -689,10 +689,30 @@ a Song
 
 
   <!-- ✅ Player Controls -->
-  <div style="margin-top:10px;">
-    <button id="playBtn">▶️ Play</button>
-    <button id="pauseBtn">⏸️ Pause</button>
-  </div>
+
+  <div style="margin-top:10px; display:flex; justify-content:center; gap:12px; flex-wrap:nowrap;">
+  <button id="playBtn">▶️ Play</button>
+
+  <button id="pauseBtn">⏸️ Pause</button>
+
+  <button id="autoPlayBtn"
+    style="
+      background: linear-gradient(to bottom right, #81c784, #4caf50);
+      color: white;
+      border: none;
+      font-weight: bold;
+      font-size: 1.05rem;
+      padding: 10px 18px;
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+    ">
+    🔁 Auto Play
+  </button>
+</div>
+
+
+
 
   <!-- ✅ Cache Status Indicator -->
   <div id="cacheStatus"></div>
