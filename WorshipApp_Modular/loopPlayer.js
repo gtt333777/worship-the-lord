@@ -235,10 +235,25 @@ if (window.vocalAudio.currentTime >= endTime - EPS) {
     // ignore UI restore errors
   }
 
+  /*
   // Auto-advance (normal mode)
   if (index < window.segments.length - 1) {
     const next = window.segments[index + 1];
     playSegment(next.start, next.end, index + 1);
+  }
+}
+*/
+
+  // Auto-advance (normal mode)
+  if (index < window.segments.length - 1) {
+    const next = window.segments[index + 1];
+    playSegment(next.start, next.end, index + 1);
+  } else {
+    // ✅ LAST SEGMENT FINISHED → SONG IS COMPLETE
+    console.log("🏁 Song finished (all segments completed)");
+
+    // 🔔 Notify Auto Play system
+    window.dispatchEvent(new Event("songFinished"));
   }
 }
 
