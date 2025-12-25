@@ -687,6 +687,7 @@ a Song
 
 
 
+
   <!-- ✅ Player Controls -->
   <div style="margin-top:10px;">
     <button id="playBtn">▶️ Play</button>
@@ -892,6 +893,51 @@ a Song
 }
 
 
+
+/* =========================================================
+   🎯 Song Filter Buttons (Bookmark / Favorite)
+   ========================================================= */
+
+/* Base style for filter buttons */
+#bookmarkFilterBtn,
+#favoriteFilterBtn {
+  min-width: 120px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  line-height: 1.1;
+  white-space: pre-line;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover effect */
+#bookmarkFilterBtn:hover,
+#favoriteFilterBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.22);
+}
+
+/* 🎯 Bookmark button – ORANGE */
+#bookmarkFilterBtn {
+  background: linear-gradient(to bottom right, #ffcc33, #ff9900);
+  color: black;
+}
+
+/* 💛 Favorite button – PINK / GOLD */
+#favoriteFilterBtn {
+  background: linear-gradient(to bottom right, #ffb6c1, #ff69b4);
+  color: #4a0033;
+}
+
+/* Active mode style (applied by JS via innerHTML meaning) */
+.filter-active {
+  background: linear-gradient(to bottom right, #1565c0, #0d47a1) !important;
+  color: white !important;
+}
 
 
 
