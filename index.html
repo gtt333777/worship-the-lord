@@ -1529,14 +1529,16 @@ requestAnimationFrame(updateRedBar);
 
 let wakeLock = null;
 
+// Request screen wake lock safely
 async function requestWakeLock() {
   try {
-    if ('wakeLock' in navigator) {
+    if ('wakeLock' in navigator && !wakeLock) {
       wakeLock = await navigator.wakeLock.request('screen');
       console.log("🔆 Screen wake lock active");
 
       wakeLock.addEventListener('release', () => {
         console.log("🔅 Screen wake lock released");
+        wakeLock = null;
       });
     }
   } catch (err) {
@@ -1544,18 +1546,17 @@ async function requestWakeLock() {
   }
 }
 
-// Request wake lock when user interacts with app
+// Request wake lock on user interaction (required by browsers)
 document.addEventListener("click", requestWakeLock);
 document.addEventListener("touchstart", requestWakeLock);
 
-// Re-acquire wake lock when app becomes visible again
+// Re-acquire wake lock when app/tab becomes visible again
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     requestWakeLock();
   }
 });
 </script>
-
 
 
 
