@@ -1522,6 +1522,41 @@ requestAnimationFrame(updateRedBar);
 
 
 
+<script>
+/* ==========================================================
+   🔆 Keep Screen Awake while App is Active
+   ========================================================== */
+
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log("🔆 Screen wake lock active");
+
+      wakeLock.addEventListener('release', () => {
+        console.log("🔅 Screen wake lock released");
+      });
+    }
+  } catch (err) {
+    console.warn("⚠️ Wake lock failed:", err);
+  }
+}
+
+// Request wake lock when user interacts with app
+document.addEventListener("click", requestWakeLock);
+document.addEventListener("touchstart", requestWakeLock);
+
+// Re-acquire wake lock when app becomes visible again
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    requestWakeLock();
+  }
+});
+</script>
+
+
 
 
 </body>
