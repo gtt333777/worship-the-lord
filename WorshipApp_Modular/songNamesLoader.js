@@ -235,7 +235,7 @@ function applySongView(view) {
 /* -------------------------------------------------------------------
    🎯 Bookmark Filter Button (SIMPLIFIED)
 ------------------------------------------------------------------- */
-
+/*
 window.toggleBookmarkView = function () {
   const btn = document.getElementById("bookmarkFilterBtn");
 
@@ -249,12 +249,37 @@ window.toggleBookmarkView = function () {
 
   applySongView(currentView);
 };
+*/
+
+window.toggleBookmarkView = function () {
+  const btn = document.getElementById("bookmarkFilterBtn");
+  const favBtn = document.getElementById("favoriteFilterBtn");
+
+  if (currentView === "bookmark") {
+    // Turn OFF bookmark view
+    currentView = "all";
+    btn.innerHTML = "🎯 Show<br>Bookmarked";
+    btn.classList.remove("filter-active");
+  } else {
+    // Turn ON bookmark view
+    currentView = "bookmark";
+    btn.innerHTML = "✅ Bookmarked<br>Only";
+    btn.classList.add("filter-active");
+
+    // Turn off favorite view visually
+    favBtn.classList.remove("filter-active");
+    favBtn.innerHTML = "💛 Show<br>Favorites";
+  }
+
+  applySongView(currentView);
+};
+
 
 
 /* -------------------------------------------------------------------
    💛 Favorite Filter Button (SIMPLIFIED)
 ------------------------------------------------------------------- */
-
+/*
 window.toggleFavoriteView = function () {
   const btn = document.getElementById("favoriteFilterBtn");
 
@@ -268,6 +293,34 @@ window.toggleFavoriteView = function () {
 
   applySongView(currentView);
 };
+*/
+
+
+window.toggleFavoriteView = function () {
+  const btn = document.getElementById("favoriteFilterBtn");
+  const bmBtn = document.getElementById("bookmarkFilterBtn");
+
+  if (currentView === "favorite") {
+    // Turn OFF favorite view
+    currentView = "all";
+    btn.innerHTML = "💛 Show<br>Favorites";
+    btn.classList.remove("filter-active");
+  } else {
+    // Turn ON favorite view
+    currentView = "favorite";
+    btn.innerHTML = "💛 Favorites<br>Only";
+    btn.classList.add("filter-active");
+
+    // Turn off bookmark view visually
+    bmBtn.classList.remove("filter-active");
+    bmBtn.innerHTML = "🎯 Show<br>Bookmarked";
+  }
+
+  applySongView(currentView);
+};
+
+
+
 
 
 /* -------------------------------------------------------------------
