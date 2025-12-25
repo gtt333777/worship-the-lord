@@ -99,6 +99,9 @@ async function loadSongNames() {
 
 window.addEventListener("DOMContentLoaded", loadSongNames);
 
+
+
+
 /* -------------------------------------------------------------------
    ⭐ Bookmark System
 ------------------------------------------------------------------- */
@@ -117,8 +120,9 @@ function saveBookmarks(list) {
   localStorage.setItem("bookmarkedSongs", JSON.stringify(list));
 }
 
-window.toggleBookmark = function(songName) {
+window.toggleBookmark = function (songName) {
   if (!songName) return alert("⚠️ Please select a song first.");
+
   const btn = document.getElementById("bookmarkBtn");
   let bookmarks = loadBookmarks();
 
@@ -133,165 +137,15 @@ window.toggleBookmark = function(songName) {
     btn.style.color = "gold";
     btn.style.fontSize = "1.9rem";
   }
+
   saveBookmarks(bookmarks);
-  console.log("⭐ Updated bookmarks:", bookmarks);
 };
 
 
 /* -------------------------------------------------------------------
-   🎯 Toggle between All Songs / Bookmarked View
+   💛 Favorite System
 ------------------------------------------------------------------- */
 
-let showingBookmarks = false;
-let collapsedGuide = false;
-
-function collapseFilterButtonGuide(btn) {
-
-// btn.dataset.wasText = btn.textContent;
-   btn.dataset.wasText = btn.innerHTML;
-
-
-  btn.dataset.wasBg = btn.style.background || "";
-  btn.dataset.wasColor = btn.style.color || "";
-  btn.dataset.wasWeight = btn.style.fontWeight || "";
-
-  btn.style.transition = "transform 0.18s ease, background 0.3s ease, color 0.3s ease";
-  btn.style.transform = "translateY(6px) scale(0.96)";
-  btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
-  btn.style.color = "#333";
-  btn.style.fontWeight = "600";
-
- // btn.textContent = "▲ Tap the list above";
-    btn.innerHTML = "▲ Tap the list above";
-
-
-  btn.disabled = true;
-  btn.style.opacity = "0.7";
-  btn.style.cursor = "not-allowed";
-  collapsedGuide = true;
-}
-
-function restoreFilterButton(btn) {
-  if (!collapsedGuide) return;
-  btn.disabled = false;
-  btn.style.opacity = "1";
-  btn.style.cursor = "pointer";
-  btn.style.transform = "translateY(0) scale(1)";
-  btn.style.background = btn.dataset.wasBg || "";
-  btn.style.color = btn.dataset.wasColor || "";
-  btn.style.fontWeight = btn.dataset.wasWeight || "";
-
-// btn.textContent = btn.dataset.wasText || (showingBookmarks ? "📚 Show All Songs" : "🎯 Show Bookmarked");
-
-btn.innerHTML = btn.dataset.wasText || (showingBookmarks
-  ? "Show<br>All Songs"
-  : "🎯 Show<br>Bookmarked");
-
-  
-  collapsedGuide = false;
-}
-
-window.toggleBookmarkView = function() {
-  const btn = document.getElementById("bookmarkFilterBtn");
-  const select = document.getElementById("songSelect");
-  if (!btn || !select) return;
-
-  const allOptions = [...select.options];
-  let bookmarks = loadBookmarks();
-  const firstOption = select.options[0];
-
-  // ✅ Only trigger encouragement when switching to "Show Bookmarked"
-  if (!showingBookmarks && bookmarks.length === 0) {
-    alert("🌟 Start bookmarking a song by pressing the star (☆) at left so it turns Gold.\nI’m making the first bookmark for you!");
-    const firstSong = select.options.length > 1 ? select.options[1].value : null;
-    if (firstSong) {
-      bookmarks = [firstSong];
-      saveBookmarks(bookmarks);
-      console.log("🌟 Auto-bookmarked:", firstSong);
-    }
-    // Force showing all songs mode next
-    showingBookmarks = false;
-  }
-
-  // Smooth fade for button state
-  btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-  if (!showingBookmarks) {
-    // 🔹 Show only bookmarked
-    for (const opt of allOptions) {
-      if (opt.value && !bookmarks.includes(opt.value)) opt.style.display = "none";
-    }
-    if (firstOption) firstOption.style.display = "block";
-
-  //btn.textContent = "📚 Show All Songs";
-    btn.innerHTML = "Show<br>All Songs";
-
-
-    btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
-    btn.style.color = "white";
-    btn.style.fontWeight = "bold";
-    btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
-    showingBookmarks = true;
-  } else {
-    // 🔹 Show all songs
-    for (const opt of allOptions) opt.style.display = "block";
-  //btn.textContent = "🎯 Show Bookmarked";
-    btn.innerHTML = "🎯 Show<br>Bookmarked";
-
-
-    btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    btn.style.color = "black";
-    btn.style.fontWeight = "bold";
-    btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-    showingBookmarks = false;
-  }
-
-  // Reset dropdown
-  select.selectedIndex = 0;
-  select.blur();
-
-  // Collapse + disable temporarily
-  collapseFilterButtonGuide(btn);
-  try { select.focus(); } catch {}
-
-  const restoreOnce = () => {
-    restoreFilterButton(btn);
-    select.removeEventListener("focus", restoreOnce);
-    select.removeEventListener("change", restoreOnce);
-  };
-  select.addEventListener("focus", restoreOnce);
-  select.addEventListener("change", restoreOnce);
-};
-
-/* -------------------------------------------------------------------
-   🪄 Update bookmark star when song changes
-------------------------------------------------------------------- */
-document.getElementById("songSelect").addEventListener("change", () => {
-  const select = document.getElementById("songSelect");
-  const btn = document.getElementById("bookmarkBtn");
-  const bookmarks = loadBookmarks();
-  const song = select.value;
-
-  if (bookmarks.includes(song)) {
-    btn.textContent = "★";
-    btn.style.color = "gold";
-    btn.style.fontSize = "1.9rem";
-  } else {
-    btn.textContent = "☆";
-    btn.style.color = "black";
-    btn.style.fontSize = "1.6rem";
-  }
-});
-
-
-
-
-
-/* -------------------------------------------------------------------
-   💛 Favorite System (identical to Bookmark System)
-------------------------------------------------------------------- */
-
-// Load Favorites
 function loadFavorites() {
   try {
     const raw = localStorage.getItem("favoriteSongs");
@@ -302,14 +156,13 @@ function loadFavorites() {
   }
 }
 
-// Save Favorites
 function saveFavorites(list) {
   localStorage.setItem("favoriteSongs", JSON.stringify(list));
 }
 
-// Toggle a song as Favorite
-window.toggleFavorite = function(songName) {
+window.toggleFavorite = function (songName) {
   if (!songName) return alert("⚠️ Please select a song first.");
+
   const btn = document.getElementById("favoriteBtn");
   let favs = loadFavorites();
 
@@ -326,209 +179,118 @@ window.toggleFavorite = function(songName) {
   }
 
   saveFavorites(favs);
-  console.log("💛 Updated favorites:", favs);
 };
 
+
 /* -------------------------------------------------------------------
-   💛 Toggle between All Songs / Favorite View
+   🧭 Song List View Mode (ONE source of truth)
 ------------------------------------------------------------------- */
 
-let showingFavorites = false;
-let collapsedFavGuide = false;
-
-function collapseFavoriteGuide(btn) {
-
-// btn.dataset.wasText = btn.textContent;
-   btn.dataset.wasText = btn.innerHTML;
+let currentView = "all"; // "all" | "bookmark" | "favorite"
 
 
-  btn.dataset.wasBg = btn.style.background || "";
-  btn.dataset.wasColor = btn.style.color || "";
-  btn.dataset.wasWeight = btn.style.fontWeight || "";
+/* -------------------------------------------------------------------
+   🪟 Apply Song View (FOOLPROOF)
+------------------------------------------------------------------- */
 
-  btn.style.transition = "transform 0.18s ease, background 0.3s ease, color 0.3s ease";
-  btn.style.transform = "translateY(6px) scale(0.96)";
-  btn.style.background = "linear-gradient(to bottom right, #e0e0e0, #f5f5f5)";
-  btn.style.color = "#333";
-  btn.style.fontWeight = "600";
-
-// btn.textContent = "▲ Tap the list above";
-   btn.innerHTML = "▲ Tap the list above";
-
-
-  btn.disabled = true;
-  btn.style.opacity = "0.7";
-  btn.style.cursor = "not-allowed";
-  collapsedFavGuide = true;
-}
-
-function restoreFavoriteGuide(btn) {
-  if (!collapsedFavGuide) return;
-  btn.disabled = false;
-  btn.style.opacity = "1";
-  btn.style.cursor = "pointer";
-  btn.style.transform = "translateY(0) scale(1)";
-  btn.style.background = btn.dataset.wasBg || "";
-  btn.style.color = btn.dataset.wasColor || "";
-  btn.style.fontWeight = btn.dataset.wasWeight || "";
-
-// btn.textContent = btn.dataset.wasText || (showingFavorites ? "📚 Show All Songs" : "💛 Show Favorites");
-  btn.innerHTML = btn.dataset.wasText || (showingFavorites
-  ? "Show<br>All Songs"
-  : "💛 Show<br>Favorites");
-
-  collapsedFavGuide = false;
-}
-
-window.toggleFavoriteView = function() {
-  const btn = document.getElementById("favoriteFilterBtn");
+function applySongView(view) {
   const select = document.getElementById("songSelect");
-  if (!btn || !select) return;
+  if (!select) return;
 
-  const allOptions = [...select.options];
-  let favs = loadFavorites();
-  const firstOption = select.options[0];
+  const bookmarks = loadBookmarks();
+  const favorites = loadFavorites();
 
-  // First-time encouragement
-  if (!showingFavorites && favs.length === 0) {
-    alert("🌟 You haven't added any Favorites yet.\nI'll mark the first song for you!");
-    const firstSong = select.options.length > 1 ? select.options[1].value : null;
-    if (firstSong) {
-      favs = [firstSong];
-      saveFavorites(favs);
-      console.log("💛 Auto-favorited:", firstSong);
+  for (const opt of select.options) {
+    if (!opt.value) {
+      opt.style.display = "block"; // guide line
+      continue;
     }
-    showingFavorites = false;
+
+    if (view === "bookmark") {
+      opt.style.display = bookmarks.includes(opt.value) ? "block" : "none";
+    } else if (view === "favorite") {
+      opt.style.display = favorites.includes(opt.value) ? "block" : "none";
+    } else {
+      opt.style.display = "block"; // all
+    }
   }
 
-  btn.style.transition = "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease";
-
-  if (!showingFavorites) {
-    // Show only favorites
-    for (const opt of allOptions) {
-      if (opt.value && !favs.includes(opt.value)) opt.style.display = "none";
-    }
-    if (firstOption) firstOption.style.display = "block";
-
- // btn.textContent = "📚 Show All Songs";
-    btn.innerHTML = "Show<br>All Songs";
-
-
-    btn.style.background = "linear-gradient(to bottom right, #1565c0, #0d47a1)";
-    btn.style.color = "white";
-    btn.style.fontWeight = "bold";
-    showingFavorites = true;
-  } else {
-    // Restore all songs
-    for (const opt of allOptions) opt.style.display = "block";
-
- // btn.textContent = "💛 Show Favorites";
-    btn.innerHTML = "💛 Show<br>Favorites";
-
-
-    btn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    btn.style.color = "black";
-    btn.style.fontWeight = "bold";
-    showingFavorites = false;
-  }
-
-  // Reset dropdown
   select.selectedIndex = 0;
-  select.blur();
+}
 
-  // Collapse button temporarily
-  collapseFavoriteGuide(btn);
-  try { select.focus(); } catch {}
 
-  const restoreFavOnce = () => {
-    restoreFavoriteGuide(btn);
-    select.removeEventListener("focus", restoreFavOnce);
-    select.removeEventListener("change", restoreFavOnce);
-  };
-  select.addEventListener("focus", restoreFavOnce);
-  select.addEventListener("change", restoreFavOnce);
+/* -------------------------------------------------------------------
+   🎯 Bookmark Filter Button (SIMPLIFIED)
+------------------------------------------------------------------- */
+
+window.toggleBookmarkView = function () {
+  const btn = document.getElementById("bookmarkFilterBtn");
+
+  if (currentView === "bookmark") {
+    currentView = "all";
+    btn.innerHTML = "🎯 Show<br>Bookmarked";
+  } else {
+    currentView = "bookmark";
+    btn.innerHTML = "Show<br>All Songs";
+  }
+
+  applySongView(currentView);
 };
 
-/* -------------------------------------------------------------------
-   💛 Update Favorite Star when song changes
-------------------------------------------------------------------- */
-document.getElementById("songSelect").addEventListener("change", () => {
-  const select = document.getElementById("songSelect");
-  const favBtn = document.getElementById("favoriteBtn");
-  const favs = loadFavorites();
-  const song = select.value;
 
-  if (favs.includes(song)) {
-    favBtn.textContent = "★";
-    favBtn.style.color = "gold";
-    favBtn.style.fontSize = "1.7rem";
+/* -------------------------------------------------------------------
+   💛 Favorite Filter Button (SIMPLIFIED)
+------------------------------------------------------------------- */
+
+window.toggleFavoriteView = function () {
+  const btn = document.getElementById("favoriteFilterBtn");
+
+  if (currentView === "favorite") {
+    currentView = "all";
+    btn.innerHTML = "💛 Show<br>Favorites";
   } else {
-    favBtn.textContent = "☆";
-    favBtn.style.color = "black";
-    favBtn.style.fontSize = "1.4rem";
+    currentView = "favorite";
+    btn.innerHTML = "Show<br>All Songs";
   }
-});
 
-
-
+  applySongView(currentView);
+};
 
 
 /* -------------------------------------------------------------------
-   🪶 Smooth transitions setup + initial color for BOTH Bookmark & Favorite
+   🔄 Update Stars when Song Changes
 ------------------------------------------------------------------- */
-window.addEventListener("DOMContentLoaded", () => {
 
-  /* ⭐ Bookmark Star Button */
+document.getElementById("songSelect").addEventListener("change", () => {
+  const song = document.getElementById("songSelect").value;
+
+  // Bookmark star
   const bookmarkBtn = document.getElementById("bookmarkBtn");
+  const bookmarks = loadBookmarks();
   if (bookmarkBtn) {
-    bookmarkBtn.style.transition = "all 0.3s ease";
+    if (bookmarks.includes(song)) {
+      bookmarkBtn.textContent = "★";
+      bookmarkBtn.style.color = "gold";
+      bookmarkBtn.style.fontSize = "1.9rem";
+    } else {
+      bookmarkBtn.textContent = "☆";
+      bookmarkBtn.style.color = "black";
+      bookmarkBtn.style.fontSize = "1.6rem";
+    }
   }
 
-  /* ⭐ Favorite Star Button */
+  // Favorite star
   const favoriteBtn = document.getElementById("favoriteBtn");
+  const favs = loadFavorites();
   if (favoriteBtn) {
-    favoriteBtn.style.transition = "all 0.3s ease";
-  }
-
-  /* 🎯 Bookmark Filter Button */
-  const bookmarkFilterBtn = document.getElementById("bookmarkFilterBtn");
-  if (bookmarkFilterBtn) {
-    bookmarkFilterBtn.style.transition =
-      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-    // Initial orange style
-    // bookmarkFilterBtn.textContent = "🎯 Show Bookmarked";
-       bookmarkFilterBtn.innerHTML = "🎯 Show<br>Bookmarked";
-
-
-    bookmarkFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    bookmarkFilterBtn.style.color = "black";
-    bookmarkFilterBtn.style.fontWeight = "bold";
-    bookmarkFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-    bookmarkFilterBtn.style.border = "none";
-    bookmarkFilterBtn.style.borderRadius = "8px";
-    bookmarkFilterBtn.style.padding = "6px 12px";
-    bookmarkFilterBtn.style.cursor = "pointer";
-  }
-
-  /* 💛 Favorite Filter Button */
-  const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
-  if (favoriteFilterBtn) {
-    favoriteFilterBtn.style.transition =
-      "background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.18s ease";
-
-    // Initial orange style
- // favoriteFilterBtn.textContent = "💛 Show Favorites";
-    favoriteFilterBtn.innerHTML = "💛 Show<br>Favorites";
-
-
-    favoriteFilterBtn.style.background = "linear-gradient(to bottom right, #ffcc33, #ff9900)";
-    favoriteFilterBtn.style.color = "black";
-    favoriteFilterBtn.style.fontWeight = "bold";
-    favoriteFilterBtn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-    favoriteFilterBtn.style.border = "none";
-    favoriteFilterBtn.style.borderRadius = "8px";
-    favoriteFilterBtn.style.padding = "6px 12px";
-    favoriteFilterBtn.style.cursor = "pointer";
+    if (favs.includes(song)) {
+      favoriteBtn.textContent = "★";
+      favoriteBtn.style.color = "gold";
+      favoriteBtn.style.fontSize = "1.7rem";
+    } else {
+      favoriteBtn.textContent = "☆";
+      favoriteBtn.style.color = "black";
+      favoriteBtn.style.fontSize = "1.4rem";
+    }
   }
 });
