@@ -1580,6 +1580,31 @@ document.addEventListener("visibilitychange", () => {
 
 
 
+
+
+<script>
+/* ==========================================================
+   🔊 Ensure audio keeps playing when screen turns off
+   ========================================================== */
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    try {
+      if (window.vocalAudio && !window.vocalAudio.paused) {
+        window.vocalAudio.play();
+      }
+      if (window.accompAudio && !window.accompAudio.paused) {
+        window.accompAudio.play();
+      }
+      console.log("🔊 Audio reaffirmed in background");
+    } catch (e) {
+      // Browser may block — safe to ignore
+    }
+  }
+});
+</script>
+
+
+
 </body>
 </html>
 
