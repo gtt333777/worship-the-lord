@@ -192,7 +192,6 @@ let currentView = "all"; // "all" | "bookmark" | "favorite"
 /* -------------------------------------------------------------------
    🪟 Apply Song View (FOOLPROOF)
 ------------------------------------------------------------------- */
-
 function applySongView(view) {
   const select = document.getElementById("songSelect");
   if (!select) return;
@@ -218,29 +217,18 @@ function applySongView(view) {
   // Reset selection
   select.selectedIndex = 0;
 
-  // ⭐ IMPORTANT: gently open the dropdown for the user
-  try {
-    select.focus();
-    select.click();   // opens list on most browsers/devices
-  } catch (e) {
-    // safe fallback: do nothing
+  // 🔔 Update guide text
+  const guideOption = select.options[0];
+  if (guideOption) {
+    guideOption.textContent = "⬆ Tap here to choose a song";
   }
+
+  // ✨ Gentle highlight to guide user
+  select.style.boxShadow = "0 0 0 3px rgba(255, 193, 7, 0.6)";
+  setTimeout(() => {
+    select.style.boxShadow = "";
+  }, 1200);
 }
-
-
-
-// Update guide text to help user
-const guideOption = select.options[0];
-if (guideOption) {
-  guideOption.textContent = "⬆ Tap here to choose a song";
-}
-
-
-select.style.boxShadow = "0 0 0 3px rgba(255, 193, 7, 0.6)";
-setTimeout(() => {
-  select.style.boxShadow = "";
-}, 1200);
-
 
 
 
