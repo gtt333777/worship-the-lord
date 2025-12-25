@@ -202,7 +202,7 @@ function applySongView(view) {
 
   for (const opt of select.options) {
     if (!opt.value) {
-      opt.style.display = "block"; // guide line
+      opt.style.display = "block";
       continue;
     }
 
@@ -211,12 +211,22 @@ function applySongView(view) {
     } else if (view === "favorite") {
       opt.style.display = favorites.includes(opt.value) ? "block" : "none";
     } else {
-      opt.style.display = "block"; // all
+      opt.style.display = "block";
     }
   }
 
+  // Reset selection
   select.selectedIndex = 0;
+
+  // ⭐ IMPORTANT: gently open the dropdown for the user
+  try {
+    select.focus();
+    select.click();   // opens list on most browsers/devices
+  } catch (e) {
+    // safe fallback: do nothing
+  }
 }
+
 
 
 /* -------------------------------------------------------------------
