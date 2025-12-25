@@ -229,6 +229,21 @@ function applySongView(view) {
 
 
 
+// Update guide text to help user
+const guideOption = select.options[0];
+if (guideOption) {
+  guideOption.textContent = "⬆ Tap here to choose a song";
+}
+
+
+select.style.boxShadow = "0 0 0 3px rgba(255, 193, 7, 0.6)";
+setTimeout(() => {
+  select.style.boxShadow = "";
+}, 1200);
+
+
+
+
 /* -------------------------------------------------------------------
    🎯 Bookmark Filter Button (SIMPLIFIED)
 ------------------------------------------------------------------- */
