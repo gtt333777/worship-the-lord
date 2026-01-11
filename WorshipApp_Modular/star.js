@@ -23,6 +23,8 @@ window.star = [
 window.star = [
   "* அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
   "*** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
+  "** ஆவியானவரே ஆவியானவரே பரிசுத்த Aaviyanavare Aaviyanavare",
+  "** உந்தன் நாமம் மகிமை பெற Unthan naamam magimai pera",
   "*** உமதுமுகம் நோக்கி Umathu mugam nokki",
   "** உம்மை புகழ்ந்து பாடுவது நல்லது Ummai pukalnthu paaduvathu",
   "* உம்மை போல மாறனுமே Ummai Pola Maaranumae",
