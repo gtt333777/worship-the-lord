@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 45.638,
+      "end": 98.135,
+      "lyrics": [
+        "உம்மை போல மாறணுமே.. இயேசையா..",
+        "நான் உம்மை போல மாறணுமே... 1T",
+        "..",
+        "உம்மை போல மாறணுமே.. இயேசையா..",
+        "நான் உம்மை போல மாறணுமே... 2T",
+        "..",
+        "உம்மை போல மாற்றிடுமே இயேசையா..",
+        "எனை உம்மை போல மாற்றிடுமே... 1T",
+        "எனை உம்மை போல மாற்றிடுமே... 2T",
+        "..",
+        "உம்மை போல மாறணுமே.. இயேசையா..",
+        "நான் உம்மை போல மாறணுமே... 1T only"
+      ]
+    },
+    {
+      "start": 135.613,
+      "end": 195.423,
+      "lyrics": [
+        "பரிசுத்தம்.. பரிசுத்தம்..  தாருமே..",
+        "உம்மை போல பரிசுத்தம் தாருமே...",
+        "பரிசுத்த.. ஆவியால் நிரப்பியே..",
+        "பரிசுத்த.. பாதையில் நடத்துமே..",
+        "அன்புள்ள மனதுருக்கம் தாருமே..",
+        "உம்மை போல அன்பாக மாற்றுமே...",
+        "அன்புள்ள ஆவியால் நிரப்பியே..",
+        "அழகா..ன பாதையில் நடத்துமே..",
+        "உம்மை போல மாறணுமே.. இயேசையா..",
+        "நான் உம்மை போல மாறணுமே... 1T only"
+      ]
+    },
+    {
+      "start": 237.543,
+      "end": 339.023,
+      "lyrics": [
+        "சாந்தமும்.. தாழ்மையும்.. தாருமே..",
+        "உம்மை போல மன்..னிக்க உதவுமே...",
+        "ஞானத்தி..ன் ஆவியால் நிரப்பியே..",
+        "பரலோ..க பாதையில் நடத்துமே..",
+        "ஜெபத்தி..ன் ஆவியை தாருமே..",
+        "உம்மை போல ஆத்ம பாரம் தாருமே...",
+        "மன்றாட்டின்.. ஆவியால் நிரப்பியே..",
+        "உந்தனின்.. பாதையில் நடத்துமே..",
+        "உம்மை போல மாறணுமே.. இயேசையா..",
+        "நான் உம்மை போல மாறணுமே... 1T",
+        "..",
+        "உம்மை போல மாறணுமே.. இயேசையா..",
+        "நான் உம்மை போல மாறணுமே... 2T",
+        "..",
+        "உம்மை போல மாற்றிடுமே இயேசையா..",
+        "எனை உம்மை போல மாற்றிடுமே... 1T",
+        "எனை உம்மை போல மாற்றிடுமே... 2T",
+        "எனை உம்மை போல மாற்றிடுமே... 3T",
+        "எனை உம்மை போல மா...ற்றிடுமே... 4T"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 45.638,
+      "end": 98.135,
+      "lyrics": [
+        "Ummai Pola Maaranume",
+        "ummai pola maaranumae iyaesaiyaa",
+        "naan ummai pola maaranumae -2",
+        "ummai pola maattidumae iyaesaiyaa",
+        "enai",
+        "ummai pola maattidumae -2",
+        "1. parisuththam parisuththam parisuththam thaarumae",
+        "ummai pola parisuththam thaarumae",
+        "parisuththa aaviyaal nirappiyae",
+        "parisuththa paathaiyil nadaththumae",
+        "anpulla manathurukkam thaarumae",
+        "ummai pola anpaaka maattumae",
+        "anpulla aaviyaal nippiyae",
+        "alakaana paathaiyil nadaththumae",
+        "2. saanthamum thaalmaiyum thaarumae",
+        "ummai pola mannikka uthavumae",
+        "njaanaththin aaviyaal nirappiyae",
+        "paraloka paathaiyil nadaththumae",
+        "jepaththin aaviyai thaarumae",
+        "ummai pola aathma paaram thaarumae",
+        "mantattin aaviyaal nirappiyae",
+        "unthanin paathaiyil nadaththumae",
+        "Ummai poala maaranumae yaesaiyyaa",
+        "Ummai poala maaranumae - 2",
+        "Ummai poala maatridumae yaesaiyyaa",
+        "Ummai poala maatridumae - 2",
+        "Parisuththam parisuththam parisuththam thaarumae",
+        "Ummai poala parisuththam thaarumae",
+        "Parisuththa aaviyaal nirappiyae",
+        "Parisuththa paadhaiyil nadathumae",
+        "Anbulla manadhurukkam thaarumae",
+        "Ummai poala anbaaga maatrumae",
+        "Anbulla aaviyaal nirappiyae",
+        "Azhagaana paadhaiyil nadathumae",
+        "Saanthamum thaazhmaiyum thaatumae",
+        "Ummai poal mannikka udhavumae",
+        "Gnaanathin aaviyaal nirappiyae",
+        "Paraloaga paadhaiyil nadaththumae",
+        "Jebathin aaviyai thaarumae",
+        "Ummai poala aathma baaram thaarumae",
+        "Mandraattin aaviyaal nirappiyae",
+        "Undhanin paadhaiyil nadaththumae"
+      ]
+    }
+  ]
+}
