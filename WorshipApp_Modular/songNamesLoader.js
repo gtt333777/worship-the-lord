@@ -3,11 +3,16 @@ console.log("🎵 songNamesLoader.js: Starting (Cloudflare R2 mode + Unicode saf
 
 const R2_BASE_URL = "https://pub-c84190e6ff024cb9876d50ae10614e90.r2.dev/";
 
-// Helper – normalize all names (removes hidden Unicode/extra spaces)
+// -------------------------------------------------------------------
+// 🔤 Helper – normalize all names (Unicode + spacing safe)
+// -------------------------------------------------------------------
 function normalizeName(name) {
   return name.trim().normalize("NFC").replace(/\s+/g, " ");
 }
 
+// -------------------------------------------------------------------
+// 📂 Load Song Names
+// -------------------------------------------------------------------
 async function loadSongNames() {
   const select = document.getElementById("songSelect");
   if (!select) {
@@ -26,7 +31,7 @@ async function loadSongNames() {
       .map(l => normalizeName(l))
       .filter(l => l && !l.startsWith("//"));
 
-    // Always start with helpful first line (not a song)
+    // Guide option
     select.innerHTML = `
       <option value="" disabled selected>
         ✨ Select a song from below by pressing here, then press ▶️ Play below.
@@ -38,15 +43,25 @@ async function loadSongNames() {
 
     function getStarLevel(songName) {
       if (!window.star) return null;
+
       for (const s of window.star) {
         const trimmed = s.trim();
         let level = null;
         let clean = trimmed;
 
-        if (trimmed.startsWith("***")) { level = 3; clean = trimmed.replace(/^\*\*\*\s*/, ""); }
-        else if (trimmed.startsWith("**")) { level = 2; clean = trimmed.replace(/^\*\*\s*/, ""); }
-        else if (trimmed.startsWith("*")) { level = 1; clean = trimmed.replace(/^\*\s*/, ""); }
-        else if (trimmed.startsWith("#")) { level = 0; clean = trimmed.replace(/^#\s*/, ""); }
+        if (trimmed.startsWith("***")) {
+          level = 3;
+          clean = trimmed.replace(/^\*\*\*\s*/, "");
+        } else if (trimmed.startsWith("**")) {
+          level = 2;
+          clean = trimmed.replace(/^\*\*\s*/, "");
+        } else if (trimmed.startsWith("*")) {
+          level = 1;
+          clean = trimmed.replace(/^\*\s*/, "");
+        } else if (trimmed.startsWith("#")) {
+          level = 0;
+          clean = trimmed.replace(/^#\s*/, "");
+        }
 
         if (normalizeName(clean) === songName) return level;
       }
@@ -54,15 +69,17 @@ async function loadSongNames() {
     }
 
     let count = 0;
+
     for (const rawLine of lines) {
       const songName = normalizeName(rawLine);
       if (seen.has(songName)) continue;
       seen.add(songName);
 
       const encoded = encodeURIComponent(songName);
-      const vocalURL = `${R2_BASE_URL}${encoded}_vocal.mp3`;
-      const accURL = `${R2_BASE_URL}${encoded}_acc.mp3`;
-      window.songURLs[songName] = { vocalURL, accURL };
+      window.songURLs[songName] = {
+        vocalURL: `${R2_BASE_URL}${encoded}_vocal.mp3`,
+        accURL: `${R2_BASE_URL}${encoded}_acc.mp3`
+      };
 
       const opt = document.createElement("option");
       opt.value = songName;
@@ -83,15 +100,13 @@ async function loadSongNames() {
       } else {
         opt.textContent = songName;
       }
-      opt.style.fontWeight = "bold";
 
+      opt.style.fontWeight = "bold";
       select.appendChild(opt);
       count++;
     }
 
     console.log(`✅ ${count} unique songs loaded.`);
-    const currentSong = select.value;
-    if (currentSong) updateBookmarkButton(currentSong);
   } catch (err) {
     console.error("❌ songNamesLoader.js: Error loading song names:", err);
   }
@@ -99,13 +114,9 @@ async function loadSongNames() {
 
 window.addEventListener("DOMContentLoaded", loadSongNames);
 
-
-
-
-/* -------------------------------------------------------------------
-   ⭐ Bookmark System
-------------------------------------------------------------------- */
-
+// -------------------------------------------------------------------
+// ⭐ Bookmark System
+// -------------------------------------------------------------------
 function loadBookmarks() {
   try {
     const raw = localStorage.getItem("bookmarkedSongs");
@@ -141,11 +152,9 @@ window.toggleBookmark = function (songName) {
   saveBookmarks(bookmarks);
 };
 
-
-/* -------------------------------------------------------------------
-   💛 Favorite System
-------------------------------------------------------------------- */
-
+// -------------------------------------------------------------------
+// 💛 Favorite System
+// -------------------------------------------------------------------
 function loadFavorites() {
   try {
     const raw = localStorage.getItem("favoriteSongs");
@@ -181,17 +190,11 @@ window.toggleFavorite = function (songName) {
   saveFavorites(favs);
 };
 
+// -------------------------------------------------------------------
+// 🧭 Song List View Mode (single source of truth)
+// -------------------------------------------------------------------
+let currentView = "all"; // all | bookmark | favorite
 
-/* -------------------------------------------------------------------
-   🧭 Song List View Mode (ONE source of truth)
-------------------------------------------------------------------- */
-
-let currentView = "all"; // "all" | "bookmark" | "favorite"
-
-
-/* -------------------------------------------------------------------
-   🪟 Apply Song View (FOOLPROOF)
-------------------------------------------------------------------- */
 function applySongView(view) {
   const select = document.getElementById("songSelect");
   if (!select) return;
@@ -214,197 +217,110 @@ function applySongView(view) {
     }
   }
 
-  // Reset selection
   select.selectedIndex = 0;
 
-  // 🔔 Update guide text
-  const guideOption = select.options[0];
-  if (guideOption) {
-    guideOption.textContent = "⬆ Tap here to choose a song";
-  }
+  const guide = select.options[0];
+  if (guide) guide.textContent = "⬆ Tap here to choose a song";
 
-  // ✨ Gentle highlight to guide user
-  select.style.boxShadow = "0 0 0 3px rgba(255, 193, 7, 0.6)";
-  setTimeout(() => {
-    select.style.boxShadow = "";
-  }, 1200);
+  select.style.boxShadow = "0 0 0 3px rgba(255,193,7,0.6)";
+  setTimeout(() => (select.style.boxShadow = ""), 1200);
 }
 
-/*
-
-/* -------------------------------------------------------------------
-   🎯 Bookmark Filter Button (SIMPLIFIED)
-------------------------------------------------------------------- */
-
+// -------------------------------------------------------------------
+// 🎯 Bookmark Filter Button
+// -------------------------------------------------------------------
 window.toggleBookmarkView = function () {
   const btn = document.getElementById("bookmarkFilterBtn");
   const favBtn = document.getElementById("favoriteFilterBtn");
 
   if (currentView === "bookmark") {
-    // Turn OFF bookmark view
-    currentView = "all";
-    btn.innerHTML = "🎯 Show<br>Bookmarked";
-    btn.classList.remove("filter-active");
-  } else {
-    // Turn ON bookmark view
-    currentView = "bookmark";
-    btn.innerHTML = "✅ Bookmarked<br>Only";
-    btn.classList.add("filter-active");
-
-    // Turn off favorite view visually
-    favBtn.classList.remove("filter-active");
-    favBtn.innerHTML = "💛 Show<br>Favorites";
-  }
-
-  applySongView(currentView);
-};
-
-
-
-/* -------------------------------------------------------------------
-   💛 Favorite Filter Button (SIMPLIFIED)
-------------------------------------------------------------------- *
-
-
-window.toggleFavoriteView = function () {
-  const btn = document.getElementById("favoriteFilterBtn");
-  const bmBtn = document.getElementById("bookmarkFilterBtn");
-
-  if (currentView === "favorite") {
-    // Turn OFF favorite view
-    currentView = "all";
-    btn.innerHTML = "💛 Show<br>Favorites";
-    btn.classList.remove("filter-active");
-  } else {
-    // Turn ON favorite view
-    currentView = "favorite";
-    btn.innerHTML = "💛 Favorites<br>Only";
-    btn.classList.add("filter-active");
-
-    // Turn off bookmark view visually
-    bmBtn.classList.remove("filter-active");
-    bmBtn.innerHTML = "🎯 Show<br>Bookmarked";
-  }
-
-  applySongView(currentView);
-};
-
-*/
-
-
-/* -------------------------------------------------------------------
-   🎯 Bookmark Filter Button (with helper hint)
-------------------------------------------------------------------- */
-
-window.toggleBookmarkView = function () {
-  const btn = document.getElementById("bookmarkFilterBtn");
-  const favBtn = document.getElementById("favoriteFilterBtn");
-
-  if (currentView === "bookmark") {
-    // Turn OFF bookmark view
     currentView = "all";
     btn.innerHTML =
-      "🎯 Show<br>Bookmarked<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
+      "🎯 Show<br>Bookmarked<br><span style='font-size:0.75rem;opacity:0.75'>(Touch ⭐ above)</span>";
     btn.classList.remove("filter-active");
   } else {
-    // Turn ON bookmark view
     currentView = "bookmark";
     btn.innerHTML =
-      "✅ Bookmarked<br>Only<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
+      "✅ Bookmarked<br>Only<br><span style='font-size:0.75rem;opacity:0.75'>(Touch ⭐ above)</span>";
     btn.classList.add("filter-active");
 
-    // Turn off favorite view visually
     favBtn.classList.remove("filter-active");
     favBtn.innerHTML =
-      "💛 Show<br>Favorites<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
+      "💛 Show<br>Favorites<br><span style='font-size:0.75rem;opacity:0.75'>(Touch ⭐ above)</span>";
   }
 
   applySongView(currentView);
 };
 
-
-/* -------------------------------------------------------------------
-   💛 Favorite Filter Button (with helper hint)
-------------------------------------------------------------------- */
-
+// -------------------------------------------------------------------
+// 💛 Favorite Filter Button
+// -------------------------------------------------------------------
 window.toggleFavoriteView = function () {
   const btn = document.getElementById("favoriteFilterBtn");
   const bmBtn = document.getElementById("bookmarkFilterBtn");
 
   if (currentView === "favorite") {
-    // Turn OFF favorite view
     currentView = "all";
     btn.innerHTML =
-      "💛 Show<br>Favorites<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
+      "💛 Show<br>Favorites<br><span style='font-size:0.75rem;opacity:0.75'>(Touch ⭐ above)</span>";
     btn.classList.remove("filter-active");
   } else {
-    // Turn ON favorite view
     currentView = "favorite";
     btn.innerHTML =
-      "💛 Favorites<br>Only<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
+      "💛 Favorites<br>Only<br><span style='font-size:0.75rem;opacity:0.75'>(Touch ⭐ above)</span>";
     btn.classList.add("filter-active");
 
-    // Turn off bookmark view visually
     bmBtn.classList.remove("filter-active");
     bmBtn.innerHTML =
-      "🎯 Show<br>Bookmarked<br><span style='font-size:0.75rem; opacity:0.75'>(Touch ⭐ above)</span>";
+      "🎯 Show<br>Bookmarked<br><span style='font-size:0.75rem;opacity:0.75'>(Touch ⭐ above)</span>";
   }
 
   applySongView(currentView);
 };
 
+// -------------------------------------------------------------------
+// 🔄 Update stars on song change
+// -------------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const select = document.getElementById("songSelect");
+  if (!select) return;
 
+  select.addEventListener("change", () => {
+    const song = select.value;
 
-/* -------------------------------------------------------------------
-   🔄 Update Stars when Song Changes
-------------------------------------------------------------------- */
-
-document.getElementById("songSelect").addEventListener("change", () => {
-  const song = document.getElementById("songSelect").value;
-
-  // Bookmark star
-  const bookmarkBtn = document.getElementById("bookmarkBtn");
-  const bookmarks = loadBookmarks();
-  if (bookmarkBtn) {
-    if (bookmarks.includes(song)) {
-      bookmarkBtn.textContent = "★";
-      bookmarkBtn.style.color = "gold";
-      bookmarkBtn.style.fontSize = "1.9rem";
-    } else {
-      bookmarkBtn.textContent = "☆";
-      bookmarkBtn.style.color = "black";
-      bookmarkBtn.style.fontSize = "1.6rem";
+    const bookmarkBtn = document.getElementById("bookmarkBtn");
+    if (bookmarkBtn) {
+      if (loadBookmarks().includes(song)) {
+        bookmarkBtn.textContent = "★";
+        bookmarkBtn.style.color = "gold";
+        bookmarkBtn.style.fontSize = "1.9rem";
+      } else {
+        bookmarkBtn.textContent = "☆";
+        bookmarkBtn.style.color = "black";
+        bookmarkBtn.style.fontSize = "1.6rem";
+      }
     }
-  }
 
-  // Favorite star
-  const favoriteBtn = document.getElementById("favoriteBtn");
-  const favs = loadFavorites();
-  if (favoriteBtn) {
-    if (favs.includes(song)) {
-      favoriteBtn.textContent = "★";
-      favoriteBtn.style.color = "gold";
-      favoriteBtn.style.fontSize = "1.7rem";
-    } else {
-      favoriteBtn.textContent = "☆";
-      favoriteBtn.style.color = "black";
-      favoriteBtn.style.fontSize = "1.4rem";
+    const favoriteBtn = document.getElementById("favoriteBtn");
+    if (favoriteBtn) {
+      if (loadFavorites().includes(song)) {
+        favoriteBtn.textContent = "★";
+        favoriteBtn.style.color = "gold";
+        favoriteBtn.style.fontSize = "1.7rem";
+      } else {
+        favoriteBtn.textContent = "☆";
+        favoriteBtn.style.color = "black";
+        favoriteBtn.style.fontSize = "1.4rem";
+      }
     }
-  }
+  });
 });
 
-
-
-
-
-
-/* ==========================================================
-   🔁 Auto Play (Resume from where left) — SEGMENT SAFE
-   ========================================================== */
-
+// -------------------------------------------------------------------
+// 🔁 Auto Play (segment-safe)
+// -------------------------------------------------------------------
 window.autoPlayEnabled = false;
 
-// Toggle Auto Play button
 window.toggleAutoPlay = function () {
   const btn = document.getElementById("autoPlayBtn");
   if (!btn) return;
@@ -414,47 +330,37 @@ window.toggleAutoPlay = function () {
   if (window.autoPlayEnabled) {
     btn.innerHTML = "🔁 Auto Play<br>(On)";
     btn.style.background = "linear-gradient(to bottom right, #66bb6a, #2e7d32)";
-    console.log("🔁 Auto Play ENABLED");
   } else {
     btn.innerHTML = "🔁 Auto Play";
     btn.style.background = "linear-gradient(to bottom right, #81c784, #4caf50)";
-    console.log("⏹ Auto Play DISABLED");
   }
 };
 
-// Attach click handler once DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("autoPlayBtn");
   if (btn) btn.onclick = window.toggleAutoPlay;
 });
 
-// Helper: get visible song list (respects All / Bookmark / Favorite)
 function getVisibleSongList() {
   const select = document.getElementById("songSelect");
   if (!select) return [];
 
   return [...select.options]
-    .filter(opt => opt.value && opt.style.display !== "none")
-    .map(opt => opt.value);
+    .filter(o => o.value && o.style.display !== "none")
+    .map(o => o.value);
 }
 
-// ⭐ CORE: listen to REAL song completion (from loopPlayer.js)
 window.addEventListener("songFinished", () => {
   if (!window.autoPlayEnabled) return;
 
   const select = document.getElementById("songSelect");
   if (!select) return;
 
-  const visibleSongs = getVisibleSongList();
-  const currentSong = select.value;
-  const idx = visibleSongs.indexOf(currentSong);
+  const list = getVisibleSongList();
+  const idx = list.indexOf(select.value);
 
-  // End of list → turn off Auto Play gracefully
-  if (idx === -1 || idx + 1 >= visibleSongs.length) {
-    console.log("🏁 Auto Play reached end of list");
-
+  if (idx === -1 || idx + 1 >= list.length) {
     window.autoPlayEnabled = false;
-
     const btn = document.getElementById("autoPlayBtn");
     if (btn) {
       btn.innerHTML = "🔁 Auto Play";
@@ -463,15 +369,44 @@ window.addEventListener("songFinished", () => {
     return;
   }
 
-  // ▶ Play next song
-  const nextSong = visibleSongs[idx + 1];
-  console.log("▶ Auto Play next song:", nextSong);
-
-  select.value = nextSong;
+  select.value = list[idx + 1];
   select.dispatchEvent(new Event("change"));
 
-  // Small delay, then press Play
   setTimeout(() => {
     document.getElementById("playBtn")?.click();
   }, 400);
 });
+
+
+
+/* -------------------------------------------------------------------
+   🔁 Force FULL PAGE REFRESH when Song Dropdown is Touched
+   (Prevents Prelude Playing Instead of Segments)
+------------------------------------------------------------------- */
+
+(function forceFullReloadOnDropdownTouch() {
+  let hasReloaded = false;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("songSelect");
+    if (!select) return;
+
+    function reloadPage() {
+      if (hasReloaded) return;
+      hasReloaded = true;
+
+      console.log("🔄 Dropdown touched → forcing full page reload to reset segment state");
+
+      // Small delay allows touch/click to register cleanly
+      setTimeout(() => {
+        location.reload();
+      }, 50);
+    }
+
+    // Mobile + desktop
+    select.addEventListener("pointerdown", reloadPage);
+
+    // Keyboard / accessibility
+    select.addEventListener("focus", reloadPage);
+  });
+})();
