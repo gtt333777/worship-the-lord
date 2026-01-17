@@ -5,8 +5,8 @@
   },
   "tamilSegments": [
     {
-      "start": 12.52,
-      "end": 54.639,
+      "start": 12.44,
+      "end": 54.29,
       "lyrics": [
         "யோசனையில் பெரியவரே",
         "ஆராதனை ஆராதனை",
@@ -17,8 +17,8 @@
       ]
     },
     {
-      "start": 54.64,
-      "end": 97.391,
+      "start": 54.897,
+      "end": 97.067,
       "lyrics": [
         "கண்மணிபோல் காப்பவரே",
         "ஆராதனை ஆராதனை",
@@ -29,8 +29,8 @@
       ]
     },
     {
-      "start": 97.391,
-      "end": 139.991,
+      "start": 97.494,
+      "end": 139.669,
       "lyrics": [
         "சிலுவையினால் மீட்டவரே",
         "ஆராதனை ஆராதனை",
@@ -41,8 +41,8 @@
       ]
     },
     {
-      "start": 139.991,
-      "end": 182.651,
+      "start": 140.004,
+      "end": 182.178,
       "lyrics": [
         "வழி நடத்தும் விண்மீனே",
         "ஆராதனை ஆராதனை",
@@ -55,8 +55,8 @@
   ],
   "englishSegments": [
     {
-      "start": 12.52,
-      "end": 54.639,
+      "start": 12.44,
+      "end": 54.29,
       "lyrics": [
         "yosanaiyil periyavarae",
         "aaraathanai aaraathanai",
@@ -67,8 +67,8 @@
       ]
     },
     {
-      "start": 54.64,
-      "end": 97.391,
+      "start": 54.897,
+      "end": 97.067,
       "lyrics": [
         "kannmannipol kaappavarae",
         "aaraathanai aaraathanai",
@@ -77,8 +77,8 @@
       ]
     },
     {
-      "start": 97.391,
-      "end": 139.991,
+      "start": 97.494,
+      "end": 139.669,
       "lyrics": [
         "siluvaiyinaal meettavarae",
         "aaraathanai aaraathanai",
@@ -87,8 +87,8 @@
       ]
     },
     {
-      "start": 139.991,
-      "end": 182.651,
+      "start": 140.004,
+      "end": 182.178,
       "lyrics": [
         "vali nadaththum vinnmeenae",
         "aaraathanai aaraathanai",
