@@ -378,35 +378,30 @@ window.addEventListener("songFinished", () => {
 });
 
 
-
 /* -------------------------------------------------------------------
-   🔁 Force FULL PAGE REFRESH when Song Dropdown is Touched
-   (Prevents Prelude Playing Instead of Segments)
+   🔁 Force ONE-TIME FULL PAGE RELOAD on FIRST Dropdown Interaction
+   (Mobile-safe, prevents prelude bug)
 ------------------------------------------------------------------- */
 
-(function forceFullReloadOnDropdownTouch() {
-  let hasReloaded = false;
-
+(function forceOneTimeReloadOnDropdownClick() {
   document.addEventListener("DOMContentLoaded", () => {
     const select = document.getElementById("songSelect");
     if (!select) return;
 
-    function reloadPage() {
-      if (hasReloaded) return;
-      hasReloaded = true;
+    // Prevent infinite reload loop using sessionStorage
+    const hasReloaded = sessionStorage.getItem("songDropdownReloaded");
 
-      console.log("🔄 Dropdown touched → forcing full page reload to reset segment state");
+    if (!hasReloaded) {
+      select.addEventListener("click", () => {
+        console.log("🔄 First dropdown click → forcing full reload");
 
-      // Small delay allows touch/click to register cleanly
-      setTimeout(() => {
-        location.reload();
-      }, 50);
+        sessionStorage.setItem("songDropdownReloaded", "yes");
+
+        // Let click finish, then reload
+        setTimeout(() => {
+          location.reload();
+        }, 0);
+      });
     }
-
-    // Mobile + desktop
-    select.addEventListener("pointerdown", reloadPage);
-
-    // Keyboard / accessibility
-    select.addEventListener("focus", reloadPage);
   });
 })();
