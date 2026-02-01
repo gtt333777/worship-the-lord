@@ -33,6 +33,7 @@ window.star = [
   "* உன்னதத்தின் ஆவியை Unnathaththin aaviyai",
   "* உன்னதமானவரின் உயர் மறைவில் Unnathamanavarin Uyar",
   "# உன்னதரே என் நேசரே Unnathare en nesarae",
+  "*** எக்காள சத்தம் வானில் தொனித்திடவே Ekkala Satham Vaanil",
   "** எந்தன் இயேசு வல்லவர் Enthan Yesu vallavar",
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** ஒரு நாளும் என்னை மறவா Oru naalum ennai marava",
