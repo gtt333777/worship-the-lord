@@ -25,6 +25,7 @@ window.star = [
   "*** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "*** அன்பு கூறுவேன் இன்னும் அதிகமாய் Anbu Kuruven Innum",
   "** ஆவியானவரே ஆவியானவரே பரிசுத்த Aaviyanavare Aaviyanavare",
+  "** இயேசுவைப் போல் அழகுள்ளோர் Yesuvai Pol Azhagullore",
   "** உந்தன் நாமம் மகிமை பெற Unthan naamam magimai pera",
   "*** உமதுமுகம் நோக்கி Umathu mugam nokki",
   "*** உம்முன்னே எனக்கு நிறைவான Ummunnae enakku niraivaana",
