@@ -45,6 +45,7 @@ window.star = [
   "*** நன்றி பலி, நன்றி பலி Nandri bali nandri bali",
   "** நான் பாடும் போது என் உதடு Naan Padumbothu",
   "** பாடுவேன் மகிழ்வேன் கொண்டாடுவேன் Paaduven Magizhven",
+  "*** மகிழ்வோம் மகிழ்வோம் Magizhvom Magizhvom",
   "*** மறவாமல் நினைத்தீரையா Maravaamal Ninaitheeraiya",
   "*  மாறவே ஆசைப்படுகிறேன் Marave asaipadugiren",
   "** முழு இதயத்தோடு உம்மை துதிப்பேன் Muzhu Idhayathodu",
