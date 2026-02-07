@@ -41,7 +41,7 @@ window.star = [
   "*** காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka",
    "*** சிலுவையில் நிழலில் அனுதினம் அடியான் Siluvaiyin Nizhalil",
   "* தளர்ந்து போன கைகளை திடப்படுத்துங்கள் Thalarnthu pona kaikalai",
-  "** திருப்பாதம் நம்பி வந்தேன் Thirupatham Nambi Vanthen",
+  "** திருப்பாதம் நம்பி வந்தேன் Thirupatham nambi vanthen",
   "*** தேவனுக்கே மகிமை Devanuke Magimai",
   "*** நன்றி பலி, நன்றி பலி Nandri bali nandri bali",
   "** நான் பாடும் போது என் உதடு Naan Padumbothu",
