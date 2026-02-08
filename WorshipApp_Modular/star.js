@@ -39,6 +39,7 @@ window.star = [
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** ஒரு நாளும் என்னை மறவா Oru naalum ennai marava",
   "*** காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka",
+  "** சங்கீதம் நான் பாட, குரல் தந்த இயேசுவுக்கு, Sangeetham Naan Paada",
    "*** சிலுவையில் நிழலில் அனுதினம் அடியான் Siluvaiyin Nizhalil",
   "* தளர்ந்து போன கைகளை திடப்படுத்துங்கள் Thalarnthu pona kaikalai",
   "** திருப்பாதம் நம்பி வந்தேன் Thirupatham nambi vanthen",
