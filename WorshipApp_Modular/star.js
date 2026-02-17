@@ -50,6 +50,7 @@ window.star = [
   "*** மகிழ்வோம் மகிழ்வோம் Magizhvom Magizhvom",
   "*** மறவாமல் நினைத்தீரையா Maravaamal Ninaitheeraiya",
   "*  மாறவே ஆசைப்படுகிறேன் Marave asaipadugiren",
+  "** மாறிடா எம் மா நேசரே Maaridaa em maa naesarae",
   "** முழு இதயத்தோடு உம்மை துதிப்பேன் Muzhu Idhayathodu",
   "* யோசனையில் பெரியவரே Yosanaiyil Periyavare",
   "* ராஜா உம் மாளிகையில் Raja um maligaiyil",
