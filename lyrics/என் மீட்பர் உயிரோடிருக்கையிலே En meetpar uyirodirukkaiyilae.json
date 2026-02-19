@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 34.416,
+      "end": 54.665,
+      "lyrics": [
+        "என் மீட்பர் உயிரோடிருக்கையிலே.. எனக்",
+        "கென்ன குறைவுண்டு நீ.. சொல் மனமே 1T",
+        "என் மீட்பர் உயிரோடிருக்கையிலே.. எனக்",
+        "கென்ன குறைவுண்டு நீ.. சொல் மனமே 2T"
+      ]
+    },
+    {
+      "start": 85.197,
+      "end": 130.747,
+      "lyrics": [
+        "என்னுயிர் மீ..ட்கவே தன்னுயிர் கொடுத்தோ..ர்",
+        "என்னோடிருக்கவே எழுந்திருந்தோ..ர் 1T",
+        "...",
+        "என்னுயிர் மீ..ட்கவே தன்னுயிர் கொடுத்தோ..ர்",
+        "என்னோடிருக்கவே எழுந்திருந்தோ..ர் 2T",
+        "விண்ணுல குயர்ந்தோ..ர்",
+        "உன்னதஞ் சிறந்தோர்",
+        "மித்திரனே சுக..பத்திரமருளும்",
+        "என் மீட்பர் உயிரோடிருக்கையிலே.. எனக்",
+        "கென்ன குறைவுண்டு நீ.. சொல் மனமே 1T only"
+      ]
+    },
+    {
+      "start": 161.092,
+      "end": 206.551,
+      "lyrics": [
+        "பாவமோ, மரணமோ, நரகமோ, பேயோ",
+        "பயந்து நடுங்..கிட ஜெயம் சிறந்தோ..ர் 1T",
+        "...",
+        "பாவமோ, மரணமோ, நரகமோ, பேயோ",
+        "பயந்து நடுங்..கிட ஜெயம் சிறந்தோ..ர் 2T",
+        "சாபமே தீர்த்தோ..ர் சற்குருநா..தன்",
+        "சஞ்சலமினியே..ன் நெஞ்சமே மகிழாய்",
+        "என் மீட்பர் உயிரோடிருக்கையிலே.. எனக்",
+        "கென்ன குறைவுண்டு நீ.. சொல் மனமே 1T only"
+      ]
+    },
+    {
+      "start": 236.951,
+      "end": 293.053,
+      "lyrics": [
+        "கவலைகள் தீ..ர்ப்பார் க()ண்ணீர் துடைப்பார்",
+        "கடைசி மட்டும் கைவிடா..திருப்பா..ர் 1T",
+        "...",
+        "கவலைகள் தீ..ர்ப்பார் க()ண்ணீர் துடைப்பார்",
+        "கடைசி மட்டும் கைவிடா..திருப்பா..ர் 1T",
+        "பாவமன்னிப்பளிப்பா..ர் பாக்கியங்கொடுப்பார்",
+        "பரமபதவியினுள் என்றனை எடுப்பார்",
+        "என் மீட்பர் உயிரோடிருக்கையிலே.. எனக்",
+        "கென்ன குறைவுண்டு நீ.. சொல் மனமே 1T",
+        "என் மீட்பர் உயிரோடிருக்கையிலே.. எனக்",
+        "கென்ன குறைவுண்டு நீ.. சொல் மனமே 2T"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 34.416,
+      "end": 54.665,
+      "lyrics": [
+        "En meetpar uyirodirukkaiyilae enak",
+        "kenna kuraivunndu nee sol manamae",
+        "ennuyir meetkavae thannuyir koduththor",
+        "ennotirukkavae elunthirunthor",
+        "vinnnula kuyarnthor",
+        "unnathanj siranthor",
+        "miththiranae sukapaththiramarulum",
+        "paavamo, maranamo, narakamo, paeyo",
+        "payanthu nadungida jeyam siranthor",
+        "saapamae theerththor sarkurunaathan",
+        "sanjalaminiyaen nenjamae makilvaay",
+        "aasi seythiduvaar arulmika alippaar",
+        "amparan thanilenakkaay jepippaar",
+        "mosamae maraippaar munnamae nadappaar",
+        "motchavali sathyam vaasal uyirenum",
+        "kavalaikal theerppaar kannnneer thutaippaar",
+        "kataisi mattum kaividaathiruppaar",
+        "paavamannippalippaar paakkiyangaொduppaar",
+        "paramapathaviyinul entanai eduppaar",
+        "ஆசி செய்திடுவார் அருள்மிக அளிப்பார்",
+        "அம்பரந் தனிலெனக்காய் ஜெபிப்பார்",
+        "மோசமே மறைப்பார் முன்னமே நடப்பார்",
+        "மோட்சவழி சத்யம் வாசல் உயிரெனும்"
+      ]
+    }
+  ]
+}
