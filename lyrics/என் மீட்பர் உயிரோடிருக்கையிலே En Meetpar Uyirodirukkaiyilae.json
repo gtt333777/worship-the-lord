@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 39.322,
+      "end": 96.319,
+      "lyrics": [
+        "கவலைகள் தீ..ர்ப்பார் கண்ணீர் துடைப்பா..ர்",
+        "கடைசி மட்டும், கைவிடா..திருப்பா..ர் 1T",
+        "...",
+        "கவலைகள் தீ..ர்ப்பார் கண்ணீர் துடைப்பா..ர்",
+        "கடைசி மட்டும், கைவிடா..திருப்பா..ர் 2T",
+        "பாவமன்னிப்பளிப்பா..ர் பாக்கிய()ங்கொடுப்பா..ர்",
+        "பரமபதவியினுள் என்றனை எடுப்பா..ர் 1T only",
+        "என் மீ..ட்பர் உயிரோ..டிருக்கையிலே.. எனக்",
+        "கென்ன.. குறைவுண்டு நீ.. சொல் மனமே.. 1T only"
+      ]
+    },
+    {
+      "start": 129.274,
+      "end": 168.411,
+      "lyrics": [
+        "என்னுயிர் மீ..ட்கவே தன்னுயிர் கொடுத்தோ..ர்",
+        "என்னோ..டிருக்கவே எழுந்திருந்தோ..ர்",
+        "விண்ணுல குயர்ந்தோ..ர்",
+        "உன்னதஞ் சிறந்தோ..ர்",
+        "மித்திரனே சுகபத்திரமருளும் 1T only",
+        "என் மீ..ட்பர் உயிரோ..டிருக்கையிலே.. எனக்",
+        "கென்ன.. குறைவுண்டு நீ.. சொல் மனமே.. 1T only"
+      ]
+    },
+    {
+      "start": 207.707,
+      "end": 246.331,
+      "lyrics": [
+        "பாபமோ, மரணமோ, நரகமோ, பே..யோ..",
+        "பயந்து நடுங்..கிட ஜெயம் சிறந்தோ..ர்",
+        "சாபமே தீ..ர்த்தோ..ர் சற்குருநா..தன்",
+        "சஞ்சலமினியே..ன் நெஞ்சமே மகிழா..ய் 1T only",
+        "என் மீ..ட்பர் உயிரோ..டிருக்கையிலே.. எனக்",
+        "கென்ன.. குறைவுண்டு நீ.. சொல் மனமே.. 1T only"
+      ]
+    },
+    {
+      "start": 278.194,
+      "end": 317.015,
+      "lyrics": [
+        "போனது போ..கட்டும், புவி வசை பே..சட்டும்,",
+        "பொல்லான் அம்புகளெய்திடட்டும்,",
+        "ஆனது ஆ..கட்டும், அருள் மழை பெ..ய்திடும்,",
+        "அன்பு மிகும் பே..ரின்ப மெனக் கருள் 1T only",
+        "என் மீ..ட்பர் உயிரோ..டிருக்கையிலே.. எனக்",
+        "கென்ன.. குறைவுண்டு நீ.. சொல் மனமே.. 1T only"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 39.322,
+      "end": 96.319,
+      "lyrics": [
+        "En Meetpar Uyirodirukkaiyilae enak",
+        "kenna kuraivunndu nee sol manamae",
+        "ennuyir meetkavae thannuyir koduththor",
+        "ennotirukkavae elunthirunthor",
+        "vinnnula kuyarnthor",
+        "unnathanj siranthor",
+        "miththiranae sukapaththiramarulum",
+        "paavamo, maranamo, narakamo, paeyo",
+        "payanthu nadungida jeyam siranthor",
+        "saapamae theerththor sarkurunaathan",
+        "sanjalaminiyaen nenjamae makilvaay",
+        "aasi seythiduvaar arulmika alippaar",
+        "amparan thanilenakkaay jepippaar",
+        "mosamae maraippaar munnamae nadappaar",
+        "motchavali sathyam vaasal uyirenum",
+        "kavalaikal theerppaar kannnneer thutaippaar",
+        "kataisi mattum kaividaathiruppaar",
+        "paavamannippalippaar paakkiyangaொduppaar",
+        "paramapathaviyinul entanai eduppaar",
+        "ஆசி செய்திடுவார் அருள்மிக அளிப்பார்",
+        "அம்பரந் தனிலெனக்காய் ஜெபிப்பார்",
+        "மோசமே மறைப்பார் முன்னமே நடப்பார்",
+        "மோட்சவழி சத்யம் வாசல் உயிரெனும்"
+      ]
+    }
+  ]
+}
