@@ -65,14 +65,28 @@ window.shareThisSong = async function () {
     const shareURL =
         baseURL + "?song=" + encodeURIComponent(songName);
 
+
+
     // ⭐ SEO-optimized share message
     const shareText =
-        `🎵 ${songName} – Tamil Christian Karaoke Song
+        `🙏 Worship Together
 
-Sing and worship Jesus using the Worship The Lord app.
+🎵 ${songName}
 
-Open this song directly here:
+Sing and worship Jesus using this Tamil Christian karaoke song in the Worship The Lord app.
+
+Perfect for personal prayer, family worship, and church fellowship.
+
+Open directly here:
 ${shareURL}`;
+
+
+
+
+
+
+
+
 
     const shareData = {
         title: songName + " Karaoke | Worship The Lord",
