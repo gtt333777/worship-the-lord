@@ -869,342 +869,346 @@ button {
 
 
     <!-- ⭐ Worship Practice Signal (SEO + Google Understanding) -->
-    <section id="worshipPracticeInfo"
-             style="max-width:700px;margin:40px auto 20px auto;
+
+    <details class="seoBlock" open>
+        <summary>📖 About Worship The Lord</summary>
+
+        <section id="worshipPracticeInfo"
+                 style="max-width:700px;margin:60px auto 20px auto;
              text-align:left;line-height:1.7;color:#333;">
 
-        <h2>Christian Worship Practice Karaoke App</h2>
+            <h2>Christian Worship Practice Karaoke App</h2>
 
-        <p>
-            <strong>Worship The Lord</strong> is a Tamil Christian worship
-            karaoke application designed for personal prayer,
-            church worship practice, and fellowship singing.
-            Unlike video-based karaoke, this app provides
-            synchronized lyrics, segment practice, and tempo control
-            to help believers worship Jesus meaningfully.
-        </p>
+            <p>
+                <strong>Worship The Lord</strong> is a Tamil Christian worship
+                karaoke application designed for personal prayer,
+                church worship practice, and fellowship singing.
+                Unlike video-based karaoke, this app provides
+                synchronized lyrics, segment practice, and tempo control
+                to help believers worship Jesus meaningfully.
+            </p>
 
-        <p>
-            Use this worship app to practice Christian songs,
-            lead praise sessions, rehearse choir worship,
-            or sing devotional songs anytime — even offline
-            after songs are cached.
-        </p>
+            <p>
+                Use this worship app to practice Christian songs,
+                lead praise sessions, rehearse choir worship,
+                or sing devotional songs anytime — even offline
+                after songs are cached.
+            </p>
 
-    </section>
-
-
-
-    <!-- ⭐ SEO Song List (Google can read this) -->
-    <section id="seoSongList"
-             style="max-width:700px;margin:20px auto;text-align:left;">
-
-        <h2>Popular Tamil Christian Karaoke Songs</h2>
-
-        <ul id="seoSongsUL">
-            <!-- Songs will auto appear here -->
-        </ul>
-
-    </section>
+        </section>
+    </details>
 
 
+        <!-- ⭐ SEO Song List (Google can read this) -->
+        <section id="seoSongList"
+                 style="max-width:700px;margin:20px auto;text-align:left;">
 
-    <!-- ⭐ Dynamic Song Description (SEO Boost) -->
-    <div id="songDescription"
-         style="max-width:700px;margin:25px auto;
+            <h2>Popular Tamil Christian Karaoke Songs</h2>
+
+            <ul id="seoSongsUL">
+                <!-- Songs will auto appear here -->
+            </ul>
+
+        </section>
+
+
+
+        <!-- ⭐ Dynamic Song Description (SEO Boost) -->
+        <div id="songDescription"
+             style="max-width:700px;margin:25px auto;
             font-size:1rem;line-height:1.6;
             text-align:left;color:#333;">
-    </div>
+        </div>
 
 
 
 
 
-    <style>
-        /* Common loader container */
-        #loadingOverlay {
-            position: fixed;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            font-family: system-ui, sans-serif;
-        }
-
-            /* Fullscreen mode: for shared-link URLs */
-            #loadingOverlay.loader-full {
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: white;
-            }
-
-            /* Mini mode: small card for normal Play */
-            #loadingOverlay.loader-mini {
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                padding: 18px 26px;
-                background: #ffffff;
-                border-radius: 14px;
-                box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-            }
-
-        /* Spinner */
-        .loader-spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #e0e0e0;
-            border-top-color: #1e88e5;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-
-        /* Text styles */
-        .loader-title {
-            margin-top: 16px;
-            color: #333;
-            font-size: 1.1rem;
-        }
-
-        .loader-percent {
-            margin-top: 4px;
-            color: #555;
-            font-size: 1.0rem;
-        }
-
-        /* Spinner animation */
-        @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-
-
-        /* ⭐ Ultra-compact single-row volume controls */
-        .volRow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin: 6px 0;
-            white-space: nowrap;
-        }
-
-            .volRow label {
-                font-size: 1rem;
-                width: 55px;
-                text-align: right;
-            }
-
-            .volRow input[type="range"] {
-                width: 110px; /* Adjust slider size here */
-            }
-
-            .volRow span {
-                width: 40px;
-                text-align: center;
-                font-weight: bold;
-            }
-
-        .volBtn {
-            padding: 4px 10px;
-            font-size: 1.1rem;
-            border-radius: 6px;
-        }
-
-        .muteBtnSmall {
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        /* Keep your large Vocal mute button style */
-        .muteBtnBig {
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-        }
-
-
-
-        /* =========================================================
-        🎯 Song Filter Buttons (Bookmark / Favorite)
-        ========================================================= */
-
-        /* Base style for filter buttons */
-        #bookmarkFilterBtn,
-        #favoriteFilterBtn {
-            min-width: 120px;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            line-height: 1.1;
-            white-space: pre-line;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.18);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-            /* Hover effect */
-            #bookmarkFilterBtn:hover,
-            #favoriteFilterBtn:hover {
-                transform: scale(1.05);
-                box-shadow: 0 5px 10px rgba(0,0,0,0.22);
-            }
-
-        /* 🎯 Bookmark button – ORANGE */
-        #bookmarkFilterBtn {
-            background: linear-gradient(to bottom right, #ffcc33, #ff9900);
-            color: black;
-        }
-
-        /* 💛 Favorite button – PINK / GOLD */
-        #favoriteFilterBtn {
-            background: linear-gradient(to bottom right, #ffb6c1, #ff69b4);
-            color: #4a0033;
-        }
-
-        /* Active mode style (applied by JS via innerHTML meaning) */
-        .filter-active {
-            background: linear-gradient(to bottom right, #1565c0, #0d47a1) !important;
-            color: white !important;
-        }
-    </style>
-
-    <script>
-        /**
-         * showLoadingOverlay
-         *  - msg: text to show
-         *  - fullScreen: true  → fullscreen + percentage (for shared links)
-         *                 false → small card, no percentage (for normal Play)
-         */
-        window.showLoadingOverlay = function (
-            msg = "Preparing… Please wait a few seconds…",
-            fullScreen = false
-        ) {
-            const overlay = document.getElementById("loadingOverlay");
-            const title = document.getElementById("loadingTitle");
-            const percent = document.getElementById("loadingPercent");
-
-            if (!overlay) return;
-
-            // Decide mode
-            overlay.classList.toggle("loader-full", fullScreen);
-            overlay.classList.toggle("loader-mini", !fullScreen);
-
-            overlay.style.display = "flex";
-            document.body.style.pointerEvents = "none";
-
-            if (title) title.textContent = msg;
-
-            // In mini mode, hide the percentage line
-            if (percent) {
-                if (fullScreen) {
-                    percent.style.display = "";
-                    percent.textContent = "0%";   // your songLoader can still update this
-                } else {
-                    percent.style.display = "none";
+        <style>
+                /* Common loader container */
+                #loadingOverlay {
+                    position: fixed;
+                    display: none;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 99999;
+                    font-family: system-ui, sans-serif;
                 }
-            }
-        };
 
-        window.hideLoadingOverlay = function () {
-            const overlay = document.getElementById("loadingOverlay");
-            if (!overlay) return;
-
-            overlay.style.display = "none";
-            document.body.style.pointerEvents = "auto";
-        };
-    </script>
-
-
-
-
-
-
-
-
-
-    <!-- ✅ Modular Scripts (untouched) -->
-    <script src="WorshipApp_Modular/star.js" defer></script>
-    <script src="WorshipApp_Modular/songNamesLoader.js" defer></script>
-    <script src="WorshipApp_Modular/perSongVolumeMemory.js" defer></script>
-    <script src="WorshipApp_Modular/muteControl.js" defer></script>
-    <script src="WorshipApp_Modular/audioControl.js" defer></script>
-    <script src="WorshipApp_Modular/songLoader.js" defer></script>
-    <script src="WorshipApp_Modular/skipControl.js" defer></script>
-    <script src="WorshipApp_Modular/cache_management.js" defer></script>
-    <script src="WorshipApp_Modular/lyricsViewer.js" defer></script>
-    <script src="WorshipApp_Modular/lyricsViewer_charMode.js" defer></script>
-    <script src="WorshipApp_Modular/loopPlayer.js" defer></script>
-    <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
-    <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
-    <script src="WorshipApp_Modular/songSEO.js?v=2" defer></script>
-
-
-
-    <!-- ✅ Service Worker -->
-    <script defer>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js').catch(console.error);
-        }
-
-
-        /*
-        window.addEventListener('beforeinstallprompt', (e) => {
-          e.preventDefault();
-          const installBar = document.getElementById('installPrompt');
-          const installButton = document.getElementById('installButton');
-          let deferredPrompt = e;
-
-          installBar.style.display = 'block';
-          installButton.onclick = async () => {
-            installBar.style.display = 'none';
-            deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
-            deferredPrompt = null;
-          };
-        });
-        */
-
-    </script>
-
-    <!-- ✅ Initial Loader -->
-    <script defer>
-        document.addEventListener("DOMContentLoaded", async () => {
-            if (typeof loadSongNames === "function") {
-                await loadSongNames();
-            } else if (typeof loadSongList === "function") {
-                await loadSongList();
-            } else {
-                console.error("❌ Neither loadSongNames() nor loadSongList() found.");
-            }
-
-            const select = document.getElementById("songSelect");
-            if (select) {
-                select.addEventListener("change", () => {
-                    const song = select.value;
-                    if (song && typeof loadSelectedSong === "function") {
-                        loadSelectedSong(song);
+                    /* Fullscreen mode: for shared-link URLs */
+                    #loadingOverlay.loader-full {
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: white;
                     }
-                });
-            }
-        });
-    </script>
 
-    <!-- ✅ App version label -->
-    <div id="appVersionLabel" style="
+                    /* Mini mode: small card for normal Play */
+                    #loadingOverlay.loader-mini {
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        padding: 18px 26px;
+                        background: #ffffff;
+                        border-radius: 14px;
+                        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+                    }
+
+                /* Spinner */
+                .loader-spinner {
+                    width: 60px;
+                    height: 60px;
+                    border: 6px solid #e0e0e0;
+                    border-top-color: #1e88e5;
+                    border-radius: 50%;
+                    animation: spin 0.9s linear infinite;
+                }
+
+                /* Text styles */
+                .loader-title {
+                    margin-top: 16px;
+                    color: #333;
+                    font-size: 1.1rem;
+                }
+
+                .loader-percent {
+                    margin-top: 4px;
+                    color: #555;
+                    font-size: 1.0rem;
+                }
+
+                /* Spinner animation */
+                @keyframes spin {
+                    from {
+                        transform: rotate(0deg);
+                    }
+
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+
+
+
+                /* ⭐ Ultra-compact single-row volume controls */
+                .volRow {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    margin: 6px 0;
+                    white-space: nowrap;
+                }
+
+                    .volRow label {
+                        font-size: 1rem;
+                        width: 55px;
+                        text-align: right;
+                    }
+
+                    .volRow input[type="range"] {
+                        width: 110px; /* Adjust slider size here */
+                    }
+
+                    .volRow span {
+                        width: 40px;
+                        text-align: center;
+                        font-weight: bold;
+                    }
+
+                .volBtn {
+                    padding: 4px 10px;
+                    font-size: 1.1rem;
+                    border-radius: 6px;
+                }
+
+                .muteBtnSmall {
+                    padding: 4px 10px;
+                    border-radius: 8px;
+                    font-size: 0.9rem;
+                }
+
+                /* Keep your large Vocal mute button style */
+                .muteBtnBig {
+                    padding: 8px 18px;
+                    border-radius: 10px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                }
+
+
+
+                /* =========================================================
+            🎯 Song Filter Buttons (Bookmark / Favorite)
+            ========================================================= */
+
+                /* Base style for filter buttons */
+                #bookmarkFilterBtn,
+                #favoriteFilterBtn {
+                    min-width: 120px;
+                    padding: 8px 12px;
+                    font-size: 0.95rem;
+                    font-weight: 700;
+                    border-radius: 10px;
+                    border: none;
+                    cursor: pointer;
+                    line-height: 1.1;
+                    white-space: pre-line;
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.18);
+                    transition: transform 0.15s ease, box-shadow 0.15s ease;
+                }
+
+                    /* Hover effect */
+                    #bookmarkFilterBtn:hover,
+                    #favoriteFilterBtn:hover {
+                        transform: scale(1.05);
+                        box-shadow: 0 5px 10px rgba(0,0,0,0.22);
+                    }
+
+                /* 🎯 Bookmark button – ORANGE */
+                #bookmarkFilterBtn {
+                    background: linear-gradient(to bottom right, #ffcc33, #ff9900);
+                    color: black;
+                }
+
+                /* 💛 Favorite button – PINK / GOLD */
+                #favoriteFilterBtn {
+                    background: linear-gradient(to bottom right, #ffb6c1, #ff69b4);
+                    color: #4a0033;
+                }
+
+                /* Active mode style (applied by JS via innerHTML meaning) */
+                .filter-active {
+                    background: linear-gradient(to bottom right, #1565c0, #0d47a1) !important;
+                    color: white !important;
+                }
+        </style>
+
+        <script>
+            /**
+             * showLoadingOverlay
+             *  - msg: text to show
+             *  - fullScreen: true  → fullscreen + percentage (for shared links)
+             *                 false → small card, no percentage (for normal Play)
+             */
+            window.showLoadingOverlay = function (
+                msg = "Preparing… Please wait a few seconds…",
+                fullScreen = false
+            ) {
+                const overlay = document.getElementById("loadingOverlay");
+                const title = document.getElementById("loadingTitle");
+                const percent = document.getElementById("loadingPercent");
+
+                if (!overlay) return;
+
+                // Decide mode
+                overlay.classList.toggle("loader-full", fullScreen);
+                overlay.classList.toggle("loader-mini", !fullScreen);
+
+                overlay.style.display = "flex";
+                document.body.style.pointerEvents = "none";
+
+                if (title) title.textContent = msg;
+
+                // In mini mode, hide the percentage line
+                if (percent) {
+                    if (fullScreen) {
+                        percent.style.display = "";
+                        percent.textContent = "0%";   // your songLoader can still update this
+                    } else {
+                        percent.style.display = "none";
+                    }
+                }
+            };
+
+            window.hideLoadingOverlay = function () {
+                const overlay = document.getElementById("loadingOverlay");
+                if (!overlay) return;
+
+                overlay.style.display = "none";
+                document.body.style.pointerEvents = "auto";
+            };
+        </script>
+
+
+
+
+
+
+
+
+
+        <!-- ✅ Modular Scripts (untouched) -->
+        <script src="WorshipApp_Modular/star.js" defer></script>
+        <script src="WorshipApp_Modular/songNamesLoader.js" defer></script>
+        <script src="WorshipApp_Modular/perSongVolumeMemory.js" defer></script>
+        <script src="WorshipApp_Modular/muteControl.js" defer></script>
+        <script src="WorshipApp_Modular/audioControl.js" defer></script>
+        <script src="WorshipApp_Modular/songLoader.js" defer></script>
+        <script src="WorshipApp_Modular/skipControl.js" defer></script>
+        <script src="WorshipApp_Modular/cache_management.js" defer></script>
+        <script src="WorshipApp_Modular/lyricsViewer.js" defer></script>
+        <script src="WorshipApp_Modular/lyricsViewer_charMode.js" defer></script>
+        <script src="WorshipApp_Modular/loopPlayer.js" defer></script>
+        <script src="WorshipApp_Modular/pwaSetup.js" defer></script>
+        <script src="WorshipApp_Modular/shareThisApp.js" defer></script>
+        <script src="WorshipApp_Modular/songSEO.js?v=2" defer></script>
+
+
+
+        <!-- ✅ Service Worker -->
+        <script defer>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js').catch(console.error);
+            }
+
+
+            /*
+            window.addEventListener('beforeinstallprompt', (e) => {
+              e.preventDefault();
+              const installBar = document.getElementById('installPrompt');
+              const installButton = document.getElementById('installButton');
+              let deferredPrompt = e;
+
+              installBar.style.display = 'block';
+              installButton.onclick = async () => {
+                installBar.style.display = 'none';
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+              };
+            });
+            */
+
+        </script>
+
+        <!-- ✅ Initial Loader -->
+        <script defer>
+            document.addEventListener("DOMContentLoaded", async () => {
+                if (typeof loadSongNames === "function") {
+                    await loadSongNames();
+                } else if (typeof loadSongList === "function") {
+                    await loadSongList();
+                } else {
+                    console.error("❌ Neither loadSongNames() nor loadSongList() found.");
+                }
+
+                const select = document.getElementById("songSelect");
+                if (select) {
+                    select.addEventListener("change", () => {
+                        const song = select.value;
+                        if (song && typeof loadSelectedSong === "function") {
+                            loadSelectedSong(song);
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <!-- ✅ App version label -->
+        <div id="appVersionLabel" style="
   font-size: 0.85rem;
   color: gray;
   margin-top: 12px;
@@ -1214,525 +1218,525 @@ button {
 
 
 
-    <script>
-        (async () => {
-            try {
-                const resp = await fetch("version.json?cachebust=" + Date.now(), { cache: "no-store" });
-                const data = await resp.json();
-                const latest = data.version;
-                const current = localStorage.getItem("appVersion");
+        <script>
+            (async () => {
+                try {
+                    const resp = await fetch("version.json?cachebust=" + Date.now(), { cache: "no-store" });
+                    const data = await resp.json();
+                    const latest = data.version;
+                    const current = localStorage.getItem("appVersion");
 
-                console.log(`🪄 Worship The Lord - App Version: ${latest}`);
+                    console.log(`🪄 Worship The Lord - App Version: ${latest}`);
 
-                // 🏷️ Show version in footer label
-                const label = document.getElementById("appVersionLabel");
-                if (label) label.textContent = "🎵 Worship The Lord — v" + latest;
+                    // 🏷️ Show version in footer label
+                    const label = document.getElementById("appVersionLabel");
+                    if (label) label.textContent = "🎵 Worship The Lord — v" + latest;
 
-                // ✅ Auto-update trigger
-                if (current && current !== latest) {
-                    console.log("🔁 New version detected — updating to", latest);
+                    // ✅ Auto-update trigger
+                    if (current && current !== latest) {
+                        console.log("🔁 New version detected — updating to", latest);
 
-                    // ⭐ GA Event: App Updated
-                    if (typeof gtag === "function") {
-                        gtag('event', 'app_updated', {
-                            event_category: 'version_update',
-                            event_label: latest,  // which version they updated TO
-                            value: 1
-                        });
+                        // ⭐ GA Event: App Updated
+                        if (typeof gtag === "function") {
+                            gtag('event', 'app_updated', {
+                                event_category: 'version_update',
+                                event_label: latest,  // which version they updated TO
+                                value: 1
+                            });
+                        }
+
+                        // 1️⃣ Tell service worker to activate immediately
+                        if (navigator.serviceWorker?.controller) {
+                            navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
+                        }
+
+                        // 2️⃣ Wait briefly, then reload app automatically
+                        setTimeout(() => window.location.reload(true), 1500);
+
+                        // Update stored version
+                        localStorage.setItem("appVersion", latest);
+                    } else if (!current) {
+                        localStorage.setItem("appVersion", latest);
                     }
-
-                    // 1️⃣ Tell service worker to activate immediately
-                    if (navigator.serviceWorker?.controller) {
-                        navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
-                    }
-
-                    // 2️⃣ Wait briefly, then reload app automatically
-                    setTimeout(() => window.location.reload(true), 1500);
-
-                    // Update stored version
-                    localStorage.setItem("appVersion", latest);
-                } else if (!current) {
-                    localStorage.setItem("appVersion", latest);
+                } catch (e) {
+                    console.warn("⚠️ Version check failed:", e);
                 }
-            } catch (e) {
-                console.warn("⚠️ Version check failed:", e);
+            })();
+        </script>
+
+
+
+
+        <script>
+            /* ==========================================================
+               PATCH 1 — Background Preload (safe, no autoplay)
+               ========================================================== */
+            document.getElementById("songSelect")?.addEventListener("change", () => {
+                setTimeout(() => {
+                    const a = window.vocalAudio;
+                    const b = window.accompAudio;
+
+                    if (!a || !b) return;
+
+                    // Guarantee preload mode
+                    a.preload = "auto";
+                    b.preload = "auto";
+
+                    // Start background fetch
+                    if (a.buffered.length === 0) a.load();
+                    if (b.buffered.length === 0) b.load();
+
+                    console.log("✨ Safe Preload: Started");
+                }, 150);
+            });
+        </script>
+
+
+        <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "MusicApplication",
+              "name": "Worship The Lord",
+              "applicationCategory": "Music",
+              "operatingSystem": "Web",
+              "description": "Tamil Christian worship songs karaoke app with lyrics and MIDI playback.",
+              "url": "https://gtt333777.github.io/worship-the-lord/"
             }
-        })();
-    </script>
+        </script>
 
 
 
 
-    <script>
-        /* ==========================================================
-           PATCH 1 — Background Preload (safe, no autoplay)
-           ========================================================== */
-        document.getElementById("songSelect")?.addEventListener("change", () => {
-            setTimeout(() => {
+
+        <!-- ⭐ FAST Normal Play (metadata-only sync) -->
+        <script>
+            (function () {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has("song")) return;  // shared-link uses different logic
+
+                function waitForPlayButton() {
+                    const btn = document.getElementById("playBtn");
+                    if (!btn) return setTimeout(waitForPlayButton, 150);
+
+                    btn.addEventListener("click", () => {
+
+
+                        // ⭐ If no song selected → show message + stop
+                        const select = document.getElementById("songSelect");
+                        if (!select.value || select.value.trim() === "") {
+                            alert("Please select a song from the dropdown above and then press Play.");
+                            return;
+                        }
+
+
+                        if (typeof window.showLoadingOverlay === "function") {
+                            window.showLoadingOverlay("Preparing…", false);
+                        }
+
+                        function waitForReady() {
+                            const a = window.vocalAudio;
+                            const b = window.accompAudio;
+
+                            // Wait for audio elements
+                            if (!a || !b) {
+                                return setTimeout(waitForReady, 120);
+                            }
+
+                            // Wait ONLY until metadata is available
+                            if (a.readyState < 1 || b.readyState < 1) {
+                                return setTimeout(waitForReady, 80);
+                            }
+
+                            // As soon as metadata is ready → start playback immediately
+                            if (a.readyState >= 1 && b.readyState >= 1) {
+                                a.currentTime = 0;
+                                b.currentTime = 0;
+
+                                a.muted = true;
+                                b.muted = true;
+
+                                setTimeout(() => {
+                                    a.muted = false;
+                                    b.muted = false;
+                                    window.hideLoadingOverlay?.();
+                                }, 220);
+
+                                return;
+                            }
+                        }
+
+                        waitForReady();
+                    });
+                }
+
+                waitForPlayButton();
+            })();
+        </script>
+
+
+
+
+
+
+        <script>
+            /* ==========================================================
+               PATCH 2 — Prevent first-segment fast repeat
+               ========================================================== */
+            window.addEventListener("play", () => {
                 const a = window.vocalAudio;
                 const b = window.accompAudio;
 
                 if (!a || !b) return;
 
-                // Guarantee preload mode
-                a.preload = "auto";
-                b.preload = "auto";
-
-                // Start background fetch
-                if (a.buffered.length === 0) a.load();
-                if (b.buffered.length === 0) b.load();
-
-                console.log("✨ Safe Preload: Started");
-            }, 150);
-        });
-    </script>
+                // Keep start point EXACTLY 0 to avoid double-trigger
+                if (a.currentTime < 0.05) a.currentTime = 0;
+                if (b.currentTime < 0.05) b.currentTime = 0;
+            }, true);
+        </script>
 
 
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "MusicApplication",
-          "name": "Worship The Lord",
-          "applicationCategory": "Music",
-          "operatingSystem": "Web",
-          "description": "Tamil Christian worship songs karaoke app with lyrics and MIDI playback.",
-          "url": "https://gtt333777.github.io/worship-the-lord/"
-        }
-    </script>
+        <script>
 
+            function markActiveSegment(index) {
+                const buttons = document.querySelectorAll('.segment-button');
 
-
-
-
-    <!-- ⭐ FAST Normal Play (metadata-only sync) -->
-    <script>
-        (function () {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has("song")) return;  // shared-link uses different logic
-
-            function waitForPlayButton() {
-                const btn = document.getElementById("playBtn");
-                if (!btn) return setTimeout(waitForPlayButton, 150);
-
-                btn.addEventListener("click", () => {
-
-
-                    // ⭐ If no song selected → show message + stop
-                    const select = document.getElementById("songSelect");
-                    if (!select.value || select.value.trim() === "") {
-                        alert("Please select a song from the dropdown above and then press Play.");
-                        return;
-                    }
-
-
-                    if (typeof window.showLoadingOverlay === "function") {
-                        window.showLoadingOverlay("Preparing…", false);
-                    }
-
-                    function waitForReady() {
-                        const a = window.vocalAudio;
-                        const b = window.accompAudio;
-
-                        // Wait for audio elements
-                        if (!a || !b) {
-                            return setTimeout(waitForReady, 120);
-                        }
-
-                        // Wait ONLY until metadata is available
-                        if (a.readyState < 1 || b.readyState < 1) {
-                            return setTimeout(waitForReady, 80);
-                        }
-
-                        // As soon as metadata is ready → start playback immediately
-                        if (a.readyState >= 1 && b.readyState >= 1) {
-                            a.currentTime = 0;
-                            b.currentTime = 0;
-
-                            a.muted = true;
-                            b.muted = true;
-
-                            setTimeout(() => {
-                                a.muted = false;
-                                b.muted = false;
-                                window.hideLoadingOverlay?.();
-                            }, 220);
-
-                            return;
-                        }
-                    }
-
-                    waitForReady();
+                buttons.forEach((btn, i) => {
+                    btn.classList.toggle('active', i === index);
                 });
             }
-
-            waitForPlayButton();
-        })();
-    </script>
+        </script>
 
 
 
+        <script>
+            let blockHighlighterFor300ms = false;
 
+            document.addEventListener("DOMContentLoaded", () => {
+                const playBtn = document.getElementById("playBtn");
+                if (!playBtn) return;
 
-
-    <script>
-        /* ==========================================================
-           PATCH 2 — Prevent first-segment fast repeat
-           ========================================================== */
-        window.addEventListener("play", () => {
-            const a = window.vocalAudio;
-            const b = window.accompAudio;
-
-            if (!a || !b) return;
-
-            // Keep start point EXACTLY 0 to avoid double-trigger
-            if (a.currentTime < 0.05) a.currentTime = 0;
-            if (b.currentTime < 0.05) b.currentTime = 0;
-        }, true);
-    </script>
-
-
-    <script>
-
-        function markActiveSegment(index) {
-            const buttons = document.querySelectorAll('.segment-button');
-
-            buttons.forEach((btn, i) => {
-                btn.classList.toggle('active', i === index);
+                playBtn.addEventListener("click", () => {
+                    blockHighlighterFor300ms = true;
+                    setTimeout(() => {
+                        blockHighlighterFor300ms = false;
+                    }, 300);
+                });
             });
-        }
-    </script>
-
-
-
-    <script>
-        let blockHighlighterFor300ms = false;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const playBtn = document.getElementById("playBtn");
-            if (!playBtn) return;
-
-            playBtn.addEventListener("click", () => {
-                blockHighlighterFor300ms = true;
-                setTimeout(() => {
-                    blockHighlighterFor300ms = false;
-                }, 300);
-            });
-        });
-    </script>
+        </script>
 
 
 
 
 
-    <script>
-        /* =======================================================
-           ⭐ Absolute Flicker-Free Segment Highlighter (Time-based)
-           ======================================================= */
+        <script>
+            /* =======================================================
+               ⭐ Absolute Flicker-Free Segment Highlighter (Time-based)
+               ======================================================= */
 
-        function updateActiveSegmentByTime() {
-            const audio = window.vocalAudio;
-            const segs = window.currentSegments || window.loadedSegments || [];
+            function updateActiveSegmentByTime() {
+                const audio = window.vocalAudio;
+                const segs = window.currentSegments || window.loadedSegments || [];
 
-            if (!audio || !segs.length) {
-                requestAnimationFrame(updateActiveSegmentByTime);
-                return;
-            }
-
-            const t = audio.currentTime;
-            let activeIndex = -1;
-
-            // 🔍 Find segment based on time
-            for (let i = 0; i < segs.length; i++) {
-                if (t >= segs[i].start && t <= segs[i].end) {
-                    activeIndex = i;
-                    break;
-                }
-            }
-
-            // 🔥 Always highlight correct segment (no flicker)
-            if (!blockHighlighterFor300ms) {
-                markActiveSegment(activeIndex);
-            }
-
-
-            requestAnimationFrame(updateActiveSegmentByTime);
-        }
-
-        // 🚀 Start the zero-flicker highlighter
-        requestAnimationFrame(updateActiveSegmentByTime);
-    </script>
-
-
-
-
-
-
-    <script>
-        /* ===========================================
-           RESTORE OLD RED TOP PROGRESS BAR (AUTO)
-           =========================================== */
-
-        // Make sure every segment button has a red bar
-        function ensureRedBars() {
-            document.querySelectorAll(".segment-button").forEach(btn => {
-                if (!btn.querySelector(".seg-progress")) {
-                    const bar = document.createElement("div");
-                    bar.className = "seg-progress";
-                    btn.appendChild(bar);
-                }
-            });
-        }
-
-        // Gold bar CSS (auto-inject)
-        const css = document.createElement("style");
-        css.textContent = `
-                              .seg-progress {
-                                position: absolute;
-                                top: 0;
-                                left: 0;
-                                height: 4px;
-                               /* background: red; */
-                               /* background: linear-gradient(to right, #f3c55d, #e7a400); */
-                                background: #e7a400;
-
-                                width: 0%;
-                                z-index: 50;
-                                transition: width 0.1s linear;
-                              }
-`;
-        document.head.appendChild(css);
-
-
-        // Main updater
-        function updateRedBar() {
-            const audio = window.vocalAudio;
-            const segs = window.currentSegments;
-
-            ensureRedBars();
-
-            if (!audio || !segs) {
-                requestAnimationFrame(updateRedBar);
-                return;
-            }
-
-            const t = audio.currentTime;
-            let idx = segs.findIndex(s => t >= s.start && t <= s.end);
-
-            const buttons = document.querySelectorAll(".segment-button");
-
-            buttons.forEach((btn, i) => {
-                const bar = btn.querySelector(".seg-progress");
-                if (!bar) return;
-
-                if (i === idx) {
-                    const s = segs[i];
-                    const pct = ((t - s.start) / (s.end - s.start)) * 100;
-                    bar.style.width = pct + "%";
-                } else {
-                    bar.style.width = "0%";
-                }
-            });
-
-            requestAnimationFrame(updateRedBar);
-        }
-
-        // Start loop
-        requestAnimationFrame(updateRedBar);
-    </script>
-
-
-
-
-
-    <script>
-        /* ==========================================================
-           STEP 1 — Shared Link: Safely select song in dropdown
-           ========================================================== */
-
-        (function () {
-            const params = new URLSearchParams(window.location.search);
-            const songFromLink = params.get("song");   // already decoded
-
-            if (!songFromLink) return;
-
-            console.log("🔗 Shared link (raw param):", songFromLink);
-
-            function waitForDropdown() {
-                const select = document.getElementById("songSelect");
-
-                if (!select || select.options.length === 0) {
-                    console.log("⏳ Waiting for dropdown and songs...");
-                    return setTimeout(waitForDropdown, 150);
+                if (!audio || !segs.length) {
+                    requestAnimationFrame(updateActiveSegmentByTime);
+                    return;
                 }
 
-                const decoded = songFromLink.trim();
-                let targetValue = null;
+                const t = audio.currentTime;
+                let activeIndex = -1;
 
-                // 🔍 Try to find matching option in the dropdown
-                for (const opt of select.options) {
-                    const val = (opt.value || "").trim();       // TRUE song name
-                    const text = (opt.textContent || "").trim(); // What user sees
-
-                    // 1) Exact value match  (normal case)
-                    // 2) Exact text match   (if some system used text)
-                    // 3) Text without leading * / # prefixes
-                    const textNoPrefix = text.replace(/^[*#]+/, "").trim();
-
-                    if (val === decoded || text === decoded || textNoPrefix === decoded) {
-                        targetValue = val;
+                // 🔍 Find segment based on time
+                for (let i = 0; i < segs.length; i++) {
+                    if (t >= segs[i].start && t <= segs[i].end) {
+                        activeIndex = i;
                         break;
                     }
                 }
 
-                if (!targetValue) {
-                    console.warn("⚠️ Shared song not found in dropdown:", decoded);
+                // 🔥 Always highlight correct segment (no flicker)
+                if (!blockHighlighterFor300ms) {
+                    markActiveSegment(activeIndex);
+                }
+
+
+                requestAnimationFrame(updateActiveSegmentByTime);
+            }
+
+            // 🚀 Start the zero-flicker highlighter
+            requestAnimationFrame(updateActiveSegmentByTime);
+        </script>
+
+
+
+
+
+
+        <script>
+            /* ===========================================
+               RESTORE OLD RED TOP PROGRESS BAR (AUTO)
+               =========================================== */
+
+            // Make sure every segment button has a red bar
+            function ensureRedBars() {
+                document.querySelectorAll(".segment-button").forEach(btn => {
+                    if (!btn.querySelector(".seg-progress")) {
+                        const bar = document.createElement("div");
+                        bar.className = "seg-progress";
+                        btn.appendChild(bar);
+                    }
+                });
+            }
+
+            // Gold bar CSS (auto-inject)
+            const css = document.createElement("style");
+            css.textContent = `
+                                      .seg-progress {
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        height: 4px;
+                                       /* background: red; */
+                                       /* background: linear-gradient(to right, #f3c55d, #e7a400); */
+                                        background: #e7a400;
+
+                                        width: 0%;
+                                        z-index: 50;
+                                        transition: width 0.1s linear;
+                                      }
+`;
+            document.head.appendChild(css);
+
+
+            // Main updater
+            function updateRedBar() {
+                const audio = window.vocalAudio;
+                const segs = window.currentSegments;
+
+                ensureRedBars();
+
+                if (!audio || !segs) {
+                    requestAnimationFrame(updateRedBar);
                     return;
                 }
 
-                // ✅ Set dropdown to the CLEAN value (no *, no #)
-                select.value = targetValue;
-                console.log("🎯 Shared link matched value:", targetValue);
+                const t = audio.currentTime;
+                let idx = segs.findIndex(s => t >= s.start && t <= s.end);
 
-                // 🔔 Trigger the normal change flow (which calls loadSelectedSong)
-                select.dispatchEvent(new Event("change"));
-                console.log("✅ Song selected via real browser flow:", select.value);
+                const buttons = document.querySelectorAll(".segment-button");
+
+                buttons.forEach((btn, i) => {
+                    const bar = btn.querySelector(".seg-progress");
+                    if (!bar) return;
+
+                    if (i === idx) {
+                        const s = segs[i];
+                        const pct = ((t - s.start) / (s.end - s.start)) * 100;
+                        bar.style.width = pct + "%";
+                    } else {
+                        bar.style.width = "0%";
+                    }
+                });
+
+                requestAnimationFrame(updateRedBar);
             }
 
-            waitForDropdown();
-        })();
-    </script>
+            // Start loop
+            requestAnimationFrame(updateRedBar);
+        </script>
 
 
 
 
 
-    <script>
-        (function () {
-            const params = new URLSearchParams(window.location.search);
-            if (!params.has("song")) return;
+        <script>
+            /* ==========================================================
+               STEP 1 — Shared Link: Safely select song in dropdown
+               ========================================================== */
 
-            console.log("🎶 Fast Shared-Link Autoplay (metadata-only sync)");
+            (function () {
+                const params = new URLSearchParams(window.location.search);
+                const songFromLink = params.get("song");   // already decoded
 
-            window.isSharedLink = true;
+                if (!songFromLink) return;
 
-            if (typeof window.showLoadingOverlay === "function") {
-                window.showLoadingOverlay("Preparing shared worship song…", true);
-            }
+                console.log("🔗 Shared link (raw param):", songFromLink);
 
-            function waitForFullMetadata() {
-                const a = window.vocalAudio;
-                const b = window.accompAudio;
+                function waitForDropdown() {
+                    const select = document.getElementById("songSelect");
 
-                if (!a || !b) {
-                    console.log("⏳ Waiting for audio objects…");
-                    return setTimeout(waitForFullMetadata, 150);
+                    if (!select || select.options.length === 0) {
+                        console.log("⏳ Waiting for dropdown and songs...");
+                        return setTimeout(waitForDropdown, 150);
+                    }
+
+                    const decoded = songFromLink.trim();
+                    let targetValue = null;
+
+                    // 🔍 Try to find matching option in the dropdown
+                    for (const opt of select.options) {
+                        const val = (opt.value || "").trim();       // TRUE song name
+                        const text = (opt.textContent || "").trim(); // What user sees
+
+                        // 1) Exact value match  (normal case)
+                        // 2) Exact text match   (if some system used text)
+                        // 3) Text without leading * / # prefixes
+                        const textNoPrefix = text.replace(/^[*#]+/, "").trim();
+
+                        if (val === decoded || text === decoded || textNoPrefix === decoded) {
+                            targetValue = val;
+                            break;
+                        }
+                    }
+
+                    if (!targetValue) {
+                        console.warn("⚠️ Shared song not found in dropdown:", decoded);
+                        return;
+                    }
+
+                    // ✅ Set dropdown to the CLEAN value (no *, no #)
+                    select.value = targetValue;
+                    console.log("🎯 Shared link matched value:", targetValue);
+
+                    // 🔔 Trigger the normal change flow (which calls loadSelectedSong)
+                    select.dispatchEvent(new Event("change"));
+                    console.log("✅ Song selected via real browser flow:", select.value);
                 }
 
-                // Metadata ready?
-                if (a.readyState < 2 || b.readyState < 2) {
-                    console.log("⏳ Waiting for metadata… (" + a.readyState + "," + b.readyState + ")");
-                    return setTimeout(waitForFullMetadata, 150);
+                waitForDropdown();
+            })();
+        </script>
+
+
+
+
+
+        <script>
+            (function () {
+                const params = new URLSearchParams(window.location.search);
+                if (!params.has("song")) return;
+
+                console.log("🎶 Fast Shared-Link Autoplay (metadata-only sync)");
+
+                window.isSharedLink = true;
+
+                if (typeof window.showLoadingOverlay === "function") {
+                    window.showLoadingOverlay("Preparing shared worship song…", true);
                 }
 
-                // Segments loaded?
-                if (!window.currentSegments || window.currentSegments.length === 0) {
-                    console.log("⏳ Waiting for segments…");
-                    return setTimeout(waitForFullMetadata, 150);
+                function waitForFullMetadata() {
+                    const a = window.vocalAudio;
+                    const b = window.accompAudio;
+
+                    if (!a || !b) {
+                        console.log("⏳ Waiting for audio objects…");
+                        return setTimeout(waitForFullMetadata, 150);
+                    }
+
+                    // Metadata ready?
+                    if (a.readyState < 2 || b.readyState < 2) {
+                        console.log("⏳ Waiting for metadata… (" + a.readyState + "," + b.readyState + ")");
+                        return setTimeout(waitForFullMetadata, 150);
+                    }
+
+                    // Segments loaded?
+                    if (!window.currentSegments || window.currentSegments.length === 0) {
+                        console.log("⏳ Waiting for segments…");
+                        return setTimeout(waitForFullMetadata, 150);
+                    }
+
+                    console.log("✅ Metadata ready — syncing both players");
+
+                    // PERFECT sync
+                    a.currentTime = 0;
+                    b.currentTime = 0;
+
+                    // Remove muted hack later, but start muted for autoplay
+                    a.muted = true;
+                    b.muted = true;
+
+                    // Trigger actual play
+                    document.getElementById("playBtn").click();
+
+                    // Unmute after 500ms
+                    setTimeout(() => {
+                        a.muted = false;
+                        b.muted = false;
+                        console.log("🔊 Unmuted after sync-start");
+                    }, 500);
+
+                    // Remove fullscreen loader
+                    if (typeof window.hideLoadingOverlay === "function") {
+                        window.hideLoadingOverlay();
+                    }
                 }
 
-                console.log("✅ Metadata ready — syncing both players");
 
-                // PERFECT sync
-                a.currentTime = 0;
-                b.currentTime = 0;
-
-                // Remove muted hack later, but start muted for autoplay
-                a.muted = true;
-                b.muted = true;
-
-                // Trigger actual play
-                document.getElementById("playBtn").click();
-
-                // Unmute after 500ms
-                setTimeout(() => {
-                    a.muted = false;
-                    b.muted = false;
-                    console.log("🔊 Unmuted after sync-start");
-                }, 500);
-
-                // Remove fullscreen loader
-                if (typeof window.hideLoadingOverlay === "function") {
-                    window.hideLoadingOverlay();
-                }
-            }
-
-
-            waitForFullMetadata();
-        })();
-    </script>
+                waitForFullMetadata();
+            })();
+        </script>
 
 
 
-    <script>
-        /* ==========================================================
-           🔆 Keep Screen Awake while App is Active
-           ========================================================== */
+        <script>
+            /* ==========================================================
+               🔆 Keep Screen Awake while App is Active
+               ========================================================== */
 
-        let wakeLock = null;
+            let wakeLock = null;
 
-        // Request screen wake lock safely
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator && !wakeLock) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log("🔆 Screen wake lock active");
-
-                    wakeLock.addEventListener('release', () => {
-                        console.log("🔅 Screen wake lock released");
-                        wakeLock = null;
-                    });
-                }
-            } catch (err) {
-                console.warn("⚠️ Wake lock failed:", err);
-            }
-        }
-
-        // Request wake lock on user interaction (required by browsers)
-        document.addEventListener("click", requestWakeLock);
-        document.addEventListener("touchstart", requestWakeLock);
-
-        // Re-acquire wake lock when app/tab becomes visible again
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                requestWakeLock();
-            }
-        });
-    </script>
-
-
-
-
-
-    <script>
-        /* ==========================================================
-           🔊 Ensure audio keeps playing when screen turns off
-           ========================================================== */
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
+            // Request screen wake lock safely
+            async function requestWakeLock() {
                 try {
-                    if (window.vocalAudio && !window.vocalAudio.paused) {
-                        window.vocalAudio.play();
+                    if ('wakeLock' in navigator && !wakeLock) {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log("🔆 Screen wake lock active");
+
+                        wakeLock.addEventListener('release', () => {
+                            console.log("🔅 Screen wake lock released");
+                            wakeLock = null;
+                        });
                     }
-                    if (window.accompAudio && !window.accompAudio.paused) {
-                        window.accompAudio.play();
-                    }
-                    console.log("🔊 Audio reaffirmed in background");
-                } catch (e) {
-                    // Browser may block — safe to ignore
+                } catch (err) {
+                    console.warn("⚠️ Wake lock failed:", err);
                 }
             }
-        });
-    </script>
+
+            // Request wake lock on user interaction (required by browsers)
+            document.addEventListener("click", requestWakeLock);
+            document.addEventListener("touchstart", requestWakeLock);
+
+            // Re-acquire wake lock when app/tab becomes visible again
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    requestWakeLock();
+                }
+            });
+        </script>
+
+
+
+
+
+        <script>
+            /* ==========================================================
+               🔊 Ensure audio keeps playing when screen turns off
+               ========================================================== */
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "hidden") {
+                    try {
+                        if (window.vocalAudio && !window.vocalAudio.paused) {
+                            window.vocalAudio.play();
+                        }
+                        if (window.accompAudio && !window.accompAudio.paused) {
+                            window.accompAudio.play();
+                        }
+                        console.log("🔊 Audio reaffirmed in background");
+                    } catch (e) {
+                        // Browser may block — safe to ignore
+                    }
+                }
+            });
+        </script>
 
 
 
