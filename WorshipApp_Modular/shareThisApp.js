@@ -1,76 +1,101 @@
 ﻿// 🕊️ shareThisApp.js
 // --------------------------------------------------
-// Enables native sharing of the Worship The Lord app
-// with a friendly message and automatic fallback
+// Enables sharing of the Worship The Lord app
+// + SMART SONG SHARE (SEO Growth Engine)
 // --------------------------------------------------
 
-// 🕊️ shareThisApp.js
 console.log("🕊️ shareThisApp.js loaded");
 
+
+/* ======================================================
+   🕊️ SHARE ENTIRE APP
+====================================================== */
 window.shareThisApp = async function () {
-  const appUrl = "https://gtt333777.github.io/worship-the-lord/";
-  const appTitle = "🎵 Worship The Lord";
 
-  // ✔️ Link placed at bottom with blank line
-  // ✔️ No emoji immediately before the link
-  const appText =
-    "🙌 ✝️ Worship The Lord App\n\n" +
-    "1️⃣ Using this app., sing unto Jesus - Triune God, with studio-grade, perfectly synchronized background music.\n\n" +
-    "2️⃣ Even in remote prayer gatherings, you can worship without internet using cached songs.\n\n" +
-    "🕊️ Let everything that has breath praise the Lord! (Psalm 150:6)\n\n" +
-    "\n" +         // <-- EXTRA BLANK LINE FOR CLICKABLE LINK
-    appUrl;       // <-- WhatsApp now detects link correctly
+    const appUrl = "https://gtt333777.github.io/worship-the-lord/";
+    const appTitle = "🎵 Worship The Lord";
 
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: appTitle,
-        text: appText,
-        url: appUrl
-      });
-      console.log("✅ Shared successfully via native share menu.");
-    } catch (err) {
-      console.warn("⚠️ Share cancelled or failed:", err);
+    const appText =
+        "🙌 ✝️ Worship The Lord App\n\n" +
+        "1️⃣ Using this app, sing unto Jesus — Triune God — with studio-grade synchronized background music.\n\n" +
+        "2️⃣ Even in remote prayer gatherings, worship without internet using cached songs.\n\n" +
+        "🕊️ Let everything that has breath praise the Lord! (Psalm 150:6)\n\n" +
+        appUrl;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: appTitle,
+                text: appText,
+                url: appUrl
+            });
+            console.log("✅ App shared successfully.");
+        } catch (err) {
+            console.warn("⚠️ Share cancelled:", err);
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(appText);
+            alert("📋 Link copied!\nYou can now paste and share.");
+        } catch (err) {
+            alert("Sharing not supported on this browser.");
+        }
     }
-  } else {
-    try {
-      await navigator.clipboard.writeText(appText);
-      alert("📋 Link copied!\nYou can now paste it into WhatsApp, Messages, or Email.");
-      console.log("✅ Copied to clipboard:", appText);
-    } catch (err) {
-      console.error("❌ Clipboard copy failed:", err);
-      alert("Sorry, your browser doesn't support sharing.");
-    }
-  }
 };
 
 
-// =============================
-// 🎵 Share Selected Song
-// =============================
-window.shareThisSong = function () {
-  const song = document.getElementById("songSelect").value;
 
-  if (!song) {
-    alert("Please select a song first.");
-    return;
-  }
+/* ======================================================
+   🎵 SMART SONG SHARE (SEO + Growth Boost)
+====================================================== */
+window.shareThisSong = async function () {
 
-  const cleanBase =
-    "https://gtt333777.github.io/worship-the-lord/";
+    const select = document.getElementById("songSelect");
 
-  const shareURL =
-    cleanBase + "?song=" + encodeURIComponent(song);
+    if (!select || !select.value) {
+        alert("Please select a song first.");
+        return;
+    }
 
-  const shareData = {
-    title: "Worship Song",
-    text: "Listen to this worship song:",
-    url: shareURL
-  };
+    const songName = select.value.trim();
 
-  if (navigator.share) {
-    navigator.share(shareData).catch(console.error);
-  } else {
-    alert("Sharing not supported on this device.");
-  }
+    const baseURL =
+        "https://gtt333777.github.io/worship-the-lord/";
+
+    const shareURL =
+        baseURL + "?song=" + encodeURIComponent(songName);
+
+    // ⭐ SEO-optimized share message
+    const shareText =
+        `🎵 ${songName} – Tamil Christian Karaoke Song
+
+Sing and worship Jesus using the Worship The Lord app.
+
+Open this song directly here:
+${shareURL}`;
+
+    const shareData = {
+        title: songName + " Karaoke | Worship The Lord",
+        text: shareText,
+        url: shareURL
+    };
+
+    // ✅ Mobile native share
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+            console.log("✅ Song shared:", songName);
+        } catch (err) {
+            console.warn("⚠️ Share cancelled:", err);
+        }
+    }
+    // ✅ Desktop fallback (copy link)
+    else {
+        try {
+            await navigator.clipboard.writeText(shareText);
+            alert("📋 Song link copied!\nPaste and share anywhere.");
+        } catch (err) {
+            alert("Sharing not supported on this browser.");
+        }
+    }
 };
