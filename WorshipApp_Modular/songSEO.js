@@ -48,10 +48,10 @@ async function buildSEOSongList() {
 
 /* --------------------------------------------------
    Dynamic Page Title + Meta Description
--------------------------------------------------- */
+-------------------------------------------------- 
 function applyDynamicSEO() {
 
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(window.location.search);
     const song = params.get("song");
 
     if (!song) return;
@@ -73,7 +73,67 @@ function applyDynamicSEO() {
         );
     }
 }
+*/
 
+/* --------------------------------------------------
+   Dynamic Page Title + Meta + OpenGraph SEO
+-------------------------------------------------- */
+function applyDynamicSEO() {
+
+    const params = new URLSearchParams(location.search);
+    const song = params.get("song");
+
+    if (!song) return;
+
+    const baseURL =
+        "https://gtt333777.github.io/worship-the-lord/";
+
+    const songURL =
+        baseURL + "?song=" + encodeURIComponent(song);
+
+    const description =
+        "Sing " + song +
+        " Tamil Christian karaoke song with lyrics in the Worship The Lord app.";
+
+    // ✅ Browser title
+    document.title =
+        song + " Karaoke | Worship The Lord";
+
+    // ✅ Meta description
+    const metaDesc =
+        document.querySelector('meta[name="description"]');
+
+    if (metaDesc) metaDesc.setAttribute("content", description);
+
+    // ✅ Open Graph tags (WhatsApp preview)
+    updateMetaTag("og:title",
+        song + " Karaoke | Worship The Lord");
+
+    updateMetaTag("og:description", description);
+
+    updateMetaTag("og:url", songURL);
+
+    updateMetaTag("og:image",
+        baseURL + "icon-192.png");
+
+}
+
+
+/* Helper: create/update meta tag */
+function updateMetaTag(property, content) {
+
+    let tag = document.querySelector(
+        `meta[property="${property}"]`
+    );
+
+    if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute("property", property);
+        document.head.appendChild(tag);
+    }
+
+    tag.setAttribute("content", content);
+}
 
 /* --------------------------------------------------
    Dynamic Song Description (BIG SEO BOOST)
