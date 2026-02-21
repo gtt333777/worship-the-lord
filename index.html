@@ -200,7 +200,7 @@ Worship The Lord app,
     #songSelect {
       font-size: 1rem;
       line-height: 1.4;
-      white-space: pre-line;
+      white-space: nowrap-line;
       width: 95%;
       max-width: 400px;
     }
@@ -1053,20 +1053,29 @@ button {
 ========================================================= */
 
 			/* Base style for filter buttons */
+			
 			#bookmarkFilterBtn,
 			#favoriteFilterBtn {
-				min-width: 105px; /* smaller width */
-				padding: 6px 10px; /* reduced height */
-				font-size: 0.9rem; /* slightly smaller text */
+				min-width: 105px;
+				height: 42px; /* ⭐ FIX: same size always */
+				padding: 6px 10px;
+				font-size: 0.9rem;
 				font-weight: 700;
-				border-radius: 8px; /* tighter look */
+				border-radius: 8px;
 				border: none;
 				cursor: pointer;
+				display: inline-flex; /* ⭐ center content */
+				align-items: center;
+				justify-content: center;
+				text-align: center;
 				line-height: 1.05;
-				white-space: pre-line;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.16); /* lighter shadow */
+				white-space: nowrap; /* ⭐ prevents tall button */
+
+				box-shadow: 0 2px 4px rgba(0,0,0,0.16);
 				transition: transform 0.15s ease, box-shadow 0.15s ease;
 			}
+
+
 
 				/* Hover effect (gentler) */
 				#bookmarkFilterBtn:hover,
@@ -1095,10 +1104,20 @@ button {
 
 
 
-			#bookmarkBtn,
-			#favoriteBtn {
-				margin-bottom: 4px;
-			}
+			
+				#bookmarkBtn,
+				#favoriteBtn {
+					margin-bottom: 4px;
+				}
+
+				#bookmarkFilterBtn,
+				#favoriteFilterBtn {
+					font-size: 0.88rem;
+				}
+
+
+
+
 
         </style>
 
