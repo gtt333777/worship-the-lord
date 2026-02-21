@@ -1,64 +1,118 @@
-﻿// JavaScript source code
+﻿// WorshipApp_Modular/songSEO.js
 console.log("🔎 songSEO.js started");
 
-/* Convert song name into URL-friendly text */
+/* --------------------------------------------------
+   Convert song name into URL-friendly text
+-------------------------------------------------- */
 function slugifySong(name) {
-  return name.toLowerCase().trim();
+    return name.toLowerCase().trim();
 }
 
-/* Build visible SEO list */
+
+/* --------------------------------------------------
+   Build visible SEO song list (Google crawlable)
+-------------------------------------------------- */
 async function buildSEOSongList() {
 
-  const ul = document.getElementById("seoSongsUL");
-  if (!ul) return;
+    const ul = document.getElementById("seoSongsUL");
+    if (!ul) return;
 
-  const res = await fetch("lyrics/songs_names.txt");
-  const text = await res.text();
+    try {
+        const res = await fetch("lyrics/songs_names.txt");
+        const text = await res.text();
 
-  const lines = text.split("\n").filter(Boolean);
+        const lines = text.split("\n").filter(Boolean);
 
-  lines.forEach(line => {
+        lines.forEach(line => {
 
-    const parts = line.trim().split(/\s{2,}/);
-    const english = parts[1] || parts[0];
+            // split Tamil + English name
+            const parts = line.trim().split(/\s{2,}/);
+            const english = parts[1] || parts[0];
 
-    const li = document.createElement("li");
+            const li = document.createElement("li");
 
-    const a = document.createElement("a");
-    a.href = `?song=${encodeURIComponent(english)}`;
-    a.textContent =
-      english + " – Tamil Christian Karaoke Song";
+            const a = document.createElement("a");
+            a.href = `?song=${encodeURIComponent(english)}`;
+            a.textContent =
+                english + " – Tamil Christian Karaoke Song";
 
-    li.appendChild(a);
-    ul.appendChild(li);
-  });
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
+
+    } catch (err) {
+        console.error("❌ SEO list load failed:", err);
+    }
 }
 
-/* Change page title when song opens */
+
+/* --------------------------------------------------
+   Dynamic Page Title + Meta Description
+-------------------------------------------------- */
 function applyDynamicSEO() {
 
-  const params = new URLSearchParams(location.search);
-  const song = params.get("song");
+    const params = new URLSearchParams(location.search);
+    const song = params.get("song");
 
-  if (!song) return;
+    if (!song) return;
 
-  document.title =
-    song + " Karaoke | Worship The Lord";
+    // ⭐ Change browser tab title
+    document.title =
+        song + " Karaoke | Worship The Lord";
 
-  const meta = document.querySelector(
-    'meta[name="description"]'
-  );
-
-  if (meta) {
-    meta.setAttribute(
-      "content",
-      "Sing " + song +
-      " Tamil Christian karaoke song with lyrics in Worship The Lord app."
+    // ⭐ Update meta description
+    const meta = document.querySelector(
+        'meta[name="description"]'
     );
-  }
+
+    if (meta) {
+        meta.setAttribute(
+            "content",
+            "Sing " + song +
+            " Tamil Christian karaoke song with lyrics. Worship Jesus using the Worship The Lord app."
+        );
+    }
 }
 
+
+/* --------------------------------------------------
+   Dynamic Song Description (BIG SEO BOOST)
+-------------------------------------------------- */
+function applySongDescription() {
+
+    const params = new URLSearchParams(location.search);
+    const song = params.get("song");
+
+    if (!song) return;
+
+    const box = document.getElementById("songDescription");
+    if (!box) return;
+
+    box.innerHTML = `
+    <h2>${song} – Tamil Christian Karaoke Song</h2>
+
+    <p>
+      Sing <strong>${song}</strong> Tamil Christian worship song using karaoke lyrics
+      and music in the Worship The Lord app. This Christian karaoke track helps
+      believers praise Jesus during personal prayer, church worship, and fellowship singing.
+    </p>
+
+    <p>
+      Worship The Lord provides Tamil Christian songs with lyrics, MIDI music,
+      adjustable tempo, and worship-friendly playback designed for spiritual devotion
+      and practice.
+    </p>
+  `;
+}
+
+
+/* --------------------------------------------------
+   Initialize SEO features
+-------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
-  buildSEOSongList();
-  applyDynamicSEO();
+
+    buildSEOSongList();     // build song index
+    applyDynamicSEO();      // title + meta update
+    applySongDescription(); // ⭐ NEW SEO CONTENT
+
 });
