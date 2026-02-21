@@ -677,17 +677,6 @@ button {
 
 
 
-    <!-- ⭐ SEO Song List (Google can read this) -->
-    <section id="seoSongList"
-             style="max-width:700px;margin:20px auto;text-align:left;">
-
-        <h2>Popular Tamil Christian Karaoke Songs</h2>
-
-        <ul id="seoSongsUL">
-            <!-- Songs will auto appear here -->
-        </ul>
-
-    </section>
 
     <!-- ⭐ Dynamic Song Description (SEO Boost) -->
     <div id="songDescription"
@@ -887,7 +876,7 @@ button {
 
 
     <!-- ⭐ Worship Practice Signal (SEO + Google Understanding) -->
-             <section id="worshipPracticeInfo"
+    <section id="worshipPracticeInfo"
              style="max-width:700px;margin:40px auto 20px auto;
              text-align:left;line-height:1.7;color:#333;">
 
@@ -910,6 +899,21 @@ button {
         </p>
 
     </section>
+
+
+
+    <!-- ⭐ SEO Song List (Google can read this) -->
+    <section id="seoSongList"
+             style="max-width:700px;margin:20px auto;text-align:left;">
+
+        <h2>Popular Tamil Christian Karaoke Songs</h2>
+
+        <ul id="seoSongsUL">
+            <!-- Songs will auto appear here -->
+        </ul>
+
+    </section>
+
 
 
 
@@ -1479,19 +1483,19 @@ button {
         // Gold bar CSS (auto-inject)
         const css = document.createElement("style");
         css.textContent = `
-                      .seg-progress {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        height: 4px;
-                       /* background: red; */
-                       /* background: linear-gradient(to right, #f3c55d, #e7a400); */
-                        background: #e7a400;
+                          .seg-progress {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            height: 4px;
+                           /* background: red; */
+                           /* background: linear-gradient(to right, #f3c55d, #e7a400); */
+                            background: #e7a400;
 
-                        width: 0%;
-                        z-index: 50;
-                        transition: width 0.1s linear;
-                      }
+                            width: 0%;
+                            z-index: 50;
+                            transition: width 0.1s linear;
+                          }
 `;
         document.head.appendChild(css);
 
