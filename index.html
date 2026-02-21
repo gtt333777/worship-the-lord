@@ -1058,36 +1058,41 @@ button {
 
 
 
-			/* =========================================================
-🎯 Song Filter Buttons (Bookmark / Favorite) — COMPACT VERSION
-========================================================= */
 
-			/* Base style for filter buttons */
-			
+			/* =========================================================
+   🎯 Bookmark / Favorite Buttons — LOCKED COMPACT SIZE
+   (FOOLPROOF VERSION)
+========================================================= */
 
 			#bookmarkFilterBtn,
 			#favoriteFilterBtn {
-				/* size */
-				min-width: 130px;
-				height: 42px;
-				padding: 6px 14px;
-				/* text */
-				font-size: 0.9rem;
+				/* ----- SIZE LOCK ----- */
+				width: 160px; /* fixed width */
+				height: 42px; /* fixed height */
+				min-width: 160px;
+				max-width: 160px;
+				min-height: 42px;
+				max-height: 42px;
+				/* ----- TEXT ----- */
+				font-size: 0.88rem;
 				font-weight: 700;
-				white-space: nowrap; /* ⭐ FORCE SINGLE LINE */
-				overflow: hidden;
-				text-overflow: ellipsis;
-				/* layout */
+				white-space: nowrap; /* NEVER allow 2 lines */
+				overflow: hidden; /* hide extra text */
+				text-overflow: ellipsis; /* safety */
+				/* ----- CENTERING ----- */
 				display: inline-flex;
 				align-items: center;
 				justify-content: center;
 				text-align: center;
+				/* ----- STYLE ----- */
+				padding: 0 12px;
 				border-radius: 8px;
 				border: none;
 				cursor: pointer;
 				box-shadow: 0 2px 4px rgba(0,0,0,0.16);
 				transition: transform 0.15s ease, box-shadow 0.15s ease;
 			}
+
 
 
 				/* Hover effect (gentler) */
