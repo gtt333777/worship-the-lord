@@ -200,7 +200,7 @@ Worship The Lord app,
     #songSelect {
       font-size: 1rem;
       line-height: 1.4;
-      white-space: nowrap-line;
+      white-space: pre-line;
       width: 95%;
       max-width: 400px;
     }
@@ -711,13 +711,18 @@ button {
             </button>
 
             <!-- Text (2 lines) -->
+
+
             <button id="bookmarkFilterBtn"
                     onclick="toggleBookmarkView()"
-                    style="font-size:1rem; padding:6px 12px; border-radius:8px; line-height:1.2; white-space:pre-line;">
-                🎯 Show<br>Bookmarked
-
-
+                    style="font-size:1rem; padding:6px 12px; border-radius:8px; line-height:1.2;">
+                🎯 Show Bookmarked
             </button>
+
+
+
+
+
 
         </div>
 
@@ -733,17 +738,22 @@ button {
             </button>
 
             <!-- Text (2 lines) -->
+            
+
             <button id="favoriteFilterBtn"
                     onclick="toggleFavoriteView()"
-                    style="font-size:1rem; padding:6px 12px; border-radius:8px; line-height:1.2; white-space:pre-line;">
+                    style="font-size:1rem; padding:6px 12px; border-radius:8px; line-height:1.2;">
 
 
-                💛 Show<br>Favorites
 
+
+
+                
+                💛 Show Favorites
 
             </button>
 
-        </div>
+</div>
 
     </div>
 
@@ -1054,27 +1064,30 @@ button {
 
 			/* Base style for filter buttons */
 			
+
 			#bookmarkFilterBtn,
 			#favoriteFilterBtn {
-				min-width: 105px;
-				height: 42px; /* ⭐ FIX: same size always */
-				padding: 6px 10px;
+				/* size */
+				min-width: 130px;
+				height: 42px;
+				padding: 6px 14px;
+				/* text */
 				font-size: 0.9rem;
 				font-weight: 700;
-				border-radius: 8px;
-				border: none;
-				cursor: pointer;
-				display: inline-flex; /* ⭐ center content */
+				white-space: nowrap; /* ⭐ FORCE SINGLE LINE */
+				overflow: hidden;
+				text-overflow: ellipsis;
+				/* layout */
+				display: inline-flex;
 				align-items: center;
 				justify-content: center;
 				text-align: center;
-				line-height: 1.05;
-				white-space: nowrap; /* ⭐ prevents tall button */
-
+				border-radius: 8px;
+				border: none;
+				cursor: pointer;
 				box-shadow: 0 2px 4px rgba(0,0,0,0.16);
 				transition: transform 0.15s ease, box-shadow 0.15s ease;
 			}
-
 
 
 				/* Hover effect (gentler) */
@@ -1117,6 +1130,11 @@ button {
 
 
 
+
+			#bookmarkFilterBtn,
+			#favoriteFilterBtn {
+				min-height: 42px;
+			}
 
 
         </style>
