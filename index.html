@@ -1142,6 +1142,37 @@ button {
 			}
 
 
+			/* ======================================================
+   ⭐ FORCE FILTER BUTTON TEXT TO FIT (NO JS CHANGE)
+   ====================================================== */
+
+			#bookmarkFilterBtn,
+			#favoriteFilterBtn {
+				/* allow multi-line safely */
+				white-space: normal !important;
+				line-height: 1.1;
+				/* keep fixed size */
+				height: 48px;
+				min-height: 48px;
+				/* center text nicely */
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				padding: 4px 10px;
+			}
+
+				/* Make helper line smaller automatically */
+				#bookmarkFilterBtn span,
+				#favoriteFilterBtn span {
+					font-size: 0.7rem !important;
+					opacity: 0.8;
+				}
+
+
+
+
+
         </style>
 
         <script>
