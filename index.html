@@ -899,7 +899,10 @@ button {
     </details>
 
 
-        <!-- ⭐ SEO Song List (Google can read this) -->
+    <!-- ⭐ SEO Song List (Google can read this) -->
+
+    <details class="seoBlock"><summary>🎵 Popular Tamil Christian Karaoke Songs</summary>
+
         <section id="seoSongList"
                  style="max-width:700px;margin:20px auto;text-align:left;">
 
@@ -910,7 +913,7 @@ button {
             </ul>
 
         </section>
-
+    </details>
 
 
         <!-- ⭐ Dynamic Song Description (SEO Boost) -->
@@ -925,165 +928,165 @@ button {
 
 
         <style>
-                /* Common loader container */
-                #loadingOverlay {
-                    position: fixed;
-                    display: none;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 99999;
-                    font-family: system-ui, sans-serif;
+            /* Common loader container */
+            #loadingOverlay {
+                position: fixed;
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 99999;
+                font-family: system-ui, sans-serif;
+            }
+
+                /* Fullscreen mode: for shared-link URLs */
+                #loadingOverlay.loader-full {
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: white;
                 }
 
-                    /* Fullscreen mode: for shared-link URLs */
-                    #loadingOverlay.loader-full {
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: white;
-                    }
-
-                    /* Mini mode: small card for normal Play */
-                    #loadingOverlay.loader-mini {
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        padding: 18px 26px;
-                        background: #ffffff;
-                        border-radius: 14px;
-                        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-                    }
-
-                /* Spinner */
-                .loader-spinner {
-                    width: 60px;
-                    height: 60px;
-                    border: 6px solid #e0e0e0;
-                    border-top-color: #1e88e5;
-                    border-radius: 50%;
-                    animation: spin 0.9s linear infinite;
+                /* Mini mode: small card for normal Play */
+                #loadingOverlay.loader-mini {
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 18px 26px;
+                    background: #ffffff;
+                    border-radius: 14px;
+                    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
                 }
 
-                /* Text styles */
-                .loader-title {
-                    margin-top: 16px;
-                    color: #333;
-                    font-size: 1.1rem;
+            /* Spinner */
+            .loader-spinner {
+                width: 60px;
+                height: 60px;
+                border: 6px solid #e0e0e0;
+                border-top-color: #1e88e5;
+                border-radius: 50%;
+                animation: spin 0.9s linear infinite;
+            }
+
+            /* Text styles */
+            .loader-title {
+                margin-top: 16px;
+                color: #333;
+                font-size: 1.1rem;
+            }
+
+            .loader-percent {
+                margin-top: 4px;
+                color: #555;
+                font-size: 1.0rem;
+            }
+
+            /* Spinner animation */
+            @keyframes spin {
+                from {
+                    transform: rotate(0deg);
                 }
 
-                .loader-percent {
-                    margin-top: 4px;
-                    color: #555;
-                    font-size: 1.0rem;
+                to {
+                    transform: rotate(360deg);
                 }
-
-                /* Spinner animation */
-                @keyframes spin {
-                    from {
-                        transform: rotate(0deg);
-                    }
-
-                    to {
-                        transform: rotate(360deg);
-                    }
-                }
+            }
 
 
 
-                /* ⭐ Ultra-compact single-row volume controls */
-                .volRow {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                    margin: 6px 0;
-                    white-space: nowrap;
-                }
+            /* ⭐ Ultra-compact single-row volume controls */
+            .volRow {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                margin: 6px 0;
+                white-space: nowrap;
+            }
 
-                    .volRow label {
-                        font-size: 1rem;
-                        width: 55px;
-                        text-align: right;
-                    }
-
-                    .volRow input[type="range"] {
-                        width: 110px; /* Adjust slider size here */
-                    }
-
-                    .volRow span {
-                        width: 40px;
-                        text-align: center;
-                        font-weight: bold;
-                    }
-
-                .volBtn {
-                    padding: 4px 10px;
-                    font-size: 1.1rem;
-                    border-radius: 6px;
-                }
-
-                .muteBtnSmall {
-                    padding: 4px 10px;
-                    border-radius: 8px;
-                    font-size: 0.9rem;
-                }
-
-                /* Keep your large Vocal mute button style */
-                .muteBtnBig {
-                    padding: 8px 18px;
-                    border-radius: 10px;
+                .volRow label {
                     font-size: 1rem;
+                    width: 55px;
+                    text-align: right;
+                }
+
+                .volRow input[type="range"] {
+                    width: 110px; /* Adjust slider size here */
+                }
+
+                .volRow span {
+                    width: 40px;
+                    text-align: center;
                     font-weight: bold;
                 }
 
+            .volBtn {
+                padding: 4px 10px;
+                font-size: 1.1rem;
+                border-radius: 6px;
+            }
+
+            .muteBtnSmall {
+                padding: 4px 10px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+            }
+
+            /* Keep your large Vocal mute button style */
+            .muteBtnBig {
+                padding: 8px 18px;
+                border-radius: 10px;
+                font-size: 1rem;
+                font-weight: bold;
+            }
 
 
-                /* =========================================================
+
+            /* =========================================================
             🎯 Song Filter Buttons (Bookmark / Favorite)
             ========================================================= */
 
-                /* Base style for filter buttons */
-                #bookmarkFilterBtn,
-                #favoriteFilterBtn {
-                    min-width: 120px;
-                    padding: 8px 12px;
-                    font-size: 0.95rem;
-                    font-weight: 700;
-                    border-radius: 10px;
-                    border: none;
-                    cursor: pointer;
-                    line-height: 1.1;
-                    white-space: pre-line;
-                    box-shadow: 0 3px 6px rgba(0,0,0,0.18);
-                    transition: transform 0.15s ease, box-shadow 0.15s ease;
+            /* Base style for filter buttons */
+            #bookmarkFilterBtn,
+            #favoriteFilterBtn {
+                min-width: 120px;
+                padding: 8px 12px;
+                font-size: 0.95rem;
+                font-weight: 700;
+                border-radius: 10px;
+                border: none;
+                cursor: pointer;
+                line-height: 1.1;
+                white-space: pre-line;
+                box-shadow: 0 3px 6px rgba(0,0,0,0.18);
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+
+                /* Hover effect */
+                #bookmarkFilterBtn:hover,
+                #favoriteFilterBtn:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 5px 10px rgba(0,0,0,0.22);
                 }
 
-                    /* Hover effect */
-                    #bookmarkFilterBtn:hover,
-                    #favoriteFilterBtn:hover {
-                        transform: scale(1.05);
-                        box-shadow: 0 5px 10px rgba(0,0,0,0.22);
-                    }
+            /* 🎯 Bookmark button – ORANGE */
+            #bookmarkFilterBtn {
+                background: linear-gradient(to bottom right, #ffcc33, #ff9900);
+                color: black;
+            }
 
-                /* 🎯 Bookmark button – ORANGE */
-                #bookmarkFilterBtn {
-                    background: linear-gradient(to bottom right, #ffcc33, #ff9900);
-                    color: black;
-                }
+            /* 💛 Favorite button – PINK / GOLD */
+            #favoriteFilterBtn {
+                background: linear-gradient(to bottom right, #ffb6c1, #ff69b4);
+                color: #4a0033;
+            }
 
-                /* 💛 Favorite button – PINK / GOLD */
-                #favoriteFilterBtn {
-                    background: linear-gradient(to bottom right, #ffb6c1, #ff69b4);
-                    color: #4a0033;
-                }
-
-                /* Active mode style (applied by JS via innerHTML meaning) */
-                .filter-active {
-                    background: linear-gradient(to bottom right, #1565c0, #0d47a1) !important;
-                    color: white !important;
-                }
+            /* Active mode style (applied by JS via innerHTML meaning) */
+            .filter-active {
+                background: linear-gradient(to bottom right, #1565c0, #0d47a1) !important;
+                color: white !important;
+            }
         </style>
 
         <script>
@@ -1490,19 +1493,19 @@ button {
             // Gold bar CSS (auto-inject)
             const css = document.createElement("style");
             css.textContent = `
-                                      .seg-progress {
-                                        position: absolute;
-                                        top: 0;
-                                        left: 0;
-                                        height: 4px;
-                                       /* background: red; */
-                                       /* background: linear-gradient(to right, #f3c55d, #e7a400); */
-                                        background: #e7a400;
+                                              .seg-progress {
+                                                position: absolute;
+                                                top: 0;
+                                                left: 0;
+                                                height: 4px;
+                                               /* background: red; */
+                                               /* background: linear-gradient(to right, #f3c55d, #e7a400); */
+                                                background: #e7a400;
 
-                                        width: 0%;
-                                        z-index: 50;
-                                        transition: width 0.1s linear;
-                                      }
+                                                width: 0%;
+                                                z-index: 50;
+                                                transition: width 0.1s linear;
+                                              }
 `;
             document.head.appendChild(css);
 
