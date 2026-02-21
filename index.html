@@ -678,13 +678,6 @@ button {
 
 
 
-    <!-- ⭐ Dynamic Song Description (SEO Boost) -->
-    <div id="songDescription"
-         style="max-width:700px;margin:25px auto;
-            font-size:1rem;line-height:1.6;
-            text-align:left;color:#333;">
-    </div>
-
 
     <!-- ✅ Song selector -->
     <div>
@@ -913,6 +906,16 @@ button {
         </ul>
 
     </section>
+
+
+
+    <!-- ⭐ Dynamic Song Description (SEO Boost) -->
+    <div id="songDescription"
+         style="max-width:700px;margin:25px auto;
+            font-size:1rem;line-height:1.6;
+            text-align:left;color:#333;">
+    </div>
+
 
 
 
@@ -1483,19 +1486,19 @@ button {
         // Gold bar CSS (auto-inject)
         const css = document.createElement("style");
         css.textContent = `
-                          .seg-progress {
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            height: 4px;
-                           /* background: red; */
-                           /* background: linear-gradient(to right, #f3c55d, #e7a400); */
-                            background: #e7a400;
+                              .seg-progress {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                height: 4px;
+                               /* background: red; */
+                               /* background: linear-gradient(to right, #f3c55d, #e7a400); */
+                                background: #e7a400;
 
-                            width: 0%;
-                            z-index: 50;
-                            transition: width 0.1s linear;
-                          }
+                                width: 0%;
+                                z-index: 50;
+                                transition: width 0.1s linear;
+                              }
 `;
         document.head.appendChild(css);
 
