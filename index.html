@@ -1699,7 +1699,7 @@ button {
 
 
         <script>
-            (function () {
+			window.addEventListener("load", function () {
                 const params = new URLSearchParams(window.location.search);
                 if (!params.has("song")) return;
 
@@ -1760,7 +1760,7 @@ button {
 
 
                 waitForFullMetadata();
-            })();
+            });
         </script>
 
 
