@@ -46,38 +46,9 @@ async function buildSEOSongList() {
 }
 
 
-/* --------------------------------------------------
-   Dynamic Page Title + Meta Description
--------------------------------------------------- 
-function applyDynamicSEO() {
 
-    const params = new URLSearchParams(window.location.search);
-    const song = params.get("song");
 
-    if (!song) return;
 
-    // ⭐ Change browser tab title
-    document.title =
-        song + " Karaoke | Worship The Lord";
-
-    // ⭐ Update meta description
-    const meta = document.querySelector(
-        'meta[name="description"]'
-    );
-
-    if (meta) {
-        meta.setAttribute(
-            "content",
-            "Sing " + song +
-            " Tamil Christian karaoke song with lyrics. Worship Jesus using the Worship The Lord app."
-        );
-    }
-}
-*/
-
-/* --------------------------------------------------
-   Dynamic Page Title + Meta + OpenGraph SEO
--------------------------------------------------- */
 function applyDynamicSEO() {
 
     const params = new URLSearchParams(location.search);
@@ -90,6 +61,23 @@ function applyDynamicSEO() {
 
     const songURL =
         baseURL + "?song=" + encodeURIComponent(song);
+
+
+    /* -------------------------------------------
+Canonical URL (makes each song a real page)
+-------------------------------------------- */
+    let canonical = document.querySelector("link[rel='canonical']");
+
+    if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.setAttribute("rel", "canonical");
+        document.head.appendChild(canonical);
+    }
+
+    canonical.setAttribute("href", songURL);
+
+
+
 
     const description =
         "Sing " + song +
