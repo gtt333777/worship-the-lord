@@ -1726,11 +1726,13 @@ button {
                         return setTimeout(waitForFullMetadata, 150);
                     }
 
-                    // Segments loaded?
-                    if (!window.currentSegments || window.currentSegments.length === 0) {
-                        console.log("⏳ Waiting for segments…");
-                        return setTimeout(waitForFullMetadata, 150);
-                    }
+
+					// Segments loaded? (do not wait forever)
+					if (!window.currentSegments || window.currentSegments.length === 0) {
+						console.log("⏳ Segments not ready yet — continuing anyway");
+					}
+
+
 
                     console.log("✅ Metadata ready — syncing both players");
 
