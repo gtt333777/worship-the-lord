@@ -1743,15 +1743,6 @@ button {
                 // Trigger normal app loading logic
                 select.dispatchEvent(new Event("change"));
 
-                // Wait for downloader & player preparation
-                setTimeout(() => {
-                    const playBtn = document.getElementById("playBtn");
-                    if (playBtn) {
-                        console.log("▶ Auto pressing play");
-                        playBtn.click();
-                    }
-                }, 3500);
-
             }
 
             waitForSongList();
