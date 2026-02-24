@@ -4,7 +4,7 @@
    ============================================================ */
 
 var MIN_VOL = 0.001;
-window.DEFAULTS = window.DEFAULTS || { vocal: 0.002, accomp: 0.02 };
+window.DEFAULTS = window.DEFAULTS || { vocal: 0.6, accomp: 0.7 };
 var DEFAULTS = window.DEFAULTS;
 
 window.vocalAudio =
