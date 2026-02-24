@@ -154,13 +154,15 @@ function applySongDescription() {
 }
 
 
-/* --------------------------------------------------
-   Initialize SEO features
--------------------------------------------------- */
+
 document.addEventListener("DOMContentLoaded", () => {
 
-    buildSEOSongList();     // build song index
-    applyDynamicSEO();      // title + meta update
-    applySongDescription(); // ⭐ NEW SEO CONTENT
+    buildSEOSongList();
+
+    // ⭐ Delay SEO slightly so shared-link loader finishes first
+    setTimeout(() => {
+        applyDynamicSEO();
+        applySongDescription();
+    }, 300);
 
 });
