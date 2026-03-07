@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 38.665,
+      "end": 105.982,
+      "lyrics": [
+        "துதிக்கும்.. கனத்திற்கும் பாத்திரரே..",
+        "தூயவரே எந்தன் துணையாளரே",
+        "துதிக்கும்.. மகிமைக்கும் பாத்திரரே..",
+        "மகிமையே எந்தன் மணவாளரே 1T only",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 1T",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 2T",
+        "துதிக்கும்.. கனத்திற்கும் பாத்திரரே..",
+        "தூயவரே எந்தன் துணையாளரே",
+        "துதிக்கும்.. மகிமைக்கும் பாத்திரரே..",
+        "மகிமையே எந்தன் மணவாளரே 1T only"
+      ]
+    },
+    {
+      "start": 140.138,
+      "end": 233.1,
+      "lyrics": [
+        "உந்தன் நாமம் அறிந்த என்னை",
+        "உம்மேல் வாஞ்சை கொண்ட எ..ன்னை",
+        "விடுவித்து உயர்த்திடுவீ..ர்",
+        "உயர்த்தியே மகிழ்ந்திடுவீ..ர் 1T",
+        "உந்தன் நாமம் அறிந்த என்னை",
+        "உம்மேல் வாஞ்சை கொண்ட எ..ன்னை",
+        "விடுவித்து உயர்த்திடுவீ..ர்",
+        "உயர்த்தியே மகிழ்ந்திடுவீ..ர் 2T",
+        "துதிக்கு பா..த்திரர் நீரல்லவோ..",
+        "கனத்திற்கு பாத்திரர் நீ..ரல்லவோ 1T",
+        "துதிக்கு பா..த்திரர் நீரல்லவோ..",
+        "மகிமைக்கு பாத்திரர் நீ..ர் அல்லவோ 2T",
+        "நீரல்லவோ...",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 1T",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 2T",
+        "துதிக்கும்.. கனத்திற்கும் பாத்திரரே..",
+        "தூயவரே எந்தன் துணையாளரே",
+        "துதிக்கும்.. மகிமைக்கும் பாத்திரரே..",
+        "மகிமையே எந்தன் மணவாளரே 1T only"
+      ]
+    },
+    {
+      "start": 267.382,
+      "end": 383.487,
+      "lyrics": [
+        "எந்தன் கால்கள் சறுக்கிடும்போது",
+        "விரைந்து()தாங்கும் கிருபை உமது",
+        "சிறகுகளே என் அடைக்கலம் ஐ..யா 1T",
+        "எந்தன் கால்கள் சறுக்கிடும்போது",
+        "விரைந்து()தாங்கும் கிருபை உமது",
+        "செட்டைகள் எனக்கு அடைக்கலம் ஐ..யா 2T",
+        "மறைவிடமே எந்தன் தாபரமே..",
+        "அடைக்கலமே நீர்()என் ஆ..தாரமே 1T",
+        "மறைவிடமே எந்தன் தாபரமே..",
+        "அடைக்கலமே நீர்()என் ஆ..தாரமே 2T",
+        "ஆதாரமே...",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 1T",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 2T",
+        "துதிக்கும்.. கனத்திற்கும் பாத்திரரே..",
+        "தூயவரே எந்தன் துணையாளரே",
+        "துதிக்கும்.. மகிமைக்கும் பாத்திரரே..",
+        "மகிமையே எந்தன் மணவாளரே 1T only",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 1T",
+        "ஆராதனை ஆராதனை..",
+        "ஆராதனை, உமக்கே ஐ..யா 2T"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 38.665,
+      "end": 105.982,
+      "lyrics": [
+        "Thuthikum Kanathirkum Pathirarae",
+        "Thuyavarae Enthan Thunaiyaalarae",
+        "Thuthikkum Makimaikkum Paaththirarae",
+        "Makimaiyae Enthan Manavaalarae – 2",
+        "Aaraathanai Aaraathanai",
+        "Aaraathanai Umakkae Aiyaa – 2",
+        "– Thuthikkum",
+        "1. Unthan Naamam Arintha Ennai",
+        "Ummael Vaagnchai Konda Ennai",
+        "Vituviththu Uyarththituviir",
+        "Uyarththiyae Makizhnthituviir – 2",
+        "Thuthikku Paaththirar Niirallavo",
+        "Kanaththirku Paaththirar Niirallavo",
+        "Thuthikku Paaththirar Niirallavo",
+        "Makimaikku Paaththirar Niir Allavo",
+        "Niirallavo",
+        "Aaraathanai Aaraathanai",
+        "Aaraathanai Umakkae Aiyaa – 2",
+        "– Thuthikkum",
+        "2. Enthan Kaalkal Charukkitumpothu",
+        "Virainthu Thaangkum Kirupai Umathu",
+        "Sirakukalae En Ataikkalam Aiyaa",
+        "Enthan Kaalkal Charukkitumpothu",
+        "Virainthu Thaangkum Kirupai Umathu",
+        "Chettaikal Enakku Ataikkalam Aiyaa",
+        "Maraividamae Enthan Thaaparamae",
+        "Ataikkalamae Niir En Aathaaramae – 2",
+        "Aathaaramae",
+        "Aaraathanai Aaraathanai",
+        "Aaraathanai Umakkae Aiyaa – 2",
+        "– Thuthikkum"
+      ]
+    }
+  ]
+}
