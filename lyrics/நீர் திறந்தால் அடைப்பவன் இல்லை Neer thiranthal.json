@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 40.599,
+      "end": 84.34,
+      "lyrics": [
+        "நீர் திறந்தால் அடைப்பவன் இல்லை",
+        "நீர் கட்டினால் அதை இடிப்பவன் இல்லை",
+        "இல்லை இல்லை இல்லை",
+        "என் வாசலை அடைப்பவன் இல்லை",
+        "இல்லை இல்லை இல்லை",
+        "என்னை எதிர்ப்பவன் பூமியில் இல்லை"
+      ]
+    },
+    {
+      "start": 111.83,
+      "end": 177.821,
+      "lyrics": [
+        "கர்த்தரை போல பரிசுத்தம் உள்ளவர்",
+        "பூமியில் இல்லையே",
+        "கர்த்தரை போல வல்லமை உள்ளவர்",
+        "பூமியில் இல்லையே",
+        "பலவானின் வில்லை உடைத்து",
+        "கீழே தள்ளுகிறார்",
+        "தள்ளாடும் யாவரையும்",
+        "உயரத்தில் நிறுத்துகிறார்"
+      ]
+    },
+    {
+      "start": 210.22,
+      "end": 274.303,
+      "lyrics": [
+        "நாசியின் சுவாசத்தால் செங்கடலை",
+        "அவர் இரண்டாய் பிளந்தவராம்",
+        "பார்வோன் சேனையை தப்பவிடாமல்",
+        "கடலில் அழித்தவராம்",
+        "மரண இருள் சூழ்ந்திடும் வேளையில்",
+        "பஸ்கா ஆட்டுக்குட்டி",
+        "வாதை எங்கள் கூடாரத்தை",
+        "என்றும் அணுகாது"
+      ]
+    },
+    {
+      "start": 303.619,
+      "end": 408.969,
+      "lyrics": [
+        "தேவனை துதிக்கும் துதியாலே",
+        "எரிக்கோ விழுந்தது-பவுலும் சீலாவும்",
+        "துதித்த போது சிறையும் அதிர்ந்தது",
+        "துதியாலே சாத்தானை கீழே தள்ளிவிடுவோம்",
+        "திறந்த வாசல் நம் முன்னே",
+        "கொடியை ஏற்றிடுவோம்"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 40.599,
+      "end": 84.34,
+      "lyrics": [
+        "Neer thiranthaal ataippavan illai",
+        "neer kattinaal athai itippavan illai",
+        "illai illai illai",
+        "en vaasalai ataippavan illai",
+        "illai illai illai",
+        "ennai ethirppavan poomiyil illai",
+        "karththarai pola parisuththam ullavar",
+        "poomiyil illaiyae",
+        "karththarai pola vallamai ullavar",
+        "poomiyil illaiyae",
+        "palavaanin villai utaiththu",
+        "geelae thallukiraar",
+        "thallaadum yaavaraiyum",
+        "uyaraththil niruththukiraar",
+        "naasiyin suvaasaththaal sengadalai",
+        "avar iranndaay pilanthavaraam",
+        "paarvon senaiyai thappavidaamal",
+        "kadalil aliththavaraam",
+        "marana irul soolnthidum vaelaiyil",
+        "paskaa aattukkutti",
+        "vaathai engal koodaaraththai",
+        "entum anukaathu",
+        "thaevanai thuthikkum thuthiyaalae",
+        "erikko vilunthathu-pavulum seelaavum",
+        "thuthiththa pothu siraiyum athirnthathu",
+        "thuthiyaalae saaththaanai geelae thallividuvom",
+        "thirantha vaasal nam munnae",
+        "kotiyai aettiduvom"
+      ]
+    }
+  ]
+}
