@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 0,
+      "end": 369.499,
+      "lyrics": [
+        "ஆராதனை நாயகர் நீரே",
+        "ஆராதனை வேந்தனும் நீரே",
+        "ஆயுள் முடியும் வரை",
+        "உம்மை தொழுதிடுவேன்",
+        "ஆயிரம் பேர்களில் சிறந்தோர்",
+        "ஆண்டவர் இயேசு நீரே",
+        "விடிவெள்ளியே எந்தன் பிரியம் நீரே",
+        "என்றென்றும் தொழுதிடுவேன்",
+        "மாந்தர்கள் போற்றிடும் தெய்வம்",
+        "மகிமையின் தேவன் நீரே",
+        "முழங்கால் யாவும் முடங்கிடவே",
+        "மகிழ்வுடன் துதித்திடுவேன்",
+        "முடிவில்லா ராஜ்ஜியம் அருள",
+        "திரும்பவும் வருவேன் என்றீர்",
+        "ஆயத்தமாய் நான் சேர்ந்திடவே",
+        "அனுதினம் வணங்கிடுவேன்"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 0,
+      "end": 369.499,
+      "lyrics": [
+        "aaraathanai naayakar neerae",
+        "aaraathanai vaenthanum neerae",
+        "aayul mutiyum varai",
+        "ummai tholuthiduvaen",
+        "aayiram paerkalil siranthor",
+        "aanndavar Yesu neerae",
+        "vitivelliyae enthan piriyam neerae",
+        "ententum tholuthiduvaen",
+        "maantharkal pottidum theyvam",
+        "makimaiyin thaevan neerae",
+        "mulangaal yaavum mudangidavae",
+        "makilvudan thuthiththiduvaen",
+        "mutivillaa raajjiyam arula",
+        "thirumpavum varuvaen enteer",
+        "aayaththamaay naan sernthidavae",
+        "anuthinam vanangiduvaen"
+      ]
+    }
+  ]
+}
