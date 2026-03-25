@@ -52,7 +52,7 @@ window.star = [
   "*** தேவனுக்கே மகிமை Devanuke Magimai",
   "*** நன்றி பலி, நன்றி பலி Nandri bali nandri bali",
   "** நான் பாடும் போது என் உதடு Naan Padumbothu",
-  "# நீர் திறந்தால் அடைப்பவன் இல்லை Neer thiranthal",
+  "** நீர் திறந்தால் அடைப்பவன் இல்லை Neer thiranthal",
   "** பாடுவேன் மகிழ்வேன் கொண்டாடுவேன் Paaduven Magizhven",
   "*** மகிழ்வோம் மகிழ்வோம் Magizhvom Magizhvom",
   "*** மறவாமல் நினைத்தீரையா Maravaamal Ninaitheeraiya",
