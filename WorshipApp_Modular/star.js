@@ -21,6 +21,7 @@ window.star = [
 // ---------------------------------------
 
 window.star = [
+  "* அப்பா உம் சமூகத்திலே Appaa um samoogathilae",
   "* அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
   "*** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "*** அன்பு கூறுவேன் இன்னும் அதிகமாய் Anbu Kuruven Innum",
