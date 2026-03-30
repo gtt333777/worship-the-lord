@@ -25,7 +25,7 @@ window.star = [
   "* அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
   "*** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "*** அன்பு கூறுவேன் இன்னும் அதிகமாய் Anbu Kuruven Innum",
-  "** ஆச்சரியமானவரே Aachariyamanavare",
+  "# ஆச்சரியமானவரே Aachariyamanavare",
   "# ஆராதனை நாயகர் நீரே Aaradhanai nayagan neere ONLY MUSIC",
   "** ஆவியானவரே ஆவியானவரே பரிசுத்த Aaviyanavare Aaviyanavare",
   "** இயேசுவைப் போல் அழகுள்ளோர் Yesuvai Pol Azhagullore",
