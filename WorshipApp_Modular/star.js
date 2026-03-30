@@ -21,13 +21,14 @@ window.star = [
 // ---------------------------------------
 
 window.star = [
-  "* அப்பா உம் சமூகத்திலே Appaa um samoogathilae",
+  "# அப்பா உம் சமூகத்திலே Appaa um samoogathilae",
   "* அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
   "*** அழகாய் திரள் திரளாய் Azhakaay thiral thiralaay",
   "*** அன்பு கூறுவேன் இன்னும் அதிகமாய் Anbu Kuruven Innum",
   "# ஆச்சரியமானவரே Aachariyamanavare",
   "# ஆராதனை நாயகர் நீரே Aaradhanai nayagan neere ONLY MUSIC",
   "** ஆவியானவரே ஆவியானவரே பரிசுத்த Aaviyanavare Aaviyanavare",
+  "# இம்மானுவேல் இம்மானுவேல் Immaanuvael Immaanuvael",
   "** இயேசுவைப் போல் அழகுள்ளோர் Yesuvai Pol Azhagullore",
   "*** இன்ப இயேசு ராஜாவை நான் Inba Yesu Raja Vai Naan",
   "** உந்தன் நாமம் மகிமை பெற Unthan naamam magimai pera",
@@ -48,7 +49,7 @@ window.star = [
   "** கூடுமே எல்லாம் கூடுமே Koodume Ellam Koodume",
   "*** சிலுவையில் நிழலில் அனுதினம் அடியான் Siluvaiyin Nizhalil",
   "* தளர்ந்து போன கைகளை திடப்படுத்துங்கள் Thalarnthu pona kaikalai",
-  "* தனிமையின் பாதையில் Thanimaiyin Paathaiyil",
+  "# தனிமையின் பாதையில் Thanimaiyin Paathaiyil",
   "** திருப்பாதம் நம்பி வந்தேன் Thirupatham nambi vanthen",
   "** துதிக்கும் கனத்திற்கும் பாத்திரரே Thuthikum Kanathirkum Pathirarae",
   "*** தேவனுக்கே மகிமை Devanuke Magimai",
