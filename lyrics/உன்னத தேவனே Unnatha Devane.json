@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 35.896,
+      "end": 70.171,
+      "lyrics": [
+        "உன்னத தேவனே",
+        "என் இயேசு ராஜனே",
+        "உம்மோடு இணைந்திட",
+        "என் உள்ளம் ஏங்குதையா 1T",
+        "உன்னத தேவனே",
+        "என் இயேசு ராஜனே",
+        "உம்மோடு இணைந்திட",
+        "என் உள்ளம் ஏங்குதையா 2T"
+      ]
+    },
+    {
+      "start": 79.83,
+      "end": 149.749,
+      "lyrics": [
+        "மறுரூபமாக்கிடும் மகிமையின் மேகமே 1T",
+        "மறுரூபமாக்கிடும் மகிமையின் மேகமே 2T",
+        "உம்முக சாயலாய் உருமாற்றும் தெய்வமே 1T",
+        "உம்முக சாயலாய் உருமாற்றும் தெய்வமே 2T",
+        "இரவெல்லாம் பகலெல்லாம் இதயம்",
+        "உமக்காக துடிக்குதையா",
+        "நினைவெல்லாம் பேச்செல்லாம்",
+        "நேசரே உம்மைப் பற்றித்தானே ஐயா 1T only",
+        "உன்னத தேவனே",
+        "என் இயேசு ராஜனே",
+        "உம்மோடு இணைந்திட",
+        "என் உள்ளம் ஏங்குதையா 1T only"
+      ]
+    },
+    {
+      "start": 167.875,
+      "end": 237.955,
+      "lyrics": [
+        "பேரின்பக் கடலிலே ஓய்வின்றி மூழ்கணும் 1T",
+        "பேரின்பக் கடலிலே ஓய்வின்றி மூழ்கணும் 2T",
+        "துதித்து மகிழணும் தூயோனாய் வாழணும் 1T",
+        "துதித்து மகிழணும் தூயோனாய் வாழணும் 2T",
+        "இரவெல்லாம் பகலெல்லாம் இதயம்",
+        "உமக்காக துடிக்குதையா",
+        "நினைவெல்லாம் பேச்செல்லாம்",
+        "நேசரே உம்மைப் பற்றித்தானே ஐயா 1T only",
+        "உன்னத தேவனே",
+        "என் இயேசு ராஜனே",
+        "உம்மோடு இணைந்திட",
+        "என் உள்ளம் ஏங்குதையா 1T only"
+      ]
+    },
+    {
+      "start": 256.029,
+      "end": 335.816,
+      "lyrics": [
+        "கொடியாக படரணும் உந்தன் நேசமே 1T",
+        "கொடியாக படரணும் உந்தன் நேசமே 2T",
+        "மடிமீது தவழணும் மழலைக் குழந்தை நான் 1T",
+        "மடிமீது தவழணும் மழலைக் குழந்தை நான் 2T",
+        "இரவெல்லாம் பகலெல்லாம் இதயம்",
+        "உமக்காக துடிக்குதையா",
+        "நினைவெல்லாம் பேச்செல்லாம்",
+        "நேசரே உம்மைப் பற்றித்தானே ஐயா 1T only",
+        "உன்னத தேவனே",
+        "என் இயேசு ராஜனே",
+        "உம்மோடு இணைந்திட",
+        "என் உள்ளம் ஏங்குதையா 1T only",
+        "என் உள்ளம் ஏங்குதையா 1T",
+        "என் உள்ளம் ஏங்குதையா 2T"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 35.896,
+      "end": 70.171,
+      "lyrics": [
+        "Unnatha Devane en Yesu raajanae",
+        "ummodu innainthida en ullam aenguthaiyaa",
+        "2. maruroopamaakkidum makimaiyin maekamae",
+        "ummuka saayalaay urumaattum theyvamae",
+        "iravellaam pakalellaam ithayam",
+        "umakkaaka thutikkuthaiyaa",
+        "ninaivellaam paechchellaam",
+        "naesarae ummaip pattiththaanae aiyaa",
+        "Unnatha Devane en Yesu raajanae",
+        "ummodu innainthida en ullam aenguthaiyaa",
+        "3. paerinpak kadalilae oyvinti moolkanum",
+        "thuthiththu makilanum thooyonaay vaalanum",
+        "4. kotiyaaka padaranum unthan naesamae",
+        "matimeethu thavalanum malalaik kulanthai naan",
+        "5. um anpaip parukida",
+        "otooti vanthullaen ummaaka maarida ulakai marakkiraen",
+        "6. thaenilum inimaiyae thevittatha amuthamae",
+        "thaetiyum kitaikkaatha oppatta selvamae",
+        "7. aiyaa um nilalilae aanantha paravasam",
+        "alavidaa paerinpam aarokkiyam athisayam",
+        "உம் அன்பைப் பருகிட",
+        "ஓடோடி வந்துள்ளேன் உம்மாக மாறிட உலகை மறக்கிறேன்",
+        "தேனிலும் இனிமையே தெவிட்டாத அமுதமே",
+        "தேடியும் கிடைக்காத ஒப்பற்ற செல்வமே",
+        "ஐயா உம் நிழலிலே ஆனந்த பரவசம்",
+        "அளவிடா பேரின்பம் ஆரோக்கியம் அதிசயம்"
+      ]
+    }
+  ]
+}
