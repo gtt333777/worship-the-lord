@@ -36,6 +36,7 @@ window.star = [
   "*** உம்முன்னே எனக்கு நிறைவான Ummunnae enakku niraivaana",
   "** உம்மை புகழ்ந்து பாடுவது நல்லது Ummai pukalnthu paaduvathu",
   "* உம்மை போல மாறனுமே Ummai Pola Maaranumae",
+  "** உன்னத தேவனே Unnatha Devane",
   "* உன்னதத்தின் ஆவியை Unnathaththin aaviyai",
   "* உன்னதமானவரின் உயர் மறைவில் Unnathamanavarin Uyar",
   "# உன்னதரே என் நேசரே Unnathare en nesarae",
