@@ -41,6 +41,7 @@ window.star = [
   "* உன்னதமானவரின் உயர் மறைவில் Unnathamanavarin Uyar",
   "# உன்னதரே என் நேசரே Unnathare en nesarae",
   "*** எக்காள சத்தம் வானில் தொனித்திடவே Ekkala Satham Vaanil",
+  "*** எந்தன் இயேசு கைவிடமாட்டார் Enthan Yesu Kaivida Matar",
   "** எந்தன் இயேசு வல்லவர் Enthan Yesu vallavar",
   "** எல்லாம் இயேசுவே எனக்கெல்லா மேசுவே Yellam Yesuve Enakkellam",
   "* என் மீட்பர் உயிரோடிருக்கையிலே En Meetpar Uyirodirukkaiyile",
