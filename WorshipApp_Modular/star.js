@@ -74,6 +74,7 @@ window.star = [
   "* வாதை உந்தன் கூடாரத்தை Vaathai unthan koodaaraththai",
   "* விண்ணப்பத்தைக் கேட்பவரே Vinnapathai ketpavare",
   "* விண்ணிலும் மண்ணிலும் உம்மைத்தவிர Vinnilum Mannilum",
+  "* வேடரின் கண்ணிக்கு Vedarin kanniku",
   "* ஜெபம் கேட்டீரையா ஜெயம் Jebam Keteeraiya Jeyam",
   "* విన్నపాలు విను దైవమా Vinnapalu vinu Daivamaa",
   "* రాజా నీ భవనములో Raajaa Nee Bhavanamulo",
