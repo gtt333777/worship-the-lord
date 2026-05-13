@@ -178,7 +178,7 @@ async function clearAllSongCache() {
   }
 
     // ✅ Step 4: Ask for password before deleting
-  const password = prompt("🔐 Enter password to delete ALL songs:");
+  const password = prompt("🔐 Enter password as 123 to delete ALL songs:");
 
   if (password !== "123") {
     alert("❌ Wrong password. Deletion cancelled.");
@@ -211,7 +211,7 @@ async function clearSingleSongCache(songName) {
   if (!ok) return;
 
   // ✅ Password confirmation
-  const password = prompt("🔐 Enter password to delete this song:");
+  const password = prompt("🔐 Enter password as 123 to delete this song:");
 
   if (password !== "123") {
     alert("❌ Wrong password. Deletion cancelled.");
