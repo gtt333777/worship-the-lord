@@ -219,6 +219,16 @@ async function clearSingleSongCache(songName) {
     return;
   }
 
+    // ✅ Stop and clear current audio from memory
+  const audio = document.querySelector("audio");
+
+  if (audio) {
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+  }
+
+
   let removed = false;
   for (const url of [vocalURL, accURL]) {
     const deleted = await cache.delete(url);
