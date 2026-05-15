@@ -47,6 +47,7 @@ window.star = [
   "** எப்படி நான் பாடுவேன் Eppadi naan paaduvaen",
   "** எல்லாம் இயேசுவே எனக்கெல்லா மேசுவே Yellam Yesuve Enakkellam",
   "* என் மீட்பர் உயிரோடிருக்கையிலே En Meetpar Uyirodirukkaiyile",
+  "** என் ஹக்கோர் En Hakkore",
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** ஒரு நாளும் என்னை மறவா Oru naalum ennai marava",
   "*** காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka",
