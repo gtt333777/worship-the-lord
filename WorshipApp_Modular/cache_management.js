@@ -221,71 +221,35 @@ async function clearSingleSongCache(songName) {
 
 
 
-// ===============================
-// FULL AUDIO MEMORY + CACHE CLEAR
-// ===============================
-
-async function fullyClearAudio(songName, vocalURL, accURL, cache) {
-
+    // ✅ Clear browser memory + unload audio pipeline
   try {
 
-    // ---------------------------
-    // helper
-    // ---------------------------
-    const destroyAudio = (audioRefName) => {
+    const unloadAudio = (player) => {
+      if (!player) return;
 
-      const oldAudio = window[audioRefName];
+      player.pause();
+      player.currentTime = 0;
 
-      if (!oldAudio) return;
-
-      try {
-
-        // stop playback
-        oldAudio.pause();
-
-        // reset playback state
-        oldAudio.currentTime = 0;
-
-        // remove all <source> tags
-        while (oldAudio.firstChild) {
-          oldAudio.removeChild(oldAudio.firstChild);
-        }
-
-        // remove src completely
-        oldAudio.removeAttribute("src");
-        oldAudio.src = "";
-
-        // disable preload
-        oldAudio.preload = "none";
-
-        // force unload
-        oldAudio.load();
-
-        // clone fresh empty element
-        const freshAudio = oldAudio.cloneNode(false);
-
-        // replace in DOM if attached
-        if (oldAudio.parentNode) {
-          oldAudio.parentNode.replaceChild(freshAudio, oldAudio);
-        }
-
-        // overwrite global reference
-        window[audioRefName] = freshAudio;
-
-      } catch (e) {
-        console.warn(`Cleanup failed for ${audioRefName}`, e);
+      // Remove all <source> tags
+      while (player.firstChild) {
+        player.removeChild(player.firstChild);
       }
+
+      // Fully detach source
+      player.removeAttribute("src");
+      player.src = "";
+
+      // Prevent preload reuse
+      player.preload = "none";
+
+      // Force browser unload
+      player.load();
     };
 
-    // ---------------------------
-    // destroy players
-    // ---------------------------
-    destroyAudio("playerVocals");
-    destroyAudio("playerMusic");
+    unloadAudio(window.playerVocals);
+    unloadAudio(window.playerMusic);
 
-    // ---------------------------
-    // revoke object URLs
-    // ---------------------------
+    // Clear object URLs from memory
     if (window.currentVocalObjectURL) {
       URL.revokeObjectURL(window.currentVocalObjectURL);
       window.currentVocalObjectURL = null;
@@ -296,81 +260,29 @@ async function fullyClearAudio(songName, vocalURL, accURL, cache) {
       window.currentAccObjectURL = null;
     }
 
-    // ---------------------------
-    // clear blobs
-    // ---------------------------
+    // Clear blob references
     window.currentVocalsBlob = null;
     window.currentMusicBlob = null;
 
-    // ---------------------------
-    // clear current song refs
-    // ---------------------------
-    window.currentSong = null;
-
-    console.log("🧠 Audio memory fully cleared");
+    console.log("🧠 Cleared in-memory audio references");
 
   } catch (e) {
     console.warn("⚠️ Memory cleanup failed:", e);
   }
 
 
-  // =====================================
-  // DELETE FROM CACHE STORAGE
-  // =====================================
+
 
   let removed = false;
-
-  try {
-
-    for (const url of [vocalURL, accURL]) {
-
-      if (!url) continue;
-
-      const deleted = await cache.delete(url, {
-        ignoreSearch: true,
-        ignoreMethod: true,
-        ignoreVary: true
-      });
-
-      console.log(
-        deleted
-          ? `🗑️ Removed cache: ${url}`
-          : `⚠️ Cache not found: ${url}`
-      );
-
-      if (deleted) removed = true;
+  for (const url of [vocalURL, accURL]) {
+    const deleted = await cache.delete(url);
+    if (deleted) {
+      console.log("🗑️ Removed:", url);
+      removed = true;
     }
-
-  } catch (e) {
-    console.warn("Cache deletion failed:", e);
   }
-
-
-
-  // =====================================
-  // FORCE GC ELIGIBILITY
-  // =====================================
-
-  setTimeout(() => {
-    console.log("♻️ Browser can now garbage collect audio");
-  }, 0);
-
-
-  // =====================================
-  // UI
-  // =====================================
-
-  showCacheStatus(
-    removed
-      ? `✅ Cleared ${songName}`
-      : `⚠️ No cache found`,
-    removed ? "green" : "gray"
-  );
+  showCacheStatus(removed ? `✅ Cleared ${songName}` : `⚠️ No cache found`, removed ? "green" : "gray");
 }
-
-
-
-
 
 // ==================================================
 // 📊 4️⃣ Cache info (how many + size)
