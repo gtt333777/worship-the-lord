@@ -221,76 +221,152 @@ async function clearSingleSongCache(songName) {
 
 
 
-// ✅ Fully clear loaded audio from memory
-try {
+// ===============================
+// FULL AUDIO MEMORY + CACHE CLEAR
+// ===============================
 
-  // VOCALS
-  if (window.playerVocals) {
-    window.playerVocals.pause();
-    window.playerVocals.removeAttribute("src");
-    window.playerVocals.src = "";
-    window.playerVocals.load();
-    window.playerVocals.currentTime = 0;
+async function fullyClearAudio(songName, vocalURL, accURL, cache) {
+
+  try {
+
+    // ---------------------------
+    // helper
+    // ---------------------------
+    const destroyAudio = (audioRefName) => {
+
+      const oldAudio = window[audioRefName];
+
+      if (!oldAudio) return;
+
+      try {
+
+        // stop playback
+        oldAudio.pause();
+
+        // reset playback state
+        oldAudio.currentTime = 0;
+
+        // remove all <source> tags
+        while (oldAudio.firstChild) {
+          oldAudio.removeChild(oldAudio.firstChild);
+        }
+
+        // remove src completely
+        oldAudio.removeAttribute("src");
+        oldAudio.src = "";
+
+        // disable preload
+        oldAudio.preload = "none";
+
+        // force unload
+        oldAudio.load();
+
+        // clone fresh empty element
+        const freshAudio = oldAudio.cloneNode(false);
+
+        // replace in DOM if attached
+        if (oldAudio.parentNode) {
+          oldAudio.parentNode.replaceChild(freshAudio, oldAudio);
+        }
+
+        // overwrite global reference
+        window[audioRefName] = freshAudio;
+
+      } catch (e) {
+        console.warn(`Cleanup failed for ${audioRefName}`, e);
+      }
+    };
+
+    // ---------------------------
+    // destroy players
+    // ---------------------------
+    destroyAudio("playerVocals");
+    destroyAudio("playerMusic");
+
+    // ---------------------------
+    // revoke object URLs
+    // ---------------------------
+    if (window.currentVocalObjectURL) {
+      URL.revokeObjectURL(window.currentVocalObjectURL);
+      window.currentVocalObjectURL = null;
+    }
+
+    if (window.currentAccObjectURL) {
+      URL.revokeObjectURL(window.currentAccObjectURL);
+      window.currentAccObjectURL = null;
+    }
+
+    // ---------------------------
+    // clear blobs
+    // ---------------------------
+    window.currentVocalsBlob = null;
+    window.currentMusicBlob = null;
+
+    // ---------------------------
+    // clear current song refs
+    // ---------------------------
+    window.currentSong = null;
+
+    console.log("🧠 Audio memory fully cleared");
+
+  } catch (e) {
+    console.warn("⚠️ Memory cleanup failed:", e);
   }
 
-  // MUSIC
-  if (window.playerMusic) {
-    window.playerMusic.pause();
-    window.playerMusic.removeAttribute("src");
-    window.playerMusic.src = "";
-    window.playerMusic.load();
-    window.playerMusic.currentTime = 0;
+
+  // =====================================
+  // DELETE FROM CACHE STORAGE
+  // =====================================
+
+  let removed = false;
+
+  try {
+
+    for (const url of [vocalURL, accURL]) {
+
+      if (!url) continue;
+
+      const deleted = await cache.delete(url, {
+        ignoreSearch: true,
+        ignoreMethod: true,
+        ignoreVary: true
+      });
+
+      console.log(
+        deleted
+          ? `🗑️ Removed cache: ${url}`
+          : `⚠️ Cache not found: ${url}`
+      );
+
+      if (deleted) removed = true;
+    }
+
+  } catch (e) {
+    console.warn("Cache deletion failed:", e);
   }
 
-  // Clear object URLs
-  if (window.currentVocalObjectURL) {
-    URL.revokeObjectURL(window.currentVocalObjectURL);
-    window.currentVocalObjectURL = null;
-  }
 
-  if (window.currentAccObjectURL) {
-    URL.revokeObjectURL(window.currentAccObjectURL);
-    window.currentAccObjectURL = null;
-  }
 
-  console.log("🧠 Fully cleared audio memory");
+  // =====================================
+  // FORCE GC ELIGIBILITY
+  // =====================================
 
-} catch (e) {
-  console.warn("⚠️ Memory cleanup failed:", e);
+  setTimeout(() => {
+    console.log("♻️ Browser can now garbage collect audio");
+  }, 0);
+
+
+  // =====================================
+  // UI
+  // =====================================
+
+  showCacheStatus(
+    removed
+      ? `✅ Cleared ${songName}`
+      : `⚠️ No cache found`,
+    removed ? "green" : "gray"
+  );
 }
-
-
-// ✅ Delete from cache storage
-let removed = false;
-
-for (const url of [vocalURL, accURL]) {
-
-  // delete normal URL
-  const deleted = await cache.delete(url, {
-    ignoreSearch: true,
-    ignoreMethod: true,
-    ignoreVary: true
-  });
-
-  if (deleted) {
-    console.log("🗑️ Removed:", url);
-    removed = true;
-  }
-}
-
-// ✅ Reset global references
-window.currentSong = null;
-window.currentVocalsBlob = null;
-window.currentMusicBlob = null;
-
-
-// ✅ Update UI
-showCacheStatus(
-  removed ? `✅ Cleared ${songName}` : `⚠️ No cache found`,
-  removed ? "green" : "gray"
-);
-}
-
 
 
 
