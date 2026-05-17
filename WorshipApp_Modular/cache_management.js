@@ -219,6 +219,37 @@ async function clearSingleSongCache(songName) {
     return;
   }
 
+
+    // ✅ Also clear browser memory cache for currently loaded song
+  try {
+    if (window.playerVocals) {
+      window.playerVocals.src = "";
+      window.playerVocals.load();
+    }
+
+    if (window.playerMusic) {
+      window.playerMusic.src = "";
+      window.playerMusic.load();
+    }
+
+    // Clear object URLs from memory
+    if (window.currentVocalObjectURL) {
+      URL.revokeObjectURL(window.currentVocalObjectURL);
+      window.currentVocalObjectURL = null;
+    }
+
+    if (window.currentAccObjectURL) {
+      URL.revokeObjectURL(window.currentAccObjectURL);
+      window.currentAccObjectURL = null;
+    }
+
+    console.log("🧠 Cleared in-memory audio references");
+  } catch (e) {
+    console.warn("⚠️ Memory cleanup failed:", e);
+  }
+
+
+
   
 
   let removed = false;
