@@ -5,8 +5,8 @@
   },
   "tamilSegments": [
     {
-      "start": null,
-      "end": null,
+      "start": 25.142,
+      "end": 113.594,
       "lyrics": [
         "பள்ளத்தாக்கில் நடக்கும்போது",
         "என்னை காண்பவரே..",
@@ -43,8 +43,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 146.963,
+      "end": 235.904,
       "lyrics": [
         "இருள் நிறைந்த பள்ளத்தாக்கில்",
         "நடக்க நேர்ந்தாலும்..",
@@ -81,8 +81,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 260.844,
+      "end": 349.909,
       "lyrics": [
         "சோர்ந்து போகும் நேரத்தில்",
         "உம் பெலனை தருகின்றீ..ர்",
@@ -116,8 +116,8 @@
       ]
     },
     {
-      "start": null,
-      "end": null,
+      "start": 350.397,
+      "end": 422.608,
       "lyrics": [
         "பள்ளத்தாக்கில் நடக்கும்போது",
         "என்னை காண்பவரே..",
@@ -150,8 +150,8 @@
   ],
   "englishSegments": [
     {
-      "start": null,
-      "end": null,
+      "start": 25.142,
+      "end": 113.594,
       "lyrics": [
         "Pallathaakkil Nadakkumpothu",
         "Ennai Kaanbavarae",
