@@ -220,48 +220,81 @@ async function clearSingleSongCache(songName) {
   }
 
 
-    // ✅ Also clear browser memory cache for currently loaded song
-  try {
-    if (window.playerVocals) {
-      window.playerVocals.src = "";
-      window.playerVocals.load();
-    }
 
-    if (window.playerMusic) {
-      window.playerMusic.src = "";
-      window.playerMusic.load();
-    }
+// ✅ Fully clear loaded audio from memory
+try {
 
-    // Clear object URLs from memory
-    if (window.currentVocalObjectURL) {
-      URL.revokeObjectURL(window.currentVocalObjectURL);
-      window.currentVocalObjectURL = null;
-    }
-
-    if (window.currentAccObjectURL) {
-      URL.revokeObjectURL(window.currentAccObjectURL);
-      window.currentAccObjectURL = null;
-    }
-
-    console.log("🧠 Cleared in-memory audio references");
-  } catch (e) {
-    console.warn("⚠️ Memory cleanup failed:", e);
+  // VOCALS
+  if (window.playerVocals) {
+    window.playerVocals.pause();
+    window.playerVocals.removeAttribute("src");
+    window.playerVocals.src = "";
+    window.playerVocals.load();
+    window.playerVocals.currentTime = 0;
   }
 
-
-
-  
-
-  let removed = false;
-  for (const url of [vocalURL, accURL]) {
-    const deleted = await cache.delete(url);
-    if (deleted) {
-      console.log("🗑️ Removed:", url);
-      removed = true;
-    }
+  // MUSIC
+  if (window.playerMusic) {
+    window.playerMusic.pause();
+    window.playerMusic.removeAttribute("src");
+    window.playerMusic.src = "";
+    window.playerMusic.load();
+    window.playerMusic.currentTime = 0;
   }
-  showCacheStatus(removed ? `✅ Cleared ${songName}` : `⚠️ No cache found`, removed ? "green" : "gray");
+
+  // Clear object URLs
+  if (window.currentVocalObjectURL) {
+    URL.revokeObjectURL(window.currentVocalObjectURL);
+    window.currentVocalObjectURL = null;
+  }
+
+  if (window.currentAccObjectURL) {
+    URL.revokeObjectURL(window.currentAccObjectURL);
+    window.currentAccObjectURL = null;
+  }
+
+  console.log("🧠 Fully cleared audio memory");
+
+} catch (e) {
+  console.warn("⚠️ Memory cleanup failed:", e);
 }
+
+
+// ✅ Delete from cache storage
+let removed = false;
+
+for (const url of [vocalURL, accURL]) {
+
+  // delete normal URL
+  const deleted = await cache.delete(url, {
+    ignoreSearch: true,
+    ignoreMethod: true,
+    ignoreVary: true
+  });
+
+  if (deleted) {
+    console.log("🗑️ Removed:", url);
+    removed = true;
+  }
+}
+
+// ✅ Reset global references
+window.currentSong = null;
+window.currentVocalsBlob = null;
+window.currentMusicBlob = null;
+
+
+// ✅ Update UI
+showCacheStatus(
+  removed ? `✅ Cleared ${songName}` : `⚠️ No cache found`,
+  removed ? "green" : "gray"
+);
+}
+
+
+
+
+
 
 // ==================================================
 // 📊 4️⃣ Cache info (how many + size)
