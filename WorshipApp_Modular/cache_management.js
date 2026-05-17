@@ -177,22 +177,12 @@ async function clearAllSongCache() {
     return;
   }
 
-    // ✅ Step 4: Ask for password before deleting
-  const password = prompt("🔐 Enter password as 123 to delete ALL songs:");
-
-  if (password !== "123") {
-    alert("❌ Wrong password. Deletion cancelled.");
-    showCacheStatus("❎ Wrong password", "red");
-    return;
-  }
-
-  // ✅ Step 5: Proceed only if password is correct
+  // ✅ Step 4: Proceed only if all confirmed
   await caches.delete(SONG_CACHE_NAME);
-
   showCacheStatus("🧹 All cached songs cleared", "orange");
+  console.log("🔥 All cached songs have been erased after triple confirmation.");
+}
 
-  console.log("🔥 All cached songs have been erased after password confirmation.");
- }
 
 // ==================================================
 // 🧹 3️⃣ Clear selected song cache
@@ -205,21 +195,8 @@ async function clearSingleSongCache(songName) {
   const accURL   = `${BASE_URL}${songName}_acc.mp3?v=${versionTag}`;
 
   const cache = await caches.open(SONG_CACHE_NAME);
-
-  // ✅ First confirmation
   const ok = confirm(`🧹 Delete cached files for "${songName}"?`);
   if (!ok) return;
-
-  // ✅ Password confirmation
-  const password = prompt("🔐 Enter password as 123 to delete this song:");
-
-  if (password !== "123") {
-    alert("❌ Wrong password. Deletion cancelled.");
-    showCacheStatus("❎ Wrong password", "red");
-    return;
-  }
-
-  
 
   let removed = false;
   for (const url of [vocalURL, accURL]) {
