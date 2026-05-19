@@ -34,6 +34,7 @@ window.star = [
   "** உந்தன் நாமம் மகிமை பெற Unthan naamam magimai pera",
   "*** உமதுமுகம் நோக்கி Umathu mugam nokki",
   "*** உம்முன்னே எனக்கு நிறைவான Ummunnae enakku niraivaana",
+  "*** உம்மை நம்பும் நான் Ummai nambum naan",
   "** உம்மை புகழ்ந்து பாடுவது நல்லது Ummai pukalnthu paaduvathu",
   "* உம்மை போல மாறனுமே Ummai Pola Maaranumae",
   "** உன்னத தேவனே Unnatha Devane",
