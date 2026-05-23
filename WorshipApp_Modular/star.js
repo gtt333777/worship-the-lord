@@ -74,6 +74,7 @@ window.star = [
   "* யோசனையில் பெரியவரே Yosanaiyil Periyavare",
   "* ராஜா உம் மாளிகையில் Raja um maligaiyil",
   "* வாதை உந்தன் கூடாரத்தை Vaathai unthan koodaaraththai",
+  "*** விண்ணக மேகம் இறங்கணும் Vinnaga megam iranganum",
   "* விண்ணப்பத்தைக் கேட்பவரே Vinnapathai ketpavare",
   "* விண்ணிலும் மண்ணிலும் உம்மைத்தவிர Vinnilum Mannilum",
   "* வேடரின் கண்ணிக்கு Vedarin kanniku",
