@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 45.975,
+      "end": 88.455,
+      "lyrics": [
+        "அபிஷே..க ஒலிவ மரம்",
+        "உம் ஆலயத்தில் நடப்பட்டவன்",
+        "உம் சமூகத்தில் வாழ்கின்றவன்",
+        "உம் அன்பயே நம்புவன்           1T",
+        "நான் உம் அபிஷே..க ஒலிவ மரம்",
+        "உம் ஆலயத்தில் நடப்பட்டவன்",
+        "உம் சமூகத்தில் வாழ்கின்றவன்",
+        "உம் அன்பயே நம்புவன்           2T"
+      ]
+    },
+    {
+      "start": 88.662,
+      "end": 153.251,
+      "lyrics": [
+        "உம் வசனம் தான் பசி ஆற்றும் உணவு",
+        "உம் பிரசன்னம் தான் தாகம் தீர்க்கும் தண்ணீ...ர்  1T",
+        "உம் வசனம் தான் பசி ஆற்றும் உணவு",
+        "உம் பிரசன்னம் தான் தாகம் தீர்க்கும் தண்ணீ...ர்  2T",
+        "நீரே என் வெளிச்சமும் மீ..ட்புமானீர்",
+        "நீரே என் ஜீவனின் பெலனானீர்    1T",
+        "நீரே என் வெளிச்சமும் மீ..ட்புமானீர்",
+        "நீரே என் ஜீவனின் பெலனானீர்    2T",
+        "நான் உம் அபிஷே..க ஒலிவ மரம்",
+        "உம் ஆலயத்தில் நடப்பட்டவன்",
+        "உம் சமூகத்தில் வாழ்கின்றவன்",
+        "உம் அன்பயே நம்புவன்           1T only"
+      ]
+    },
+    {
+      "start": 197.532,
+      "end": 261.576,
+      "lyrics": [
+        "கா..ப்பாற்றும் காவலர் நீ..ரே",
+        "அயராது நீர் பாய்ச்சுவீரே...   1T என்னை",
+        "கா..ப்பாற்றும் காவலர் நீ..ரே",
+        "அயராது நீர் பாய்ச்சுவீரே...   2T",
+        "என் தே..வைகள் யாவையும் சந்திப்பவரே",
+        "எந்த சே..தம் இன்றி காப்பவரே  1T",
+        "என் தே..வைகள் யாவையும் சந்திப்பவரே",
+        "எந்த சே..தம் இன்றி காப்பவரே  2T",
+        "நான் உம் அபிஷே..க ஒலிவ மரம்",
+        "உம் ஆலயத்தில் நடப்பட்டவன்",
+        "உம் சமூகத்தில் வாழ்கின்றவன்",
+        "உம் அன்பயே நம்புவன்           1T only"
+      ]
+    },
+    {
+      "start": 284.131,
+      "end": 369.61,
+      "lyrics": [
+        "பெலன் தரும் புகலிடம் நீ..ரே",
+        "உம்மில் வேரூன்ற கிருபை செய்தீரே... 1T",
+        "பெலன் தரும் புகலிடம் நீ..ரே",
+        "உம்மில் வேரூன்ற கிருபை செய்தீரே... 2T",
+        "மலர்ந்திடுவேன் நான் கனிகொடுப்பேன்",
+        "உலகம் எங்கும் நான் பலன் கொடுப்பேன் 1T",
+        "மலர்ந்திடுவேன் நான் கனிகொடுப்பேன்",
+        "இந்த உலகம் எங்கும் உமக்காய் பலன் கொடுப்பேன் 2T",
+        "அபிஷே..க ஒலிவ மரம்",
+        "உம் ஆலயத்தில் நடப்பட்டவன்",
+        "உம் சமூகத்தில் வாழ்கின்றவன்",
+        "உம் அன்பயே நம்புவன்           1T",
+        "நான் உம் அபிஷே..க ஒலிவ மரம்",
+        "உம் ஆலயத்தில் நடப்பட்டவன்",
+        "உம் சமூகத்தில் வாழ்கின்றவன்",
+        "உம் அன்பயே நம்புவன்           2T"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 45.975,
+      "end": 88.455,
+      "lyrics": [
+        "Abishega Oliva Maram- அபிஷேக ஒலிவ மரம் Lyrics in English",
+        "Apishaeka oliva maram",
+        "Uma aalayaththil nadappattavan",
+        "Uma samookaththil vaalkintavan",
+        "Uma anpayae nampuvan – naan um"
+      ]
+    },
+    {
+      "start": 88.662,
+      "end": 153.251,
+      "lyrics": [
+        "Um vasanam thaan pasi aattaுm unavu",
+        "Um pirasannam thaan thaakam theerkkum thannnneer – 2",
+        "Neerae en velichchamum meetpumaaneer",
+        "Neerae en jeevanin pelanaaneer – 2"
+      ]
+    },
+    {
+      "start": 197.532,
+      "end": 261.576,
+      "lyrics": [
+        "Kaappaattaுm kaavalar neerae",
+        "Ayaraathu neer paaychchuveerae – ennai",
+        "En thaevaikal yaavaiyum santhippavarae",
+        "Entha setham inti kaappavarae -2"
+      ]
+    },
+    {
+      "start": 284.131,
+      "end": 369.61,
+      "lyrics": [
+        "Pelan tharum pukalidam neerae",
+        "Ummil vaeroonnda kirupai seytheerae",
+        "Malarnthiduvaen naan kanikoduppaen",
+        "Ulakam engum naan pelan koduppaen",
+        "Malarnthiduvaen naan kanikoduppaen",
+        "Ulakam engum naan palan koduppaen",
+        "Intha ulakam engum umakkaay naan palan koduppaen"
+      ]
+    }
+  ]
+}
