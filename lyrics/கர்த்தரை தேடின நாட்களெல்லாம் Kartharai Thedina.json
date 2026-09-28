@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 29.163,
+      "end": 77.842,
+      "lyrics": [
+        "கர்த்தரை தேடின நாட்களெல்லாம்",
+        "காரியம் வாய்க்கச் செய்தாரே",
+        "எத்தனை எத்தனை நன்மைகளோ",
+        "இயேசப்பா செய்தாரே – நான்",
+        "இறுதிவரை என் வாழ்வு",
+        "இயேசப்பா உமக்குத்தானே",
+        "கால்கள் தள்ளாட விடமாட்டார்",
+        "காக்கும் தேவன் உறங்க மாட்டார்",
+        "இஸ்ராயேலைக் காக்கிறவர்",
+        "எந்நாளும் தூங்க மாட்டார் – இறுதி",
+        "கர்த்தர் என்னைக் காக்கின்றார்",
+        "எனது நிழலாய் இருக்கின்றார்",
+        "பகலினிலும், இரவினிலும்",
+        "பாதுகாக்கின்றார்",
+        "போகும் போதும் காக்கின்றார்",
+        "திரும்பும் போதும் காக்கின்றார்",
+        "இப்போதும், எப்போதும்",
+        "எந்நாளும் காத்திடுவார்"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 29.163,
+      "end": 77.842,
+      "lyrics": [
+        "Kartharai Thedina Naatkalellaam",
+        "kaariyam Vaaykkach Seythaarae",
+        "Eththanai Eththanai Nanmaikalo",
+        "Iyaesappaa Seythaarae - Naan",
+        "iruthivarai En Vaalvu",
+        "Iyaesappaa Umakkuththaanae",
+        "kaalkal Thallaada Vidamaattar",
+        "Kaakkum Thaevan Uranga Maattar",
+        "Israayaelaik Kaakkiravar",
+        "Ennaalum Thoonga Maattar - Iruthi",
+        "karththar Ennaik Kaakkintar",
+        "Enathu Nilalaay Irukkintar",
+        "Pakalinilum, Iravinilum",
+        "Paathukaakkintar",
+        "pokum Pothum Kaakkintar",
+        "Thirumpum Pothum Kaakkintar",
+        "Ippothum, Eppothum",
+        "Ennaalum Kaaththiduvaar"
+      ]
+    }
+  ]
+}
