@@ -56,6 +56,7 @@ window.star = [
   "** என் ஹக்கோர் En Hakkore",
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** ஒரு நாளும் என்னை மறவா Oru naalum ennai marava",
+  "* கர்த்தரை தேடின நாட்களெல்லாம் Kartharai Thedina",
   "*** காக்கும் தெய்வம் இயேசு இருக்க Kakkum deivam yesu iruka",
   "** கூடுமே எல்லாம் கூடுமே Koodume Ellam Koodume",
   "*** சிலுவையில் நிழலில் அனுதினம் அடியான் Siluvaiyin Nizhalil",
