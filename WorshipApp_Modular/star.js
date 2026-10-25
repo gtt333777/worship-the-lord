@@ -54,6 +54,7 @@ window.star = [
   "** எனது மணவாளனே Enathu Manavalane",
   "* என் மீட்பர் உயிரோடிருக்கையிலே En Meetpar Uyirodirukkaiyile",
   "** என் ஹக்கோர் En Hakkore",
+  "* என்றும் ஆனந்தம் Endrum Anandham",
   "** ஐயா உம் திரு நாமம் Aiyaa um thirunaamam",
   "*** ஒரு நாளும் என்னை மறவா Oru naalum ennai marava",
   "* கர்த்தரை தேடின நாட்களெல்லாம் Kartharai Thedina",
