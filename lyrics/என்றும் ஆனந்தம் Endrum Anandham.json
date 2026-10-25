@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "type": "WorshipSongData",
+    "version": 1
+  },
+  "tamilSegments": [
+    {
+      "start": 34.504,
+      "end": 76.259,
+      "lyrics": [
+        "என்றும் ஆனந்தம் என் இயேசு தருகிறார் 1T",
+        "என்றும் ஆனந்தம் என் இயேசு தருகிறார் 2T",
+        "துதிப்பேன் துதிப்பேன்",
+        "துதித்துக் கொண்டேயிருப்பேன் 1T",
+        "துதிப்பேன் துதிப்பேன்",
+        "துதித்துக் கொண்டேயிருப்பேன் 2T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 1T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 2T"
+      ]
+    },
+    {
+      "start": 76.36,
+      "end": 122.045,
+      "lyrics": [
+        "உன்னதர் மறைவில் வல்லவர் நிழலில்",
+        "என்றும் தங்குவேன் 1T",
+        "உன்னதர் மறைவில் வல்லவர் நிழலில்",
+        "என்றும் தங்குவேன் 2T",
+        "தேவனை நோக்கி அடைக்கலப் பாறை",
+        "என்றே சொல்லுவேன் 1T",
+        "தேவனை நோக்கி அடைக்கலப் பாறை",
+        "என்றே சொல்லுவேன் 2T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 1T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 2"
+      ]
+    },
+    {
+      "start": 141.388,
+      "end": 186.694,
+      "lyrics": [
+        "தமது சிறகால் என்னை மூடி",
+        "காத்து நடத்துவார் 1T",
+        "தமது சிறகால் என்னை மூடி",
+        "காத்து நடத்துவார் 2T",
+        "அவரது வசனம் ஆவியின் பட்டயம்",
+        "எனது கேடகம் 1T",
+        "அவரது வசனம் ஆவியின் பட்டயம்",
+        "எனது கேடகம் 2T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 1T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 2"
+      ]
+    },
+    {
+      "start": 210.213,
+      "end": 255.901,
+      "lyrics": [
+        "வழிகளிளெல்லாம் என்னைக் காக்க",
+        "தூதர்கள் எனக்குண்டு 1T",
+        "வழிகளிளெல்லாம் என்னைக் காக்க",
+        "தூதர்கள் எனக்குண்டு 2T",
+        "பாதம் கல்லில் மோதாமல் காத்து",
+        "கரங்களில் ஏந்துவார் 1T",
+        "பாதம் கல்லில் மோதாமல் காத்து",
+        "கரங்களில் ஏந்துவார் 2T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 1T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 2"
+      ]
+    },
+    {
+      "start": 275.106,
+      "end": 328.584,
+      "lyrics": [
+        "சிங்கத்தின் மேலும் பாம்பின் மேலும்",
+        "நடந்தே செல்லுவேன் 1T",
+        "சிங்கத்தின் மேலும் பாம்பின் மேலும்",
+        "நடந்தே செல்லுவேன் 2T",
+        "சாத்தானின் சகல வலிமையை வெல்ல",
+        "அதிகாரம் எனக்குண்டு 1T",
+        "சாத்தானின் சகல வலிமையை வெல்ல",
+        "அதிகாரம் எனக்குண்டு 1T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 1T",
+        "அல்லேலூயா ஆனந்தமே",
+        "அல்லேலூயா ஆனந்தமே 2"
+      ]
+    }
+  ],
+  "englishSegments": [
+    {
+      "start": 34.504,
+      "end": 76.259,
+      "lyrics": [
+        "Endrum Anandham En Yesu Tharukiraar",
+        "Thuthippaen Thuthippaen",
+        "Thuthiththuk Konntaeyiruppaen",
+        "Allaelooyaa Aananthamae (2)",
+        "1. Unnathar Maraivil Vallavar Nilalil",
+        "Entum Thanguvaen",
+        "Thaevanai Nnokki Ataikkalap Paarai",
+        "Ente Solluvaen",
+        "2. Thamathu Sirakaal Ennai Mooti",
+        "Kaaththu Nadaththuvaar",
+        "Avarathu Vasanam Aaviyin Pattayam",
+        "Enathu Kaedakam",
+        "3. Valikalilellaam Ennaik Kaakka",
+        "Thootharkal Enakkunndu",
+        "Paatham Kallil Mothaamal Kaaththu",
+        "Karangalil Aenthuvaar",
+        "4. Singaththin Maelum Paampin Maelum",
+        "Nadanthae Selluvaen",
+        "Saaththaanin Sakala Valimaiyai Vella",
+        "Athikaaram Enakkunndu",
+        "5. Aapaththu Naeram Kooppidum Enakku",
+        "Entum Pathilunndu",
+        "Ennodu Irunthu Viduthalai Koduththu",
+        "Ennai Uyarththuvaar",
+        "6. Iravin Payangaram Pakalin Ampu",
+        "Etharkum Payamillai",
+        "Unnatha Thaevan Enathu Ataikkalam",
+        "Thangum Uraividam",
+        "7. Thaevanaich Saarnthu Vaalkinta Enakku",
+        "Entum Viduthalai",
+        "Avarathu Naamam Arintha Enakku",
+        "Avarae Ataikkalam",
+        "5. ஆபத்து நேரம் கூப்பிடும் எனக்கு",
+        "என்றும் பதிலுண்டு",
+        "என்னோடு இருந்து விடுதலை கொடுத்து",
+        "என்னை உயர்த்துவார்",
+        "6. இரவின் பயங்கரம் பகலின் அம்பு",
+        "எதற்கும் பயமில்லை",
+        "உன்னத தேவன் எனது அடைக்கலம்",
+        "தங்கும் உறைவிடம்",
+        "7. தேவனைச் சார்ந்து வாழ்கின்ற எனக்கு",
+        "என்றும் விடுதலை",
+        "அவரது நாமம் அறிந்த எனக்கு",
+        "அவரே அடைக்கலம்"
+      ]
+    }
+  ]
+}
