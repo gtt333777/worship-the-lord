@@ -31,6 +31,7 @@ window.star = [
   "# ஆராதனை நாயகர் நீரே Aaradhanai nayagan neere ONLY MUSIC",
   "** ஆவியானவரே ஆவியானவரே பரிசுத்த Aaviyanavare Aaviyanavare",
   "# இம்மானுவேல் இம்மானுவேல் Immaanuvael Immaanuvael",
+  "** இயேசப்பா உங்க நாமத்தில் Yesappa Unga Namathil",
   "** இயேசுவைப் போல் அழகுள்ளோர் Yesuvai Pol Azhagullore",
   "*** இன்ப இயேசு ராஜாவை நான் Inba Yesu Raja Vai Naan",
   "** உந்தன் நாமம் மகிமை பெற Unthan naamam magimai pera",
