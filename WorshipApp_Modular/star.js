@@ -55,6 +55,7 @@ window.star = [
   "** எப்படி நான் பாடுவேன் Eppadi naan paaduvaen",
   "** எல்லாம் இயேசுவே எனக்கெல்லா மேசுவே Yellam Yesuve Enakkellam",
   "** எனது மணவாளனே Enathu Manavalane",
+  "** என் உதடு உம்மை துதிக்கும் Yen Uthadu Ummai Thuthikkum",
   "* என் மீட்பர் உயிரோடிருக்கையிலே En Meetpar Uyirodirukkaiyile",
   "** என் ஹக்கோர் En Hakkore",
   "* என்றும் ஆனந்தம் Endrum Anandham",
