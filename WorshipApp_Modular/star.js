@@ -21,6 +21,7 @@ window.star = [
 // ---------------------------------------
 
 window.star = [
+  "** அக்கினி மூண்டது அனல் கொண்டது Akkini Moondathu",
   "** அந்திய கால அபிஷேகம் Anthyakala Abhishekam",
   "** அப்பா உம் சமூகத்திலே Appaa um samoogathilae",
   "* அப்பா உம் பாதம் அமர்ந்துவிட்டேன் Appaa um paatham amarnthuvittaen",
