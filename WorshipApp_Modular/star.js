@@ -36,6 +36,7 @@ window.star = [
   "** இயேசப்பா உங்க நாமத்தில் Yesappa Unga Namathil",
   "** இயேசுவைப் போல் அழகுள்ளோர் Yesuvai Pol Azhagullore",
   "*** இன்ப இயேசு ராஜாவை நான் Inba Yesu Raja Vai Naan",
+  "** உந்தன் ஆவி எந்தன் உள்ளம் unthan Aavi Enthan Ullam",
   "** உந்தன் நாமம் மகிமை பெற Unthan naamam magimai pera",
   "*** உமதுமுகம் நோக்கி Umathu mugam nokki",
   "** உம் நாமம் பாடணுமே Um Naamam Paadanume",
